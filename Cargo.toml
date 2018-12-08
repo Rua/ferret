@@ -1,0 +1,18 @@
+[package]
+name = "ferret"
+version = "0.1.0"
+authors = ["Rua <ruawhitepaw@gmail.com>"]
+publish = false
+edition = "2018"
+
+[dependencies]
+alto = "3.0.3"
+byteorder = "1.2.7"
+colored = "1.6.1"
+lazy_static = "1.2.0"
+log = {version = "0.4.6", features = ["release_max_level_info"]}
+nalgebra = "0.16.12"
+net2 = "0.2.33"
+regex = "1.1.0"
+sdl2 = {version = "0.32.0", features = ["mixer"]}
+vulkano = "0.11.1"
