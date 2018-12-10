@@ -1,5 +1,6 @@
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::surface::Surface;
+use std::error::Error;
 use std::sync::Arc;
 use vulkano::buffer::{BufferUsage, ImmutableBuffer};
 use vulkano::device::Queue;
@@ -13,27 +14,30 @@ use crate::geometry::{BoundingBox3, Plane};
 use crate::sprite::SpriteFrame;
 
 
-#[derive(Clone)]
-pub struct VertexData {
-	pub in_position: [f32; 3],
-	pub in_tex_coord: [f32; 2],
-}
-impl_vertex!(VertexData, in_position, in_tex_coord);
-
 pub struct BSPModel {
 	vertices: DataOrBuffer,
-	faces: Vec<(usize, usize)>,
+	textures: Vec<Texture>,
+	faces: Vec<Face>,
+	leaves: Vec<BSPLeaf>,
+	branches: Vec<BSPBranch>,
 }
 
 impl BSPModel {
-	pub fn new(vertices: Vec<VertexData>, faces: Vec<(usize, usize)>) -> BSPModel {
+	pub fn new(vertices: Vec<VertexData>, textures: Vec<Surface<'static>>, faces: Vec<Face>, leaves: Vec<BSPLeaf>, branches: Vec<BSPBranch>) -> BSPModel {
 		BSPModel {
 			vertices: DataOrBuffer::Data(vertices),
+			textures: textures.into_iter().map(Texture::new).collect(),
 			faces,
+			leaves,
+			branches,
 		}
 	}
 	
-	pub fn upload(&mut self, queue: &Arc<Queue>) -> Result<Box<dyn GpuFuture>, DeviceMemoryAllocError> {
+	pub fn upload(&mut self, queue: &Arc<Queue>) -> Result<Box<dyn GpuFuture>, Box<dyn Error>> {
+		for texture in &mut self.textures {
+			texture.upload(queue)?;
+		}
+		
 		match &self.vertices {
 			DataOrBuffer::Data(data) => {
 				let (buffer, future) = ImmutableBuffer::from_iter(
@@ -52,21 +56,37 @@ impl BSPModel {
 	}
 }
 
+#[derive(Debug, Clone)]
+pub struct VertexData {
+	pub in_position: [f32; 3],
+	pub in_tex_coord: [f32; 2],
+}
+impl_vertex!(VertexData, in_position, in_tex_coord);
+
+#[derive(Debug, Clone)]
+pub struct Face {
+	pub first_vertex_index: usize,
+	pub vertex_count: usize,
+}
+
+#[derive(Debug, Clone)]
 pub struct BSPBranch {
-	plane: Plane,
-	bounding_box: BoundingBox3,
-	children: [usize; 2],
+	pub plane: Plane,
+	pub bounding_box: BoundingBox3,
+	pub children: [BSPNode; 2],
 }
 
+#[derive(Debug, Clone)]
 pub struct BSPLeaf {
-	first_face_index: usize,
-	count: usize,
-	bounding_box: BoundingBox3,
+	pub first_face_index: usize,
+	pub face_count: usize,
+	pub bounding_box: BoundingBox3,
 }
 
+#[derive(Debug, Copy, Clone)]
 pub enum BSPNode {
-	Leaf(BSPLeaf),
-	Branch(BSPBranch),
+	Leaf(usize),
+	Branch(usize),
 }
 
 pub struct SpriteModel {

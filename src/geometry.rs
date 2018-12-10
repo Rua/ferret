@@ -1,6 +1,7 @@
 use nalgebra::{Vector2, Vector3};
 use std::f32::{INFINITY, NEG_INFINITY};
 
+#[derive(Debug, Clone)]
 pub struct BoundingBox2 {
 	pub min: Vector2<f32>,
 	pub max: Vector2<f32>,
@@ -17,11 +18,16 @@ impl BoundingBox2 {
 		}
 	}
 	
+	pub fn zero() -> BoundingBox2 {
+		BoundingBox2::new(Vector2::zeros(), Vector2::zeros())
+	}
+	
 	pub fn from_extents(top: f32, bottom: f32, left: f32, right: f32) -> BoundingBox2 {
 		BoundingBox2::new(Vector2::new(bottom, left), Vector2::new(top, right))
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct BoundingBox3 {
 	pub min: Vector3<f32>,
 	pub max: Vector3<f32>,
@@ -38,10 +44,14 @@ impl BoundingBox3 {
 			max,
 		}
 	}
+	
+	pub fn zero() -> BoundingBox3 {
+		BoundingBox3::new(Vector3::zeros(), Vector3::zeros())
+	}
 }
 
-impl From<BoundingBox2> for BoundingBox3 {
-	fn from(bounding_box: BoundingBox2) -> BoundingBox3 {
+impl From<&BoundingBox2> for BoundingBox3 {
+	fn from(bounding_box: &BoundingBox2) -> BoundingBox3 {
 		BoundingBox3::new(
 			Vector3::new(
 				bounding_box.min[0],
@@ -57,7 +67,8 @@ impl From<BoundingBox2> for BoundingBox3 {
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct Plane {
-	normal: Vector3<f32>,
-	distance: f32,
+	pub normal: Vector3<f32>,
+	pub distance: f32,
 }

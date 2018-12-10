@@ -1,12 +1,13 @@
 use byteorder::{LE, ReadBytesExt};
-use nalgebra::Vector2;
+use nalgebra::{Vector2, Vector3};
+use std::cmp;
 use std::error::Error;
 use std::io;
 use std::io::{ErrorKind, Read};
 use std::str;
 
-use crate::geometry::BoundingBox2;
-use crate::model::{BSPModel, VertexData};
+use crate::geometry::{BoundingBox2, BoundingBox3, Plane};
+use crate::model::{BSPBranch, BSPLeaf, BSPModel, BSPNode, Face, VertexData};
 use crate::doom::wad::WadLoader;
 
 pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Error>> {
@@ -23,11 +24,19 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 	let gl_ssect = gl_ssect::from_data(&mut loader.read_lump(index + gl_ssect::OFFSET)?)?;
 	let gl_nodes = gl_nodes::from_data(&mut loader.read_lump(index + gl_nodes::OFFSET)?)?;
 	
+	// Process all subsectors, add geometry for each seg
 	let mut vertices = Vec::new();
 	let mut faces = Vec::new();
+	let mut leaves = Vec::new();
 	
 	for ssect in gl_ssect {
-		let segs = &gl_segs[ssect.first_seg_index .. ssect.first_seg_index + ssect.count];
+		let mut leaf = BSPLeaf {
+			first_face_index: faces.len(),
+			face_count: 0,
+			bounding_box: BoundingBox3::zero(),  // Temporary dummy value
+		};
+		
+		let segs = &gl_segs[ssect.first_seg_index .. ssect.first_seg_index + ssect.seg_count];
 		let mut sector = None;
 		
 		// Walls
@@ -65,36 +74,135 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 					let diff = end_vertex - start_vertex;
 					let width = nalgebra::norm(&diff);
 					
+					// Two-sided or one-sided sidedef?
 					if let Some(back_sidedef_index) = linedef.sidedef_indices[!seg.side as usize] {
 						let back_sidedef = &sidedefs[back_sidedef_index];
 						let back_sector = &sectors[back_sidedef.sector_index];
-					} else {
-						let total_height = front_sector.ceiling_height - front_sector.floor_height;
 						
-						faces.push((vertices.len(), 4));
-						vertices.push(VertexData {
-							in_position: [start_vertex[0], start_vertex[1], front_sector.floor_height],
-							in_tex_coord: [0.0, if linedef.flags & 16 != 0 { 0.0 } else { total_height }],
-						});
-						vertices.push(VertexData {
-							in_position: [end_vertex[0], end_vertex[1], front_sector.floor_height],
-							in_tex_coord: [width, if linedef.flags & 16 != 0 { 0.0 } else { total_height }],
-						});
-						vertices.push(VertexData {
-							in_position: [end_vertex[0], end_vertex[1], front_sector.ceiling_height],
-							in_tex_coord: [width, if linedef.flags & 16 != 0 { -total_height } else { 0.0 }],
-						});
-						vertices.push(VertexData {
-							in_position: [start_vertex[0], start_vertex[1], front_sector.ceiling_height],
-							in_tex_coord: [0.0, if linedef.flags & 16 != 0 { -total_height } else { 0.0 }],
-						});
+						let top_span = (front_sector.ceiling_height.min(back_sector.ceiling_height), front_sector.ceiling_height);
+						let bottom_span = (front_sector.floor_height, back_sector.floor_height.max(front_sector.floor_height));
+						let middle_span = (front_sector.floor_height.max(back_sector.floor_height), front_sector.ceiling_height.min(back_sector.ceiling_height));
+						
+						let total_height = top_span.1 - bottom_span.0;
+						let top_height = top_span.1 - top_span.0;
+						let bottom_height = bottom_span.1 - bottom_span.0;
+						let middle_height = middle_span.1 - middle_span.0;
+						
+						// Top section
+						if !front_sidedef.top_texture_name.is_empty() {
+							faces.push(Face {
+								first_vertex_index: vertices.len(),
+								vertex_count: 4,
+							});
+							leaf.face_count += 1;
+							
+							vertices.push(VertexData {
+								in_position: [start_vertex[0], start_vertex[1], top_span.0],
+								in_tex_coord: [0.0, if linedef.flags & 8 != 0 { top_height } else { 0.0 }],
+							});
+							vertices.push(VertexData {
+								in_position: [end_vertex[0], end_vertex[1], top_span.0],
+								in_tex_coord: [width, if linedef.flags & 8 != 0 { top_height } else { 0.0 }],
+							});
+							vertices.push(VertexData {
+								in_position: [end_vertex[0], end_vertex[1], top_span.1],
+								in_tex_coord: [width, if linedef.flags & 8 != 0 { 0.0 } else { -top_height }],
+							});
+							vertices.push(VertexData {
+								in_position: [start_vertex[0], start_vertex[1], top_span.1],
+								in_tex_coord: [0.0, if linedef.flags & 8 != 0 { 0.0 } else { -top_height }],
+							});
+						}
+						
+						// Bottom section
+						if !front_sidedef.bottom_texture_name.is_empty() {
+							faces.push(Face {
+								first_vertex_index: vertices.len(),
+								vertex_count: 4,
+							});
+							leaf.face_count += 1;
+							
+							vertices.push(VertexData {
+								in_position: [start_vertex[0], start_vertex[1], bottom_span.0],
+								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { total_height } else { bottom_height }],
+							});
+							vertices.push(VertexData {
+								in_position: [end_vertex[0], end_vertex[1], bottom_span.0],
+								in_tex_coord: [width, if linedef.flags & 16 != 0 { total_height } else { bottom_height }],
+							});
+							vertices.push(VertexData {
+								in_position: [end_vertex[0], end_vertex[1], bottom_span.1],
+								in_tex_coord: [width, if linedef.flags & 16 != 0 { total_height - bottom_height } else { 0.0 }],
+							});
+							vertices.push(VertexData {
+								in_position: [start_vertex[0], start_vertex[1], bottom_span.1],
+								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { total_height - bottom_height } else { 0.0 }],
+							});
+						}
+						
+						// Middle section
+						if !front_sidedef.middle_texture_name.is_empty() {
+							faces.push(Face {
+								first_vertex_index: vertices.len(),
+								vertex_count: 4,
+							});
+							leaf.face_count += 1;
+							
+							vertices.push(VertexData {
+								in_position: [start_vertex[0], start_vertex[1], middle_span.0],
+								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { 0.0 } else { middle_height }],
+							});
+							vertices.push(VertexData {
+								in_position: [end_vertex[0], end_vertex[1], middle_span.0],
+								in_tex_coord: [width, if linedef.flags & 16 != 0 { 0.0 } else { middle_height }],
+							});
+							vertices.push(VertexData {
+								in_position: [end_vertex[0], end_vertex[1], middle_span.1],
+								in_tex_coord: [width, if linedef.flags & 16 != 0 { -middle_height } else { 0.0 }],
+							});
+							vertices.push(VertexData {
+								in_position: [start_vertex[0], start_vertex[1], middle_span.1],
+								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { -middle_height } else { 0.0 }],
+							});
+						}
+					} else {
+						if !front_sidedef.middle_texture_name.is_empty() {
+							let total_height = front_sector.ceiling_height - front_sector.floor_height;
+							
+							faces.push(Face {
+								first_vertex_index: vertices.len(),
+								vertex_count: 4,
+							});
+							leaf.face_count += 1;
+							
+							vertices.push(VertexData {
+								in_position: [start_vertex[0], start_vertex[1], front_sector.floor_height],
+								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { 0.0 } else { total_height }],
+							});
+							vertices.push(VertexData {
+								in_position: [end_vertex[0], end_vertex[1], front_sector.floor_height],
+								in_tex_coord: [width, if linedef.flags & 16 != 0 { 0.0 } else { total_height }],
+							});
+							vertices.push(VertexData {
+								in_position: [end_vertex[0], end_vertex[1], front_sector.ceiling_height],
+								in_tex_coord: [width, if linedef.flags & 16 != 0 { -total_height } else { 0.0 }],
+							});
+							vertices.push(VertexData {
+								in_position: [start_vertex[0], start_vertex[1], front_sector.ceiling_height],
+								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { -total_height } else { 0.0 }],
+							});
+						}
 					}
 				}
 			}
 		}
 		
 		// Floor
-		faces.push((vertices.len(), segs.len()));
+		faces.push(Face {
+			first_vertex_index: vertices.len(),
+			vertex_count: segs.len(),
+		});
+		leaf.face_count += 1;
 		
 		for seg in segs.iter().rev() {
 			let start_vertex = if seg.start_vertex_index.1 {
@@ -110,7 +218,11 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 		}
 		
 		// Ceiling
-		faces.push((vertices.len(), segs.len()));
+		faces.push(Face {
+			first_vertex_index: vertices.len(),
+			vertex_count: segs.len(),
+		});
+		leaf.face_count += 1;
 		
 		for seg in segs.iter() {
 			let start_vertex = if seg.start_vertex_index.1 {
@@ -124,9 +236,55 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 				in_tex_coord: [start_vertex[0], start_vertex[1]]
 			});
 		}
+		
+		// Add the BSP leaf
+		leaves.push(leaf);
 	}
 	
-	Ok(BSPModel::new(vertices, faces))
+	// Process nodes
+	let mut branches = Vec::new();
+	
+	for node in &gl_nodes {
+		// Convert the Doom line definition into plane
+		let normal = Vector2::new(
+			node.partition_dir[1],  // 90 degree clockwise rotation
+			-node.partition_dir[0],
+		).normalize();
+		
+		branches.push(BSPBranch {
+			plane: Plane {
+				normal: Vector3::new(normal[0], normal[1], 0.0),
+				distance: nalgebra::dot(&normal, &node.partition_point),
+			},
+			bounding_box: BoundingBox3::zero(),  // Temporary dummy value
+			children: [node.right_child_index, node.left_child_index],
+		});
+	}
+	
+	// Set the bounding box values.
+	// Doom stores bounding boxes in the parent node,
+	// but BSPModel wants them in the current node.
+	for node in &gl_nodes {
+		match node.right_child_index {
+			BSPNode::Leaf(index) => {
+				leaves[index].bounding_box = BoundingBox3::from(&node.right_bbox);
+			},
+			BSPNode::Branch(index) => {
+				branches[index].bounding_box = BoundingBox3::from(&node.right_bbox);
+			},
+		}
+		
+		match node.left_child_index {
+			BSPNode::Leaf(index) => {
+				leaves[index].bounding_box = BoundingBox3::from(&node.left_bbox);
+			},
+			BSPNode::Branch(index) => {
+				branches[index].bounding_box = BoundingBox3::from(&node.left_bbox);
+			},
+		}
+	}
+	
+	Ok(BSPModel::new(vertices, Vec::new(), faces, leaves, branches))
 }
 
 pub mod things {
@@ -479,7 +637,7 @@ pub mod gl_ssect {
 	pub const OFFSET: usize = 3;
 	
 	pub struct DoomMapGLSSect {
-		pub count: usize,
+		pub seg_count: usize,
 		pub first_seg_index: usize,
 	}
 	
@@ -487,7 +645,7 @@ pub mod gl_ssect {
 		let mut gl_ssect = Vec::new();
 		
 		loop {
-			let count = match data.read_u16::<LE>() {
+			let seg_count = match data.read_u16::<LE>() {
 				Ok(val) => val,
 				Err(err) => {
 					if err.kind() == ErrorKind::UnexpectedEof {
@@ -500,7 +658,7 @@ pub mod gl_ssect {
 			let first_seg_index = data.read_u16::<LE>()? as usize;
 			
 			gl_ssect.push(DoomMapGLSSect {
-				count,
+				seg_count,
 				first_seg_index,
 			});
 		}
@@ -518,8 +676,8 @@ pub mod gl_nodes {
 		pub partition_dir: Vector2<f32>,
 		pub right_bbox: BoundingBox2,
 		pub left_bbox: BoundingBox2,
-		pub right_child_index: (usize, bool),
-		pub left_child_index: (usize, bool),
+		pub right_child_index: BSPNode,
+		pub left_child_index: BSPNode,
 	}
 	
 	pub fn from_data<T: Read>(data: &mut T) -> Result<Vec<DoomMapGLNodes>, io::Error> {
@@ -567,16 +725,16 @@ pub mod gl_nodes {
 				),
 				right_child_index: {
 					if (right_child_index & 0x8000) != 0 {
-						(right_child_index & 0x7FFF, true)
+						BSPNode::Leaf(right_child_index & 0x7FFF)
 					} else {
-						(right_child_index, false)
+						BSPNode::Branch(right_child_index)
 					}
 				},
 				left_child_index: {
 					if (left_child_index & 0x8000) != 0 {
-						(left_child_index & 0x7FFF, true)
+						BSPNode::Leaf(left_child_index & 0x7FFF)
 					} else {
-						(left_child_index, false)
+						BSPNode::Branch(left_child_index)
 					}
 				},
 			});
