@@ -1,3 +1,3 @@
-mod map;
+pub(crate) mod map;
 mod types;
-mod wad;
+pub(crate) mod wad;

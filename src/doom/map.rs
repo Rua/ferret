@@ -94,11 +94,11 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 						let middle_height = middle_span.1 - middle_span.0;
 						
 						// Top section
-						if !front_sidedef.top_texture_name.is_empty() {
+						if let Some(texture_name) = &front_sidedef.top_texture_name {
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
-								texture: texture_loader.load(&front_sidedef.top_texture_name, loader)?,
+								texture: texture_loader.load(texture_name, loader)?,
 							});
 							leaf.face_count += 1;
 							
@@ -121,11 +121,11 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 						}
 						
 						// Bottom section
-						if !front_sidedef.bottom_texture_name.is_empty() {
+						if let Some(texture_name) = &front_sidedef.bottom_texture_name {
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
-								texture: texture_loader.load(&front_sidedef.bottom_texture_name, loader)?,
+								texture: texture_loader.load(texture_name, loader)?,
 							});
 							leaf.face_count += 1;
 							
@@ -148,11 +148,11 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 						}
 						
 						// Middle section
-						if !front_sidedef.middle_texture_name.is_empty() {
+						if let Some(texture_name) = &front_sidedef.middle_texture_name {
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
-								texture: texture_loader.load(&front_sidedef.middle_texture_name, loader)?,
+								texture: texture_loader.load(texture_name, loader)?,
 							});
 							leaf.face_count += 1;
 							
@@ -174,13 +174,13 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 							});
 						}
 					} else {
-						if !front_sidedef.middle_texture_name.is_empty() {
+						if let Some(texture_name) = &front_sidedef.middle_texture_name {
 							let total_height = front_sector.ceiling_height - front_sector.floor_height;
 							
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
-								texture: texture_loader.load(&front_sidedef.middle_texture_name, loader)?,
+								texture: texture_loader.load(texture_name, loader)?,
 							});
 							leaf.face_count += 1;
 							
@@ -302,6 +302,7 @@ pub mod things {
 	use super::*;
 	pub const OFFSET: usize = 1;
 	
+	#[derive(Debug)]
 	pub struct DoomMapThing {
 		pub position: Vector2<f32>,
 		pub angle: i16,
@@ -344,6 +345,7 @@ pub mod linedefs {
 	use super::*;
 	pub const OFFSET: usize = 2;
 	
+	#[derive(Debug)]
 	pub struct DoomMapLinedef {
 		pub start_vertex_index: usize,
 		pub end_vertex_index: usize,
@@ -403,11 +405,12 @@ pub mod sidedefs {
 	use super::*;
 	pub const OFFSET: usize = 3;
 	
+	#[derive(Debug)]
 	pub struct DoomMapSidedef {
 		pub texture_offset: Vector2<i16>,
-		pub top_texture_name: String,
-		pub bottom_texture_name: String,
-		pub middle_texture_name: String,
+		pub top_texture_name: Option<String>,
+		pub bottom_texture_name: Option<String>,
+		pub middle_texture_name: Option<String>,
 		pub sector_index: usize,
 	}
 	
@@ -445,9 +448,9 @@ pub mod sidedefs {
 			
 			sidedefs.push(DoomMapSidedef{
 				texture_offset: Vector2::new(texture_offset_x, texture_offset_y),
-				top_texture_name,
-				bottom_texture_name,
-				middle_texture_name,
+				top_texture_name: if top_texture_name == "-" { None } else { Some(top_texture_name) },
+				bottom_texture_name: if bottom_texture_name == "-" { None } else { Some(bottom_texture_name) },
+				middle_texture_name: if middle_texture_name == "-" { None } else { Some(middle_texture_name) },
 				sector_index,
 			});
 		}
@@ -487,6 +490,7 @@ pub mod sectors {
 	use super::*;
 	pub const OFFSET: usize = 8;
 	
+	#[derive(Debug)]
 	pub struct DoomMapSector {
 		pub floor_height: f32,
 		pub ceiling_height: f32,
@@ -579,6 +583,7 @@ pub mod gl_segs {
 	use super::*;
 	pub const OFFSET: usize = 2;
 	
+	#[derive(Debug)]
 	pub struct DoomMapGLSegs {
 		pub start_vertex_index: (usize, bool),
 		pub end_vertex_index: (usize, bool),
@@ -647,6 +652,7 @@ pub mod gl_ssect {
 	use super::*;
 	pub const OFFSET: usize = 3;
 	
+	#[derive(Debug)]
 	pub struct DoomMapGLSSect {
 		pub seg_count: usize,
 		pub first_seg_index: usize,
@@ -682,6 +688,7 @@ pub mod gl_nodes {
 	use super::*;
 	pub const OFFSET: usize = 4;
 	
+	#[derive(Debug)]
 	pub struct DoomMapGLNodes {
 		pub partition_point: Vector2<f32>,
 		pub partition_dir: Vector2<f32>,

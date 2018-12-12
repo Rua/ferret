@@ -80,6 +80,8 @@ impl WadLoader {
 	}
 	
 	pub fn index_for_name(&self, name: &str) -> Option<usize> {
+		let name = name.to_ascii_uppercase();
+		
 		// Iterate in reverse, so that lumps added later are used first
 		for (i, ref lump) in self.lumps.iter().enumerate().rev() {
 			if lump.name == name {
