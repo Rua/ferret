@@ -14,14 +14,12 @@ extern crate vulkano;
 mod client;
 mod commands;
 mod doom;
-//mod doomtypes;
 mod geometry;
 mod logger;
 mod model;
 mod net;
 mod protocol;
-//mod palette;
-//mod quaketypes;
+mod palette;
 mod server;
 mod sprite;
 

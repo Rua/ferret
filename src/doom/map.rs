@@ -1,13 +1,15 @@
 use byteorder::{LE, ReadBytesExt};
 use nalgebra::{Vector2, Vector3};
 use std::cmp;
+use std::collections::HashMap;
 use std::error::Error;
 use std::io;
 use std::io::{ErrorKind, Read};
 use std::str;
 
 use crate::geometry::{BoundingBox2, BoundingBox3, Plane};
-use crate::model::{BSPBranch, BSPLeaf, BSPModel, BSPNode, Face, VertexData};
+use crate::model::{BSPBranch, BSPLeaf, BSPModel, BSPNode, Face, Texture, VertexData};
+use crate::doom::types::{DoomFlatLoader, DoomTextureLoader, palette};
 use crate::doom::wad::WadLoader;
 
 pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Error>> {
@@ -25,6 +27,9 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 	let gl_nodes = gl_nodes::from_data(&mut loader.read_lump(index + gl_nodes::OFFSET)?)?;
 	
 	// Process all subsectors, add geometry for each seg
+	let mut texture_loader = DoomTextureLoader::new(loader)?;
+	let mut flat_loader = DoomFlatLoader::new(loader)?;
+	
 	let mut vertices = Vec::new();
 	let mut faces = Vec::new();
 	let mut leaves = Vec::new();
@@ -93,6 +98,7 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
+								texture: texture_loader.load(&front_sidedef.top_texture_name, loader)?,
 							});
 							leaf.face_count += 1;
 							
@@ -119,6 +125,7 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
+								texture: texture_loader.load(&front_sidedef.bottom_texture_name, loader)?,
 							});
 							leaf.face_count += 1;
 							
@@ -145,6 +152,7 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
+								texture: texture_loader.load(&front_sidedef.middle_texture_name, loader)?,
 							});
 							leaf.face_count += 1;
 							
@@ -172,6 +180,7 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
+								texture: texture_loader.load(&front_sidedef.middle_texture_name, loader)?,
 							});
 							leaf.face_count += 1;
 							
@@ -201,6 +210,7 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 		faces.push(Face {
 			first_vertex_index: vertices.len(),
 			vertex_count: segs.len(),
+			texture: flat_loader.load(&sector.unwrap().floor_flat_name, loader)?,
 		});
 		leaf.face_count += 1;
 		
@@ -221,6 +231,7 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 		faces.push(Face {
 			first_vertex_index: vertices.len(),
 			vertex_count: segs.len(),
+			texture: flat_loader.load(&sector.unwrap().ceiling_flat_name, loader)?,
 		});
 		leaf.face_count += 1;
 		

@@ -1,6 +1,7 @@
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::surface::Surface;
 use std::error::Error;
+use std::rc::Rc;
 use std::sync::Arc;
 use vulkano::buffer::{BufferUsage, ImmutableBuffer};
 use vulkano::device::Queue;
@@ -63,10 +64,10 @@ pub struct VertexData {
 }
 impl_vertex!(VertexData, in_position, in_tex_coord);
 
-#[derive(Debug, Clone)]
 pub struct Face {
 	pub first_vertex_index: usize,
 	pub vertex_count: usize,
+	pub texture: Rc<Texture>,
 }
 
 #[derive(Debug, Clone)]

@@ -8,12 +8,14 @@ use std::collections::hash_map::{Entry, HashMap};
 use std::error::Error;
 use std::io;
 use std::io::{Read, Seek, SeekFrom};
+use std::rc::Rc;
 use std::str;
 use std::vec::Vec;
 
-use palette::Palette;
-use sprite::{Sprite, SpriteFrame, SpriteImage, SpriteOrientation, SpriteRotation};
-use wad::WadLoader;
+use crate::model::Texture;
+use crate::palette::Palette;
+use crate::sprite::{Sprite, SpriteFrame, SpriteImage, SpriteOrientation, SpriteRotation};
+use crate::doom::wad::WadLoader;
 
 #[cfg(target_endian = "big")]
 const FORMAT : PixelFormatEnum = PixelFormatEnum::RGBA8888;
@@ -330,50 +332,88 @@ pub mod texture_info {
 	}
 }
 
-pub struct DoomTextureLoader<'a> {
-	cache: HashMap<String, Surface<'static>>,
-	loader: &'a mut WadLoader,
+pub struct DoomTextureLoader {
+	texture_cache: HashMap<String, Rc<Texture>>,
+	patch_cache: HashMap<String, Surface<'static>>,
 	pnames: Vec<String>,
-	palette: &'a Palette,
+	palette: Palette,
 	texture_info: HashMap<String, texture_info::DoomTextureInfo>,
 }
 
-impl<'a> DoomTextureLoader<'a> {
-	pub fn new(loader: &'a mut WadLoader, palette: &'a Palette) -> Result<DoomTextureLoader<'a>, Box<Error>> {
+impl DoomTextureLoader {
+	pub fn new(loader: &mut WadLoader) -> Result<DoomTextureLoader, Box<Error>> {
+		let palette = palette::from_wad("PLAYPAL", loader)?;
 		let pnames = pnames::from_wad("PNAMES", loader)?;
 		let texture_info = texture_info::from_wad("TEXTURE1", loader)?;
 		
 		Ok(DoomTextureLoader {
-			cache: HashMap::new(),
-			loader,
+			texture_cache: HashMap::new(),
+			patch_cache: HashMap::new(),
 			palette,
 			pnames,
-			texture_info
+			texture_info,
 		})
 	}
 	
-	pub fn load(&mut self, name: &str) -> Result<Surface<'static>, Box<Error>> {
-		let texture_info = &self.texture_info[name];
-		let mut surface = Surface::new(texture_info.size[0] as u32, texture_info.size[1] as u32, FORMAT)?;
-		
-		// Read each patch, and paint it onto the main image
-		for patch_info in &texture_info.patches {
-			let name = &self.pnames[patch_info.index];
-			
-			// Return from cache if available, otherwise load and insert it
-			let patch = match self.cache.entry(name.clone()) {
-				Entry::Occupied(item) => item.into_mut(),
-				Entry::Vacant(item) => {
-					let image = image::from_wad(&name, self.loader, self.palette)?;
+	pub fn load(&mut self, name: &str, loader: &mut WadLoader) -> Result<Rc<Texture>, Box<Error>> {
+		let texture = match self.texture_cache.entry(name.to_owned()) {
+			Entry::Occupied(texture_item) => texture_item.into_mut(),
+			Entry::Vacant(texture_item) => {
+				let texture_info = &self.texture_info[name];
+				let mut surface = Surface::new(texture_info.size[0] as u32, texture_info.size[1] as u32, FORMAT)?;
+				
+				// Read each patch, and paint it onto the main image
+				for patch_info in &texture_info.patches {
+					let name = &self.pnames[patch_info.index];
 					
-					// Use to_surface because the offsets of patches are ignored anyway
-					item.insert(image.to_surface())
+					// Return from cache if available, otherwise load and insert it
+					let patch = match self.patch_cache.entry(name.clone()) {
+						Entry::Occupied(patch_item) => patch_item.into_mut(),
+						Entry::Vacant(patch_item) => {
+							let image = image::from_wad(&name, loader, &self.palette)?;
+							
+							// Use to_surface because the offsets of patches are ignored anyway
+							patch_item.insert(image.to_surface())
+						}
+					};
+					
+					patch.blit(None, &mut surface, Rect::new(patch_info.offset[0] as i32, patch_info.offset[1] as i32, 0, 0))?;
 				}
-			};
-			
-			patch.blit(None, &mut surface, Rect::new(patch_info.offset[0] as i32, patch_info.offset[1] as i32, 0, 0))?;
-		}
+				
+				texture_item.insert(Rc::new(Texture::new(surface)))
+			}
+		};
 		
-		Ok(surface)
+		Ok(texture.clone())
+	}
+}
+
+pub struct DoomFlatLoader {
+	texture_cache: HashMap<String, Rc<Texture>>,
+	palette: Palette,
+}
+
+impl DoomFlatLoader {
+	pub fn new(loader: &mut WadLoader) -> Result<DoomFlatLoader, Box<Error>> {
+		let palette = palette::from_wad("PLAYPAL", loader)?;
+		
+		Ok(DoomFlatLoader {
+			texture_cache: HashMap::new(),
+			palette,
+		})
+	}
+	
+	pub fn load(&mut self, name: &str, loader: &mut WadLoader) -> Result<Rc<Texture>, Box<Error>> {
+		let texture = match self.texture_cache.entry(name.to_owned()) {
+			Entry::Occupied(texture_item) => texture_item.into_mut(),
+			Entry::Vacant(texture_item) => {
+				let flat = flat::from_wad(&name, loader, &self.palette)?;
+				
+				// Use to_surface because the offsets of patches are ignored anyway
+				texture_item.insert(Rc::new(Texture::new(flat)))
+			},
+		};
+		
+		Ok(texture.clone())
 	}
 }
