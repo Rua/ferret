@@ -2,6 +2,7 @@ mod audio;
 mod commands;
 mod input;
 mod video;
+mod vulkan;
 
 use sdl2;
 use sdl2::EventPump;
@@ -138,7 +139,7 @@ impl Client {
 			
 			//console.process();
 			
-			//window.gl_swap_window();
+			self.video.draw_frame();
 		}
 	}
 	
