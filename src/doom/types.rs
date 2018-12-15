@@ -3,6 +3,7 @@ use nalgebra::Vector2;
 use sdl2::surface::Surface;
 use sdl2::pixels::{Color, PixelFormatEnum};
 use sdl2::rect::Rect;
+use std::cell::RefCell;
 use std::cmp::max;
 use std::collections::hash_map::{Entry, HashMap};
 use std::error::Error;
@@ -333,7 +334,7 @@ pub mod texture_info {
 }
 
 pub struct DoomTextureLoader {
-	texture_cache: HashMap<String, Rc<Texture>>,
+	texture_cache: HashMap<String, Rc<RefCell<Texture>>>,
 	patch_cache: HashMap<String, Surface<'static>>,
 	pnames: Vec<String>,
 	palette: Palette,
@@ -355,7 +356,7 @@ impl DoomTextureLoader {
 		})
 	}
 	
-	pub fn load(&mut self, name: &str, loader: &mut WadLoader) -> Result<Rc<Texture>, Box<Error>> {
+	pub fn load(&mut self, name: &str, loader: &mut WadLoader) -> Result<Rc<RefCell<Texture>>, Box<Error>> {
 		let texture = match self.texture_cache.entry(name.to_owned()) {
 			Entry::Occupied(texture_item) => texture_item.into_mut(),
 			Entry::Vacant(texture_item) => {
@@ -380,7 +381,7 @@ impl DoomTextureLoader {
 					patch.blit(None, &mut surface, Rect::new(patch_info.offset[0] as i32, patch_info.offset[1] as i32, 0, 0))?;
 				}
 				
-				texture_item.insert(Rc::new(Texture::new(surface)))
+				texture_item.insert(Rc::new(RefCell::new(Texture::new(surface))))
 			}
 		};
 		
@@ -389,7 +390,7 @@ impl DoomTextureLoader {
 }
 
 pub struct DoomFlatLoader {
-	texture_cache: HashMap<String, Rc<Texture>>,
+	texture_cache: HashMap<String, Rc<RefCell<Texture>>>,
 	palette: Palette,
 }
 
@@ -403,14 +404,14 @@ impl DoomFlatLoader {
 		})
 	}
 	
-	pub fn load(&mut self, name: &str, loader: &mut WadLoader) -> Result<Rc<Texture>, Box<Error>> {
+	pub fn load(&mut self, name: &str, loader: &mut WadLoader) -> Result<Rc<RefCell<Texture>>, Box<Error>> {
 		let texture = match self.texture_cache.entry(name.to_owned()) {
 			Entry::Occupied(texture_item) => texture_item.into_mut(),
 			Entry::Vacant(texture_item) => {
 				let flat = flat::from_wad(&name, loader, &self.palette)?;
 				
 				// Use to_surface because the offsets of patches are ignored anyway
-				texture_item.insert(Rc::new(Texture::new(flat)))
+				texture_item.insert(Rc::new(RefCell::new(Texture::new(flat))))
 			},
 		};
 		

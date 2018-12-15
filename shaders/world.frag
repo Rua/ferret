@@ -1,5 +1,5 @@
 #version 450
-layout(binding = 0) uniform sampler2D tex_sampler;
+layout(binding = 1) uniform sampler2D tex_sampler;
 
 layout(location = 0) in vec2 frag_tex_coord;
 

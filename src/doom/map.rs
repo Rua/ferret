@@ -295,7 +295,7 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 		}
 	}
 	
-	Ok(BSPModel::new(vertices, Vec::new(), faces, leaves, branches))
+	Ok(BSPModel::new(vertices, faces, leaves, branches))
 }
 
 pub mod things {

@@ -1,5 +1,6 @@
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::surface::Surface;
+use std::cell::RefCell;
 use std::error::Error;
 use std::rc::Rc;
 use std::sync::Arc;
@@ -17,17 +18,15 @@ use crate::sprite::SpriteFrame;
 
 pub struct BSPModel {
 	vertices: DataOrBuffer,
-	textures: Vec<Texture>,
 	faces: Vec<Face>,
 	leaves: Vec<BSPLeaf>,
 	branches: Vec<BSPBranch>,
 }
 
 impl BSPModel {
-	pub fn new(vertices: Vec<VertexData>, textures: Vec<Surface<'static>>, faces: Vec<Face>, leaves: Vec<BSPLeaf>, branches: Vec<BSPBranch>) -> BSPModel {
+	pub fn new(vertices: Vec<VertexData>, faces: Vec<Face>, leaves: Vec<BSPLeaf>, branches: Vec<BSPBranch>) -> BSPModel {
 		BSPModel {
 			vertices: DataOrBuffer::Data(vertices),
-			textures: textures.into_iter().map(Texture::new).collect(),
 			faces,
 			leaves,
 			branches,
@@ -35,8 +34,8 @@ impl BSPModel {
 	}
 	
 	pub fn upload(&mut self, queue: &Arc<Queue>) -> Result<Box<dyn GpuFuture>, Box<dyn Error>> {
-		for texture in &mut self.textures {
-			texture.upload(queue)?;
+		for face in &mut self.faces {
+			face.texture.borrow_mut().upload(queue)?;
 		}
 		
 		match &self.vertices {
@@ -55,6 +54,18 @@ impl BSPModel {
 			},
 		}
 	}
+	
+	pub fn buffer(&self) -> Option<Arc<ImmutableBuffer<[VertexData]>>> {
+		if let DataOrBuffer::Buffer(buffer) = &self.vertices {
+			Some(buffer.clone())
+		} else {
+			None
+		}
+	}
+	
+	pub fn faces(&self) -> &Vec<Face> {
+		&self.faces
+	}
 }
 
 #[derive(Debug, Clone)]
@@ -67,7 +78,7 @@ impl_vertex!(VertexData, in_position, in_tex_coord);
 pub struct Face {
 	pub first_vertex_index: usize,
 	pub vertex_count: usize,
-	pub texture: Rc<Texture>,
+	pub texture: Rc<RefCell<Texture>>,
 }
 
 #[derive(Debug, Clone)]
@@ -132,6 +143,14 @@ impl Texture {
 			DataOrImage::Image(image) => {
 				Ok(Box::from(sync::now(queue.device().clone())))
 			},
+		}
+	}
+	
+	pub fn image(&self) -> Option<Arc<ImmutableImage<Format>>> {
+		if let DataOrImage::Image(image) = &self.image {
+			Some(image.clone())
+		} else {
+			None
 		}
 	}
 }
