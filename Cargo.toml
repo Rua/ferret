@@ -16,3 +16,4 @@ net2 = "0.2.33"
 regex = "1.1.0"
 sdl2 = {version = "0.32.0", features = ["mixer"]}
 vulkano = "0.11.1"
+vulkano-shaders = "0.11.1"

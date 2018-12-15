@@ -29,14 +29,7 @@ impl WadLoader {
 	}
 	
 	pub fn add(&mut self, filename: &str) -> Result<(), Box<dyn Error>> {
-		let path = Path::new(filename).canonicalize()?;
-		let file = match File::open(&path) {
-			Ok(val) => val,
-			Err(err) => {
-				error!("Could not open \"{}\": {}", path.to_string_lossy(), err);
-				return Err(Box::from(err));
-			}
-		};
+		let file = File::open(filename)?;
 		let mut file = BufReader::new(file);
 		
 		let mut signature = [0u8; 4];

@@ -15,8 +15,6 @@ pub use crate::client::commands::COMMANDS;
 use crate::client::input::Input;
 use crate::client::video::Video;
 use crate::commands::CommandDispatcher;
-use crate::doom::map;
-use crate::doom::wad::WadLoader;
 use crate::net::Socket;
 use crate::protocol::{ClientConnectionlessPacket, ClientPacket, ServerPacket};
 
@@ -96,12 +94,7 @@ impl Client {
 				return Err(Box::from(format!("Could not start event loop: {}", err)));
 			}
 		};
-		
-		let mut loader = WadLoader::new();
-		loader.add("doom.wad")?;
-		loader.add("doom.gwa")?;
-		let map = map::from_wad("E1M1", &mut loader)?;
-		
+
 		Ok(Client {
 			audio,
 			dispatcher,
@@ -139,7 +132,7 @@ impl Client {
 			
 			//console.process();
 			
-			self.video.draw_frame();
+			self.video.draw_frame().unwrap();
 		}
 	}
 	

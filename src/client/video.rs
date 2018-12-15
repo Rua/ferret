@@ -6,9 +6,10 @@ use std::sync::Arc;
 use vulkano::device::DeviceOwned;
 use vulkano::command_buffer::AutoCommandBufferBuilder;
 use vulkano::format::Format;
-use vulkano::framebuffer::{Framebuffer, FramebufferAbstract};
+use vulkano::framebuffer::{Framebuffer, FramebufferAbstract, Subpass};
 use vulkano::image::ImageViewAccess;
 use vulkano::instance::debug::DebugCallback;
+use vulkano::pipeline::{GraphicsPipeline, GraphicsPipelineAbstract};
 use vulkano::sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode};
 use vulkano::swapchain;
 use vulkano::swapchain::Swapchain;
@@ -16,11 +17,31 @@ use vulkano::sync::GpuFuture;
 
 use crate::client::vulkan;
 use crate::client::vulkan::Queues;
+use crate::doom::map;
+use crate::doom::wad::WadLoader;
+use crate::model::{BSPModel, VertexData};
 
+
+mod vs {
+	vulkano_shaders::shader!{
+		ty: "vertex",
+		path: "shaders/world.vert",
+	}
+}
+
+mod fs {
+	vulkano_shaders::shader!{
+		ty: "fragment",
+		path: "shaders/world.frag",
+	}
+}
 
 pub struct Video {
+	map: BSPModel,
+	
 	debug_callback: DebugCallback,
 	framebuffers: Vec<Arc<FramebufferAbstract + Send + Sync>>,
+	pipeline: Arc<GraphicsPipelineAbstract + Send + Sync>,
 	queues: Queues,
 	swapchain: Arc<Swapchain<()>>,
 	
@@ -119,10 +140,35 @@ impl Video {
 			0.0,
 		)?;
 		
+		// Create pipeline
+		let vs = vs::Shader::load(device.clone())?;
+		let fs = fs::Shader::load(device.clone())?;
+		
+		let pipeline = Arc::new(GraphicsPipeline::start()
+			.render_pass(Subpass::from(render_pass.clone(), 0).unwrap())
+			.vertex_input_single_buffer::<VertexData>()
+			.vertex_shader(vs.main_entry_point(), ())
+			.fragment_shader(fs.main_entry_point(), ())
+			.triangle_fan()
+			.viewports_dynamic_scissors_irrelevant(1)
+			.cull_mode_back()
+			.depth_stencil_simple_depth()
+			.build(device.clone())?
+		);
+		
+		let mut loader = WadLoader::new();
+		loader.add("doom.wad")?;
+		loader.add("doom.gwa")?;
+		let mut map = map::from_wad("E1M1", &mut loader)?;
+		map.upload(&queues.graphics)?;
+		
 		// All done!
 		let video = Video {
+			map,
+			
 			debug_callback,
 			framebuffers,
+			pipeline,
 			queues,
 			swapchain,
 			
