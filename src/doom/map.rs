@@ -104,19 +104,19 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 							
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], top_span.0],
-								in_tex_coord: [0.0, if linedef.flags & 8 != 0 { top_height } else { 0.0 }],
+								in_tex_coord: [0.0, if linedef.flags & 8 != 0 { top_height } else { 0.0 }, 0.0],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], top_span.0],
-								in_tex_coord: [width, if linedef.flags & 8 != 0 { top_height } else { 0.0 }],
+								in_tex_coord: [width, if linedef.flags & 8 != 0 { top_height } else { 0.0 }, 0.0],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], top_span.1],
-								in_tex_coord: [width, if linedef.flags & 8 != 0 { 0.0 } else { -top_height }],
+								in_tex_coord: [width, if linedef.flags & 8 != 0 { 0.0 } else { -top_height }, 0.0],
 							});
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], top_span.1],
-								in_tex_coord: [0.0, if linedef.flags & 8 != 0 { 0.0 } else { -top_height }],
+								in_tex_coord: [0.0, if linedef.flags & 8 != 0 { 0.0 } else { -top_height }, 0.0],
 							});
 						}
 						
@@ -131,19 +131,19 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 							
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], bottom_span.0],
-								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { total_height } else { bottom_height }],
+								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { total_height } else { bottom_height }, 0.0],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], bottom_span.0],
-								in_tex_coord: [width, if linedef.flags & 16 != 0 { total_height } else { bottom_height }],
+								in_tex_coord: [width, if linedef.flags & 16 != 0 { total_height } else { bottom_height }, 0.0],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], bottom_span.1],
-								in_tex_coord: [width, if linedef.flags & 16 != 0 { total_height - bottom_height } else { 0.0 }],
+								in_tex_coord: [width, if linedef.flags & 16 != 0 { total_height - bottom_height } else { 0.0 }, 0.0],
 							});
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], bottom_span.1],
-								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { total_height - bottom_height } else { 0.0 }],
+								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { total_height - bottom_height } else { 0.0 }, 0.0],
 							});
 						}
 						
@@ -158,19 +158,19 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 							
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], middle_span.0],
-								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { 0.0 } else { middle_height }],
+								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { 0.0 } else { middle_height }, 0.0],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], middle_span.0],
-								in_tex_coord: [width, if linedef.flags & 16 != 0 { 0.0 } else { middle_height }],
+								in_tex_coord: [width, if linedef.flags & 16 != 0 { 0.0 } else { middle_height }, 0.0],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], middle_span.1],
-								in_tex_coord: [width, if linedef.flags & 16 != 0 { -middle_height } else { 0.0 }],
+								in_tex_coord: [width, if linedef.flags & 16 != 0 { -middle_height } else { 0.0 }, 0.0],
 							});
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], middle_span.1],
-								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { -middle_height } else { 0.0 }],
+								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { -middle_height } else { 0.0 }, 0.0],
 							});
 						}
 					} else {
@@ -186,19 +186,19 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 							
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], front_sector.floor_height],
-								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { 0.0 } else { total_height }],
+								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { 0.0 } else { total_height }, 0.0],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], front_sector.floor_height],
-								in_tex_coord: [width, if linedef.flags & 16 != 0 { 0.0 } else { total_height }],
+								in_tex_coord: [width, if linedef.flags & 16 != 0 { 0.0 } else { total_height }, 0.0],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], front_sector.ceiling_height],
-								in_tex_coord: [width, if linedef.flags & 16 != 0 { -total_height } else { 0.0 }],
+								in_tex_coord: [width, if linedef.flags & 16 != 0 { -total_height } else { 0.0 }, 0.0],
 							});
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], front_sector.ceiling_height],
-								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { -total_height } else { 0.0 }],
+								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { -total_height } else { 0.0 }, 0.0],
 							});
 						}
 					}
@@ -223,7 +223,7 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 			
 			vertices.push(VertexData {
 				in_position: [start_vertex[0], start_vertex[1], sector.unwrap().floor_height],
-				in_tex_coord: [start_vertex[0], start_vertex[1]]
+				in_tex_coord: [start_vertex[0], start_vertex[1], 0.0]
 			});
 		}
 		
@@ -244,7 +244,7 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 			
 			vertices.push(VertexData {
 				in_position: [start_vertex[0], start_vertex[1], sector.unwrap().ceiling_height],
-				in_tex_coord: [start_vertex[0], start_vertex[1]]
+				in_tex_coord: [start_vertex[0], start_vertex[1], 0.0]
 			});
 		}
 		
@@ -530,7 +530,7 @@ pub mod sectors {
 			let special_type = data.read_u16::<LE>()?;
 			let sector_tag = data.read_u16::<LE>()?;
 			
-			sectors.push(DoomMapSector{
+			sectors.push(DoomMapSector {
 				floor_height,
 				ceiling_height,
 				floor_flat_name,

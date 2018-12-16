@@ -146,7 +146,7 @@ impl Video {
 			.fragment_shader(fs.main_entry_point(), ())
 			.triangle_fan()
 			.viewports_dynamic_scissors_irrelevant(1)
-			//.cull_mode_back()
+			.cull_mode_back()
 			.depth_stencil_simple_depth()
 			.build(device.clone())?
 		);
@@ -222,7 +222,7 @@ impl Video {
 			proj: proj.into(),
 		};
 		
-		*self.uniform_buffer.write().unwrap() = data;
+		*self.uniform_buffer.write()? = data;
 		
 		// Prepare for drawing
 		let (image_num, future) = match swapchain::acquire_next_image(self.swapchain.clone(), None) {

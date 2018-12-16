@@ -381,7 +381,7 @@ impl DoomTextureLoader {
 					patch.blit(None, &mut surface, Rect::new(patch_info.offset[0] as i32, patch_info.offset[1] as i32, 0, 0))?;
 				}
 				
-				texture_item.insert(Rc::new(RefCell::new(Texture::new(surface))))
+				texture_item.insert(Rc::new(RefCell::new(Texture::new(vec![surface]))))
 			}
 		};
 		
@@ -411,7 +411,7 @@ impl DoomFlatLoader {
 				let flat = flat::from_wad(&name, loader, &self.palette)?;
 				
 				// Use to_surface because the offsets of patches are ignored anyway
-				texture_item.insert(Rc::new(RefCell::new(Texture::new(flat))))
+				texture_item.insert(Rc::new(RefCell::new(Texture::new(vec![flat]))))
 			},
 		};
 		

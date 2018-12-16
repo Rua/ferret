@@ -5,6 +5,7 @@ use std::error::Error;
 use std::rc::Rc;
 use std::sync::Arc;
 use vulkano::buffer::{BufferUsage, ImmutableBuffer};
+use vulkano::buffer::cpu_access::CpuAccessibleBuffer;
 use vulkano::device::Queue;
 use vulkano::format::Format;
 use vulkano::image::{Dimensions, ImmutableImage, sys::ImageCreationError};
@@ -71,7 +72,7 @@ impl BSPModel {
 #[derive(Debug, Clone)]
 pub struct VertexData {
 	pub in_position: [f32; 3],
-	pub in_tex_coord: [f32; 2],
+	pub in_tex_coord: [f32; 3],
 }
 impl_vertex!(VertexData, in_position, in_tex_coord);
 
@@ -116,23 +117,48 @@ pub struct Texture {
 }
 
 impl Texture {
-	pub fn new(surface: Surface<'static>) -> Texture {
-		#[cfg(target_endian = "big")]
-		assert_eq!(surface.pixel_format_enum(), PixelFormatEnum::RGBA8888);
-		#[cfg(target_endian = "little")]
-		assert_eq!(surface.pixel_format_enum(), PixelFormatEnum::ABGR8888);
+	pub fn new(surfaces: Vec<Surface<'static>>) -> Texture {
+		assert!(!surfaces.is_empty());
+		let size = surfaces[0].size();
+		
+		for surface in &surfaces {
+			// All surfaces must be the same size
+			assert_eq!(surface.size(), size);
+			
+			// All surfaces must store pixels in byte-wise RGBA order
+			#[cfg(target_endian = "big")]
+			assert_eq!(surface.pixel_format_enum(), PixelFormatEnum::RGBA8888);
+			#[cfg(target_endian = "little")]
+			assert_eq!(surface.pixel_format_enum(), PixelFormatEnum::ABGR8888);
+		}
 		
 		Texture {
-			image: DataOrImage::Data(surface),
+			image: DataOrImage::Data(surfaces),
 		}
 	}
 	
 	pub fn upload(&mut self, queue: &Arc<Queue>) -> Result<Box<dyn GpuFuture>, ImageCreationError> {
 		match &self.image {
-			DataOrImage::Data(surface) => {
-				let (image, future) = ImmutableImage::from_iter(
-					surface.without_lock().unwrap().iter().cloned(),
-					Dimensions::Dim2d { width: surface.width(), height: surface.height() },
+			DataOrImage::Data(surfaces) => {
+				// Create staging buffer
+				let layer_size = surfaces[0].without_lock().unwrap().len();
+				
+				let buffer = unsafe { CpuAccessibleBuffer::uninitialized_array(
+					queue.device().clone(),
+					layer_size * surfaces.len(),
+					BufferUsage::transfer_source(),
+				) }?;
+				
+				// Copy all the layers into the buffer
+				for (chunk, surface) in (&mut *buffer.write().unwrap()).chunks_exact_mut(layer_size).zip(surfaces) {
+					let slice = surface.without_lock().unwrap();
+					chunk.copy_from_slice(slice);
+				}
+				
+				// Create image
+				let (image, future) = ImmutableImage::from_buffer(
+					buffer,
+					Dimensions::Dim2dArray { width: surfaces[0].width(), height: surfaces[0].height(), array_layers: surfaces.len() as u32 },
 					Format::R8G8B8A8Unorm,
 					queue.clone(),
 				)?;
@@ -161,6 +187,6 @@ enum DataOrBuffer {
 }
 
 enum DataOrImage {
-	Data(Surface<'static>),
+	Data(Vec<Surface<'static>>),
 	Image(Arc<ImmutableImage<Format>>),
 }
