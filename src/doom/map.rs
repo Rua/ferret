@@ -1,16 +1,68 @@
 use byteorder::{LE, ReadBytesExt};
 use nalgebra::{Vector2, Vector3};
+use sdl2::surface::Surface;
+use std::cell::RefCell;
 use std::cmp;
-use std::collections::HashMap;
+use std::collections::HashSet;
+use std::collections::hash_map::{Entry, HashMap};
 use std::error::Error;
 use std::io;
 use std::io::{ErrorKind, Read};
+use std::rc::Rc;
 use std::str;
 
 use crate::geometry::{BoundingBox2, BoundingBox3, Plane};
 use crate::model::{BSPBranch, BSPLeaf, BSPModel, BSPNode, Face, Texture, VertexData};
-use crate::doom::types::{DoomFlatLoader, DoomTextureLoader, palette};
+use crate::doom::types::{flat, palette, pnames, texture, texture_info};
 use crate::doom::wad::WadLoader;
+
+
+fn load_textures(texture_names: HashSet<&str>, flat_names: HashSet<&str>, loader: &mut WadLoader) -> Result<[HashMap<String, (Rc<RefCell<Texture>>, usize)>; 2], Box<dyn Error>> {
+	let palette = palette::from_wad("PLAYPAL", loader)?;
+	let texture_info = texture_info::from_wad("TEXTURE1", loader)?;
+	let pnames = pnames::from_wad("PNAMES", loader)?;
+	
+	// Load all textures, and insert them into the hashmap, which groups them by size
+	let mut surfaces_by_size: HashMap<[u32; 2], (Vec<(&str, bool)>, Vec<Surface<'static>>)> = HashMap::new();
+	
+	for name in texture_names {
+		let info = &texture_info[name];
+		let surface = texture::from_wad(&info, loader, &palette, &pnames)?;
+		let entry = match surfaces_by_size.entry([surface.width(), surface.height()]) {
+			Entry::Occupied(item) => item.into_mut(),
+			Entry::Vacant(item) => item.insert((Vec::new(), Vec::new())),
+		};
+		
+		entry.0.push((name, false)); // false = texture
+		entry.1.push(surface);
+	}
+	
+	for name in flat_names {
+		let surface = flat::from_wad(&name, loader, &palette)?;
+		let entry = match surfaces_by_size.entry([surface.width(), surface.height()]) {
+			Entry::Occupied(item) => item.into_mut(),
+			Entry::Vacant(item) => item.insert((Vec::new(), Vec::new())),
+		};
+		
+		entry.0.push((name, true)); // true = flat
+		entry.1.push(surface);
+	}
+	
+	// Now iterate over the completed hashmap, and make a Texture for each size group,
+	// then insert the name-texture pair into the result.
+	let mut result = [HashMap::new(), HashMap::new()];
+	
+	for (size, entry) in surfaces_by_size {
+		let texture = Rc::new(RefCell::new(Texture::new(entry.1)));
+		
+		for (i, name) in entry.0.into_iter().enumerate() {
+			let map = &mut result[name.1 as usize]; // select one of the two output hashmaps
+			map.insert(name.0.to_owned(), (texture.clone(), i));
+		}
+	}
+	
+	Ok(result)
+}
 
 pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Error>> {
 	let index = loader.index_for_name(name).unwrap();
@@ -27,8 +79,28 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 	let gl_nodes = gl_nodes::from_data(&mut loader.read_lump(index + gl_nodes::OFFSET)?)?;
 	
 	// Process all subsectors, add geometry for each seg
-	let mut texture_loader = DoomTextureLoader::new(loader)?;
-	let mut flat_loader = DoomFlatLoader::new(loader)?;
+	let mut texture_names = HashSet::new();
+	for sidedef in &sidedefs {
+		if let Some(name) = &sidedef.top_texture_name {
+			texture_names.insert(name.as_str());
+		}
+		
+		if let Some(name) = &sidedef.bottom_texture_name {
+			texture_names.insert(name.as_str());
+		}
+		
+		if let Some(name) = &sidedef.middle_texture_name {
+			texture_names.insert(name.as_str());
+		}
+	}
+	
+	let mut flat_names = HashSet::new();
+	for sector in &sectors {
+		flat_names.insert(sector.floor_flat_name.as_str());
+		flat_names.insert(sector.ceiling_flat_name.as_str());
+	}
+	
+	let [textures, flats] = load_textures(texture_names, flat_names, loader)?;
 	
 	let mut vertices = Vec::new();
 	let mut faces = Vec::new();
@@ -78,6 +150,7 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 					
 					let diff = end_vertex - start_vertex;
 					let width = nalgebra::norm(&diff);
+					let offset = front_sidedef.texture_offset;
 					
 					// Two-sided or one-sided sidedef?
 					if let Some(back_sidedef_index) = linedef.sidedef_indices[!seg.side as usize] {
@@ -95,110 +168,178 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 						
 						// Top section
 						if let Some(texture_name) = &front_sidedef.top_texture_name {
+							let texture = &textures[texture_name];
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
-								texture: texture_loader.load(texture_name, loader)?,
+								texture: texture.0.clone(),
 							});
 							leaf.face_count += 1;
 							
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], top_span.0],
-								in_tex_coord: [0.0, if linedef.flags & 8 != 0 { top_height } else { 0.0 }, 0.0],
+								in_tex_coord: [
+									offset[0] + 0.0,
+									offset[1] + if linedef.flags & 8 != 0 { top_height } else { 0.0 },
+									texture.1 as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], top_span.0],
-								in_tex_coord: [width, if linedef.flags & 8 != 0 { top_height } else { 0.0 }, 0.0],
+								in_tex_coord: [
+									offset[0] + width,
+									offset[1] + if linedef.flags & 8 != 0 { top_height } else { 0.0 },
+									texture.1 as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], top_span.1],
-								in_tex_coord: [width, if linedef.flags & 8 != 0 { 0.0 } else { -top_height }, 0.0],
+								in_tex_coord: [
+									offset[0] + width,
+									offset[1] + if linedef.flags & 8 != 0 { 0.0 } else { -top_height },
+									texture.1 as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], top_span.1],
-								in_tex_coord: [0.0, if linedef.flags & 8 != 0 { 0.0 } else { -top_height }, 0.0],
+								in_tex_coord: [
+									offset[0] + 0.0,
+									offset[1] + if linedef.flags & 8 != 0 { 0.0 } else { -top_height },
+									texture.1 as f32,
+								],
 							});
 						}
 						
 						// Bottom section
 						if let Some(texture_name) = &front_sidedef.bottom_texture_name {
+							let texture = &textures[texture_name];
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
-								texture: texture_loader.load(texture_name, loader)?,
+								texture: texture.0.clone(),
 							});
 							leaf.face_count += 1;
 							
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], bottom_span.0],
-								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { total_height } else { bottom_height }, 0.0],
+								in_tex_coord: [
+									offset[0] + 0.0,
+									offset[1] + if linedef.flags & 16 != 0 { total_height } else { bottom_height },
+									texture.1 as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], bottom_span.0],
-								in_tex_coord: [width, if linedef.flags & 16 != 0 { total_height } else { bottom_height }, 0.0],
+								in_tex_coord: [
+									offset[0] + width,
+									offset[1] + if linedef.flags & 16 != 0 { total_height } else { bottom_height },
+									texture.1 as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], bottom_span.1],
-								in_tex_coord: [width, if linedef.flags & 16 != 0 { total_height - bottom_height } else { 0.0 }, 0.0],
+								in_tex_coord: [
+									offset[0] + width,
+									offset[1] + if linedef.flags & 16 != 0 { total_height - bottom_height } else { 0.0 },
+									texture.1 as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], bottom_span.1],
-								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { total_height - bottom_height } else { 0.0 }, 0.0],
+								in_tex_coord: [
+									offset[0] + 0.0,
+									offset[1] + if linedef.flags & 16 != 0 { total_height - bottom_height } else { 0.0 },
+									texture.1 as f32,
+								],
 							});
 						}
 						
 						// Middle section
 						if let Some(texture_name) = &front_sidedef.middle_texture_name {
+							let texture = &textures[texture_name];
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
-								texture: texture_loader.load(texture_name, loader)?,
+								texture: texture.0.clone(),
 							});
 							leaf.face_count += 1;
 							
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], middle_span.0],
-								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { 0.0 } else { middle_height }, 0.0],
+								in_tex_coord: [
+									offset[0] + 0.0,
+									offset[1] + if linedef.flags & 16 != 0 { 0.0 } else { middle_height },
+									texture.1 as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], middle_span.0],
-								in_tex_coord: [width, if linedef.flags & 16 != 0 { 0.0 } else { middle_height }, 0.0],
+								in_tex_coord: [
+									offset[0] + width,
+									offset[1] + if linedef.flags & 16 != 0 { 0.0 } else { middle_height },
+									texture.1 as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], middle_span.1],
-								in_tex_coord: [width, if linedef.flags & 16 != 0 { -middle_height } else { 0.0 }, 0.0],
+								in_tex_coord: [
+									offset[0] + width,
+									offset[1] + if linedef.flags & 16 != 0 { -middle_height } else { 0.0 },
+									texture.1 as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], middle_span.1],
-								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { -middle_height } else { 0.0 }, 0.0],
+								in_tex_coord: [
+									offset[0] + 0.0,
+									offset[1] + if linedef.flags & 16 != 0 { -middle_height } else { 0.0 },
+									texture.1 as f32,
+								],
 							});
 						}
 					} else {
 						if let Some(texture_name) = &front_sidedef.middle_texture_name {
+							let texture = &textures[texture_name];
 							let total_height = front_sector.ceiling_height - front_sector.floor_height;
 							
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
-								texture: texture_loader.load(texture_name, loader)?,
+								texture: texture.0.clone(),
 							});
 							leaf.face_count += 1;
 							
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], front_sector.floor_height],
-								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { 0.0 } else { total_height }, 0.0],
+								in_tex_coord: [
+									offset[0] + 0.0,
+									offset[1] + if linedef.flags & 16 != 0 { 0.0 } else { total_height },
+									texture.1 as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], front_sector.floor_height],
-								in_tex_coord: [width, if linedef.flags & 16 != 0 { 0.0 } else { total_height }, 0.0],
+								in_tex_coord: [
+									offset[0] + width,
+									offset[1] + if linedef.flags & 16 != 0 { 0.0 } else { total_height },
+									texture.1 as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], front_sector.ceiling_height],
-								in_tex_coord: [width, if linedef.flags & 16 != 0 { -total_height } else { 0.0 }, 0.0],
+								in_tex_coord: [
+									offset[0] + width,
+									offset[1] + if linedef.flags & 16 != 0 { -total_height } else { 0.0 },
+									texture.1 as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], front_sector.ceiling_height],
-								in_tex_coord: [0.0, if linedef.flags & 16 != 0 { -total_height } else { 0.0 }, 0.0],
+								in_tex_coord: [
+									offset[0] + 0.0,
+									offset[1] + if linedef.flags & 16 != 0 { -total_height } else { 0.0 },
+									texture.1 as f32,
+								],
 							});
 						}
 					}
@@ -207,10 +348,11 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 		}
 		
 		// Floor
+		let flat = &flats[&sector.unwrap().floor_flat_name];
 		faces.push(Face {
 			first_vertex_index: vertices.len(),
 			vertex_count: segs.len(),
-			texture: flat_loader.load(&sector.unwrap().floor_flat_name, loader)?,
+			texture: flat.0.clone(),
 		});
 		leaf.face_count += 1;
 		
@@ -223,15 +365,16 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 			
 			vertices.push(VertexData {
 				in_position: [start_vertex[0], start_vertex[1], sector.unwrap().floor_height],
-				in_tex_coord: [start_vertex[0], start_vertex[1], 0.0]
+				in_tex_coord: [start_vertex[0], start_vertex[1], flat.1 as f32]
 			});
 		}
 		
 		// Ceiling
+		let flat = &flats[&sector.unwrap().ceiling_flat_name];
 		faces.push(Face {
 			first_vertex_index: vertices.len(),
 			vertex_count: segs.len(),
-			texture: flat_loader.load(&sector.unwrap().ceiling_flat_name, loader)?,
+			texture: flat.0.clone(),
 		});
 		leaf.face_count += 1;
 		
@@ -244,7 +387,7 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 			
 			vertices.push(VertexData {
 				in_position: [start_vertex[0], start_vertex[1], sector.unwrap().ceiling_height],
-				in_tex_coord: [start_vertex[0], start_vertex[1], 0.0]
+				in_tex_coord: [start_vertex[0], start_vertex[1], flat.1 as f32]
 			});
 		}
 		
@@ -407,7 +550,7 @@ pub mod sidedefs {
 	
 	#[derive(Debug)]
 	pub struct DoomMapSidedef {
-		pub texture_offset: Vector2<i16>,
+		pub texture_offset: Vector2<f32>,
 		pub top_texture_name: Option<String>,
 		pub bottom_texture_name: Option<String>,
 		pub middle_texture_name: Option<String>,
@@ -427,22 +570,22 @@ pub mod sidedefs {
 						return Err(Box::from(err))
 					}
 				}
-			};
-			let texture_offset_y = data.read_i16::<LE>()?;
+			} as f32;
+			let texture_offset_y = data.read_i16::<LE>()? as f32;
 			let top_texture_name = {
 				let mut name = [0u8; 8];
 				data.read_exact(&mut name)?;
-				String::from(str::from_utf8(&name)?.trim_right_matches('\0'))
+				String::from(str::from_utf8(&name)?.trim_end_matches('\0'))
 			};
 			let bottom_texture_name = {
 				let mut name = [0u8; 8];
 				data.read_exact(&mut name)?;
-				String::from(str::from_utf8(&name)?.trim_right_matches('\0'))
+				String::from(str::from_utf8(&name)?.trim_end_matches('\0'))
 			};
 			let middle_texture_name = {
 				let mut name = [0u8; 8];
 				data.read_exact(&mut name)?;
-				String::from(str::from_utf8(&name)?.trim_right_matches('\0'))
+				String::from(str::from_utf8(&name)?.trim_end_matches('\0'))
 			};
 			let sector_index = data.read_u16::<LE>()? as usize;
 			
@@ -519,12 +662,12 @@ pub mod sectors {
 			let floor_flat_name = {
 				let mut name = [0u8; 8];
 				data.read_exact(&mut name)?;
-				String::from(str::from_utf8(&name)?.trim_right_matches('\0'))
+				String::from(str::from_utf8(&name)?.trim_end_matches('\0'))
 			};
 			let ceiling_flat_name = {
 				let mut name = [0u8; 8];
 				data.read_exact(&mut name)?;
-				String::from(str::from_utf8(&name)?.trim_right_matches('\0'))
+				String::from(str::from_utf8(&name)?.trim_end_matches('\0'))
 			};
 			let light_level = data.read_u16::<LE>()?;
 			let special_type = data.read_u16::<LE>()?;

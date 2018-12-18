@@ -53,7 +53,7 @@ impl WadLoader {
 			let mut lump_name = [0u8; 8];
 			file.read_exact(&mut lump_name)?;
 			
-			let mut lump_name = String::from(str::from_utf8(&lump_name)?.trim_right_matches('\0'));
+			let mut lump_name = String::from(str::from_utf8(&lump_name)?.trim_end_matches('\0'));
 			lump_name.make_ascii_uppercase();
 			
 			self.lumps.push(Lump {

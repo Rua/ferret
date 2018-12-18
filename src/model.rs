@@ -120,16 +120,14 @@ impl Texture {
 	pub fn new(surfaces: Vec<Surface<'static>>) -> Texture {
 		assert!(!surfaces.is_empty());
 		let size = surfaces[0].size();
+		let pixel_format = surfaces[0].pixel_format_enum();
 		
 		for surface in &surfaces {
 			// All surfaces must be the same size
 			assert_eq!(surface.size(), size);
 			
-			// All surfaces must store pixels in byte-wise RGBA order
-			#[cfg(target_endian = "big")]
-			assert_eq!(surface.pixel_format_enum(), PixelFormatEnum::RGBA8888);
-			#[cfg(target_endian = "little")]
-			assert_eq!(surface.pixel_format_enum(), PixelFormatEnum::ABGR8888);
+			// All surfaces must have the same pixel format
+			assert_eq!(surface.pixel_format_enum(), pixel_format);
 		}
 		
 		Texture {
@@ -150,16 +148,42 @@ impl Texture {
 				) }?;
 				
 				// Copy all the layers into the buffer
-				for (chunk, surface) in (&mut *buffer.write().unwrap()).chunks_exact_mut(layer_size).zip(surfaces) {
-					let slice = surface.without_lock().unwrap();
-					chunk.copy_from_slice(slice);
+				{
+					let slice = &mut *buffer.write().unwrap();
+					
+					for (chunk, surface) in slice.chunks_exact_mut(layer_size).zip(surfaces) {
+						chunk.copy_from_slice(surface.without_lock().unwrap());
+					}
 				}
 				
-				// Create image
+				// Find the corresponding Vulkan pixel format
+				#[cfg(target_endian = "big")]
+				let format = match surfaces[0].pixel_format_enum() {
+					PixelFormatEnum::RGB24 => Format::R8G8B8Unorm,
+					PixelFormatEnum::BGR24 => Format::B8G8R8Unorm,
+					PixelFormatEnum::RGBA8888 => Format::R8G8B8A8Unorm,
+					PixelFormatEnum::BGRA8888 => Format::B8G8R8A8Unorm,
+					_ => unimplemented!(),
+				};
+				
+				#[cfg(target_endian = "little")]
+				let format = match surfaces[0].pixel_format_enum() {
+					PixelFormatEnum::RGB24 => Format::R8G8B8Unorm,
+					PixelFormatEnum::BGR24 => Format::B8G8R8Unorm,
+					PixelFormatEnum::ARGB8888 => Format::B8G8R8A8Unorm,
+					PixelFormatEnum::ABGR8888 => Format::R8G8B8A8Unorm,
+					_ => unimplemented!(),
+				};
+				
+				// Create the image
 				let (image, future) = ImmutableImage::from_buffer(
 					buffer,
-					Dimensions::Dim2dArray { width: surfaces[0].width(), height: surfaces[0].height(), array_layers: surfaces.len() as u32 },
-					Format::R8G8B8A8Unorm,
+					Dimensions::Dim2dArray {
+						width: surfaces[0].width(),
+						height: surfaces[0].height(),
+						array_layers: surfaces.len() as u32,
+					},
+					format,
 					queue.clone(),
 				)?;
 				
