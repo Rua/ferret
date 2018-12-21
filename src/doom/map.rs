@@ -17,51 +17,69 @@ use crate::doom::types::{flat, palette, pnames, texture, texture_info};
 use crate::doom::wad::WadLoader;
 
 
-fn load_textures(texture_names: HashSet<&str>, flat_names: HashSet<&str>, loader: &mut WadLoader) -> Result<[HashMap<String, (Rc<RefCell<Texture>>, usize)>; 2], Box<dyn Error>> {
-	let palette = palette::from_wad("PLAYPAL", loader)?;
-	let texture_info = texture_info::from_wad("TEXTURE1", loader)?;
-	let pnames = pnames::from_wad("PNAMES", loader)?;
+fn group_by_size(surfaces: Vec<Surface<'static>>) -> Vec<(Rc<RefCell<Texture>>, usize)> {
+	// Group surfaces by size in a HashMap, while keeping track of which goes where
+	let mut surfaces_by_size: HashMap<[u32; 2], Vec<Surface<'static>>> = HashMap::new();
+	let mut sizes_and_layers: Vec<([u32; 2], usize)> = Vec::with_capacity(surfaces.len());
 	
-	// Load all textures, and insert them into the hashmap, which groups them by size
-	let mut surfaces_by_size: HashMap<[u32; 2], (Vec<(&str, bool)>, Vec<Surface<'static>>)> = HashMap::new();
-	
-	for name in texture_names {
-		let info = &texture_info[name];
-		let surface = texture::from_wad(&info, loader, &palette, &pnames)?;
-		let entry = match surfaces_by_size.entry([surface.width(), surface.height()]) {
+	for surface in surfaces {
+		let size = [surface.width(), surface.height()];
+		let entry = match surfaces_by_size.entry(size) {
 			Entry::Occupied(item) => item.into_mut(),
-			Entry::Vacant(item) => item.insert((Vec::new(), Vec::new())),
+			Entry::Vacant(item) => item.insert(Vec::new()),
 		};
 		
-		entry.0.push((name, false)); // false = texture
-		entry.1.push(surface);
+		sizes_and_layers.push((size, entry.len()));
+		entry.push(surface);
+	}
+	
+	// Turn the grouped surfaces into textures
+	let textures_by_size: HashMap<[u32; 2], Rc<RefCell<Texture>>> =
+		surfaces_by_size.into_iter().map(|entry| {
+			(entry.0, Rc::new(RefCell::new(Texture::new(entry.1))))
+		}).collect();
+	
+	// Now create the final Vec and return
+	sizes_and_layers.into_iter().map(|entry| {
+		(textures_by_size[&entry.0].clone(), entry.1)
+	}).collect()
+}
+
+fn load_textures(texture_names: HashSet<&str>, flat_names: HashSet<&str>, loader: &mut WadLoader) -> Result<[HashMap<String, (Rc<RefCell<Texture>>, usize)>; 2], Box<dyn Error>> {
+	let palette = palette::from_wad("PLAYPAL", loader)?;
+	let pnames = pnames::from_wad("PNAMES", loader)?;
+	let mut texture_info = texture_info::from_wad("TEXTURE1", loader)?;
+	texture_info.extend(texture_info::from_wad("TEXTURE2", loader)?);
+	
+	// Load all the surfaces, while storing name-index mapping
+	let mut surfaces = Vec::with_capacity(texture_names.len() + flat_names.len());
+	let mut texture_names_indices = HashMap::with_capacity(texture_names.len());
+	let mut flat_names_indices = HashMap::with_capacity(flat_names.len());
+	
+	for name in texture_names {
+		let surface = texture::from_wad(&texture_info[name], loader, &palette, &pnames)?;
+		texture_names_indices.insert(name, surfaces.len());
+		surfaces.push(surface);
 	}
 	
 	for name in flat_names {
 		let surface = flat::from_wad(&name, loader, &palette)?;
-		let entry = match surfaces_by_size.entry([surface.width(), surface.height()]) {
-			Entry::Occupied(item) => item.into_mut(),
-			Entry::Vacant(item) => item.insert((Vec::new(), Vec::new())),
-		};
-		
-		entry.0.push((name, true)); // true = flat
-		entry.1.push(surface);
+		flat_names_indices.insert(name, surfaces.len());
+		surfaces.push(surface);
 	}
 	
-	// Now iterate over the completed hashmap, and make a Texture for each size group,
-	// then insert the name-texture pair into the result.
-	let mut result = [HashMap::new(), HashMap::new()];
+	// Convert into textures grouped by size
+	let grouped_textures = group_by_size(surfaces);
 	
-	for (size, entry) in surfaces_by_size {
-		let texture = Rc::new(RefCell::new(Texture::new(entry.1)));
-		
-		for (i, name) in entry.0.into_iter().enumerate() {
-			let map = &mut result[name.1 as usize]; // select one of the two output hashmaps
-			map.insert(name.0.to_owned(), (texture.clone(), i));
-		}
-	}
-	
-	Ok(result)
+	// Recombine names with textures
+	Ok([
+		texture_names_indices.into_iter().map(|entry| {
+			(entry.0.to_owned(), grouped_textures[entry.1].clone())
+		}).collect(),
+		flat_names_indices.into_iter().map(|entry| {
+			(entry.0.to_owned(), grouped_textures[entry.1].clone())
+		}).collect(),
+	])
 }
 
 pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Error>> {
