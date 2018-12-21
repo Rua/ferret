@@ -18,17 +18,12 @@ use crate::palette::Palette;
 use crate::sprite::{Sprite, SpriteFrame, SpriteImage, SpriteOrientation, SpriteRotation};
 use crate::doom::wad::WadLoader;
 
-#[cfg(target_endian = "big")]
-const FORMAT : PixelFormatEnum = PixelFormatEnum::RGBA8888;
-#[cfg(target_endian = "little")]
-const FORMAT : PixelFormatEnum = PixelFormatEnum::ABGR8888;
-
 
 pub mod flat {
 	use super::*;
 	
 	pub fn from_data<T: Read>(data: &mut T, palette: &Palette) -> Result<Surface<'static>, Box<Error>> {
-		let mut surface = Surface::new(64, 64, FORMAT)?;
+		let mut surface = Surface::new(64, 64, PixelFormatEnum::RGBA32)?;
 		let pitch = surface.pitch() as usize;
 		
 		{
@@ -68,12 +63,7 @@ pub mod image {
 		let mut column_offsets = vec![0; size_x as usize];
 		data.read_u32_into::<LE>(&mut column_offsets)?;
 		
-		#[cfg(target_endian = "big")]
-		let target_format = PixelFormatEnum::RGBA8888;
-		#[cfg(target_endian = "little")]
-		let target_format = PixelFormatEnum::ABGR8888;
-		
-		let mut surface = Surface::new(size_x, size_y, FORMAT)?;
+		let mut surface = Surface::new(size_x, size_y, PixelFormatEnum::RGBA32)?;
 		let pitch = surface.pitch() as usize;
 		
 		{
@@ -271,7 +261,7 @@ pub mod texture {
 	use super::*;
 	
 	pub fn from_wad(texture_info: &texture_info::DoomTextureInfo, loader: &mut WadLoader, palette: &Palette, pnames: &Vec<String>) -> Result<Surface<'static>, Box<Error>> {
-		let mut surface = Surface::new(texture_info.size[0] as u32, texture_info.size[1] as u32, FORMAT)?;
+		let mut surface = Surface::new(texture_info.size[0] as u32, texture_info.size[1] as u32, PixelFormatEnum::RGBA32)?;
 		
 		for patch_info in &texture_info.patches {
 			let name = &pnames[patch_info.index];

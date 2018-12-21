@@ -14,6 +14,6 @@ log = {version = "0.4.6", features = ["release_max_level_info"]}
 nalgebra = "0.16.12"
 net2 = "0.2.33"
 regex = "1.1.0"
-sdl2 = {version = "0.32.0", features = ["mixer"]}
+sdl2 = {git = "https://github.com/Rust-SDL2/rust-sdl2/", features = ["mixer"]}
 vulkano = "0.11.1"
 vulkano-shaders = "0.11.1"

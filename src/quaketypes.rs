@@ -14,11 +14,6 @@ use palette::Palette;
 use sprite::{Sprite, SpriteFrame, SpriteImage, SpriteOrientation, SpriteRotation};
 use wad::WadLoader;
 
-#[cfg(target_endian = "big")]
-const FORMAT : PixelFormatEnum = PixelFormatEnum::RGBA8888;
-#[cfg(target_endian = "little")]
-const FORMAT : PixelFormatEnum = PixelFormatEnum::ABGR8888;
-
 
 pub mod palette {
 	use super::*;
@@ -78,7 +73,7 @@ pub mod sprite {
 			let size_x = data.read_i32::<LE>()? as u32;
 			let size_y = data.read_i32::<LE>()? as u32;
 			
-			let mut surface = Surface::new(size_x, size_y, FORMAT)?;
+			let mut surface = Surface::new(size_x, size_y, PixelFormatEnum::RGBA32)?;
 			let pitch = surface.pitch() as usize;
 			
 			{

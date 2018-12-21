@@ -157,21 +157,11 @@ impl Texture {
 				}
 				
 				// Find the corresponding Vulkan pixel format
-				#[cfg(target_endian = "big")]
 				let format = match surfaces[0].pixel_format_enum() {
 					PixelFormatEnum::RGB24 => Format::R8G8B8Unorm,
 					PixelFormatEnum::BGR24 => Format::B8G8R8Unorm,
-					PixelFormatEnum::RGBA8888 => Format::R8G8B8A8Unorm,
-					PixelFormatEnum::BGRA8888 => Format::B8G8R8A8Unorm,
-					_ => unimplemented!(),
-				};
-				
-				#[cfg(target_endian = "little")]
-				let format = match surfaces[0].pixel_format_enum() {
-					PixelFormatEnum::RGB24 => Format::R8G8B8Unorm,
-					PixelFormatEnum::BGR24 => Format::B8G8R8Unorm,
-					PixelFormatEnum::ARGB8888 => Format::B8G8R8A8Unorm,
-					PixelFormatEnum::ABGR8888 => Format::R8G8B8A8Unorm,
+					PixelFormatEnum::RGBA32 => Format::R8G8B8A8Unorm,
+					PixelFormatEnum::BGRA32 => Format::B8G8R8A8Unorm,
 					_ => unimplemented!(),
 				};
 				
