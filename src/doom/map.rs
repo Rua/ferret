@@ -1,5 +1,6 @@
 use byteorder::{LE, ReadBytesExt};
 use nalgebra::{Vector2, Vector3};
+use sdl2::pixels::PixelFormatEnum;
 use sdl2::surface::Surface;
 use std::cell::RefCell;
 use std::cmp;
@@ -82,6 +83,22 @@ fn load_textures(texture_names: HashSet<&str>, flat_names: HashSet<&str>, loader
 	])
 }
 
+fn generate_lightmaps() -> Result<Vec<Rc<RefCell<Texture>>>, Box<dyn Error>> {
+	let mut surfaces = Vec::new();
+	
+	for i in 0..=15 {
+		let mut surface = Surface::new(1, 1, PixelFormatEnum::RGBA32)?;
+		let mut pixels = surface.without_lock_mut().unwrap();
+		pixels[0] = i * 16;
+		pixels[1] = i * 16;
+		pixels[2] = i * 16;
+		pixels[3] = 255;
+		surfaces.push(surface);
+	}
+	
+	Ok(vec![Rc::new(RefCell::new(Texture::new(surfaces))); 16])
+}
+
 pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Error>> {
 	let index = loader.index_for_name(name).unwrap();
 	let _things = things::from_data(&mut loader.read_lump(index + things::OFFSET)?)?;
@@ -96,7 +113,7 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 	let gl_ssect = gl_ssect::from_data(&mut loader.read_lump(index + gl_ssect::OFFSET)?)?;
 	let gl_nodes = gl_nodes::from_data(&mut loader.read_lump(index + gl_nodes::OFFSET)?)?;
 	
-	// Process all subsectors, add geometry for each seg
+	// Load textures and flats
 	let mut texture_names = HashSet::new();
 	for sidedef in &sidedefs {
 		if let Some(name) = &sidedef.top_texture_name {
@@ -120,6 +137,10 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 	
 	let [textures, flats] = load_textures(texture_names, flat_names, loader)?;
 	
+	// Generate lightmaps
+	let lightmaps = generate_lightmaps()?;
+	
+	// Process all subsectors, add geometry for each seg
 	let mut vertices = Vec::new();
 	let mut faces = Vec::new();
 	let mut leaves = Vec::new();
@@ -187,177 +208,201 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 						// Top section
 						if let Some(texture_name) = &front_sidedef.top_texture_name {
 							let texture = &textures[texture_name];
+							let size = texture.0.borrow().size();
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
 								texture: texture.0.clone(),
+								lightmap: lightmaps[(front_sector.light_level >> 4) as usize].clone(),
 							});
 							leaf.face_count += 1;
 							
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], top_span.0],
-								in_tex_coord: [
-									offset[0] + 0.0,
-									offset[1] + if linedef.flags & 8 != 0 { top_height } else { 0.0 },
+								in_texture_coord: [
+									(offset[0] + 0.0) / size[0] as f32,
+									(offset[1] + if linedef.flags & 8 != 0 { top_height } else { 0.0 }) / size[1] as f32,
 									texture.1 as f32,
 								],
+								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], top_span.0],
-								in_tex_coord: [
-									offset[0] + width,
-									offset[1] + if linedef.flags & 8 != 0 { top_height } else { 0.0 },
+								in_texture_coord: [
+									(offset[0] + width) / size[0] as f32,
+									(offset[1] + if linedef.flags & 8 != 0 { top_height } else { 0.0 }) / size[1] as f32,
 									texture.1 as f32,
 								],
+								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], top_span.1],
-								in_tex_coord: [
-									offset[0] + width,
-									offset[1] + if linedef.flags & 8 != 0 { 0.0 } else { -top_height },
+								in_texture_coord: [
+									(offset[0] + width) / size[0] as f32,
+									(offset[1] + if linedef.flags & 8 != 0 { 0.0 } else { -top_height }) / size[1] as f32,
 									texture.1 as f32,
 								],
+								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
 							});
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], top_span.1],
-								in_tex_coord: [
-									offset[0] + 0.0,
-									offset[1] + if linedef.flags & 8 != 0 { 0.0 } else { -top_height },
+								in_texture_coord: [
+									(offset[0] + 0.0) / size[0] as f32,
+									(offset[1] + if linedef.flags & 8 != 0 { 0.0 } else { -top_height }) / size[1] as f32,
 									texture.1 as f32,
 								],
+								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
 							});
 						}
 						
 						// Bottom section
 						if let Some(texture_name) = &front_sidedef.bottom_texture_name {
 							let texture = &textures[texture_name];
+							let size = texture.0.borrow().size();
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
 								texture: texture.0.clone(),
+								lightmap: lightmaps[(front_sector.light_level >> 4) as usize].clone(),
 							});
 							leaf.face_count += 1;
 							
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], bottom_span.0],
-								in_tex_coord: [
-									offset[0] + 0.0,
-									offset[1] + if linedef.flags & 16 != 0 { total_height } else { bottom_height },
+								in_texture_coord: [
+									(offset[0] + 0.0) / size[0] as f32,
+									(offset[1] + if linedef.flags & 16 != 0 { total_height } else { bottom_height }) / size[1] as f32,
 									texture.1 as f32,
 								],
+								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], bottom_span.0],
-								in_tex_coord: [
-									offset[0] + width,
-									offset[1] + if linedef.flags & 16 != 0 { total_height } else { bottom_height },
+								in_texture_coord: [
+									(offset[0] + width) / size[0] as f32,
+									(offset[1] + if linedef.flags & 16 != 0 { total_height } else { bottom_height }) / size[1] as f32,
 									texture.1 as f32,
 								],
+								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], bottom_span.1],
-								in_tex_coord: [
-									offset[0] + width,
-									offset[1] + if linedef.flags & 16 != 0 { total_height - bottom_height } else { 0.0 },
+								in_texture_coord: [
+									(offset[0] + width) / size[0] as f32,
+									(offset[1] + if linedef.flags & 16 != 0 { total_height - bottom_height } else { 0.0 }) / size[1] as f32,
 									texture.1 as f32,
 								],
+								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
 							});
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], bottom_span.1],
-								in_tex_coord: [
-									offset[0] + 0.0,
-									offset[1] + if linedef.flags & 16 != 0 { total_height - bottom_height } else { 0.0 },
+								in_texture_coord: [
+									(offset[0] + 0.0) / size[0] as f32,
+									(offset[1] + if linedef.flags & 16 != 0 { total_height - bottom_height } else { 0.0 }) / size[1] as f32,
 									texture.1 as f32,
 								],
+								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
 							});
 						}
 						
 						// Middle section
 						if let Some(texture_name) = &front_sidedef.middle_texture_name {
 							let texture = &textures[texture_name];
+							let size = texture.0.borrow().size();
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
 								texture: texture.0.clone(),
+								lightmap: lightmaps[(front_sector.light_level >> 4) as usize].clone(),
 							});
 							leaf.face_count += 1;
 							
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], middle_span.0],
-								in_tex_coord: [
-									offset[0] + 0.0,
-									offset[1] + if linedef.flags & 16 != 0 { 0.0 } else { middle_height },
+								in_texture_coord: [
+									(offset[0] + 0.0) / size[0] as f32,
+									(offset[1] + if linedef.flags & 16 != 0 { 0.0 } else { middle_height }) / size[1] as f32,
 									texture.1 as f32,
 								],
+								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], middle_span.0],
-								in_tex_coord: [
-									offset[0] + width,
-									offset[1] + if linedef.flags & 16 != 0 { 0.0 } else { middle_height },
+								in_texture_coord: [
+									(offset[0] + width) / size[0] as f32,
+									(offset[1] + if linedef.flags & 16 != 0 { 0.0 } else { middle_height }) / size[1] as f32,
 									texture.1 as f32,
 								],
+								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], middle_span.1],
-								in_tex_coord: [
-									offset[0] + width,
-									offset[1] + if linedef.flags & 16 != 0 { -middle_height } else { 0.0 },
+								in_texture_coord: [
+									(offset[0] + width) / size[0] as f32,
+									(offset[1] + if linedef.flags & 16 != 0 { -middle_height } else { 0.0 }) / size[1] as f32,
 									texture.1 as f32,
 								],
+								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
 							});
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], middle_span.1],
-								in_tex_coord: [
-									offset[0] + 0.0,
-									offset[1] + if linedef.flags & 16 != 0 { -middle_height } else { 0.0 },
+								in_texture_coord: [
+									(offset[0] + 0.0) / size[0] as f32,
+									(offset[1] + if linedef.flags & 16 != 0 { -middle_height } else { 0.0 }) / size[1] as f32,
 									texture.1 as f32,
 								],
+								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
 							});
 						}
 					} else {
 						if let Some(texture_name) = &front_sidedef.middle_texture_name {
 							let texture = &textures[texture_name];
+							let size = texture.0.borrow().size();
 							let total_height = front_sector.ceiling_height - front_sector.floor_height;
 							
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
 								texture: texture.0.clone(),
+								lightmap: lightmaps[(front_sector.light_level >> 4) as usize].clone(),
 							});
 							leaf.face_count += 1;
 							
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], front_sector.floor_height],
-								in_tex_coord: [
-									offset[0] + 0.0,
-									offset[1] + if linedef.flags & 16 != 0 { 0.0 } else { total_height },
+								in_texture_coord: [
+									(offset[0] + 0.0) / size[0] as f32,
+									(offset[1] + if linedef.flags & 16 != 0 { 0.0 } else { total_height }) / size[1] as f32,
 									texture.1 as f32,
 								],
+								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], front_sector.floor_height],
-								in_tex_coord: [
-									offset[0] + width,
-									offset[1] + if linedef.flags & 16 != 0 { 0.0 } else { total_height },
+								in_texture_coord: [
+									(offset[0] + width) / size[0] as f32,
+									(offset[1] + if linedef.flags & 16 != 0 { 0.0 } else { total_height }) / size[1] as f32,
 									texture.1 as f32,
 								],
+								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], front_sector.ceiling_height],
-								in_tex_coord: [
-									offset[0] + width,
-									offset[1] + if linedef.flags & 16 != 0 { -total_height } else { 0.0 },
+								in_texture_coord: [
+									(offset[0] + width) / size[0] as f32,
+									(offset[1] + if linedef.flags & 16 != 0 { -total_height } else { 0.0 }) / size[1] as f32,
 									texture.1 as f32,
 								],
+								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
 							});
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], front_sector.ceiling_height],
-								in_tex_coord: [
-									offset[0] + 0.0,
-									offset[1] + if linedef.flags & 16 != 0 { -total_height } else { 0.0 },
+								in_texture_coord: [
+									(offset[0] + 0.0) / size[0] as f32,
+									(offset[1] + if linedef.flags & 16 != 0 { -total_height } else { 0.0 }) / size[1] as f32,
 									texture.1 as f32,
 								],
+								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
 							});
 						}
 					}
@@ -365,12 +410,16 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 			}
 		}
 		
+		let sector = &sector.unwrap();
+		
 		// Floor
-		let flat = &flats[&sector.unwrap().floor_flat_name];
+		let flat = &flats[&sector.floor_flat_name];
+		let size = flat.0.borrow().size();
 		faces.push(Face {
 			first_vertex_index: vertices.len(),
 			vertex_count: segs.len(),
 			texture: flat.0.clone(),
+			lightmap: lightmaps[(sector.light_level >> 4) as usize].clone(),
 		});
 		leaf.face_count += 1;
 		
@@ -382,17 +431,24 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 			};
 			
 			vertices.push(VertexData {
-				in_position: [start_vertex[0], start_vertex[1], sector.unwrap().floor_height],
-				in_tex_coord: [start_vertex[0], start_vertex[1], flat.1 as f32]
+				in_position: [start_vertex[0], start_vertex[1], sector.floor_height],
+				in_texture_coord: [
+					start_vertex[0] / size[0] as f32,
+					start_vertex[1] / size[1] as f32,
+					flat.1 as f32,
+				],
+				in_lightmap_coord: [0.0, 0.0, (sector.light_level >> 4) as f32],
 			});
 		}
 		
 		// Ceiling
-		let flat = &flats[&sector.unwrap().ceiling_flat_name];
+		let flat = &flats[&sector.ceiling_flat_name];
+		let size = flat.0.borrow().size();
 		faces.push(Face {
 			first_vertex_index: vertices.len(),
 			vertex_count: segs.len(),
 			texture: flat.0.clone(),
+			lightmap: lightmaps[(sector.light_level >> 4) as usize].clone(),
 		});
 		leaf.face_count += 1;
 		
@@ -404,8 +460,13 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Erro
 			};
 			
 			vertices.push(VertexData {
-				in_position: [start_vertex[0], start_vertex[1], sector.unwrap().ceiling_height],
-				in_tex_coord: [start_vertex[0], start_vertex[1], flat.1 as f32]
+				in_position: [start_vertex[0], start_vertex[1], sector.ceiling_height],
+				in_texture_coord: [
+					start_vertex[0] / size[0] as f32,
+					start_vertex[1] / size[1] as f32,
+					flat.1 as f32,
+				],
+				in_lightmap_coord: [0.0, 0.0, (sector.light_level >> 4) as f32],
 			});
 		}
 		

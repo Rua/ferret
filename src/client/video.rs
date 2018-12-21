@@ -208,7 +208,7 @@ impl Video {
 	pub fn draw_frame(&mut self) -> Result<(), Box<dyn Error>> {
 		// Update uniform buffer
 		let model = Matrix4::identity();
-		let view = Matrix4::look_at_rh(&Point3::new(1056.0, -3616.0, 50.0), &Point3::new(1056.0, -3615.0, 50.0), &Vector3::new(0.0, 0.0, 1.0));
+		let view = Matrix4::look_at_rh(&Point3::new(1670.0, -2500.0, 50.0), &Point3::new(1671.0, -2500.0, 50.0), &Vector3::new(0.0, 0.0, 1.0));
 		let proj = Matrix4::new(
 			1.0,  0.0, 0.0, 0.0,
 			0.0, -1.0, 0.0, 0.0,
@@ -252,13 +252,14 @@ impl Video {
 				clear_value,
 			)?;
 		
-		// Draw
 		for face in self.map.faces() {
-			let image = face.texture.borrow().image().unwrap();
+			let texture = face.texture.borrow().image().unwrap();
+			let lightmap = face.lightmap.borrow().image().unwrap();
 			
 			let descriptor_set = self.descriptor_sets_pool.next()
 				.add_buffer(self.uniform_buffer.clone())?
-				.add_sampled_image(image, self.sampler.clone())?
+				.add_sampled_image(texture, self.sampler.clone())?
+				.add_sampled_image(lightmap, self.sampler.clone())?
 				.build()?;
 			
 			let buffer = self.map.buffer().unwrap();
@@ -272,7 +273,7 @@ impl Video {
 				vec![Arc::new(slice2)],
 				descriptor_set,
 				(),
-			)?;	
+			)?;
 		}
 		
 		// Finalise

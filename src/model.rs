@@ -1,3 +1,4 @@
+use nalgebra::Vector3;
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::surface::Surface;
 use std::cell::RefCell;
@@ -37,6 +38,7 @@ impl BSPModel {
 	pub fn upload(&mut self, queue: &Arc<Queue>) -> Result<Box<dyn GpuFuture>, Box<dyn Error>> {
 		for face in &mut self.faces {
 			face.texture.borrow_mut().upload(queue)?;
+			face.lightmap.borrow_mut().upload(queue)?;
 		}
 		
 		match &self.vertices {
@@ -72,14 +74,16 @@ impl BSPModel {
 #[derive(Debug, Clone)]
 pub struct VertexData {
 	pub in_position: [f32; 3],
-	pub in_tex_coord: [f32; 3],
+	pub in_texture_coord: [f32; 3],
+	pub in_lightmap_coord: [f32; 3],
 }
-impl_vertex!(VertexData, in_position, in_tex_coord);
+impl_vertex!(VertexData, in_position, in_texture_coord, in_lightmap_coord);
 
 pub struct Face {
 	pub first_vertex_index: usize,
 	pub vertex_count: usize,
 	pub texture: Rc<RefCell<Texture>>,
+	pub lightmap: Rc<RefCell<Texture>>,
 }
 
 #[derive(Debug, Clone)]
@@ -132,6 +136,25 @@ impl Texture {
 		
 		Texture {
 			image: DataOrImage::Data(surfaces),
+		}
+	}
+	
+	pub fn size(&self) -> Vector3<u32> {
+		match &self.image {
+			DataOrImage::Data(surfaces) => {
+				Vector3::new(
+					surfaces[0].width(),
+					surfaces[0].height(),
+					surfaces.len() as u32,
+				)
+			},
+			DataOrImage::Image(image) => {
+				Vector3::new(
+					image.dimensions().width(),
+					image.dimensions().height(),
+					image.dimensions().array_layers(),
+				)
+			},
 		}
 	}
 	
