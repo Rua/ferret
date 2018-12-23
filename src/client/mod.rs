@@ -7,8 +7,10 @@ mod vulkan;
 use sdl2;
 use sdl2::EventPump;
 use sdl2::event::Event;
+use std::convert::TryFrom;
 use std::error::Error;
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::time::{Duration, Instant};
 
 use crate::client::audio::Audio;
 pub use crate::client::commands::COMMANDS;
@@ -37,7 +39,22 @@ pub fn client_main(dispatcher: CommandDispatcher) {
 	//let texture = video::Texture::from_patch(&mut data, &video.palette);
 	
 	let mut client = Client::new(dispatcher).unwrap();
-	client.run();
+	
+	let mut old_time = Instant::now();
+	let mut new_time = Instant::now();
+	let mut delta = new_time - old_time;
+	
+	while !client.should_quit {
+		// Busy-loop until there is at least a millisecond of delta
+		while {
+			new_time = Instant::now();
+			delta = new_time - old_time;
+			delta.as_millis() < 1
+		} {}
+		
+		client.frame(delta);
+		old_time = new_time;
+	}
 	
 	//local_server.quit().unwrap();
 	//local_server.quit_and_wait().unwrap();
@@ -107,33 +124,42 @@ impl Client {
 		})
 	}
 	
-	pub fn run(&mut self) {
-		loop {
-			for event in self.event_pump.poll_iter() {
-				match event {
-					Event::Quit {..} => self.dispatcher.push("quit"),
-					_ => {},
-				}
+	pub fn frame(&mut self, delta: Duration) {
+		for event in self.event_pump.poll_iter() {
+			match event {
+				Event::Quit {..} => self.dispatcher.push("quit"),
+				_ => {},
 			}
-			
-			// Execute console commands
-			while let Some(args) = self.dispatcher.next(false) {
-				COMMANDS.execute(args, self);
-			}
-			
-			// Receive network packets
-			for (packet, addr) in &mut self.socket {
-				println!("Client: {:?}, {}", packet, addr);
-			}
-			
-			if self.should_quit {
-				return;
-			}
-			
-			//console.process();
-			
-			self.video.draw_frame().unwrap();
 		}
+		
+		// Execute console commands
+		while let Some(args) = self.dispatcher.next(false) {
+			COMMANDS.execute(args, self);
+		}
+		
+		// Receive network packets
+		while let Some((packet, addr)) = self.socket.next() {
+			match ServerPacket::try_from(packet) {
+				Ok(packet) => {
+					self.process_packet(packet, addr)
+				},
+				Err(err) => {
+					warn!(
+						"received a malformed packet from {}: {}",
+						addr,
+						err,
+					);
+				},
+			}
+		}
+		
+		if self.should_quit {
+			return;
+		}
+		
+		//console.process();
+		
+		self.video.draw_frame().unwrap();
 	}
 	
 	pub fn quit(&mut self) {
@@ -142,5 +168,9 @@ impl Client {
 	
 	pub fn dispatcher(&self) -> &CommandDispatcher {
 		&self.dispatcher
+	}
+	
+	fn process_packet(&mut self, packet: ServerPacket, addr: SocketAddr) {
+		println!("Client: {:?}, {}", packet, addr);
 	}
 }

@@ -13,6 +13,7 @@ use crate::commands;
 #[derive(Debug)]
 pub enum ClientPacket {
 	Connectionless(ClientConnectionlessPacket),
+	Dummy,
 }
 
 impl TryFrom<Vec<u8>> for ClientPacket {
@@ -34,7 +35,8 @@ impl TryFrom<Vec<u8>> for ClientPacket {
 impl From<ClientPacket> for Vec<u8> {
 	fn from(packet: ClientPacket) -> Vec<u8> {
 		match packet {
-			ClientPacket::Connectionless(p) => p.into()
+			ClientPacket::Connectionless(p) => p.into(),
+			ClientPacket::Dummy => Vec::new(),
 		}
 	}
 }
@@ -154,6 +156,7 @@ impl From<ClientConnectionlessPacket> for Vec<u8> {
 #[derive(Debug)]
 pub enum ServerPacket {
 	Connectionless(ServerConnectionlessPacket),
+	Dummy,
 }
 
 impl TryFrom<Vec<u8>> for ServerPacket {
@@ -175,7 +178,8 @@ impl TryFrom<Vec<u8>> for ServerPacket {
 impl From<ServerPacket> for Vec<u8> {
 	fn from(packet: ServerPacket) -> Vec<u8> {
 		match packet {
-			ServerPacket::Connectionless(p) => p.into()
+			ServerPacket::Connectionless(p) => p.into(),
+			ServerPacket::Dummy => Vec::new(),
 		}
 	}
 }

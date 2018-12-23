@@ -3,7 +3,8 @@ mod commands;
 
 use std::convert::TryFrom;
 use std::error::Error;
-use std::net::{Ipv4Addr, Ipv6Addr};
+use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::time::{Duration, Instant};
 
 use crate::commands::CommandDispatcher;
 use crate::net::Socket;
@@ -13,7 +14,22 @@ pub use crate::server::commands::COMMANDS;
 
 pub fn server_main(dispatcher: CommandDispatcher) {
 	let mut server = Server::new(dispatcher).unwrap();
-	server.run();
+	
+	let mut old_time = Instant::now();
+	let mut new_time = Instant::now();
+	let mut delta = new_time - old_time;
+	
+	while !server.should_quit {
+		// Busy-loop until there is at least a millisecond of delta
+		while {
+			new_time = Instant::now();
+			delta = new_time - old_time;
+			delta.as_millis() < 1
+		} {}
+		
+		server.frame(delta);
+		old_time = new_time;
+	}
 }
 
 pub struct Server {
@@ -44,45 +60,36 @@ impl Server {
 		})
 	}
 	
-	fn run(&mut self) {
-		while !self.should_quit {
-			// Receive network packets
-			if self.session.is_some() {
-				while let Some((packet, addr)) = self.socket.next() {
-					match ClientPacket::try_from(packet) {
-						Ok(packet) => {
-							println!("Server: {:?}, {}", packet, addr);
-							
-							if let ClientPacket::Connectionless(ClientConnectionlessPacket::GetStatus) = packet {
-								let packet = ServerPacket::Connectionless(ServerConnectionlessPacket::ConnectResponse);
-								self.socket.send_to(packet.into(), addr);
-							}
-						},
-						Err(err) => {
-							warn!(
-								"received a malformed packet from {}: {}",
-								addr,
-								err,
-							);
-						},
-					}
+	fn frame(&mut self, delta: Duration) {
+		// Receive network packets
+		if self.session.is_some() {
+			while let Some((packet, addr)) = self.socket.next() {
+				match ClientPacket::try_from(packet) {
+					Ok(packet) => {
+						self.process_packet(packet, addr)
+					},
+					Err(err) => {
+						warn!(
+							"received a malformed packet from {}: {}",
+							addr,
+							err,
+						);
+					},
 				}
 			}
+		}
+		
+		// Execute console commands
+		while let Some(args) = self.dispatcher.next(self.session.is_none()) {
+			COMMANDS.execute(args, self);
 			
-			// Execute console commands
-			while let Some(args) = self.dispatcher.next(self.session.is_none()) {
-				COMMANDS.execute(args, self);
-				
-				if self.should_quit {
-					return;
-				}
+			if self.should_quit {
+				return;
 			}
-			
-			if self.session.is_none() {
-				continue;
-			}
-			
-
+		}
+		
+		if self.session.is_none() {
+			return;
 		}
 	}
 	
@@ -92,6 +99,17 @@ impl Server {
 	
 	pub fn shutdown(&mut self) {
 		self.session = None;
+	}
+	
+	fn process_packet(&mut self, packet: ClientPacket, addr: SocketAddr) {
+		println!("Server: {:?}, {}", packet, addr);
+		
+		if let ClientPacket::Connectionless(packet) = packet {
+			if let ClientConnectionlessPacket::GetStatus = packet {
+				let packet = ServerPacket::Connectionless(ServerConnectionlessPacket::ConnectResponse);
+				self.socket.send_to(packet.into(), addr);
+			}
+		}
 	}
 }
 
