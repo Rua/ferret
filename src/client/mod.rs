@@ -48,7 +48,7 @@ pub struct Client {
 	dispatcher: CommandDispatcher,
 	event_pump: EventPump,
 	input: Input,
-	socket: Socket<ClientPacket, ServerPacket>,
+	socket: Socket,
 	video: Video,
 	
 	should_quit: bool,

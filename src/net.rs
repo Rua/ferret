@@ -1,23 +1,17 @@
 use net2::UdpBuilder;
-use std::convert::TryFrom;
 use std::error::Error;
 use std::fmt;
 use std::io;
 use std::io::ErrorKind;
-use std::marker::PhantomData;
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6, UdpSocket};
 
-pub struct Socket<S, R> {
+pub struct Socket {
 	v4: Option<UdpSocket>,
 	v6: Option<UdpSocket>,
-	_s: PhantomData<S>,
-	_r: PhantomData<R>,
 }
 
-impl<S, R> Socket<S, R> where
-S: Into<Vec<u8>>,
-R: TryFrom<Vec<u8>, Error = Box<dyn Error>> {
-	pub fn new(ipv4_addr: Ipv4Addr, ipv6_addr: Ipv6Addr, port: u16) -> Result<Socket<S, R>, Box<dyn Error>> {
+impl Socket {
+	pub fn new(ipv4_addr: Ipv4Addr, ipv6_addr: Ipv6Addr, port: u16) -> Result<Socket, Box<dyn Error>> {
 		let ipv4_addr_port = SocketAddrV4::new(ipv4_addr, port);
 		let v4 = bind_v4(ipv4_addr_port);
 		
@@ -38,8 +32,6 @@ R: TryFrom<Vec<u8>, Error = Box<dyn Error>> {
 			Ok(Socket {
 				v4: v4.ok(),
 				v6: v6.ok(),
-				_s: PhantomData,
-				_r: PhantomData,
 			})
 		}
 	}
@@ -66,15 +58,14 @@ R: TryFrom<Vec<u8>, Error = Box<dyn Error>> {
 		}
 	}
 	
-	pub fn send_to(&self, packet: S, addr: SocketAddr) {
+	pub fn send_to(&self, packet: Vec<u8>, addr: SocketAddr) {
 		let socket = match addr {
 			SocketAddr::V4(_) => &self.v4,
 			SocketAddr::V6(_) => &self.v6,
 		};
 		
 		if let Some(socket) = socket {
-			let x: Vec<u8> = packet.into();
-			if let Err(err) = socket.send_to(x.as_slice(), addr) {
+			if let Err(err) = socket.send_to(packet.as_slice(), addr) {
 				error!("could not send packet to {}: {}", addr, err);
 			}
 		} else {
@@ -89,12 +80,10 @@ R: TryFrom<Vec<u8>, Error = Box<dyn Error>> {
 	}
 }
 
-impl<S, R> Iterator for Socket<S, R> where
-S: Into<Vec<u8>>,
-R: TryFrom<Vec<u8>, Error = Box<dyn Error>> {
-	type Item = (R, SocketAddr);
+impl Iterator for Socket {
+	type Item = (Vec<u8>, SocketAddr);
 	
-	fn next(&mut self) -> Option<(R, SocketAddr)> {
+	fn next(&mut self) -> Option<(Vec<u8>, SocketAddr)> {
 		let mut buf = vec![0u8; 8192];
 		
 		// Try reading from available sockets, first from the IPv6 socket,
@@ -108,19 +97,7 @@ R: TryFrom<Vec<u8>, Error = Box<dyn Error>> {
 					} else {
 						// We got a packet, parse it, and return if valid.
 						buf.truncate(bytes_read);
-						
-						match R::try_from(buf) {
-							Ok(p) => return Some((p, addr)),
-							Err(err) => {
-								warn!(
-									"received a malformed packet from {}: {}",
-									addr,
-									err,
-								);
-								// Buffer was eaten by try_from, make a new one.
-								buf = vec![0u8; 8192];
-							},
-						}
+						return Some((buf, addr));
 					}
 				},
 				Err(err) => {

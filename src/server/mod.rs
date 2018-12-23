@@ -1,6 +1,7 @@
 mod client;
 mod commands;
 
+use std::convert::TryFrom;
 use std::error::Error;
 use std::net::{Ipv4Addr, Ipv6Addr};
 
@@ -17,7 +18,7 @@ pub fn server_main(dispatcher: CommandDispatcher) {
 
 pub struct Server {
 	dispatcher: CommandDispatcher,
-	socket: Socket<ServerPacket, ClientPacket>,
+	socket: Socket,
 	
 	session: Option<ServerSession>,
 	should_quit: bool,
@@ -48,11 +49,22 @@ impl Server {
 			// Receive network packets
 			if self.session.is_some() {
 				while let Some((packet, addr)) = self.socket.next() {
-					println!("Server: {:?}, {}", packet, addr);
-					
-					if let ClientPacket::Connectionless(ClientConnectionlessPacket::GetStatus) = packet {
-						let packet = ServerConnectionlessPacket::ConnectResponse;
-						self.socket.send_to(packet.into(), addr);
+					match ClientPacket::try_from(packet) {
+						Ok(packet) => {
+							println!("Server: {:?}, {}", packet, addr);
+							
+							if let ClientPacket::Connectionless(ClientConnectionlessPacket::GetStatus) = packet {
+								let packet = ServerPacket::Connectionless(ServerConnectionlessPacket::ConnectResponse);
+								self.socket.send_to(packet.into(), addr);
+							}
+						},
+						Err(err) => {
+							warn!(
+								"received a malformed packet from {}: {}",
+								addr,
+								err,
+							);
+						},
 					}
 				}
 			}
