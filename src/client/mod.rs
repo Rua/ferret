@@ -1,5 +1,5 @@
 mod audio;
-mod commands;
+mod client_commands;
 mod input;
 mod video;
 mod vulkan;
@@ -10,18 +10,25 @@ use sdl2::event::Event;
 use std::convert::TryFrom;
 use std::error::Error;
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::panic;
+use std::panic::AssertUnwindSafe;
+use std::sync::{mpsc, mpsc::Receiver};
+use std::thread::Builder;
 use std::time::{Duration, Instant};
 
 use crate::client::audio::Audio;
-pub use crate::client::commands::COMMANDS;
+pub use crate::client::client_commands::COMMANDS;
 use crate::client::input::Input;
 use crate::client::video::Video;
-use crate::commands::CommandDispatcher;
+use crate::commands;
+use crate::commands::CommandSender;
 use crate::net::Socket;
-use crate::protocol::{ClientConnectionlessPacket, ClientPacket, ServerPacket};
+use crate::protocol::{ClientConnectionlessPacket, ClientPacket, ServerConnectionlessPacket, ServerPacket};
+use crate::server;
+use crate::stdin;
 
 
-pub fn client_main(dispatcher: CommandDispatcher) {
+pub fn client_main() {
 	//let mut local_server = LocalServer::new().unwrap();
 	//local_server.start().unwrap();
 	
@@ -38,7 +45,26 @@ pub fn client_main(dispatcher: CommandDispatcher) {
 	//println!("{:?}", data);
 	//let texture = video::Texture::from_patch(&mut data, &video.palette);
 	
-	let mut client = Client::new(dispatcher).unwrap();
+	let server_thread = Builder::new()
+		.name("server".to_owned())
+		.spawn(move || {
+			match panic::catch_unwind(AssertUnwindSafe(|| {
+				server::server_main()
+			})) {
+				Ok(()) => debug!("Server thread terminated."),
+				Err(_) => (),
+			}
+		});
+	
+	let server_thread = match server_thread {
+		Ok(val) => val,
+		Err(err) => {
+			error!("Could not start server thread: {}", err);
+			return
+		}
+	};
+	
+	let mut client = Client::new().unwrap();
 	
 	let mut old_time = Instant::now();
 	let mut new_time = Instant::now();
@@ -56,13 +82,17 @@ pub fn client_main(dispatcher: CommandDispatcher) {
 		old_time = new_time;
 	}
 	
+	debug!("Client thread terminated.");
+	server_thread.join().ok();
+	
 	//local_server.quit().unwrap();
 	//local_server.quit_and_wait().unwrap();
 }
 
 pub struct Client {
 	audio: Audio,
-	dispatcher: CommandDispatcher,
+	command_sender: CommandSender,
+	command_receiver: Receiver<Vec<String>>,
 	event_pump: EventPump,
 	input: Input,
 	socket: Socket,
@@ -72,7 +102,7 @@ pub struct Client {
 }
 
 impl Client {
-	pub fn new(dispatcher: CommandDispatcher) -> Result<Client, Box<dyn Error>> {
+	pub fn new() -> Result<Client, Box<dyn Error>> {
 		let socket = match Socket::new(Ipv4Addr::UNSPECIFIED, Ipv6Addr::UNSPECIFIED, 0) {
 			Ok(val) => val,
 			Err(err) => {
@@ -81,6 +111,16 @@ impl Client {
 		};
 		
 		info!("Client socket mode: {}", socket.mode());
+		
+		let (command_sender, command_receiver) = mpsc::channel();
+		let command_sender = CommandSender::new(command_sender);
+		
+		match stdin::spawn(command_sender.clone()) {
+			Ok(_) => (),
+			Err(err) => {
+				return Err(Box::from(format!("Could not start stdin thread: {}", err)));
+			}
+		};
 		
 		let sdl = match sdl2::init() {
 			Ok(val) => val,
@@ -114,7 +154,8 @@ impl Client {
 
 		Ok(Client {
 			audio,
-			dispatcher,
+			command_sender,
+			command_receiver,
 			event_pump,
 			input,
 			socket,
@@ -127,13 +168,13 @@ impl Client {
 	pub fn frame(&mut self, delta: Duration) {
 		for event in self.event_pump.poll_iter() {
 			match event {
-				Event::Quit {..} => self.dispatcher.push("quit"),
+				Event::Quit {..} => self.command_sender.send("quit"),
 				_ => {},
 			}
 		}
 		
 		// Execute console commands
-		while let Some(args) = self.dispatcher.next(false) {
+		while let Some(args) = self.command_receiver.try_iter().next() {
 			COMMANDS.execute(args, self);
 		}
 		
@@ -164,13 +205,31 @@ impl Client {
 	
 	pub fn quit(&mut self) {
 		self.should_quit = true;
+		
+		let packet = ClientPacket::Connectionless(ClientConnectionlessPacket::RCon(vec!["quit".to_owned()]));
+		let addr = SocketAddr::new(Ipv6Addr::LOCALHOST.into(), 40011);
+		self.socket.send_to(packet.into(), addr);
 	}
 	
-	pub fn dispatcher(&self) -> &CommandDispatcher {
+	/*pub fn dispatcher(&self) -> &CommandDispatcher {
 		&self.dispatcher
-	}
+	}*/
 	
 	fn process_packet(&mut self, packet: ServerPacket, addr: SocketAddr) {
 		println!("Client: {:?}, {}", packet, addr);
+		
+		match packet {
+			ServerPacket::Connectionless(packet) => match packet {
+				ServerConnectionlessPacket::ChallengeResponse(_) => unimplemented!(),
+				ServerConnectionlessPacket::ConnectResponse => unimplemented!(),
+				ServerConnectionlessPacket::Disconnect => unimplemented!(),
+				ServerConnectionlessPacket::InfoResponse(_) => unimplemented!(),
+				ServerConnectionlessPacket::Print(message) => {
+					info!("message");
+				},
+				ServerConnectionlessPacket::StatusResponse(_, _) => unimplemented!(),
+			},
+			_ => unimplemented!(),
+		}
 	}
 }

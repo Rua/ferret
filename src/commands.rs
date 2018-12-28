@@ -6,77 +6,22 @@ use std::string::String;
 use std::sync::{Arc, mpsc};
 use std::sync::mpsc::{Receiver, Sender};
 
-pub struct CommandDispatcher {
-	receiver: Receiver<Vec<String>>,
-	sender: CommandSender,
-}
 
-impl CommandDispatcher {
-	/*pub fn register_variable<T: FromStr + ToString + 'static>(&mut self, name: &str, initvalue: T) -> Rc<ConsoleVariable<T>> {
-		let var = Rc::new(ConsoleVariable::<T> {
-			name: name.to_owned(),
-			value: RefCell::new(initvalue),
-		});
-		
-		let weak = Rc::downgrade(&var) as Weak<ConsoleVariableT>;
-		self.variables.insert(name.to_owned(), weak);
-		
-		var
-	}*/
-	
-	pub fn push(&self, command: &str) {
-		self.sender.push(command)
-	}
-	
-	pub fn next(&mut self, block: bool) -> Option<Vec<String>> {
-		if block {
-			self.receiver.iter().next()
-		} else {
-			self.receiver.try_iter().next()
-		}
-	}
-	
-	pub fn print_commands(&self) {
-		self.sender.print_commands()
-	}
-	
-	/*pub fn print_variables(&self) {
-		let names = self.variables.keys().collect::<Vec<&String>>();
-		
-		for name in names {
-			info!("{}", name);
-		}
-	}*/
-}
-
+#[derive(Clone)]
 pub struct CommandSender {
-	all_commands: Arc<HashMap<String, Vec<usize>>>,
-	senders: Vec<Sender<Vec<String>>>,
+	sender: Sender<Vec<String>>,
 }
 
 impl CommandSender {
-	pub fn push(&self, command: &str) {
-		for args in tokenize(command).unwrap().split(|tok| tok == ";") {
-			let command = match self.all_commands.get(&args[0]) {
-				Some(val) => val,
-				None => {
-					error!("Command not found: {}", args[0]);
-					return
-				}
-			};
-			
-			for sender_id in command {
-				self.senders[*sender_id].send(args.to_vec()).ok();
-			}
+	pub fn new(sender: Sender<Vec<String>>) -> CommandSender {
+		CommandSender {
+			sender,
 		}
 	}
 	
-	pub fn print_commands(&self) {
-		let mut names = self.all_commands.keys().collect::<Vec<&String>>();
-		names.sort();
-		
-		for name in names {
-			info!("{}", name);
+	pub fn send(&self, command: &str) {
+		for args in tokenize(command).unwrap().split(|tok| tok == ";") {
+			self.sender.send(args.to_vec()).ok();
 		}
 	}
 }
@@ -100,9 +45,9 @@ impl<T> CommandList<T> {
 		self
 	}
 	
-	pub fn keys(&self) -> Vec<&String> {
+	/*pub fn keys(&self) -> Vec<&String> {
 		self.commands.keys().collect::<Vec<_>>()
-	}
+	}*/
 	
 	pub fn execute(&self, args: Vec<String>, system: &mut T) {
 		match self.commands.get(&args[0]) {
@@ -110,54 +55,13 @@ impl<T> CommandList<T> {
 			None => debug!("Received invalid command: {}", args[0]),
 		}
 	}
-}
-
-pub struct CommandUnion {
-	all_commands: Arc<HashMap<String, Vec<usize>>>,
-	receivers: Vec<Option<Receiver<Vec<String>>>>,
-	senders: Vec<Sender<Vec<String>>>,
-}
-
-impl CommandUnion {
-	pub fn new() -> CommandUnion {
-		CommandUnion {
-			all_commands: Arc::new(HashMap::new()),
-			receivers: Vec::new(),
-			senders: Vec::new(),
-		}
-	}
 	
-	pub fn add_commands(&mut self, commands: Vec<&String>) {
-		for name in commands {
-			match Arc::get_mut(&mut self.all_commands).unwrap().entry(name.clone()) {
-				Entry::Occupied(mut e) => {
-					e.get_mut().push(self.senders.len());
-				},
-				Entry::Vacant(e) => {
-					e.insert(vec![self.senders.len()]);
-				},
-			}
-		}
+	pub fn print_commands(&self) {
+		let mut names = self.commands.keys().collect::<Vec<&String>>();
+		names.sort();
 		
-		let (sender, receiver) = mpsc::channel();
-		self.receivers.push(Some(receiver));
-		self.senders.push(sender);
-	}
-	
-	pub fn make_sender(&self) -> CommandSender {
-		CommandSender {
-			all_commands: self.all_commands.clone(),
-			senders: self.senders.clone(),
-		}
-	}
-	
-	pub fn make_dispatcher(&mut self, index: usize) -> CommandDispatcher {
-		CommandDispatcher {
-			receiver: self.receivers[index].take().unwrap(),
-			sender: CommandSender {
-				all_commands: self.all_commands.clone(),
-				senders: self.senders.clone(),
-			},
+		for name in names {
+			info!("{}", name);
 		}
 	}
 }
