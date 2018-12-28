@@ -31,6 +31,8 @@ pub fn server_main() {
 		server.frame(delta);
 		old_time = new_time;
 	}
+	
+	debug!("Server thread terminated.");
 }
 
 pub struct Server {
@@ -38,6 +40,7 @@ pub struct Server {
 	command_receiver: Receiver<Vec<String>>,
 	socket: Socket,
 	
+	clients: Vec<ServerClient>,
 	session: Option<ServerSession>,
 	should_quit: bool,
 }
@@ -61,6 +64,7 @@ impl Server {
 			command_receiver,
 			socket,
 			
+			clients: Vec::new(),
 			session: None,
 			should_quit: false,
 		})
@@ -110,13 +114,15 @@ impl Server {
 		
 		match packet {
 			ClientPacket::Connectionless(packet) => match packet {
-				ClientConnectionlessPacket::Connect(_) => unimplemented!(),
-				ClientConnectionlessPacket::GetChallenge => unimplemented!(),
-				ClientConnectionlessPacket::GetInfo => unimplemented!(),
-				ClientConnectionlessPacket::GetStatus => {
+				ClientConnectionlessPacket::Connect(_) => {
+					// TODO: check if client is already in the list
+					self.clients.push(ServerClient {} );
+					
 					let packet = ServerPacket::Connectionless(ServerConnectionlessPacket::ConnectResponse);
 					self.socket.send_to(packet.into(), addr);
 				},
+				ClientConnectionlessPacket::GetInfo => unimplemented!(),
+				ClientConnectionlessPacket::GetStatus => unimplemented!(),
 				ClientConnectionlessPacket::RCon(args) => {
 					COMMANDS.execute(args, self);
 				},

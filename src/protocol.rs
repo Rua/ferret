@@ -44,7 +44,6 @@ impl From<ClientPacket> for Vec<u8> {
 #[derive(Debug)]
 pub enum ClientConnectionlessPacket {
 	Connect(String),
-	GetChallenge,
 	GetInfo,
 	GetStatus,
 	RCon(Vec<String>),
@@ -86,9 +85,6 @@ impl TryFrom<Vec<u8>> for ClientConnectionlessPacket {
 				
 				ClientConnectionlessPacket::Connect(text)
 			},
-			"getchallenge" => {
-				ClientConnectionlessPacket::GetChallenge
-			},
 			"getinfo" => {
 				ClientConnectionlessPacket::GetInfo
 			},
@@ -124,10 +120,7 @@ impl From<ClientConnectionlessPacket> for Vec<u8> {
 		
 		match packet {
 			ClientConnectionlessPacket::Connect(text) => {
-				write!(writer, "connect {}", text).unwrap();
-			},
-			ClientConnectionlessPacket::GetChallenge => {
-				write!(writer, "getchallenge").unwrap();
+				write!(writer, "connect {}", commands::quote_escape(&text)).unwrap();
 			},
 			ClientConnectionlessPacket::GetInfo => {
 				write!(writer, "getinfo").unwrap();
@@ -186,7 +179,6 @@ impl From<ServerPacket> for Vec<u8> {
 
 #[derive(Debug)]
 pub enum ServerConnectionlessPacket {
-	ChallengeResponse(u32),
 	ConnectResponse,
 	Disconnect,
 	InfoResponse(String),
@@ -222,14 +214,6 @@ impl TryFrom<Vec<u8>> for ServerConnectionlessPacket {
 		};
 		
 		let packet = match cmd.as_str() {
-			"challengeResponse" => {
-				let num = match tokens.next() {
-					Some(val) => val,
-					None => return Err(Box::from(format!("{}: argument 1 missing", cmd))),
-				};
-				
-				ServerConnectionlessPacket::ChallengeResponse(num.parse()?)
-			},
 			"connectResponse" => {
 				ServerConnectionlessPacket::ConnectResponse
 			},
@@ -284,11 +268,6 @@ impl From<ServerConnectionlessPacket> for Vec<u8> {
 		writer.write_u32::<NE>(0xFFFFFFFF).unwrap();
 		
 		match packet {
-			ServerConnectionlessPacket::ChallengeResponse(num) => {
-				write!(writer, "challengeResponse {}",
-					num,
-				).unwrap();
-			},
 			ServerConnectionlessPacket::ConnectResponse => {
 				write!(writer, "connectResponse").unwrap();
 			},

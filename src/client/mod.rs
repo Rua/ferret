@@ -9,9 +9,10 @@ use sdl2::EventPump;
 use sdl2::event::Event;
 use std::convert::TryFrom;
 use std::error::Error;
-use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, ToSocketAddrs};
 use std::panic;
 use std::panic::AssertUnwindSafe;
+use std::process;
 use std::sync::{mpsc, mpsc::Receiver};
 use std::thread::Builder;
 use std::time::{Duration, Instant};
@@ -48,11 +49,10 @@ pub fn client_main() {
 	let server_thread = Builder::new()
 		.name("server".to_owned())
 		.spawn(move || {
-			match panic::catch_unwind(AssertUnwindSafe(|| {
+			if let Err(_) = panic::catch_unwind(AssertUnwindSafe(|| {
 				server::server_main()
 			})) {
-				Ok(()) => debug!("Server thread terminated."),
-				Err(_) => (),
+				process::exit(1);
 			}
 		});
 	
@@ -98,6 +98,8 @@ pub struct Client {
 	socket: Socket,
 	video: Video,
 	
+	connection: Option<ClientConnection>,
+	real_time: Instant,
 	should_quit: bool,
 }
 
@@ -161,11 +163,15 @@ impl Client {
 			socket,
 			video,
 			
+			connection: None,
+			real_time: Instant::now(),
 			should_quit: false,
 		})
 	}
 	
 	pub fn frame(&mut self, delta: Duration) {
+		self.real_time += delta;
+		
 		for event in self.event_pump.poll_iter() {
 			match event {
 				Event::Quit {..} => self.command_sender.send("quit"),
@@ -198,7 +204,15 @@ impl Client {
 			return;
 		}
 		
-		//console.process();
+		if let Some(connection) = &self.connection {
+			match connection.state {
+				ConnectionState::Connecting => {
+					let packet = ClientPacket::Connectionless(ClientConnectionlessPacket::Connect("".to_owned()));
+					self.socket.send_to(packet.into(), connection.server_addr);
+				},
+				_ => (),
+			}
+		}
 		
 		self.video.draw_frame().unwrap();
 	}
@@ -220,16 +234,77 @@ impl Client {
 		
 		match packet {
 			ServerPacket::Connectionless(packet) => match packet {
-				ServerConnectionlessPacket::ChallengeResponse(_) => unimplemented!(),
-				ServerConnectionlessPacket::ConnectResponse => unimplemented!(),
+				ServerConnectionlessPacket::ConnectResponse => {
+					if let Some(connection) = &mut self.connection {
+						match connection.state {
+							ConnectionState::Connecting => {
+								if addr == connection.server_addr {
+									connection.state = ConnectionState::Connected;
+								} else {
+									info!("Received connection response from wrong address");
+								}
+							},
+							ConnectionState::Connected => {
+								info!("Received duplicate connection response");
+							}
+						}
+					}
+				},
 				ServerConnectionlessPacket::Disconnect => unimplemented!(),
 				ServerConnectionlessPacket::InfoResponse(_) => unimplemented!(),
 				ServerConnectionlessPacket::Print(message) => {
-					info!("message");
+					info!(message);
 				},
 				ServerConnectionlessPacket::StatusResponse(_, _) => unimplemented!(),
 			},
 			_ => unimplemented!(),
 		}
 	}
+	
+	pub fn connect(&mut self, server_name: &str) {
+		let connection = match ClientConnection::new(server_name, &self.socket) {
+			Ok(val) => val,
+			Err(err) => {
+				error!("Could not connect: {}", err);
+				return
+			}
+		};
+		
+		self.connection = Some(connection);
+	}
+}
+
+struct ClientConnection {
+	server_name: String,
+	server_addr: SocketAddr,
+	state: ConnectionState,
+}
+
+impl ClientConnection {
+	fn new(server_name: &str, socket: &Socket) -> Result<ClientConnection, Box<dyn Error>> {
+		let mut socket_addrs = server_name.to_socket_addrs();
+		
+		if socket_addrs.is_err() {
+			socket_addrs = (server_name, 40011).to_socket_addrs();
+		}
+		
+		let socket_addrs: Vec<SocketAddr> = socket_addrs?.filter(socket.filter_supported()).collect();
+		
+		if socket_addrs.is_empty() {
+			return Err(Box::from("Host name not found"));
+		}
+		
+		info!("{} resolved to {}", server_name, socket_addrs[0].ip());
+		
+		Ok(ClientConnection {
+			server_name: server_name.to_owned(),
+			server_addr: socket_addrs[0],
+			state: ConnectionState::Connecting,
+		})
+	}
+}
+
+enum ConnectionState {
+	Connected,
+	Connecting,
 }

@@ -58,6 +58,15 @@ impl Socket {
 		}
 	}
 	
+	pub fn filter_supported(&self) -> impl FnMut(&SocketAddr) -> bool {
+		let v4 = self.v4.is_some();
+		let v6 = self.v6.is_some();
+		
+		return move |&addr| -> bool {
+			addr.is_ipv4() && v4 || addr.is_ipv6() && v6
+		}
+	}
+	
 	pub fn send_to(&self, packet: Vec<u8>, addr: SocketAddr) {
 		let socket = match addr {
 			SocketAddr::V4(_) => &self.v4,
