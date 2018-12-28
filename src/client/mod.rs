@@ -13,6 +13,7 @@ use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, ToSocketAddrs};
 use std::panic;
 use std::panic::AssertUnwindSafe;
 use std::process;
+use std::rc::Rc;
 use std::sync::{mpsc, mpsc::Receiver};
 use std::thread::Builder;
 use std::time::{Duration, Instant};
@@ -23,8 +24,8 @@ use crate::client::input::Input;
 use crate::client::video::Video;
 use crate::commands;
 use crate::commands::CommandSender;
-use crate::net::Socket;
-use crate::protocol::{ClientConnectionlessPacket, ClientPacket, ServerConnectionlessPacket, ServerPacket};
+use crate::net::{SequencedChannel, Socket};
+use crate::protocol::{ClientConnectionlessPacket, ServerConnectionlessPacket, ServerPacket};
 use crate::server;
 use crate::stdin;
 
@@ -95,7 +96,7 @@ pub struct Client {
 	command_receiver: Receiver<Vec<String>>,
 	event_pump: EventPump,
 	input: Input,
-	socket: Socket,
+	socket: Rc<Socket>,
 	video: Video,
 	
 	connection: Option<ClientConnection>,
@@ -188,7 +189,7 @@ impl Client {
 		while let Some((packet, addr)) = self.socket.next() {
 			match ServerPacket::try_from(packet) {
 				Ok(packet) => {
-					self.process_packet(packet, addr)
+					self.handle_packet(packet, addr)
 				},
 				Err(err) => {
 					warn!(
@@ -204,11 +205,15 @@ impl Client {
 			return;
 		}
 		
-		if let Some(connection) = &self.connection {
+		if let Some(connection) = &mut self.connection {
 			match connection.state {
-				ConnectionState::Connecting => {
-					let packet = ClientPacket::Connectionless(ClientConnectionlessPacket::Connect("".to_owned()));
-					self.socket.send_to(packet.into(), connection.server_addr);
+				ConnectionState::Connecting(ref mut last_packet_time) => {
+					// If it has been longer than 3 seconds from the last, resend the packet
+					if (self.real_time - *last_packet_time).as_secs() >= 3 {
+						let packet = ClientConnectionlessPacket::Connect("".to_owned());
+						self.socket.send_to(packet.into(), connection.server_addr);
+						*last_packet_time = self.real_time;
+					}
 				},
 				_ => (),
 			}
@@ -220,44 +225,57 @@ impl Client {
 	pub fn quit(&mut self) {
 		self.should_quit = true;
 		
-		let packet = ClientPacket::Connectionless(ClientConnectionlessPacket::RCon(vec!["quit".to_owned()]));
+		let packet = ClientConnectionlessPacket::RCon(vec!["quit".to_owned()]);
 		let addr = SocketAddr::new(Ipv6Addr::LOCALHOST.into(), 40011);
 		self.socket.send_to(packet.into(), addr);
 	}
 	
-	/*pub fn dispatcher(&self) -> &CommandDispatcher {
-		&self.dispatcher
-	}*/
-	
-	fn process_packet(&mut self, packet: ServerPacket, addr: SocketAddr) {
+	fn handle_packet(&mut self, packet: ServerPacket, addr: SocketAddr) {
 		println!("Client: {:?}, {}", packet, addr);
 		
 		match packet {
-			ServerPacket::Connectionless(packet) => match packet {
-				ServerConnectionlessPacket::ConnectResponse => {
-					if let Some(connection) = &mut self.connection {
-						match connection.state {
-							ConnectionState::Connecting => {
-								if addr == connection.server_addr {
-									connection.state = ConnectionState::Connected;
-								} else {
-									info!("Received connection response from wrong address");
-								}
-							},
-							ConnectionState::Connected => {
-								info!("Received duplicate connection response");
+			ServerPacket::Connectionless(packet) => {
+				self.handle_connectionless_packet(packet, addr);
+			},
+			ServerPacket::Sequenced(packet) => {
+				if let Some(connection) = &mut self.connection {
+					if let ConnectionState::Connected(channel) = &mut connection.state {
+						if addr == connection.server_addr {
+							if let Some(data) = channel.process(packet) {
+								debug!("Sequenced packet!");
 							}
 						}
 					}
-				},
-				ServerConnectionlessPacket::Disconnect => unimplemented!(),
-				ServerConnectionlessPacket::InfoResponse(_) => unimplemented!(),
-				ServerConnectionlessPacket::Print(message) => {
-					info!(message);
-				},
-				ServerConnectionlessPacket::StatusResponse(_, _) => unimplemented!(),
+				}
 			},
-			_ => unimplemented!(),
+		}
+	}
+	
+	fn handle_connectionless_packet(&mut self, packet: ServerConnectionlessPacket, addr: SocketAddr) {
+		match packet {
+			ServerConnectionlessPacket::ConnectResponse => {
+				if let Some(connection) = &mut self.connection {
+					match connection.state {
+						ConnectionState::Connecting(_) => {
+							if addr == connection.server_addr {
+								let channel = SequencedChannel::new(self.socket.clone(), addr);
+								connection.state = ConnectionState::Connected(channel);
+							} else {
+								info!("Received connection response from wrong address");
+							}
+						},
+						ConnectionState::Connected(_) => {
+							info!("Received duplicate connection response");
+						}
+					}
+				}
+			},
+			ServerConnectionlessPacket::Disconnect => unimplemented!(),
+			ServerConnectionlessPacket::InfoResponse(_) => unimplemented!(),
+			ServerConnectionlessPacket::Print(message) => {
+				info!("{}", message);
+			},
+			ServerConnectionlessPacket::StatusResponse(_, _) => unimplemented!(),
 		}
 	}
 	
@@ -271,6 +289,10 @@ impl Client {
 		};
 		
 		self.connection = Some(connection);
+	}
+	
+	pub fn disconnect(&mut self) {
+		self.connection = None;
 	}
 }
 
@@ -299,12 +321,12 @@ impl ClientConnection {
 		Ok(ClientConnection {
 			server_name: server_name.to_owned(),
 			server_addr: socket_addrs[0],
-			state: ConnectionState::Connecting,
+			state: ConnectionState::Connecting(Instant::now() - Duration::new(9999, 0)),
 		})
 	}
 }
 
 enum ConnectionState {
-	Connected,
-	Connecting,
+	Connected(SequencedChannel),
+	Connecting(Instant),
 }

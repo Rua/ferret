@@ -6,6 +6,70 @@ use std::str;
 
 use crate::commands;
 
+
+#[derive(Debug)]
+pub struct SequencedPacket {
+	pub sequence: u32,
+	pub data: Vec<u8>,
+	pub fragmentation: PacketFragmentation,
+}
+
+#[derive(Debug)]
+pub enum PacketFragmentation {
+	Complete,
+	Fragmented(u16, u16),
+}
+
+impl TryFrom<Vec<u8>> for SequencedPacket {
+	type Error = Box<dyn Error>;
+	
+	fn try_from(buf: Vec<u8>) -> Result<SequencedPacket, Box<dyn Error>> {
+		let mut reader = Cursor::new(buf);
+		let sequence = reader.read_u32::<NE>()?;
+		
+		if sequence == 0xFFFFFFFF {
+			Err(Box::from("not a reliable packet"))
+		} else if sequence & 1<<31 == 0 {
+			Ok(SequencedPacket {
+				sequence: sequence & !(1 << 31),
+				data: reader.into_inner()[4..].to_owned(),
+				fragmentation: PacketFragmentation::Complete,
+			})
+		} else {
+			let frag_start = reader.read_u16::<NE>()?;
+			let frag_len = reader.read_u16::<NE>()?;
+			
+			Ok(SequencedPacket {
+				sequence: sequence & !(1 << 31),
+				data: reader.into_inner()[4..].to_owned(),
+				fragmentation: PacketFragmentation::Fragmented(frag_start, frag_len),
+			})
+		}
+	}
+}
+
+impl From<SequencedPacket> for Vec<u8> {
+	fn from(packet: SequencedPacket) -> Vec<u8> {
+		let mut writer = Cursor::new(Vec::new());
+		
+		match packet.fragmentation {
+			PacketFragmentation::Complete => {
+				writer.write_u32::<NE>(packet.sequence).unwrap();
+			},
+			PacketFragmentation::Fragmented(frag_start, frag_len) => {
+				writer.write_u32::<NE>(packet.sequence | (1 << 31)).unwrap();
+				writer.write_u16::<NE>(frag_start).unwrap();
+				writer.write_u16::<NE>(frag_len).unwrap();
+			}
+		}
+		
+		writer.write(&packet.data).unwrap();
+		writer.into_inner()
+	}
+}
+
+
+
 /*
  * Client-to-server protocol
  */
@@ -13,7 +77,7 @@ use crate::commands;
 #[derive(Debug)]
 pub enum ClientPacket {
 	Connectionless(ClientConnectionlessPacket),
-	Dummy,
+	Sequenced(SequencedPacket),
 }
 
 impl TryFrom<Vec<u8>> for ClientPacket {
@@ -26,8 +90,7 @@ impl TryFrom<Vec<u8>> for ClientPacket {
 		if sequence == 0xFFFFFFFF {
 			Ok(ClientConnectionlessPacket::try_from(reader.into_inner())?.into())
 		} else {
-			unreachable!();
-			//Ok(ClientPacket::Connection(reader.into_inner()))
+			Ok(SequencedPacket::try_from(reader.into_inner())?.into())
 		}
 	}
 }
@@ -36,7 +99,7 @@ impl From<ClientPacket> for Vec<u8> {
 	fn from(packet: ClientPacket) -> Vec<u8> {
 		match packet {
 			ClientPacket::Connectionless(p) => p.into(),
-			ClientPacket::Dummy => Vec::new(),
+			ClientPacket::Sequenced(p) => p.into(),
 		}
 	}
 }
@@ -52,6 +115,12 @@ pub enum ClientConnectionlessPacket {
 impl From<ClientConnectionlessPacket> for ClientPacket {
 	fn from(packet: ClientConnectionlessPacket) -> ClientPacket {
 		ClientPacket::Connectionless(packet)
+	}
+}
+
+impl From<SequencedPacket> for ClientPacket {
+	fn from(packet: SequencedPacket) -> ClientPacket {
+		ClientPacket::Sequenced(packet)
 	}
 }
 
@@ -149,7 +218,7 @@ impl From<ClientConnectionlessPacket> for Vec<u8> {
 #[derive(Debug)]
 pub enum ServerPacket {
 	Connectionless(ServerConnectionlessPacket),
-	Dummy,
+	Sequenced(SequencedPacket),
 }
 
 impl TryFrom<Vec<u8>> for ServerPacket {
@@ -162,8 +231,7 @@ impl TryFrom<Vec<u8>> for ServerPacket {
 		if sequence == 0xFFFFFFFF {
 			Ok(ServerConnectionlessPacket::try_from(reader.into_inner())?.into())
 		} else {
-			unreachable!();
-			//Ok(ClientPacket::Connection(reader.into_inner()))
+			Ok(SequencedPacket::try_from(reader.into_inner())?.into())
 		}
 	}
 }
@@ -172,7 +240,7 @@ impl From<ServerPacket> for Vec<u8> {
 	fn from(packet: ServerPacket) -> Vec<u8> {
 		match packet {
 			ServerPacket::Connectionless(p) => p.into(),
-			ServerPacket::Dummy => Vec::new(),
+			ServerPacket::Sequenced(p) => p.into(),
 		}
 	}
 }
@@ -189,6 +257,12 @@ pub enum ServerConnectionlessPacket {
 impl From<ServerConnectionlessPacket> for ServerPacket {
 	fn from(packet: ServerConnectionlessPacket) -> ServerPacket {
 		ServerPacket::Connectionless(packet)
+	}
+}
+
+impl From<SequencedPacket> for ServerPacket {
+	fn from(packet: SequencedPacket) -> ServerPacket {
+		ServerPacket::Sequenced(packet)
 	}
 }
 

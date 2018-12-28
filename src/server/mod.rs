@@ -1,17 +1,17 @@
-mod client;
 mod commands;
 
 use std::convert::TryFrom;
 use std::error::Error;
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::rc::Rc;
 use std::sync::{mpsc, mpsc::Receiver};
 use std::time::{Duration, Instant};
 
 use crate::commands::CommandSender;
-use crate::net::Socket;
-use crate::protocol::{ClientPacket, ServerPacket, ClientConnectionlessPacket, ServerConnectionlessPacket};
-use crate::server::client::ServerClient;
+use crate::net::{SequencedChannel, Socket};
+use crate::protocol::{ClientPacket, ClientConnectionlessPacket, ServerConnectionlessPacket};
 pub use crate::server::commands::COMMANDS;
+
 
 pub fn server_main() {
 	let mut server = Server::new().unwrap();
@@ -38,7 +38,7 @@ pub fn server_main() {
 pub struct Server {
 	command_sender: CommandSender,
 	command_receiver: Receiver<Vec<String>>,
-	socket: Socket,
+	socket: Rc<Socket>,
 	
 	clients: Vec<ServerClient>,
 	session: Option<ServerSession>,
@@ -75,7 +75,7 @@ impl Server {
 		while let Some((packet, addr)) = self.socket.next() {
 			match ClientPacket::try_from(packet) {
 				Ok(packet) => {
-					self.process_packet(packet, addr)
+					self.handle_packet(packet, addr)
 				},
 				Err(err) => {
 					warn!(
@@ -109,29 +109,58 @@ impl Server {
 		self.session = None;
 	}
 	
-	fn process_packet(&mut self, packet: ClientPacket, addr: SocketAddr) {
+	fn handle_packet(&mut self, packet: ClientPacket, addr: SocketAddr) {
 		println!("Server: {:?}, {}", packet, addr);
 		
 		match packet {
-			ClientPacket::Connectionless(packet) => match packet {
-				ClientConnectionlessPacket::Connect(_) => {
-					// TODO: check if client is already in the list
-					self.clients.push(ServerClient {} );
-					
-					let packet = ServerPacket::Connectionless(ServerConnectionlessPacket::ConnectResponse);
-					self.socket.send_to(packet.into(), addr);
-				},
-				ClientConnectionlessPacket::GetInfo => unimplemented!(),
-				ClientConnectionlessPacket::GetStatus => unimplemented!(),
-				ClientConnectionlessPacket::RCon(args) => {
-					COMMANDS.execute(args, self);
-				},
+			ClientPacket::Connectionless(packet) => {
+				self.handle_connectionless_packet(packet, addr);
 			},
-			_ => unimplemented!(),
+			ClientPacket::Sequenced(packet) => {
+				if let Some(client) = self.clients.iter_mut().find(|x| x.channel.addr() == addr) {
+					if let Some(data) = client.channel.process(packet) {
+						debug!("Sequenced packet!");
+					}
+				}
+			},
+		}
+	}
+	
+	fn handle_connectionless_packet(&mut self, packet: ClientConnectionlessPacket, addr: SocketAddr) {
+		match packet {
+			ClientConnectionlessPacket::Connect(_) => {
+				let client = match self.clients.iter().find(|x| x.channel.addr() == addr) {
+					Some(client) => client,
+					None => {
+						self.clients.push(ServerClient::new(self.socket.clone(), addr));
+						self.clients.last().unwrap()
+					}
+				};
+				
+				let packet = ServerConnectionlessPacket::ConnectResponse;
+				self.socket.send_to(packet.into(), addr);
+			},
+			ClientConnectionlessPacket::GetInfo => unimplemented!(),
+			ClientConnectionlessPacket::GetStatus => unimplemented!(),
+			ClientConnectionlessPacket::RCon(args) => {
+				COMMANDS.execute(args, self);
+			},
 		}
 	}
 }
 
 struct ServerSession {
 	
+}
+
+struct ServerClient {
+	channel: SequencedChannel,
+}
+
+impl ServerClient {
+	fn new(socket: Rc<Socket>, addr: SocketAddr) -> ServerClient {
+		ServerClient {
+			channel: SequencedChannel::new(socket, addr),
+		}
+	}
 }

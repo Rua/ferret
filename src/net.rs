@@ -4,6 +4,10 @@ use std::fmt;
 use std::io;
 use std::io::ErrorKind;
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6, UdpSocket};
+use std::rc::Rc;
+
+use crate::protocol::{PacketFragmentation, SequencedPacket};
+
 
 pub struct Socket {
 	v4: Option<UdpSocket>,
@@ -11,7 +15,7 @@ pub struct Socket {
 }
 
 impl Socket {
-	pub fn new(ipv4_addr: Ipv4Addr, ipv6_addr: Ipv6Addr, port: u16) -> Result<Socket, Box<dyn Error>> {
+	pub fn new(ipv4_addr: Ipv4Addr, ipv6_addr: Ipv6Addr, port: u16) -> Result<Rc<Socket>, Box<dyn Error>> {
 		let ipv4_addr_port = SocketAddrV4::new(ipv4_addr, port);
 		let v4 = bind_v4(ipv4_addr_port);
 		
@@ -29,10 +33,10 @@ impl Socket {
 		if v4.is_err() && v6.is_err() {
 			Err(Box::from("both IPv4 and IPv6 bindings failed"))
 		} else {
-			Ok(Socket {
+			Ok(Rc::new(Socket {
 				v4: v4.ok(),
 				v6: v6.ok(),
-			})
+			}))
 		}
 	}
 	
@@ -87,12 +91,8 @@ impl Socket {
 			);
 		}
 	}
-}
-
-impl Iterator for Socket {
-	type Item = (Vec<u8>, SocketAddr);
 	
-	fn next(&mut self) -> Option<(Vec<u8>, SocketAddr)> {
+	pub fn next(&self) -> Option<(Vec<u8>, SocketAddr)> {
 		let mut buf = vec![0u8; 8192];
 		
 		// Try reading from available sockets, first from the IPv6 socket,
@@ -160,4 +160,50 @@ fn bind_v6(addr_port: SocketAddrV6) -> Result<UdpSocket, io::Error> {
 	socket.set_nonblocking(true)?;
 	
 	Ok(socket)
+}
+
+pub struct SequencedChannel {
+	socket: Rc<Socket>,
+	addr: SocketAddr,
+	in_sequence: u32,
+	out_sequence: u32,
+}
+
+impl SequencedChannel {
+	pub fn new(socket: Rc<Socket>, addr: SocketAddr) -> SequencedChannel {
+		SequencedChannel {
+			addr,
+			socket,
+			in_sequence: 0,
+			out_sequence: 1,
+		}
+	}
+	
+	pub fn addr(&self) -> SocketAddr {
+		self.addr
+	}
+	
+	pub fn send(&mut self, data: Vec<u8>) {
+		let packet = SequencedPacket {
+			sequence: self.out_sequence,
+			data,
+			fragmentation: PacketFragmentation::Complete,
+		};
+		
+		self.out_sequence += 1;
+		self.socket.send_to(packet.into(), self.addr);
+	}
+	
+	pub fn process(&mut self, packet: SequencedPacket) -> Option<Vec<u8>> {
+		if packet.sequence < self.in_sequence {
+			return None;
+		}
+		
+		if let PacketFragmentation::Fragmented(frag_start, frag_len) = packet.fragmentation {
+			unimplemented!();
+		}
+		
+		self.in_sequence = packet.sequence;
+		Some(packet.data)
+	}
 }
