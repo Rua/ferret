@@ -80,6 +80,12 @@ pub enum ClientPacket {
 	Sequenced(SequencedPacket),
 }
 
+impl From<SequencedPacket> for ClientPacket {
+	fn from(packet: SequencedPacket) -> ClientPacket {
+		ClientPacket::Sequenced(packet)
+	}
+}
+
 impl TryFrom<Vec<u8>> for ClientPacket {
 	type Error = Box<dyn Error>;
 	
@@ -115,12 +121,6 @@ pub enum ClientConnectionlessPacket {
 impl From<ClientConnectionlessPacket> for ClientPacket {
 	fn from(packet: ClientConnectionlessPacket) -> ClientPacket {
 		ClientPacket::Connectionless(packet)
-	}
-}
-
-impl From<SequencedPacket> for ClientPacket {
-	fn from(packet: SequencedPacket) -> ClientPacket {
-		ClientPacket::Sequenced(packet)
 	}
 }
 
@@ -210,6 +210,37 @@ impl From<ClientConnectionlessPacket> for Vec<u8> {
 	}
 }
 
+#[derive(Debug)]
+pub struct ClientSequencedPacket {
+	pub last_received_sequence: u32,
+}
+
+impl TryFrom<Vec<u8>> for ClientSequencedPacket {
+	type Error = Box<dyn Error>;
+	
+	fn try_from(buf: Vec<u8>) -> Result<ClientSequencedPacket, Box<dyn Error>> {
+		let mut reader = Cursor::new(buf);
+		let last_received_sequence = reader.read_u32::<NE>()?;
+		
+		if reader.position() < reader.get_ref().len() as u64 {
+			Err(Box::from("Packet too long"))
+		} else {
+			Ok(ClientSequencedPacket {
+				last_received_sequence,
+			})
+		}
+	}
+}
+
+impl From<ClientSequencedPacket> for Vec<u8> {
+	fn from(packet: ClientSequencedPacket) -> Vec<u8> {
+		let mut writer = Cursor::new(Vec::new());
+		writer.write_u32::<NE>(packet.last_received_sequence).unwrap();
+		
+		writer.into_inner()
+	}
+}
+
 
 /*
  * Server-to-client protocol
@@ -219,6 +250,12 @@ impl From<ClientConnectionlessPacket> for Vec<u8> {
 pub enum ServerPacket {
 	Connectionless(ServerConnectionlessPacket),
 	Sequenced(SequencedPacket),
+}
+
+impl From<SequencedPacket> for ServerPacket {
+	fn from(packet: SequencedPacket) -> ServerPacket {
+		ServerPacket::Sequenced(packet)
+	}
 }
 
 impl TryFrom<Vec<u8>> for ServerPacket {
@@ -257,12 +294,6 @@ pub enum ServerConnectionlessPacket {
 impl From<ServerConnectionlessPacket> for ServerPacket {
 	fn from(packet: ServerConnectionlessPacket) -> ServerPacket {
 		ServerPacket::Connectionless(packet)
-	}
-}
-
-impl From<SequencedPacket> for ServerPacket {
-	fn from(packet: SequencedPacket) -> ServerPacket {
-		ServerPacket::Sequenced(packet)
 	}
 }
 
@@ -365,6 +396,33 @@ impl From<ServerConnectionlessPacket> for Vec<u8> {
 				).unwrap();
 			},
 		}
+		
+		writer.into_inner()
+	}
+}
+
+#[derive(Debug)]
+pub struct ServerSequencedPacket {
+}
+
+impl TryFrom<Vec<u8>> for ServerSequencedPacket {
+	type Error = Box<dyn Error>;
+	
+	fn try_from(buf: Vec<u8>) -> Result<ServerSequencedPacket, Box<dyn Error>> {
+		let mut reader = Cursor::new(buf);
+		
+		if reader.position() < reader.get_ref().len() as u64 {
+			Err(Box::from("Packet too long"))
+		} else {
+			Ok(ServerSequencedPacket {
+			})
+		}
+	}
+}
+
+impl From<ServerSequencedPacket> for Vec<u8> {
+	fn from(packet: ServerSequencedPacket) -> Vec<u8> {
+		let mut writer = Cursor::new(Vec::new());
 		
 		writer.into_inner()
 	}

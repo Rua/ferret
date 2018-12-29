@@ -25,7 +25,7 @@ use crate::client::video::Video;
 use crate::commands;
 use crate::commands::CommandSender;
 use crate::net::{SequencedChannel, Socket};
-use crate::protocol::{ClientConnectionlessPacket, ServerConnectionlessPacket, ServerPacket};
+use crate::protocol::{ClientConnectionlessPacket, ClientSequencedPacket, SequencedPacket, ServerConnectionlessPacket, ServerPacket, ServerSequencedPacket};
 use crate::server;
 use crate::stdin;
 
@@ -186,24 +186,25 @@ impl Client {
 		}
 		
 		// Receive network packets
-		while let Some((packet, addr)) = self.socket.next() {
-			match ServerPacket::try_from(packet) {
-				Ok(packet) => {
-					self.handle_packet(packet, addr)
-				},
-				Err(err) => {
-					warn!(
-						"received a malformed packet from {}: {}",
-						addr,
-						err,
-					);
-				},
-			}
+		while let Some((data, addr)) = self.socket.next() {
+
 		}
 		
 		if self.should_quit {
 			return;
 		}
+		
+		// Check for timeout
+		if let Some(connection) = &mut self.connection {
+			if let ConnectionState::Connected(_) = &mut connection.state {
+				if (self.real_time - connection.last_packet_received_time).as_secs() >= 10 {
+					error!("Server connection timed out.");
+					self.disconnect();
+				}
+			}
+		}
+		
+		self.send_update();
 		
 		if let Some(connection) = &mut self.connection {
 			match connection.state {
@@ -230,28 +231,51 @@ impl Client {
 		self.socket.send_to(packet.into(), addr);
 	}
 	
-	fn handle_packet(&mut self, packet: ServerPacket, addr: SocketAddr) {
-		println!("Client: {:?}, {}", packet, addr);
+	pub fn connect(&mut self, server_name: &str) {
+		let connection = match ClientConnection::new(server_name, &self.socket) {
+			Ok(val) => val,
+			Err(err) => {
+				error!("Could not connect: {}", err);
+				return
+			}
+		};
 		
-		match packet {
-			ServerPacket::Connectionless(packet) => {
-				self.handle_connectionless_packet(packet, addr);
+		self.connection = Some(connection);
+	}
+	
+	pub fn disconnect(&mut self) {
+		if let Some(connection) = &mut self.connection {
+			if let ConnectionState::Connected(channel) = &mut connection.state {
+				// TODO: send disconnect
+			}
+		}
+		
+		self.connection = None;
+	}
+	
+	fn handle_packet(&mut self, data: Vec<u8>, addr: SocketAddr) {
+		match ServerPacket::try_from(data) {
+			Ok(packet) => match packet {
+				ServerPacket::Connectionless(packet) => {
+					self.handle_connectionless_packet(packet, addr);
+				},
+				ServerPacket::Sequenced(packet) => {
+					self.handle_sequenced_packet(packet, addr);
+				},
 			},
-			ServerPacket::Sequenced(packet) => {
-				if let Some(connection) = &mut self.connection {
-					if let ConnectionState::Connected(channel) = &mut connection.state {
-						if addr == connection.server_addr {
-							if let Some(data) = channel.process(packet) {
-								debug!("Sequenced packet!");
-							}
-						}
-					}
-				}
+			Err(err) => {
+				warn!(
+					"Client received a malformed packet from {}: {}",
+					addr,
+					err,
+				);
 			},
 		}
 	}
 	
 	fn handle_connectionless_packet(&mut self, packet: ServerConnectionlessPacket, addr: SocketAddr) {
+		println!("Client received from {}: {:?}", addr, packet);
+		
 		match packet {
 			ServerConnectionlessPacket::ConnectResponse => {
 				if let Some(connection) = &mut self.connection {
@@ -260,6 +284,7 @@ impl Client {
 							if addr == connection.server_addr {
 								let channel = SequencedChannel::new(self.socket.clone(), addr);
 								connection.state = ConnectionState::Connected(channel);
+								connection.last_packet_received_time = self.real_time;
 							} else {
 								info!("Received connection response from wrong address");
 							}
@@ -279,24 +304,51 @@ impl Client {
 		}
 	}
 	
-	pub fn connect(&mut self, server_name: &str) {
-		let connection = match ClientConnection::new(server_name, &self.socket) {
-			Ok(val) => val,
-			Err(err) => {
-				error!("Could not connect: {}", err);
-				return
+	fn handle_sequenced_packet(&mut self, packet: SequencedPacket, addr: SocketAddr) {
+		if let Some(connection) = &mut self.connection {
+			if let ConnectionState::Connected(channel) = &mut connection.state {
+				if addr == connection.server_addr {
+					if let Some(data) = channel.process(packet) {
+						connection.last_packet_received_time = self.real_time;
+						
+						match ServerSequencedPacket::try_from(data) {
+							Ok(packet) => {
+								println!("Client received from server: {:?}", packet);
+							},
+							Err(err) => {
+								warn!(
+									"received a malformed packet from server: {}",
+									err,
+								);
+							},
+						}
+					}
+				}
 			}
-		};
-		
-		self.connection = Some(connection);
+		}
 	}
 	
-	pub fn disconnect(&mut self) {
-		self.connection = None;
+	fn send_update(&mut self) {
+		if let Some(connection) = &mut self.connection {
+			if (self.real_time - connection.last_packet_sent_time).as_secs() < 1 {
+				return;
+			}
+			
+			if let ConnectionState::Connected(channel) = &mut connection.state {
+				let packet = ClientSequencedPacket {
+					last_received_sequence: channel.in_sequence(),
+				};
+				
+				channel.send(packet.into());
+				connection.last_packet_sent_time = self.real_time;
+			}
+		}
 	}
 }
 
 struct ClientConnection {
+	last_packet_sent_time: Instant,
+	last_packet_received_time: Instant,
 	server_name: String,
 	server_addr: SocketAddr,
 	state: ConnectionState,
@@ -317,11 +369,14 @@ impl ClientConnection {
 		}
 		
 		info!("{} resolved to {}", server_name, socket_addrs[0].ip());
+		let time = Instant::now() - Duration::new(9999, 0);
 		
 		Ok(ClientConnection {
+			last_packet_sent_time: time,
+			last_packet_received_time: time,
 			server_name: server_name.to_owned(),
 			server_addr: socket_addrs[0],
-			state: ConnectionState::Connecting(Instant::now() - Duration::new(9999, 0)),
+			state: ConnectionState::Connecting(time),
 		})
 	}
 }

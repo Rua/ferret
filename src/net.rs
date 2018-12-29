@@ -206,4 +206,12 @@ impl SequencedChannel {
 		self.in_sequence = packet.sequence;
 		Some(packet.data)
 	}
+	
+	pub fn in_sequence(&self) -> u32 {
+		self.in_sequence
+	}
+	
+	pub fn out_sequence(&self) -> u32 {
+		self.out_sequence
+	}
 }
