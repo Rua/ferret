@@ -9,12 +9,13 @@ use sdl2::EventPump;
 use sdl2::event::Event;
 use std::convert::TryFrom;
 use std::error::Error;
+use std::io::{Cursor, Read, Write};
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, ToSocketAddrs};
 use std::panic;
 use std::panic::AssertUnwindSafe;
 use std::process;
 use std::rc::Rc;
-use std::sync::{mpsc, mpsc::Receiver};
+use std::sync::{mpsc, mpsc::Receiver, mpsc::Sender};
 use std::thread::Builder;
 use std::time::{Duration, Instant};
 
@@ -24,8 +25,8 @@ use crate::client::input::Input;
 use crate::client::video::Video;
 use crate::commands;
 use crate::commands::CommandSender;
-use crate::net::{SequencedChannel, Socket};
-use crate::protocol::{ClientConnectionlessPacket, ClientSequencedPacket, SequencedPacket, ServerConnectionlessPacket, ServerPacket, ServerSequencedPacket};
+use crate::net::{Addr, SequencedChannel, Socket};
+use crate::protocol::{ClientMessage, Packet, ServerMessage, TryRead};
 use crate::server;
 use crate::stdin;
 
@@ -47,11 +48,14 @@ pub fn client_main() {
 	//println!("{:?}", data);
 	//let texture = video::Texture::from_patch(&mut data, &video.palette);
 	
+	let (server_sender, client_receiver) = mpsc::channel::<Vec<u8>>();
+	let (client_sender, server_receiver) = mpsc::channel::<Vec<u8>>();
+	
 	let server_thread = Builder::new()
 		.name("server".to_owned())
 		.spawn(move || {
 			if let Err(_) = panic::catch_unwind(AssertUnwindSafe(|| {
-				server::server_main()
+				server::server_main(server_sender, server_receiver)
 			})) {
 				process::exit(1);
 			}
@@ -65,7 +69,7 @@ pub fn client_main() {
 		}
 	};
 	
-	let mut client = Client::new().unwrap();
+	let mut client = Client::new(client_sender, client_receiver).unwrap();
 	
 	let mut old_time = Instant::now();
 	let mut new_time = Instant::now();
@@ -105,8 +109,8 @@ pub struct Client {
 }
 
 impl Client {
-	pub fn new() -> Result<Client, Box<dyn Error>> {
-		let socket = match Socket::new(Ipv4Addr::UNSPECIFIED, Ipv6Addr::UNSPECIFIED, 0) {
+	pub fn new(sender: Sender<Vec<u8>>, receiver: Receiver<Vec<u8>>) -> Result<Client, Box<dyn Error>> {
+		let socket = match Socket::new(Ipv4Addr::UNSPECIFIED, Ipv6Addr::UNSPECIFIED, 0, sender, receiver) {
 			Ok(val) => val,
 			Err(err) => {
 				return Err(Box::from(format!("Could not create client socket: {}", err)));
@@ -187,7 +191,7 @@ impl Client {
 		
 		// Receive network packets
 		while let Some((data, addr)) = self.socket.next() {
-
+			self.handle_packet(data, addr);
 		}
 		
 		if self.should_quit {
@@ -211,7 +215,7 @@ impl Client {
 				ConnectionState::Connecting(ref mut last_packet_time) => {
 					// If it has been longer than 3 seconds from the last, resend the packet
 					if (self.real_time - *last_packet_time).as_secs() >= 3 {
-						let packet = ClientConnectionlessPacket::Connect("".to_owned());
+						let packet = Packet::Unsequenced(vec![ClientMessage::Connect]);
 						self.socket.send_to(packet.into(), connection.server_addr);
 						*last_packet_time = self.real_time;
 					}
@@ -226,9 +230,8 @@ impl Client {
 	pub fn quit(&mut self) {
 		self.should_quit = true;
 		
-		let packet = ClientConnectionlessPacket::RCon(vec!["quit".to_owned()]);
-		let addr = SocketAddr::new(Ipv6Addr::LOCALHOST.into(), 40011);
-		self.socket.send_to(packet.into(), addr);
+		let packet = Packet::Unsequenced(vec![ClientMessage::RCon("quit".to_owned())]);
+		self.socket.send_to(packet.into(), Addr::Local);
 	}
 	
 	pub fn connect(&mut self, server_name: &str) {
@@ -253,31 +256,46 @@ impl Client {
 		self.connection = None;
 	}
 	
-	fn handle_packet(&mut self, data: Vec<u8>, addr: SocketAddr) {
-		match ServerPacket::try_from(data) {
-			Ok(packet) => match packet {
-				ServerPacket::Connectionless(packet) => {
-					self.handle_connectionless_packet(packet, addr);
-				},
-				ServerPacket::Sequenced(packet) => {
-					self.handle_sequenced_packet(packet, addr);
-				},
-			},
+	fn handle_packet(&mut self, data: Vec<u8>, addr: Addr) {
+		let packet: Packet<ServerMessage> = match Packet::try_from(data) {
+			Ok(packet) => packet,
 			Err(err) => {
 				warn!(
-					"Client received a malformed packet from {}: {}",
-					addr,
-					err,
-				);
+					"Client received a malformed packet from {}: {}", addr, err);
+				return;
+			},
+		};
+		
+		match packet {
+			Packet::Unsequenced(messages) => {
+				println!("Client received from {}: {:?}", addr, messages);
+				
+				for message in messages {
+					self.handle_unsequenced_message(message, addr);
+				}
+			},
+			Packet::Sequenced(packet) => {
+				if let Some(connection) = &mut self.connection {
+					if let ConnectionState::Connected(channel) = &mut connection.state {
+						if addr == connection.server_addr {
+							if let Some(messages) = channel.process(packet) {
+								println!("Client received from server: {:?}", messages);
+								connection.last_packet_received_time = self.real_time;
+								
+								for message in messages {
+									self.handle_sequenced_message(message, addr);
+								}
+							}
+						}
+					}
+				}
 			},
 		}
 	}
 	
-	fn handle_connectionless_packet(&mut self, packet: ServerConnectionlessPacket, addr: SocketAddr) {
-		println!("Client received from {}: {:?}", addr, packet);
-		
-		match packet {
-			ServerConnectionlessPacket::ConnectResponse => {
+	fn handle_unsequenced_message(&mut self, message: ServerMessage, addr: Addr) {
+		match message {
+			ServerMessage::ConnectResponse => {
 				if let Some(connection) = &mut self.connection {
 					match connection.state {
 						ConnectionState::Connecting(_) => {
@@ -295,37 +313,13 @@ impl Client {
 					}
 				}
 			},
-			ServerConnectionlessPacket::Disconnect => unimplemented!(),
-			ServerConnectionlessPacket::InfoResponse(_) => unimplemented!(),
-			ServerConnectionlessPacket::Print(message) => {
-				info!("{}", message);
+			ServerMessage::Disconnect => {
+				self.disconnect();
 			},
-			ServerConnectionlessPacket::StatusResponse(_, _) => unimplemented!(),
 		}
 	}
 	
-	fn handle_sequenced_packet(&mut self, packet: SequencedPacket, addr: SocketAddr) {
-		if let Some(connection) = &mut self.connection {
-			if let ConnectionState::Connected(channel) = &mut connection.state {
-				if addr == connection.server_addr {
-					if let Some(data) = channel.process(packet) {
-						connection.last_packet_received_time = self.real_time;
-						
-						match ServerSequencedPacket::try_from(data) {
-							Ok(packet) => {
-								println!("Client received from server: {:?}", packet);
-							},
-							Err(err) => {
-								warn!(
-									"received a malformed packet from server: {}",
-									err,
-								);
-							},
-						}
-					}
-				}
-			}
-		}
+	fn handle_sequenced_message(&mut self, message: ServerMessage, addr: Addr) {
 	}
 	
 	fn send_update(&mut self) {
@@ -335,11 +329,7 @@ impl Client {
 			}
 			
 			if let ConnectionState::Connected(channel) = &mut connection.state {
-				let packet = ClientSequencedPacket {
-					last_received_sequence: channel.in_sequence(),
-				};
-				
-				channel.send(packet.into());
+				channel.send(Vec::new());
 				connection.last_packet_sent_time = self.real_time;
 			}
 		}
@@ -350,38 +340,44 @@ struct ClientConnection {
 	last_packet_sent_time: Instant,
 	last_packet_received_time: Instant,
 	server_name: String,
-	server_addr: SocketAddr,
+	server_addr: Addr,
 	state: ConnectionState,
 }
 
 impl ClientConnection {
 	fn new(server_name: &str, socket: &Socket) -> Result<ClientConnection, Box<dyn Error>> {
-		let mut socket_addrs = server_name.to_socket_addrs();
+		let addr = if server_name == "." {
+			Addr::Local
+		} else {
+			let mut socket_addrs = server_name.to_socket_addrs();
+			
+			if socket_addrs.is_err() {
+				socket_addrs = (server_name, 40011).to_socket_addrs();
+			}
+			
+			let socket_addrs: Vec<SocketAddr> = socket_addrs?.filter(socket.filter_supported()).collect();
+			
+			if socket_addrs.is_empty() {
+				return Err(Box::from("Host name not found"));
+			}
+			
+			info!("{} resolved to {}", server_name, socket_addrs[0].ip());
+			socket_addrs[0].into()
+		};
 		
-		if socket_addrs.is_err() {
-			socket_addrs = (server_name, 40011).to_socket_addrs();
-		}
-		
-		let socket_addrs: Vec<SocketAddr> = socket_addrs?.filter(socket.filter_supported()).collect();
-		
-		if socket_addrs.is_empty() {
-			return Err(Box::from("Host name not found"));
-		}
-		
-		info!("{} resolved to {}", server_name, socket_addrs[0].ip());
 		let time = Instant::now() - Duration::new(9999, 0);
 		
 		Ok(ClientConnection {
 			last_packet_sent_time: time,
 			last_packet_received_time: time,
 			server_name: server_name.to_owned(),
-			server_addr: socket_addrs[0],
+			server_addr: addr,
 			state: ConnectionState::Connecting(time),
 		})
 	}
 }
 
 enum ConnectionState {
-	Connected(SequencedChannel),
+	Connected(SequencedChannel<ClientMessage, ServerMessage>),
 	Connecting(Instant),
 }

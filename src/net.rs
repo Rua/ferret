@@ -1,21 +1,26 @@
+use byteorder::{NetworkEndian as NE, ReadBytesExt, WriteBytesExt};
 use net2::UdpBuilder;
 use std::error::Error;
 use std::fmt;
 use std::io;
-use std::io::ErrorKind;
+use std::io::{Cursor, ErrorKind, Read, Write};
+use std::marker::PhantomData;
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6, UdpSocket};
 use std::rc::Rc;
+use std::sync::mpsc::{Receiver, Sender, TryRecvError};
 
-use crate::protocol::{PacketFragmentation, SequencedPacket};
+use crate::protocol::{SequencedPacket, TryRead};
 
 
 pub struct Socket {
 	v4: Option<UdpSocket>,
 	v6: Option<UdpSocket>,
+	sender: Sender<Vec<u8>>,
+	receiver: Receiver<Vec<u8>>,
 }
 
 impl Socket {
-	pub fn new(ipv4_addr: Ipv4Addr, ipv6_addr: Ipv6Addr, port: u16) -> Result<Rc<Socket>, Box<dyn Error>> {
+	pub fn new(ipv4_addr: Ipv4Addr, ipv6_addr: Ipv6Addr, port: u16, sender: Sender<Vec<u8>>, receiver: Receiver<Vec<u8>>) -> Result<Rc<Socket>, Box<dyn Error>> {
 		let ipv4_addr_port = SocketAddrV4::new(ipv4_addr, port);
 		let v4 = bind_v4(ipv4_addr_port);
 		
@@ -36,6 +41,8 @@ impl Socket {
 			Ok(Rc::new(Socket {
 				v4: v4.ok(),
 				v6: v6.ok(),
+				sender,
+				receiver,
 			}))
 		}
 	}
@@ -71,7 +78,18 @@ impl Socket {
 		}
 	}
 	
-	pub fn send_to(&self, packet: Vec<u8>, addr: SocketAddr) {
+	pub fn send_to(&self, packet: Vec<u8>, addr: Addr) {
+		if let Addr::Local = addr {
+			self.sender.send(packet).ok();
+			return;
+		}
+		
+		let addr: SocketAddr = match addr {
+			Addr::V4(addr) => addr.into(),
+			Addr::V6(addr) => addr.into(),
+			_ => unreachable!(),
+		};
+		
 		let socket = match addr {
 			SocketAddr::V4(_) => &self.v4,
 			SocketAddr::V6(_) => &self.v6,
@@ -92,7 +110,14 @@ impl Socket {
 		}
 	}
 	
-	pub fn next(&self) -> Option<(Vec<u8>, SocketAddr)> {
+	pub fn next(&self) -> Option<(Vec<u8>, Addr)> {
+		// Try the local mpsc channel first
+		match self.receiver.try_recv() {
+			Ok(buf) => return Some((buf, Addr::Local)),
+			Err(TryRecvError::Empty) => (),
+			Err(TryRecvError::Disconnected) => panic!("Socket mpsc receiver disconnected"),
+		}
+		
 		let mut buf = vec![0u8; 8192];
 		
 		// Try reading from available sockets, first from the IPv6 socket,
@@ -106,7 +131,7 @@ impl Socket {
 					} else {
 						// We got a packet, parse it, and return if valid.
 						buf.truncate(bytes_read);
-						return Some((buf, addr));
+						return Some((buf, addr.into()));
 					}
 				},
 				Err(err) => {
@@ -126,6 +151,32 @@ impl Socket {
 		}
 		
 		None
+	}
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum Addr {
+	Local,
+	V4(SocketAddrV4),
+	V6(SocketAddrV6),
+}
+
+impl From<SocketAddr> for Addr {
+	fn from(addr: SocketAddr) -> Addr {
+		match addr {
+			SocketAddr::V4(addr) => Addr::V4(addr),
+			SocketAddr::V6(addr) => Addr::V6(addr),
+		}
+	}
+}
+
+impl fmt::Display for Addr {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		match *self {
+			Addr::Local => write!(f, "."),
+			Addr::V4(addr) => addr.fmt(f),
+			Addr::V6(addr) => addr.fmt(f),
+		}
 	}
 }
 
@@ -162,49 +213,65 @@ fn bind_v6(addr_port: SocketAddrV6) -> Result<UdpSocket, io::Error> {
 	Ok(socket)
 }
 
-pub struct SequencedChannel {
+pub struct SequencedChannel<S, R> {
+	addr: Addr,
 	socket: Rc<Socket>,
-	addr: SocketAddr,
 	in_sequence: u32,
 	out_sequence: u32,
+	_phantom1: PhantomData<S>,
+	_phantom2: PhantomData<R>,
 }
 
-impl SequencedChannel {
-	pub fn new(socket: Rc<Socket>, addr: SocketAddr) -> SequencedChannel {
+impl<S: Into<Vec<u8>>, R: TryRead<R>> SequencedChannel<S, R> {
+	pub fn new(socket: Rc<Socket>, addr: Addr) -> SequencedChannel<S, R> {
 		SequencedChannel {
 			addr,
 			socket,
 			in_sequence: 0,
 			out_sequence: 1,
+			_phantom1: PhantomData,
+			_phantom2: PhantomData,
 		}
 	}
 	
-	pub fn addr(&self) -> SocketAddr {
+	pub fn addr(&self) -> Addr {
 		self.addr
 	}
 	
-	pub fn send(&mut self, data: Vec<u8>) {
+	pub fn send(&mut self, messages: Vec<S>) {
+		let data = messages.into_iter().map(|x| x.into()).collect::<Vec<Vec<u8>>>().concat();
+		
 		let packet = SequencedPacket {
 			sequence: self.out_sequence,
 			data,
-			fragmentation: PacketFragmentation::Complete,
 		};
 		
-		self.out_sequence += 1;
 		self.socket.send_to(packet.into(), self.addr);
+		self.out_sequence += 1;
 	}
 	
-	pub fn process(&mut self, packet: SequencedPacket) -> Option<Vec<u8>> {
+	pub fn process(&mut self, packet: SequencedPacket) -> Option<Vec<R>> {
 		if packet.sequence < self.in_sequence {
 			return None;
 		}
 		
-		if let PacketFragmentation::Fragmented(frag_start, frag_len) = packet.fragmentation {
-			unimplemented!();
+		let mut reader = Cursor::new(packet.data);
+		let mut messages = Vec::new();
+		
+		while reader.position() < reader.get_ref().len() as u64 {
+			let message = match R::try_read(&mut reader) {
+				Ok(message) => message,
+				Err(err) => {
+					warn!("received a malformed packet from {}", self.addr);
+					return None;
+				},
+			};
+			
+			messages.push(message);
 		}
 		
 		self.in_sequence = packet.sequence;
-		Some(packet.data)
+		Some(messages)
 	}
 	
 	pub fn in_sequence(&self) -> u32 {

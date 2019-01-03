@@ -1,21 +1,23 @@
-mod commands;
+mod server_commands;
 
 use std::collections::hash_map::{Entry, HashMap};
 use std::convert::TryFrom;
 use std::error::Error;
+use std::io::{Cursor, Read, Write};
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::rc::Rc;
-use std::sync::{mpsc, mpsc::Receiver};
+use std::sync::{mpsc, mpsc::Receiver, mpsc::Sender};
 use std::time::{Duration, Instant};
 
+use crate::commands;
 use crate::commands::CommandSender;
-use crate::net::{SequencedChannel, Socket};
-use crate::protocol::{ClientPacket, ClientConnectionlessPacket, ClientSequencedPacket, SequencedPacket, ServerConnectionlessPacket, ServerSequencedPacket};
-pub use crate::server::commands::COMMANDS;
+use crate::net::{Addr, SequencedChannel, Socket};
+use crate::protocol::{ClientMessage, Packet, ServerMessage, TryRead};
+pub use crate::server::server_commands::COMMANDS;
 
 
-pub fn server_main() {
-	let mut server = Server::new().unwrap();
+pub fn server_main(sender: Sender<Vec<u8>>, receiver: Receiver<Vec<u8>>) {
+	let mut server = Server::new(sender, receiver).unwrap();
 	
 	let mut old_time = Instant::now();
 	let mut new_time = Instant::now();
@@ -41,15 +43,15 @@ pub struct Server {
 	command_receiver: Receiver<Vec<String>>,
 	socket: Rc<Socket>,
 	
-	clients: HashMap<SocketAddr, ServerClient>,
+	clients: HashMap<Addr, ServerClient>,
 	real_time: Instant,
 	session: Option<ServerSession>,
 	should_quit: bool,
 }
 
 impl Server {
-	fn new() -> Result<Server, Box<dyn Error>> {
-		let socket = match Socket::new(Ipv4Addr::UNSPECIFIED, Ipv6Addr::UNSPECIFIED, 40011) {
+	fn new(sender: Sender<Vec<u8>>, receiver: Receiver<Vec<u8>>) -> Result<Server, Box<dyn Error>> {
+		let socket = match Socket::new(Ipv4Addr::UNSPECIFIED, Ipv6Addr::UNSPECIFIED, 40011, sender, receiver) {
 			Ok(val) => val,
 			Err(err) => {
 				return Err(Box::from(format!("Could not create server socket: {}", err)));
@@ -111,36 +113,46 @@ impl Server {
 		self.session = None;
 	}
 	
-	pub fn drop_client(&mut self, addr: SocketAddr, reason: &str) {
+	pub fn drop_client(&mut self, addr: Addr, reason: &str) {
 		self.clients.remove(&addr);
 		info!("Client {} {}", addr, reason);
 	}
 	
-	fn handle_packet(&mut self, data: Vec<u8>, addr: SocketAddr) {
-		match ClientPacket::try_from(data) {
-			Ok(packet) => match packet {
-				ClientPacket::Connectionless(packet) => {
-					self.handle_connectionless_packet(packet, addr);
-				},
-				ClientPacket::Sequenced(packet) => {
-					self.handle_sequenced_packet(packet, addr);
-				},
-			},
+	fn handle_packet(&mut self, data: Vec<u8>, addr: Addr) {
+		let packet: Packet<ClientMessage> = match Packet::try_from(data) {
+			Ok(packet) => packet,
 			Err(err) => {
-				warn!(
-					"Server received a malformed packet from {}: {}",
-					addr,
-					err,
-				);
+				warn!("Server received a malformed packet from {}: {}", addr, err);
+				return;
+			},
+		};
+		
+		match packet {
+			Packet::Unsequenced(messages) => {
+				println!("Server received from {}: {:?}", addr, messages);
+				
+				for message in messages {
+					self.handle_unsequenced_message(message, addr);
+				}
+			},
+			Packet::Sequenced(packet) => {
+				if let Some(client) = self.clients.get_mut(&addr) {
+					if let Some(messages) = client.channel.process(packet) {
+						println!("Server received from client {}: {:?}", addr, messages);
+						client.last_packet_received_time = self.real_time;
+						
+						for message in messages {
+							self.handle_sequenced_message(message, addr);
+						}
+					}
+				}
 			},
 		}
 	}
 	
-	fn handle_connectionless_packet(&mut self, packet: ClientConnectionlessPacket, addr: SocketAddr) {
-		println!("Server received from {}: {:?}", addr, packet);
-		
-		match packet {
-			ClientConnectionlessPacket::Connect(_) => {
+	fn handle_unsequenced_message(&mut self, message: ClientMessage, addr: Addr) {
+		match message {
+			ClientMessage::Connect => {
 				let client = match self.clients.entry(addr) {
 					Entry::Occupied(item) => item.into_mut(),
 					Entry::Vacant(item) => item.insert(ServerClient::new(self.socket.clone(), addr)),
@@ -149,36 +161,22 @@ impl Server {
 				client.last_packet_received_time = self.real_time;
 				client.next_update_time = self.real_time;
 				
-				let packet = ServerConnectionlessPacket::ConnectResponse;
+				let packet = Packet::Unsequenced(vec![ServerMessage::ConnectResponse]);
 				self.socket.send_to(packet.into(), addr);
 			},
-			ClientConnectionlessPacket::GetInfo => unimplemented!(),
-			ClientConnectionlessPacket::GetStatus => unimplemented!(),
-			ClientConnectionlessPacket::RCon(args) => {
-				COMMANDS.execute(args, self);
+			ClientMessage::RCon(text) => {
+				match commands::tokenize(&text) {
+					Ok(args) => COMMANDS.execute(args, self),
+					Err(err) => warn!(
+						"Malformed command string in rcon: {}",
+						err
+					),
+				}
 			},
 		}
 	}
 	
-	fn handle_sequenced_packet(&mut self, packet: SequencedPacket, addr: SocketAddr) {
-		if let Some(client) = self.clients.get_mut(&addr) {
-			if let Some(data) = client.channel.process(packet) {
-				client.last_packet_received_time = self.real_time;
-				
-				match ClientSequencedPacket::try_from(data) {
-					Ok(packet) => {
-						println!("Server received from {}: {:?}", addr, packet);
-					},
-					Err(err) => {
-						warn!(
-							"received a malformed packet from {}: {}",
-							addr,
-							err,
-						);
-					},
-				}
-			}
-		}
+	fn handle_sequenced_message(&mut self, message: ClientMessage, addr: Addr) {
 	}
 	
 	fn send_updates(&mut self) {
@@ -187,8 +185,7 @@ impl Server {
 				continue;
 			}
 			
-			let packet = ServerSequencedPacket {};
-			client.channel.send(packet.into());
+			client.channel.send(Vec::new());
 			client.next_update_time = self.real_time + Duration::from_millis(50);
 		}
 	}
@@ -199,13 +196,13 @@ struct ServerSession {
 }
 
 pub struct ServerClient {
-	channel: SequencedChannel,
+	channel: SequencedChannel<ServerMessage, ClientMessage>,
 	last_packet_received_time: Instant,
 	next_update_time: Instant,
 }
 
 impl ServerClient {
-	fn new(socket: Rc<Socket>, addr: SocketAddr) -> ServerClient {
+	fn new(socket: Rc<Socket>, addr: Addr) -> ServerClient {
 		ServerClient {
 			channel: SequencedChannel::new(socket, addr),
 			last_packet_received_time: Instant::now(),

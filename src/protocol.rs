@@ -8,16 +8,60 @@ use crate::commands;
 
 
 #[derive(Debug)]
-pub struct SequencedPacket {
-	pub sequence: u32,
-	pub data: Vec<u8>,
-	pub fragmentation: PacketFragmentation,
+pub enum Packet<T> {
+	Unsequenced(Vec<T>),
+	Sequenced(SequencedPacket),
+}
+
+impl<T> From<SequencedPacket> for Packet<T> {
+	fn from(packet: SequencedPacket) -> Packet<T> {
+		Packet::Sequenced(packet)
+	}
+}
+
+impl<T: TryRead<T>> TryFrom<Vec<u8>> for Packet<T> {
+	type Error = Box<dyn Error>;
+	
+	fn try_from(data: Vec<u8>) -> Result<Packet<T>, Box<dyn Error>> {
+		let mut reader = Cursor::new(data);
+		let sequence = reader.read_u32::<NE>()?;
+		
+		if sequence == 0xFFFFFFFF {
+			let mut messages = Vec::new();
+			
+			while reader.position() < reader.get_ref().len() as u64 {
+				messages.push(T::try_read(&mut reader)?)
+			}
+			
+			Ok(Packet::Unsequenced(messages))
+		} else {
+			Ok(SequencedPacket::try_from(reader.into_inner())?.into())
+		}
+	}
+}
+
+impl<T: Into<Vec<u8>>> From<Packet<T>> for Vec<u8> {
+	fn from(packet: Packet<T>) -> Vec<u8> {
+		match packet {
+			Packet::Unsequenced(messages) => {
+				let mut writer = Cursor::new(Vec::new());
+				writer.write_u32::<NE>(0xFFFFFFFF).unwrap();
+				
+				for message in messages {
+					writer.write(&message.into()).unwrap();
+				}
+				
+				writer.into_inner()
+			},
+			Packet::Sequenced(p) => p.into(),
+		}
+	}
 }
 
 #[derive(Debug)]
-pub enum PacketFragmentation {
-	Complete,
-	Fragmented(u16, u16),
+pub struct SequencedPacket {
+	pub sequence: u32,
+	pub data: Vec<u8>,
 }
 
 impl TryFrom<Vec<u8>> for SequencedPacket {
@@ -28,46 +72,28 @@ impl TryFrom<Vec<u8>> for SequencedPacket {
 		let sequence = reader.read_u32::<NE>()?;
 		
 		if sequence == 0xFFFFFFFF {
-			Err(Box::from("not a reliable packet"))
-		} else if sequence & 1<<31 == 0 {
-			Ok(SequencedPacket {
-				sequence: sequence & !(1 << 31),
-				data: reader.into_inner()[4..].to_owned(),
-				fragmentation: PacketFragmentation::Complete,
-			})
-		} else {
-			let frag_start = reader.read_u16::<NE>()?;
-			let frag_len = reader.read_u16::<NE>()?;
-			
-			Ok(SequencedPacket {
-				sequence: sequence & !(1 << 31),
-				data: reader.into_inner()[4..].to_owned(),
-				fragmentation: PacketFragmentation::Fragmented(frag_start, frag_len),
-			})
+			return Err(Box::from("not a sequenced packet"))
 		}
+		
+		Ok(SequencedPacket {
+			sequence,
+			data: reader.into_inner()[4..].to_owned(),
+		})
 	}
 }
 
 impl From<SequencedPacket> for Vec<u8> {
 	fn from(packet: SequencedPacket) -> Vec<u8> {
 		let mut writer = Cursor::new(Vec::new());
-		
-		match packet.fragmentation {
-			PacketFragmentation::Complete => {
-				writer.write_u32::<NE>(packet.sequence).unwrap();
-			},
-			PacketFragmentation::Fragmented(frag_start, frag_len) => {
-				writer.write_u32::<NE>(packet.sequence | (1 << 31)).unwrap();
-				writer.write_u16::<NE>(frag_start).unwrap();
-				writer.write_u16::<NE>(frag_len).unwrap();
-			}
-		}
-		
+		writer.write_u32::<NE>(packet.sequence).unwrap();
 		writer.write(&packet.data).unwrap();
 		writer.into_inner()
 	}
 }
 
+pub trait TryRead<T> {
+	fn try_read(reader: &mut Cursor<Vec<u8>>) -> Result<T, Box<dyn Error>>;
+}
 
 
 /*
@@ -75,167 +101,44 @@ impl From<SequencedPacket> for Vec<u8> {
  */
 
 #[derive(Debug)]
-pub enum ClientPacket {
-	Connectionless(ClientConnectionlessPacket),
-	Sequenced(SequencedPacket),
+pub enum ClientMessage {
+	Connect,
+	RCon(String),
 }
 
-impl From<SequencedPacket> for ClientPacket {
-	fn from(packet: SequencedPacket) -> ClientPacket {
-		ClientPacket::Sequenced(packet)
+impl TryRead<ClientMessage> for ClientMessage {
+	fn try_read(reader: &mut Cursor<Vec<u8>>) -> Result<ClientMessage, Box<dyn Error>> {
+		let message_type = reader.read_u8()?;
+		
+		Ok(match message_type {
+			1 => {
+				ClientMessage::Connect
+			},
+			2 => {
+				let length = reader.read_u32::<NE>()?;
+				let mut data = vec![0u8; length as usize];
+				reader.read_exact(data.as_mut_slice())?;
+				ClientMessage::RCon(String::from_utf8(data)?)
+			},
+			_ => unreachable!(),
+		})
 	}
 }
 
-impl TryFrom<Vec<u8>> for ClientPacket {
-	type Error = Box<dyn Error>;
-	
-	fn try_from(buf: Vec<u8>) -> Result<ClientPacket, Box<dyn Error>> {
-		let mut reader = Cursor::new(buf);
-		let sequence = reader.read_u32::<NE>()?;
-		
-		if sequence == 0xFFFFFFFF {
-			Ok(ClientConnectionlessPacket::try_from(reader.into_inner())?.into())
-		} else {
-			Ok(SequencedPacket::try_from(reader.into_inner())?.into())
-		}
-	}
-}
-
-impl From<ClientPacket> for Vec<u8> {
-	fn from(packet: ClientPacket) -> Vec<u8> {
-		match packet {
-			ClientPacket::Connectionless(p) => p.into(),
-			ClientPacket::Sequenced(p) => p.into(),
-		}
-	}
-}
-
-#[derive(Debug)]
-pub enum ClientConnectionlessPacket {
-	Connect(String),
-	GetInfo,
-	GetStatus,
-	RCon(Vec<String>),
-}
-
-impl From<ClientConnectionlessPacket> for ClientPacket {
-	fn from(packet: ClientConnectionlessPacket) -> ClientPacket {
-		ClientPacket::Connectionless(packet)
-	}
-}
-
-impl TryFrom<Vec<u8>> for ClientConnectionlessPacket {
-	type Error = Box<dyn Error>;
-	
-	fn try_from(buf: Vec<u8>) -> Result<ClientConnectionlessPacket, Box<dyn Error>> {
-		let mut reader = Cursor::new(buf);
-		let sequence = reader.read_u32::<NE>()?;
-		
-		if sequence != 0xFFFFFFFF {
-			return Err(Box::from("not a connectionless packet"));
-		}
-		
-		let mut buf = Vec::new();
-		reader.read_to_end(&mut buf)?;
-		let mut tokens = commands::tokenize(str::from_utf8(&buf)?)?;
-		let mut tokens = tokens.drain(..);
-		
-		let cmd = match tokens.next() {
-			Some(val) => val,
-			None => return Err(Box::from("empty packet")),
-		};
-		
-		let packet = match cmd.as_str() {
-			"connect" => {
-				let text = match tokens.next() {
-					Some(val) => val,
-					None => return Err(Box::from(format!("{}: argument 1 missing", cmd))),
-				};
-				
-				ClientConnectionlessPacket::Connect(text)
-			},
-			"getinfo" => {
-				ClientConnectionlessPacket::GetInfo
-			},
-			"getstatus" => {
-				ClientConnectionlessPacket::GetStatus
-			},
-			"rcon" => {
-				let mut args = Vec::new();
-				
-				while let Some(val) = tokens.next() {
-					args.push(val);
-				}
-				
-				ClientConnectionlessPacket::RCon(args)
-			},
-			_ => {
-				return Err(Box::from(format!("invalid command: {}", cmd)))
-			},
-		};
-		
-		if tokens.count() != 0 {
-			Err(Box::from(format!("{}: too many arguments", cmd)))
-		} else {
-			Ok(packet)
-		}
-	}
-}
-
-impl From<ClientConnectionlessPacket> for Vec<u8> {
-	fn from(packet: ClientConnectionlessPacket) -> Vec<u8> {
+impl From<ClientMessage> for Vec<u8> {
+	fn from(message: ClientMessage) -> Vec<u8> {
 		let mut writer = Cursor::new(Vec::new());
-		writer.write_u32::<NE>(0xFFFFFFFF).unwrap();
 		
-		match packet {
-			ClientConnectionlessPacket::Connect(text) => {
-				write!(writer, "connect {}", commands::quote_escape(&text)).unwrap();
-			},
-			ClientConnectionlessPacket::GetInfo => {
-				write!(writer, "getinfo").unwrap();
-			},
-			ClientConnectionlessPacket::GetStatus => {
-				write!(writer, "getstatus").unwrap();
-			},
-			ClientConnectionlessPacket::RCon(mut args) => {
-				write!(writer, "rcon").unwrap();
-				
-				for arg in args.drain(..) {
-					write!(writer, " {}", commands::quote_escape(&arg)).unwrap();
-				}
-			},
+		match message {
+			ClientMessage::Connect => {
+				writer.write_u8(1).unwrap();
+			}
+			ClientMessage::RCon(text) => {
+				writer.write_u8(2).unwrap();
+				writer.write_u32::<NE>(text.len() as u32).unwrap();
+				writer.write(text.as_bytes()).unwrap();
+			}
 		}
-		
-		writer.into_inner()
-	}
-}
-
-#[derive(Debug)]
-pub struct ClientSequencedPacket {
-	pub last_received_sequence: u32,
-}
-
-impl TryFrom<Vec<u8>> for ClientSequencedPacket {
-	type Error = Box<dyn Error>;
-	
-	fn try_from(buf: Vec<u8>) -> Result<ClientSequencedPacket, Box<dyn Error>> {
-		let mut reader = Cursor::new(buf);
-		let last_received_sequence = reader.read_u32::<NE>()?;
-		
-		if reader.position() < reader.get_ref().len() as u64 {
-			Err(Box::from("Packet too long"))
-		} else {
-			Ok(ClientSequencedPacket {
-				last_received_sequence,
-			})
-		}
-	}
-}
-
-impl From<ClientSequencedPacket> for Vec<u8> {
-	fn from(packet: ClientSequencedPacket) -> Vec<u8> {
-		let mut writer = Cursor::new(Vec::new());
-		writer.write_u32::<NE>(packet.last_received_sequence).unwrap();
 		
 		writer.into_inner()
 	}
@@ -247,182 +150,39 @@ impl From<ClientSequencedPacket> for Vec<u8> {
  */
 
 #[derive(Debug)]
-pub enum ServerPacket {
-	Connectionless(ServerConnectionlessPacket),
-	Sequenced(SequencedPacket),
-}
-
-impl From<SequencedPacket> for ServerPacket {
-	fn from(packet: SequencedPacket) -> ServerPacket {
-		ServerPacket::Sequenced(packet)
-	}
-}
-
-impl TryFrom<Vec<u8>> for ServerPacket {
-	type Error = Box<dyn Error>;
-	
-	fn try_from(buf: Vec<u8>) -> Result<ServerPacket, Box<dyn Error>> {
-		let mut reader = Cursor::new(buf);
-		let sequence = reader.read_u32::<NE>()?;
-		
-		if sequence == 0xFFFFFFFF {
-			Ok(ServerConnectionlessPacket::try_from(reader.into_inner())?.into())
-		} else {
-			Ok(SequencedPacket::try_from(reader.into_inner())?.into())
-		}
-	}
-}
-
-impl From<ServerPacket> for Vec<u8> {
-	fn from(packet: ServerPacket) -> Vec<u8> {
-		match packet {
-			ServerPacket::Connectionless(p) => p.into(),
-			ServerPacket::Sequenced(p) => p.into(),
-		}
-	}
-}
-
-#[derive(Debug)]
-pub enum ServerConnectionlessPacket {
+pub enum ServerMessage {
 	ConnectResponse,
 	Disconnect,
-	InfoResponse(String),
-	Print(String),
-	StatusResponse(String, String),
 }
 
-impl From<ServerConnectionlessPacket> for ServerPacket {
-	fn from(packet: ServerConnectionlessPacket) -> ServerPacket {
-		ServerPacket::Connectionless(packet)
+impl TryRead<ServerMessage> for ServerMessage {
+	fn try_read(reader: &mut Cursor<Vec<u8>>) -> Result<ServerMessage, Box<dyn Error>> {
+		let message_type = reader.read_u8()?;
+		
+		Ok(match message_type {
+			1 => {
+				ServerMessage::ConnectResponse
+			},
+			2 => {
+				ServerMessage::Disconnect
+			},
+			_ => unreachable!(),
+		})
 	}
 }
 
-impl TryFrom<Vec<u8>> for ServerConnectionlessPacket {
-	type Error = Box<dyn Error>;
-	
-	fn try_from(buf: Vec<u8>) -> Result<ServerConnectionlessPacket, Box<dyn Error>> {
-		let mut reader = Cursor::new(buf);
-		let sequence = reader.read_u32::<NE>()?;
-		
-		if sequence != 0xFFFFFFFF {
-			return Err(Box::from("not a connectionless packet"));
-		}
-		
-		let mut buf = Vec::new();
-		reader.read_to_end(&mut buf)?;
-		let mut tokens = commands::tokenize(str::from_utf8(&buf)?)?;
-		let mut tokens = tokens.drain(..);
-		
-		let cmd = match tokens.next() {
-			Some(val) => val,
-			None => return Err(Box::from("empty packet")),
-		};
-		
-		let packet = match cmd.as_str() {
-			"connectResponse" => {
-				ServerConnectionlessPacket::ConnectResponse
-			},
-			"disconnect" => {
-				ServerConnectionlessPacket::Disconnect
-			},
-			"infoResponse" => {
-				let text = match tokens.next() {
-					Some(val) => val,
-					None => return Err(Box::from(format!("{}: argument 1 missing", cmd))),
-				};
-				
-				ServerConnectionlessPacket::InfoResponse(text)
-			},
-			"print" => {
-				let text = match tokens.next() {
-					Some(val) => val,
-					None => return Err(Box::from(format!("{}: argument 1 missing", cmd))),
-				};
-				
-				ServerConnectionlessPacket::Print(text)
-			},
-			"statusResponse" => {
-				let info = match tokens.next() {
-					Some(val) => val,
-					None => return Err(Box::from(format!("{}: argument 1 missing", cmd))),
-				};
-				
-				let status = match tokens.next() {
-					Some(val) => val,
-					None => return Err(Box::from(format!("{}: argument 2 missing", cmd))),
-				};
-				
-				ServerConnectionlessPacket::StatusResponse(info, status)
-			},
-			_ => {
-				return Err(Box::from(format!("invalid command: {}", cmd)))
-			},
-		};
-		
-		if tokens.count() != 0 {
-			Err(Box::from(format!("{}: too many arguments", cmd)))
-		} else {
-			Ok(packet)
-		}
-	}
-}
-
-impl From<ServerConnectionlessPacket> for Vec<u8> {
-	fn from(packet: ServerConnectionlessPacket) -> Vec<u8> {
+impl From<ServerMessage> for Vec<u8> {
+	fn from(message: ServerMessage) -> Vec<u8> {
 		let mut writer = Cursor::new(Vec::new());
-		writer.write_u32::<NE>(0xFFFFFFFF).unwrap();
 		
-		match packet {
-			ServerConnectionlessPacket::ConnectResponse => {
-				write!(writer, "connectResponse").unwrap();
+		match message {
+			ServerMessage::ConnectResponse => {
+				writer.write_u8(1).unwrap();
 			},
-			ServerConnectionlessPacket::Disconnect => {
-				write!(writer, "disconnect").unwrap();
-			},
-			ServerConnectionlessPacket::InfoResponse(text) => {
-				write!(writer, "infoResponse {}",
-					commands::quote_escape(&text),
-				).unwrap();
-			},
-			ServerConnectionlessPacket::Print(text) => {
-				write!(writer, "print {}",
-					commands::quote_escape(&text),
-				).unwrap();
-			},
-			ServerConnectionlessPacket::StatusResponse(info, status) => {
-				write!(writer, "statusResponse {} {}",
-					commands::quote_escape(&info),
-					commands::quote_escape(&status),
-				).unwrap();
-			},
+			ServerMessage::Disconnect => {
+				writer.write_u8(2).unwrap();
+			}
 		}
-		
-		writer.into_inner()
-	}
-}
-
-#[derive(Debug)]
-pub struct ServerSequencedPacket {
-}
-
-impl TryFrom<Vec<u8>> for ServerSequencedPacket {
-	type Error = Box<dyn Error>;
-	
-	fn try_from(buf: Vec<u8>) -> Result<ServerSequencedPacket, Box<dyn Error>> {
-		let mut reader = Cursor::new(buf);
-		
-		if reader.position() < reader.get_ref().len() as u64 {
-			Err(Box::from("Packet too long"))
-		} else {
-			Ok(ServerSequencedPacket {
-			})
-		}
-	}
-}
-
-impl From<ServerSequencedPacket> for Vec<u8> {
-	fn from(packet: ServerSequencedPacket) -> Vec<u8> {
-		let mut writer = Cursor::new(Vec::new());
 		
 		writer.into_inner()
 	}
