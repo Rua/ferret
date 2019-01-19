@@ -1,5 +1,3 @@
-#![feature(duration_as_u128)]
-#![feature(uniform_paths)]
 #![feature(try_from)]
 
 #![allow(unused)]
@@ -14,7 +12,9 @@ extern crate vulkano;
 
 mod client;
 mod commands;
+mod configvars;
 mod doom;
+mod game;
 mod geometry;
 mod logger;
 mod model;

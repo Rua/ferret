@@ -1,4 +1,5 @@
 mod server_commands;
+mod server_configvars;
 
 use std::collections::hash_map::{Entry, HashMap};
 use std::convert::TryFrom;
@@ -11,9 +12,12 @@ use std::time::{Duration, Instant};
 
 use crate::commands;
 use crate::commands::CommandSender;
+//use crate::configvars::ConfigVariables;
+use crate::game::Game;
 use crate::net::{Addr, SequencedChannel, Socket};
 use crate::protocol::{ClientMessage, Packet, ServerMessage, TryRead};
-pub use crate::server::server_commands::COMMANDS;
+use crate::server::server_commands::COMMANDS;
+use crate::server::server_configvars::ServerConfigVars;
 
 
 pub fn server_main(sender: Sender<Vec<u8>>, receiver: Receiver<Vec<u8>>) {
@@ -41,23 +45,26 @@ pub fn server_main(sender: Sender<Vec<u8>>, receiver: Receiver<Vec<u8>>) {
 pub struct Server {
 	command_sender: CommandSender,
 	command_receiver: Receiver<Vec<String>>,
+	configvars: ServerConfigVars,
 	socket: Rc<Socket>,
 	
 	clients: HashMap<Addr, ServerClient>,
 	real_time: Instant,
-	session: Option<ServerSession>,
+	session: ServerSession,
 	should_quit: bool,
 }
 
 impl Server {
 	fn new(sender: Sender<Vec<u8>>, receiver: Receiver<Vec<u8>>) -> Result<Server, Box<dyn Error>> {
-		let socket = match Socket::new(Ipv4Addr::UNSPECIFIED, Ipv6Addr::UNSPECIFIED, 40011, sender, receiver) {
+		let configvars = ServerConfigVars::new();
+		
+		let socket = match Socket::new(Ipv4Addr::UNSPECIFIED, Ipv6Addr::UNSPECIFIED, *configvars.sv_port.get(), sender, receiver) {
 			Ok(val) => val,
 			Err(err) => {
 				return Err(Box::from(format!("Could not create server socket: {}", err)));
 			}
 		};
-		
+
 		info!("Server socket mode: {}", socket.mode());
 		
 		let (command_sender, command_receiver) = mpsc::channel();
@@ -66,11 +73,12 @@ impl Server {
 		Ok(Server {
 			command_sender,
 			command_receiver,
+			configvars,
 			socket,
 			
 			clients: HashMap::new(),
 			real_time: Instant::now(),
-			session: None,
+			session: ServerSession::new("E1M1"),
 			should_quit: false,
 		})
 	}
@@ -97,7 +105,7 @@ impl Server {
 		for addr in self.clients.keys().cloned().collect::<Vec<_>>() {
 			let client = &self.clients[&addr];
 			
-			if (self.real_time - client.last_packet_received_time).as_secs() >= 10 {
+			if (self.real_time - client.last_packet_received_time).as_secs() >= *self.configvars.sv_timeout.get() {
 				self.drop_client(addr, "timed out");
 			}
 		}
@@ -107,10 +115,6 @@ impl Server {
 	
 	pub fn quit(&mut self) {
 		self.should_quit = true;
-	}
-	
-	pub fn shutdown(&mut self) {
-		self.session = None;
 	}
 	
 	pub fn drop_client(&mut self, addr: Addr, reason: &str) {
@@ -192,7 +196,39 @@ impl Server {
 }
 
 struct ServerSession {
+	config: HashMap<String, String>,
+	game: Game,
+}
+
+impl ServerSession {
+	fn new(mapname: &str) -> ServerSession {
+		let mut config = HashMap::new();
+		config.insert("mapname".to_owned(), mapname.to_owned());
+		
+		ServerSession {
+			config,
+			game: Game::new(mapname),
+		}
+	}
 	
+	pub fn get_config(&self, key: &str) -> Option<&String> {
+		self.config.get(key)
+	}
+	
+	pub fn set_config(&mut self, key: &str, value: &str) {
+		match self.config.entry(key.to_owned()) {
+			Entry::Occupied(item) => {
+				if item.get() == value {
+					return;
+				} else {
+					*item.into_mut() = value.to_owned();
+				}
+			},
+			Entry::Vacant(item) => {
+				item.insert(value.to_owned());
+			},
+		};
+	}
 }
 
 pub struct ServerClient {

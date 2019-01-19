@@ -76,42 +76,6 @@ impl<T> Command<T> {
     }
 }
 
-/*struct ConsoleVariable<T> {
-	name: String,
-	value: RefCell<T>,
-}
-
-impl<T> ConsoleVariable<T> {
-	pub fn value(&self) -> Ref<T> {
-		self.value.borrow()
-	}
-	
-	pub fn set_value(&self, newvalue: T) {
-		self.value.replace(newvalue);
-	}
-}
-
-trait ConsoleVariableT {
-	fn print_value_str(&self);
-	fn set_value_str(&self, newvalue: &str);
-}
-
-impl<T: FromStr + ToString> ConsoleVariableT for ConsoleVariable<T> {
-	fn print_value_str(&self) {
-		info!("\"{}\" = \"{}\"", self.name, self.value.borrow().to_string());
-		//if let Some(var) = self.upgrade() {
-	}
-	
-	fn set_value_str(&self, newvalue: &str) {
-		if let Ok(value) = newvalue.parse::<T>() {
-			self.set_value(value);
-		}
-		//if let Some(var) = self.upgrade() {
-		// TODO: print message if parse fails
-	}
-}
-*/
-
 pub fn tokenize(mut text: &str) -> Result<Vec<String>, Box<dyn Error>> {
 	lazy_static! {
 		// Whitespace, except newlines

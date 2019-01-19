@@ -1,5 +1,6 @@
 mod audio;
 mod client_commands;
+mod client_configvars;
 mod input;
 mod video;
 mod vulkan;
@@ -11,20 +12,23 @@ use std::convert::TryFrom;
 use std::error::Error;
 use std::io::{Cursor, Read, Write};
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, ToSocketAddrs};
+use std::ops::DerefMut;
 use std::panic;
 use std::panic::AssertUnwindSafe;
 use std::process;
 use std::rc::Rc;
-use std::sync::{mpsc, mpsc::Receiver, mpsc::Sender};
+use std::sync::{Mutex, mpsc, mpsc::Receiver, mpsc::Sender};
 use std::thread::Builder;
 use std::time::{Duration, Instant};
 
 use crate::client::audio::Audio;
-pub use crate::client::client_commands::COMMANDS;
+use crate::client::client_commands::COMMANDS;
+use crate::client::client_configvars::ClientConfigVars;
 use crate::client::input::Input;
 use crate::client::video::Video;
 use crate::commands;
 use crate::commands::CommandSender;
+//use crate::configvars::ConfigVariableT;
 use crate::net::{Addr, SequencedChannel, Socket};
 use crate::protocol::{ClientMessage, Packet, ServerMessage, TryRead};
 use crate::server;
@@ -98,6 +102,8 @@ pub struct Client {
 	audio: Audio,
 	command_sender: CommandSender,
 	command_receiver: Receiver<Vec<String>>,
+	configvars: ClientConfigVars,
+	//configvar_refs: Vec<&'static dyn ConfigVariableT>,
 	event_pump: EventPump,
 	input: Input,
 	socket: Rc<Socket>,
@@ -110,6 +116,8 @@ pub struct Client {
 
 impl Client {
 	pub fn new(sender: Sender<Vec<u8>>, receiver: Receiver<Vec<u8>>) -> Result<Client, Box<dyn Error>> {
+		let configvars = ClientConfigVars::new();
+
 		let socket = match Socket::new(Ipv4Addr::UNSPECIFIED, Ipv6Addr::UNSPECIFIED, 0, sender, receiver) {
 			Ok(val) => val,
 			Err(err) => {
@@ -163,6 +171,8 @@ impl Client {
 			audio,
 			command_sender,
 			command_receiver,
+			configvars,
+			//configvar_refs,
 			event_pump,
 			input,
 			socket,
@@ -201,7 +211,7 @@ impl Client {
 		// Check for timeout
 		if let Some(connection) = &mut self.connection {
 			if let ConnectionState::Connected(_) = &mut connection.state {
-				if (self.real_time - connection.last_packet_received_time).as_secs() >= 10 {
+				if (self.real_time - connection.last_packet_received_time).as_secs() >= *self.configvars.cl_timeout.get() {
 					error!("Server connection timed out.");
 					self.disconnect();
 				}
@@ -233,7 +243,22 @@ impl Client {
 		let packet = Packet::Unsequenced(vec![ClientMessage::RCon("quit".to_owned())]);
 		self.socket.send_to(packet.into(), Addr::Local);
 	}
-	
+
+	pub fn set_configvar(&mut self, name: &str, value: &str) {
+		for cvar in self.configvars.refs() {
+			if cvar.name() == name {
+				cvar.set_string(value);
+				break;
+			}
+		}
+	}
+
+	pub fn list_configvars(&mut self) {
+		for cvar in self.configvars.refs() {
+			info!("{} \"{}\"", cvar.name(), cvar);
+		}
+	}
+
 	pub fn connect(&mut self, server_name: &str) {
 		let connection = match ClientConnection::new(server_name, &self.socket) {
 			Ok(val) => val,
