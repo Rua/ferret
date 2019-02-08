@@ -4,6 +4,8 @@
 #![warn(unused_must_use)]
 
 #[macro_use]
+extern crate downcast_rs;
+#[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
@@ -14,7 +16,6 @@ mod client;
 mod commands;
 mod configvars;
 mod doom;
-mod game;
 mod geometry;
 mod logger;
 mod model;
@@ -24,6 +25,7 @@ mod palette;
 mod server;
 mod sprite;
 mod stdin;
+mod world;
 
 use crate::logger::Logger;
 

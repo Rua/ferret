@@ -151,8 +151,10 @@ impl From<ClientMessage> for Vec<u8> {
 
 #[derive(Debug)]
 pub enum ServerMessage {
+	//ConfigVariable(String, String),
 	ConnectResponse,
 	Disconnect,
+	NewEntity(u32),
 }
 
 impl TryRead<ServerMessage> for ServerMessage {
@@ -165,6 +167,10 @@ impl TryRead<ServerMessage> for ServerMessage {
 			},
 			2 => {
 				ServerMessage::Disconnect
+			},
+			3 => {
+				let id = reader.read_u32::<NE>()?;
+				ServerMessage::NewEntity(id)
 			},
 			_ => unreachable!(),
 		})
@@ -181,6 +187,10 @@ impl From<ServerMessage> for Vec<u8> {
 			},
 			ServerMessage::Disconnect => {
 				writer.write_u8(2).unwrap();
+			},
+			ServerMessage::NewEntity(id) => {
+				writer.write_u8(3).unwrap();
+				writer.write_u32::<NE>(id).unwrap();
 			}
 		}
 		

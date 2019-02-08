@@ -6,18 +6,21 @@ use std::convert::TryFrom;
 use std::error::Error;
 use std::io::{Cursor, Read, Write};
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 use std::sync::{mpsc, mpsc::Receiver, mpsc::Sender};
 use std::time::{Duration, Instant};
+use weak_table::PtrWeakKeyHashMap;
+use weak_table::weak_key_hash_map::Entry as WeakKeyEntry;
 
 use crate::commands;
 use crate::commands::CommandSender;
+use crate::doom;
 //use crate::configvars::ConfigVariables;
-use crate::game::Game;
 use crate::net::{Addr, SequencedChannel, Socket};
 use crate::protocol::{ClientMessage, Packet, ServerMessage, TryRead};
 use crate::server::server_commands::COMMANDS;
 use crate::server::server_configvars::ServerConfigVars;
+use crate::world::{Entity, World};
 
 
 pub fn server_main(sender: Sender<Vec<u8>>, receiver: Receiver<Vec<u8>>) {
@@ -78,7 +81,7 @@ impl Server {
 			
 			clients: HashMap::new(),
 			real_time: Instant::now(),
-			session: ServerSession::new("E1M1"),
+			session: ServerSession::new("E1M1")?,
 			should_quit: false,
 		})
 	}
@@ -189,51 +192,58 @@ impl Server {
 				continue;
 			}
 			
-			client.channel.send(Vec::new());
+			let mut messages = Vec::new();
+			
+			for entity in self.session.world().entities() {
+				// Lookup the id assigned to this entity for this client
+				let id = match client.lookup_entity_id.get(&entity) {
+					Some(item) => *item,
+					None => {
+						let id = client.next_entity_id;
+						client.next_entity_id += 1;
+						client.lookup_entity_id.insert(entity, id);
+						
+						// Send a message to the client about the new entity
+						messages.push(ServerMessage::NewEntity(id));
+						id
+					},
+				};
+			}
+			
+			client.channel.send(messages);
 			client.next_update_time = self.real_time + Duration::from_millis(50);
 		}
 	}
 }
 
 struct ServerSession {
-	config: HashMap<String, String>,
-	game: Game,
+	world: World,
 }
 
 impl ServerSession {
-	fn new(mapname: &str) -> ServerSession {
-		let mut config = HashMap::new();
-		config.insert("mapname".to_owned(), mapname.to_owned());
+	fn new(mapname: &str) -> Result<ServerSession, Box<dyn Error>> {
+		let mut world = World::new();
 		
-		ServerSession {
-			config,
-			game: Game::new(mapname),
-		}
+		let mut loader = doom::wad::WadLoader::new();
+		loader.add("doom.wad")?;
+		loader.add("doom.gwa")?;
+		doom::map::spawn_map_entities(&mut world, mapname, &mut loader)?;
+		
+		Ok(ServerSession {
+			world,
+		})
 	}
 	
-	pub fn get_config(&self, key: &str) -> Option<&String> {
-		self.config.get(key)
-	}
-	
-	pub fn set_config(&mut self, key: &str, value: &str) {
-		match self.config.entry(key.to_owned()) {
-			Entry::Occupied(item) => {
-				if item.get() == value {
-					return;
-				} else {
-					*item.into_mut() = value.to_owned();
-				}
-			},
-			Entry::Vacant(item) => {
-				item.insert(value.to_owned());
-			},
-		};
+	fn world(&mut self) -> &mut World {
+		&mut self.world
 	}
 }
 
 pub struct ServerClient {
 	channel: SequencedChannel<ServerMessage, ClientMessage>,
 	last_packet_received_time: Instant,
+	lookup_entity_id: PtrWeakKeyHashMap<Weak<Entity>, u32>,
+	next_entity_id: u32,
 	next_update_time: Instant,
 }
 
@@ -242,6 +252,8 @@ impl ServerClient {
 		ServerClient {
 			channel: SequencedChannel::new(socket, addr),
 			last_packet_received_time: Instant::now(),
+			lookup_entity_id: PtrWeakKeyHashMap::new(),
+			next_entity_id: 1,
 			next_update_time: Instant::now(),
 		}
 	}

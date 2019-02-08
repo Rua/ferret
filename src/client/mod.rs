@@ -16,10 +16,11 @@ use std::ops::DerefMut;
 use std::panic;
 use std::panic::AssertUnwindSafe;
 use std::process;
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 use std::sync::{Mutex, mpsc, mpsc::Receiver, mpsc::Sender};
 use std::thread::Builder;
 use std::time::{Duration, Instant};
+use weak_table::WeakValueHashMap;
 
 use crate::client::audio::Audio;
 use crate::client::client_commands::COMMANDS;
@@ -33,6 +34,7 @@ use crate::net::{Addr, SequencedChannel, Socket};
 use crate::protocol::{ClientMessage, Packet, ServerMessage, TryRead};
 use crate::server;
 use crate::stdin;
+use crate::world::{Entity, World};
 
 
 pub fn client_main() {
@@ -341,10 +343,23 @@ impl Client {
 			ServerMessage::Disconnect => {
 				self.disconnect();
 			},
+			_ => unimplemented!(),
 		}
 	}
 	
 	fn handle_sequenced_message(&mut self, message: ServerMessage, addr: Addr) {
+		match message {
+			ServerMessage::NewEntity(id) => {
+				if let Some(connection) = &mut self.connection {
+					let entity = connection.world.spawn_entity();
+					
+					if connection.lookup_id_entity.insert(id, entity).is_some() {
+						// TODO: Received a duplicate id!
+					}
+				}
+			},
+			_ => unimplemented!(),
+		}
 	}
 	
 	fn send_update(&mut self) {
@@ -364,9 +379,11 @@ impl Client {
 struct ClientConnection {
 	last_packet_sent_time: Instant,
 	last_packet_received_time: Instant,
+	lookup_id_entity: WeakValueHashMap<u32, Weak<Entity>>,
 	server_name: String,
 	server_addr: Addr,
 	state: ConnectionState,
+	world: World,
 }
 
 impl ClientConnection {
@@ -395,9 +412,11 @@ impl ClientConnection {
 		Ok(ClientConnection {
 			last_packet_sent_time: time,
 			last_packet_received_time: time,
+			lookup_id_entity: WeakValueHashMap::new(),
 			server_name: server_name.to_owned(),
 			server_addr: addr,
 			state: ConnectionState::Connecting(time),
+			world: World::new(),
 		})
 	}
 }

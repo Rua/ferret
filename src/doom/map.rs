@@ -16,7 +16,19 @@ use crate::geometry::{BoundingBox2, BoundingBox3, Plane};
 use crate::model::{BSPBranch, BSPLeaf, BSPModel, BSPNode, Face, Texture, VertexData};
 use crate::doom::types::{flat, palette, pnames, texture, texture_info};
 use crate::doom::wad::WadLoader;
+use crate::world::World;
 
+
+pub fn spawn_map_entities(world: &mut World, name: &str, loader: &mut WadLoader) -> Result<(), Box<dyn Error>> {
+	let index = loader.index_for_name(name).unwrap();
+	let things = things::from_data(&mut loader.read_lump(index + things::OFFSET)?)?;
+	
+	for thing in things {
+		world.spawn_entity();
+	}
+	
+	Ok(())
+}
 
 fn group_by_size(surfaces: Vec<Surface<'static>>) -> Vec<(Rc<RefCell<Texture>>, usize)> {
 	// Group surfaces by size in a HashMap, while keeping track of which goes where
@@ -101,7 +113,6 @@ fn generate_lightmaps() -> Result<Vec<Rc<RefCell<Texture>>>, Box<dyn Error>> {
 
 pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<Error>> {
 	let index = loader.index_for_name(name).unwrap();
-	let _things = things::from_data(&mut loader.read_lump(index + things::OFFSET)?)?;
 	let linedefs = linedefs::from_data(&mut loader.read_lump(index + linedefs::OFFSET)?)?;
 	let sidedefs = sidedefs::from_data(&mut loader.read_lump(index + sidedefs::OFFSET)?)?;
 	let vertexes = vertexes::from_data(&mut loader.read_lump(index + vertexes::OFFSET)?)?;
