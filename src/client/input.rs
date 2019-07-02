@@ -35,7 +35,7 @@ impl Input {
 			button_use    : Button::new(),
 		}
 	}
-	
+
 /*	pub fn process(&mut self) {
 		while let Ok(args) = self.receiver.try_recv() {
 			if let Some(command) = COMMANDS.get(&args[0]) {
@@ -55,11 +55,11 @@ impl Button {
 			state: false,
 		}
 	}
-	
+
 	fn press(&mut self) {
 		self.state = true;
 	}
-	
+
 	fn release(&mut self) {
 		self.state = false;
 	}

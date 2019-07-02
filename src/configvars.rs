@@ -16,7 +16,7 @@ pub struct ConfigVariable<T> {
 impl<T: PartialEq> ConfigVariable<T> {
 	pub fn new(name: &'static str, default: T, mut validator: Option<Box<dyn Fn(&T) -> bool + Sync>>) -> ConfigVariable<T> {
 		assert!(validator.is_none() || validator.as_mut().unwrap()(&default));
-		
+
 		ConfigVariable {
 			name: name,
 			value: RefCell::new(default),
@@ -38,9 +38,9 @@ impl<T: PartialEq> ConfigVariable<T> {
 }
 
 impl<T: fmt::Display> fmt::Display for ConfigVariable<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		self.value.borrow().fmt(f)
-    }
+	}
 }
 
 pub trait ConfigVariableT: fmt::Display {
@@ -53,7 +53,7 @@ where <T as FromStr>::Err: std::fmt::Debug {
 	fn name(&self) -> &'static str {
 		self.name
 	}
-	
+
 	fn set_string(&self, value: &str) {
 		self.set(value.parse().unwrap())
 	}
@@ -67,18 +67,18 @@ impl ConfigVariables {
 	pub fn new<I>(iter: I) -> ConfigVariables
 	where I: IntoIterator<Item = ConfigVariable> {
 		let mut variables = HashMap::new();
-		
+
 		for item in iter.into_iter() {
 			if let Some(item) = variables.insert(item.name.clone(), item) {
 				panic!("Duplicate variable name: {}", item.name);
 			}
 		}
-		
+
 		ConfigVariables {
 			variables,
 		}
 	}
-	
+
 	pub fn get<T: Clone>(&self, key: &str) -> Option<&T>
 	where ConfigVariable: ValueAccess<T> {
 		self.variables.get(key).map(ValueAccess::get)
@@ -107,7 +107,7 @@ impl<T: FromStr + ToString> ConsoleVariableT for ConsoleVariable<T> {
 		info!("\"{}\" = \"{}\"", self.name, self.value.borrow().to_string());
 		//if let Some(var) = self.upgrade() {
 	}
-	
+
 	fn set_value_str(&self, newvalue: &str) {
 		if let Ok(value) = newvalue.parse::<T>() {
 			self.set_value(value);

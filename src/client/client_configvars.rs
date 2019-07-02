@@ -13,7 +13,7 @@ impl ClientConfigVars {
 			cl_timeout: ConfigVariable::new("cl_timeout", 10, None),
 		}
 	}
-	
+
 	pub fn refs(&self) -> Vec<&dyn ConfigVariableT> {
 		vec![
 			&self.cl_timeout,

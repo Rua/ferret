@@ -11,7 +11,7 @@ pub fn spawn(stdin_sender: CommandSender) -> Result<(), io::Error> {
 		.spawn(move|| {
 			let stdin = std::io::stdin();
 			let stdin_buf = stdin.lock();
-			
+
 			for line_result in stdin_buf.lines() {
 				match line_result {
 					Ok(line) => {
@@ -24,6 +24,6 @@ pub fn spawn(stdin_sender: CommandSender) -> Result<(), io::Error> {
 				};
 			}
 		})?;
-	
+
 	Ok(())
 }

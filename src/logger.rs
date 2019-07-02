@@ -19,7 +19,7 @@ impl Log for Logger {
 	fn enabled(&self, metadata: &Metadata<'_>) -> bool {
 		metadata.level() <= log::STATIC_MAX_LEVEL
 	}
-	
+
 	fn log(&self, record: &Record<'_>) {
 		if self.enabled(record.metadata()) {
 			match record.level() {
@@ -39,8 +39,8 @@ impl Log for Logger {
 					println!("{}", record.args());
 				},
 			}
-        }
+		}
 	}
-	
+
 	fn flush(&self) { }
 }

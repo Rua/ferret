@@ -1,6 +1,8 @@
 mod server_commands;
 mod server_configvars;
 
+use specs::{BitSet, Builder, Entity, Entities, Join, ReaderId, SystemData, World, WorldExt};
+use specs::storage::{ComponentEvent, ReadStorage, WriteStorage};
 use std::collections::hash_map::{Entry, HashMap};
 use std::convert::TryFrom;
 use std::error::Error;
@@ -9,27 +11,25 @@ use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::rc::{Rc, Weak};
 use std::sync::{mpsc, mpsc::Receiver, mpsc::Sender};
 use std::time::{Duration, Instant};
-use weak_table::PtrWeakKeyHashMap;
-use weak_table::weak_key_hash_map::Entry as WeakKeyEntry;
 
 use crate::commands;
 use crate::commands::CommandSender;
+use crate::components::{NetworkComponent, TransformComponent};
 use crate::doom;
 //use crate::configvars::ConfigVariables;
 use crate::net::{Addr, SequencedChannel, Socket};
 use crate::protocol::{ClientMessage, Packet, ServerMessage, TryRead};
 use crate::server::server_commands::COMMANDS;
 use crate::server::server_configvars::ServerConfigVars;
-use crate::world::{Entity, World};
 
 
 pub fn server_main(sender: Sender<Vec<u8>>, receiver: Receiver<Vec<u8>>) {
 	let mut server = Server::new(sender, receiver).unwrap();
-	
+
 	let mut old_time = Instant::now();
 	let mut new_time = Instant::now();
 	let mut delta = new_time - old_time;
-	
+
 	while !server.should_quit {
 		// Busy-loop until there is at least a millisecond of delta
 		while {
@@ -37,11 +37,11 @@ pub fn server_main(sender: Sender<Vec<u8>>, receiver: Receiver<Vec<u8>>) {
 			delta = new_time - old_time;
 			delta.as_millis() < 1
 		} {}
-		
+
 		server.frame(delta);
 		old_time = new_time;
 	}
-	
+
 	debug!("Server thread terminated.");
 }
 
@@ -50,7 +50,7 @@ pub struct Server {
 	command_receiver: Receiver<Vec<String>>,
 	configvars: ServerConfigVars,
 	socket: Rc<Socket>,
-	
+
 	clients: HashMap<Addr, ServerClient>,
 	real_time: Instant,
 	session: ServerSession,
@@ -60,7 +60,7 @@ pub struct Server {
 impl Server {
 	fn new(sender: Sender<Vec<u8>>, receiver: Receiver<Vec<u8>>) -> Result<Server, Box<dyn Error>> {
 		let configvars = ServerConfigVars::new();
-		
+
 		let socket = match Socket::new(Ipv4Addr::UNSPECIFIED, Ipv6Addr::UNSPECIFIED, *configvars.sv_port.get(), sender, receiver) {
 			Ok(val) => val,
 			Err(err) => {
@@ -69,62 +69,62 @@ impl Server {
 		};
 
 		info!("Server socket mode: {}", socket.mode());
-		
+
 		let (command_sender, command_receiver) = mpsc::channel();
 		let command_sender = CommandSender::new(command_sender);
-		
+
 		Ok(Server {
 			command_sender,
 			command_receiver,
 			configvars,
 			socket,
-			
+
 			clients: HashMap::new(),
 			real_time: Instant::now(),
 			session: ServerSession::new("E1M1")?,
 			should_quit: false,
 		})
 	}
-	
+
 	fn frame(&mut self, delta: Duration) {
 		self.real_time += delta;
-		
+
 		// Receive network packets
 		while let Some((data, addr)) = self.socket.next() {
 			self.handle_packet(data, addr);
 		}
-		
+
 		// Execute console commands
 		while let Some(args) = self.command_receiver.try_iter().next() {
 			COMMANDS.execute(args, self);
-			
+
 			if self.should_quit {
 				return;
 			}
 		}
-		
+
 		// Check for timeout
 		// Need to avoid borrowing the hashmap because we're modifying it
 		for addr in self.clients.keys().cloned().collect::<Vec<_>>() {
 			let client = &self.clients[&addr];
-			
+
 			if (self.real_time - client.last_packet_received_time).as_secs() >= *self.configvars.sv_timeout.get() {
 				self.drop_client(addr, "timed out");
 			}
 		}
-		
+
 		self.send_updates();
 	}
-	
+
 	pub fn quit(&mut self) {
 		self.should_quit = true;
 	}
-	
+
 	pub fn drop_client(&mut self, addr: Addr, reason: &str) {
 		self.clients.remove(&addr);
 		info!("Client {} {}", addr, reason);
 	}
-	
+
 	fn handle_packet(&mut self, data: Vec<u8>, addr: Addr) {
 		let packet: Packet<ClientMessage> = match Packet::try_from(data) {
 			Ok(packet) => packet,
@@ -133,11 +133,11 @@ impl Server {
 				return;
 			},
 		};
-		
+
 		match packet {
 			Packet::Unsequenced(messages) => {
 				println!("Server received from {}: {:?}", addr, messages);
-				
+
 				for message in messages {
 					self.handle_unsequenced_message(message, addr);
 				}
@@ -147,7 +147,7 @@ impl Server {
 					if let Some(messages) = client.channel.process(packet) {
 						println!("Server received from client {}: {:?}", addr, messages);
 						client.last_packet_received_time = self.real_time;
-						
+
 						for message in messages {
 							self.handle_sequenced_message(message, addr);
 						}
@@ -156,7 +156,7 @@ impl Server {
 			},
 		}
 	}
-	
+
 	fn handle_unsequenced_message(&mut self, message: ClientMessage, addr: Addr) {
 		match message {
 			ClientMessage::Connect => {
@@ -164,10 +164,10 @@ impl Server {
 					Entry::Occupied(item) => item.into_mut(),
 					Entry::Vacant(item) => item.insert(ServerClient::new(self.socket.clone(), addr)),
 				};
-				
+
 				client.last_packet_received_time = self.real_time;
 				client.next_update_time = self.real_time;
-				
+
 				let packet = Packet::Unsequenced(vec![ServerMessage::ConnectResponse]);
 				self.socket.send_to(packet.into(), addr);
 			},
@@ -182,34 +182,52 @@ impl Server {
 			},
 		}
 	}
-	
+
 	fn handle_sequenced_message(&mut self, message: ClientMessage, addr: Addr) {
 	}
-	
+
 	fn send_updates(&mut self) {
 		for (_, client) in &mut self.clients {
 			if self.real_time < client.next_update_time {
 				continue;
 			}
-			
+
 			let mut messages = Vec::new();
-			
-			for entity in self.session.world().entities() {
-				// Lookup the id assigned to this entity for this client
-				let id = match client.lookup_entity_id.get(&entity) {
-					Some(item) => *item,
-					None => {
-						let id = client.next_entity_id;
-						client.next_entity_id += 1;
-						client.lookup_entity_id.insert(entity, id);
-						
-						// Send a message to the client about the new entity
-						messages.push(ServerMessage::NewEntity(id));
-						id
-					},
-				};
+
+			if let Some(reader_id) = &mut client.reader_id {
+				let mut new_entities = BitSet::new();
+				let mut deleted_entities = BitSet::new();
+
+				for event in self.session.world.read_storage::<NetworkComponent>().channel().read(reader_id) {
+					match event {
+						ComponentEvent::Inserted(id) => {
+							new_entities.add(*id);
+						},
+						ComponentEvent::Modified(id) => {},
+						ComponentEvent::Removed(id) => {
+							if !new_entities.remove(*id) {
+								deleted_entities.add(*id);
+							}
+						}
+					}
+				}
+
+				for id in deleted_entities {
+					messages.push(ServerMessage::DeleteEntity(id));
+				}
+
+				for id in new_entities {
+					messages.push(ServerMessage::NewEntity(id));
+				}
+			} else {
+				// There is no reader yet, so notify the client about all entities
+				for (entity, _) in (&self.session.world.entities(), &self.session.world.read_storage::<NetworkComponent>()).join() {
+					messages.push(ServerMessage::NewEntity(entity.id()));
+				}
+
+				client.reader_id = Some(self.session.world.write_storage::<NetworkComponent>().register_reader());
 			}
-			
+
 			client.channel.send(messages);
 			client.next_update_time = self.real_time + Duration::from_millis(50);
 		}
@@ -223,17 +241,19 @@ struct ServerSession {
 impl ServerSession {
 	fn new(mapname: &str) -> Result<ServerSession, Box<dyn Error>> {
 		let mut world = World::new();
-		
+		world.register::<NetworkComponent>();
+		world.register::<TransformComponent>();
+
 		let mut loader = doom::wad::WadLoader::new();
 		loader.add("doom.wad")?;
 		loader.add("doom.gwa")?;
 		doom::map::spawn_map_entities(&mut world, mapname, &mut loader)?;
-		
+
 		Ok(ServerSession {
 			world,
 		})
 	}
-	
+
 	fn world(&mut self) -> &mut World {
 		&mut self.world
 	}
@@ -242,9 +262,11 @@ impl ServerSession {
 pub struct ServerClient {
 	channel: SequencedChannel<ServerMessage, ClientMessage>,
 	last_packet_received_time: Instant,
-	lookup_entity_id: PtrWeakKeyHashMap<Weak<Entity>, u32>,
+	lookup_entity_id: HashMap<Entity, u32>,
 	next_entity_id: u32,
 	next_update_time: Instant,
+
+	reader_id: Option<ReaderId<ComponentEvent>>,
 }
 
 impl ServerClient {
@@ -252,9 +274,11 @@ impl ServerClient {
 		ServerClient {
 			channel: SequencedChannel::new(socket, addr),
 			last_packet_received_time: Instant::now(),
-			lookup_entity_id: PtrWeakKeyHashMap::new(),
+			lookup_entity_id: HashMap::new(),
 			next_entity_id: 1,
 			next_update_time: Instant::now(),
+
+			reader_id: None,
 		}
 	}
 }

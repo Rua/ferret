@@ -11,17 +11,17 @@ impl BoundingBox2 {
 	pub fn new(min: Vector2<f32>, max: Vector2<f32>) -> BoundingBox2 {
 		assert!(min[0] <= max[0]);
 		assert!(min[1] <= max[1]);
-		
+
 		BoundingBox2 {
 			min,
 			max,
 		}
 	}
-	
+
 	pub fn zero() -> BoundingBox2 {
 		BoundingBox2::new(Vector2::zeros(), Vector2::zeros())
 	}
-	
+
 	pub fn from_extents(top: f32, bottom: f32, left: f32, right: f32) -> BoundingBox2 {
 		BoundingBox2::new(Vector2::new(bottom, left), Vector2::new(top, right))
 	}
@@ -38,13 +38,13 @@ impl BoundingBox3 {
 		assert!(min[0] <= max[0]);
 		assert!(min[1] <= max[1]);
 		assert!(min[2] <= max[2]);
-		
+
 		BoundingBox3 {
 			min,
 			max,
 		}
 	}
-	
+
 	pub fn zero() -> BoundingBox3 {
 		BoundingBox3::new(Vector3::zeros(), Vector3::zeros())
 	}

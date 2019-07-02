@@ -15,14 +15,14 @@ impl Sprite {
 				assert!(rotation.image_index < images.len());
 			}
 		}
-		
+
 		Sprite {images, frames, orientation, max_size}
 	}
-	
+
 	pub fn images(&self) -> &Vec<SpriteImage> {
 		&self.images
 	}
-	
+
 	pub fn frames(&self) -> &Vec<SpriteFrame> {
 		&self.frames
 	}
@@ -69,28 +69,28 @@ pub struct SpriteImage {
 impl SpriteImage {
 	pub fn from_surface(surface: Surface<'static>, offset: Vector2<i32>) -> SpriteImage {
 		let mut has_transparency = false;
-		
+
 		{
 			let pixels = surface.without_lock().unwrap();
 			let mut i = 3;
-			
+
 			while i < pixels.len() {
 				if pixels[i] != 0xFF {
 					has_transparency = true;
 					break;
 				}
-				
+
 				i += 4;
 			}
 		}
-		
+
 		SpriteImage {surface, offset, has_transparency}
 	}
-	
+
 	pub fn surface(&self) -> &Surface<'static> {
 		&self.surface
 	}
-	
+
 	pub fn to_surface(self) -> Surface<'static> {
 		self.surface
 	}
