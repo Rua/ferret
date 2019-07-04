@@ -30,6 +30,7 @@ use crate::client::input::Input;
 use crate::client::video::Video;
 use crate::commands;
 use crate::commands::CommandSender;
+use crate::components::TransformComponent;
 //use crate::configvars::ConfigVariableT;
 use crate::net::{Addr, SequencedChannel, Socket};
 use crate::protocol::{ClientMessage, Packet, ServerMessage, TryRead};
@@ -295,7 +296,7 @@ impl Client {
 
 		match packet {
 			Packet::Unsequenced(messages) => {
-				println!("Client received from {}: {:?}", addr, messages);
+				debug!("Client received from {}: {:?}", addr, messages);
 
 				for message in messages {
 					self.handle_unsequenced_message(message, addr);
@@ -306,7 +307,7 @@ impl Client {
 					if let ConnectionState::Connected(channel) = &mut connection.state {
 						if addr == connection.server_addr {
 							if let Some(messages) = channel.process(packet) {
-								println!("Client received from server: {:?}", messages);
+								debug!("Client received from server: {:?}", messages);
 								connection.last_packet_received_time = self.real_time;
 
 								for message in messages {
@@ -349,9 +350,50 @@ impl Client {
 
 	fn handle_sequenced_message(&mut self, message: ServerMessage, addr: Addr) {
 		match message {
-			ServerMessage::DeleteEntity(net_id) => {
-			}
-			ServerMessage::NewEntity(net_id) => {
+			ServerMessage::ConnectResponse | ServerMessage::Disconnect => {},
+			ServerMessage::ComponentDelete(net_id, component_id) => {
+				if let Some(connection) = &mut self.connection {
+					if let Some(entity) = connection.lookup_id_entity.get(&net_id) {
+						match component_id {
+							1 => { connection.world.write_storage::<TransformComponent>().remove(*entity); },
+							_ => { unimplemented!(); },
+						}
+					}
+				}
+			},
+			ServerMessage::ComponentDelta(net_id, component_id, data) => {
+				if let Some(connection) = &mut self.connection {
+					if let Some(entity) = connection.lookup_id_entity.get(&net_id) {
+						match component_id {
+							1 => {
+								if let Some(component) = connection.world.write_storage::<TransformComponent>().get_mut(*entity) {
+									let mut data = Cursor::new(data);
+									component.read_delta(&mut data).unwrap();
+								}
+							},
+							_ => { unimplemented!(); },
+						}
+					}
+				}
+			},
+			ServerMessage::ComponentNew(net_id, component_id) => {
+				if let Some(connection) = &mut self.connection {
+					if let Some(entity) = connection.lookup_id_entity.get(&net_id) {
+						match component_id {
+							1 => { connection.world.write_storage::<TransformComponent>().insert(*entity, TransformComponent::default()).unwrap(); },
+							_ => { unimplemented!(); },
+						}
+					}
+				}
+			},
+			ServerMessage::EntityDelete(net_id) => {
+				if let Some(connection) = &mut self.connection {
+					if let Some(entity) = connection.lookup_id_entity.get(&net_id) {
+						connection.world.delete_entity(*entity).unwrap();
+					}
+				}
+			},
+			ServerMessage::EntityNew(net_id) => {
 				if let Some(connection) = &mut self.connection {
 					let entity = connection.world.create_entity().build();
 
@@ -360,7 +402,6 @@ impl Client {
 					}
 				}
 			},
-			_ => unimplemented!(),
 		}
 	}
 
@@ -411,6 +452,9 @@ impl ClientConnection {
 
 		let time = Instant::now() - Duration::new(9999, 0);
 
+		let mut world = World::new();
+		world.register::<TransformComponent>();
+
 		Ok(ClientConnection {
 			last_packet_sent_time: time,
 			last_packet_received_time: time,
@@ -418,7 +462,7 @@ impl ClientConnection {
 			server_name: server_name.to_owned(),
 			server_addr: addr,
 			state: ConnectionState::Connecting(time),
-			world: World::new(),
+			world: world,
 		})
 	}
 }

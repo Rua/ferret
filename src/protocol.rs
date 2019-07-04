@@ -153,9 +153,12 @@ impl From<ClientMessage> for Vec<u8> {
 pub enum ServerMessage {
 	//ConfigVariable(String, String),
 	ConnectResponse,
-	DeleteEntity(u32),
+	ComponentDelete(u32, u8),
+	ComponentDelta(u32, u8, Vec<u8>),
+	ComponentNew(u32, u8),
 	Disconnect,
-	NewEntity(u32),
+	EntityDelete(u32),
+	EntityNew(u32),
 }
 
 impl TryRead<ServerMessage> for ServerMessage {
@@ -167,15 +170,33 @@ impl TryRead<ServerMessage> for ServerMessage {
 				ServerMessage::ConnectResponse
 			},
 			2 => {
-				let id = reader.read_u32::<NE>()?;
-				ServerMessage::DeleteEntity(id)
+				let entity_id = reader.read_u32::<NE>()?;
+				let component_id = reader.read_u8()?;
+				ServerMessage::ComponentDelete(entity_id, component_id)
 			},
 			3 => {
-				ServerMessage::Disconnect
+				let entity_id = reader.read_u32::<NE>()?;
+				let component_id = reader.read_u8()?;
+				let length = reader.read_u32::<NE>()?;
+				let mut data = vec![0u8; length as usize];
+				reader.read_exact(data.as_mut_slice())?;
+				ServerMessage::ComponentDelta(entity_id, component_id, data)
 			},
 			4 => {
-				let id = reader.read_u32::<NE>()?;
-				ServerMessage::NewEntity(id)
+				let entity_id = reader.read_u32::<NE>()?;
+				let component_id = reader.read_u8()?;
+				ServerMessage::ComponentNew(entity_id, component_id)
+			},
+			5 => {
+				ServerMessage::Disconnect
+			},
+			6 => {
+				let entity_id = reader.read_u32::<NE>()?;
+				ServerMessage::EntityDelete(entity_id)
+			},
+			7 => {
+				let entity_id = reader.read_u32::<NE>()?;
+				ServerMessage::EntityNew(entity_id)
 			},
 			_ => unreachable!(),
 		})
@@ -190,17 +211,34 @@ impl From<ServerMessage> for Vec<u8> {
 			ServerMessage::ConnectResponse => {
 				writer.write_u8(1).unwrap();
 			},
-			ServerMessage::DeleteEntity(id) => {
+			ServerMessage::ComponentDelete(entity_id, component_id) => {
 				writer.write_u8(2).unwrap();
-				writer.write_u32::<NE>(id).unwrap();
-			}
-			ServerMessage::Disconnect => {
-				writer.write_u8(3).unwrap();
+				writer.write_u32::<NE>(entity_id).unwrap();
+				writer.write_u8(component_id).unwrap();
 			},
-			ServerMessage::NewEntity(id) => {
+			ServerMessage::ComponentDelta(entity_id, component_id, data) => {
+				writer.write_u8(3).unwrap();
+				writer.write_u32::<NE>(entity_id).unwrap();
+				writer.write_u8(component_id).unwrap();
+				writer.write_u32::<NE>(data.len() as u32).unwrap();
+				writer.write(&data).unwrap();
+			},
+			ServerMessage::ComponentNew(entity_id, component_id) => {
 				writer.write_u8(4).unwrap();
-				writer.write_u32::<NE>(id).unwrap();
-			}
+				writer.write_u32::<NE>(entity_id).unwrap();
+				writer.write_u8(component_id).unwrap();
+			},
+			ServerMessage::Disconnect => {
+				writer.write_u8(5).unwrap();
+			},
+			ServerMessage::EntityDelete(entity_id) => {
+				writer.write_u8(6).unwrap();
+				writer.write_u32::<NE>(entity_id).unwrap();
+			},
+			ServerMessage::EntityNew(entity_id) => {
+				writer.write_u8(7).unwrap();
+				writer.write_u32::<NE>(entity_id).unwrap();
+			},
 		}
 
 		writer.into_inner()

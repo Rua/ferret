@@ -1,6 +1,7 @@
 mod server_commands;
 mod server_configvars;
 
+use nalgebra::Vector3;
 use specs::{BitSet, Builder, Entity, Entities, Join, ReaderId, SystemData, World, WorldExt};
 use specs::storage::{ComponentEvent, ReadStorage, WriteStorage};
 use std::collections::hash_map::{Entry, HashMap};
@@ -136,7 +137,7 @@ impl Server {
 
 		match packet {
 			Packet::Unsequenced(messages) => {
-				println!("Server received from {}: {:?}", addr, messages);
+				debug!("Server received from {}: {:?}", addr, messages);
 
 				for message in messages {
 					self.handle_unsequenced_message(message, addr);
@@ -145,7 +146,7 @@ impl Server {
 			Packet::Sequenced(packet) => {
 				if let Some(client) = self.clients.get_mut(&addr) {
 					if let Some(messages) = client.channel.process(packet) {
-						println!("Server received from client {}: {:?}", addr, messages);
+						debug!("Server received from client {}: {:?}", addr, messages);
 						client.last_packet_received_time = self.real_time;
 
 						for message in messages {
@@ -194,38 +195,83 @@ impl Server {
 
 			let mut messages = Vec::new();
 
-			if let Some(reader_id) = &mut client.reader_id {
-				let mut new_entities = BitSet::new();
-				let mut deleted_entities = BitSet::new();
+			let ignore = if let Some(reader_id) = &mut client.network_reader_id {
+				let mut inserted = BitSet::new();
+				let mut removed = BitSet::new();
 
 				for event in self.session.world.read_storage::<NetworkComponent>().channel().read(reader_id) {
 					match event {
 						ComponentEvent::Inserted(id) => {
-							new_entities.add(*id);
+							inserted.add(*id);
 						},
 						ComponentEvent::Modified(id) => {},
 						ComponentEvent::Removed(id) => {
-							if !new_entities.remove(*id) {
-								deleted_entities.add(*id);
+							if !inserted.remove(*id) {
+								removed.add(*id);
 							}
 						}
 					}
 				}
 
-				for id in deleted_entities {
-					messages.push(ServerMessage::DeleteEntity(id));
+				for id in &removed {
+					messages.push(ServerMessage::EntityDelete(id));
 				}
 
-				for id in new_entities {
-					messages.push(ServerMessage::NewEntity(id));
+				for id in &inserted {
+					messages.push(ServerMessage::EntityNew(id));
 				}
+
+				removed
 			} else {
 				// There is no reader yet, so notify the client about all entities
 				for (entity, _) in (&self.session.world.entities(), &self.session.world.read_storage::<NetworkComponent>()).join() {
-					messages.push(ServerMessage::NewEntity(entity.id()));
+					messages.push(ServerMessage::EntityNew(entity.id()));
 				}
 
-				client.reader_id = Some(self.session.world.write_storage::<NetworkComponent>().register_reader());
+				client.network_reader_id = Some(self.session.world.write_storage::<NetworkComponent>().register_reader());
+				BitSet::new()
+			};
+
+			if let Some(reader_id) = &mut client.transform_reader_id {
+				let mut inserted = BitSet::new();
+				let mut modified = BitSet::new();
+				let mut removed = BitSet::new();
+
+				for event in self.session.world.read_storage::<TransformComponent>().channel().read(reader_id) {
+					match event {
+						ComponentEvent::Inserted(id) => {
+							inserted.add(*id);
+						},
+						ComponentEvent::Modified(id) => {
+							modified.add(*id);
+						},
+						ComponentEvent::Removed(id) => {
+							if !inserted.remove(*id) && !ignore.contains(*id) {
+								removed.add(*id);
+							}
+							modified.remove(*id);
+						}
+					}
+				}
+
+				for id in &removed {
+					messages.push(ServerMessage::ComponentDelete(id, 1));
+				}
+
+				for id in &inserted {
+					messages.push(ServerMessage::ComponentNew(id, 1));
+				}
+			} else {
+				// There is no reader yet, so notify the client about all entities
+				for (entity, component) in (&self.session.world.entities(), &self.session.world.read_storage::<TransformComponent>()).join() {
+					messages.push(ServerMessage::ComponentNew(entity.id(), 1));
+
+					let mut msg = Cursor::new(Vec::new());
+					component.write_delta(&mut msg).ok();
+					messages.push(ServerMessage::ComponentDelta(entity.id(), 1, msg.into_inner()));
+				}
+
+				client.transform_reader_id = Some(self.session.world.write_storage::<TransformComponent>().register_reader());
 			}
 
 			client.channel.send(messages);
@@ -266,7 +312,8 @@ pub struct ServerClient {
 	next_entity_id: u32,
 	next_update_time: Instant,
 
-	reader_id: Option<ReaderId<ComponentEvent>>,
+	network_reader_id: Option<ReaderId<ComponentEvent>>,
+	transform_reader_id: Option<ReaderId<ComponentEvent>>,
 }
 
 impl ServerClient {
@@ -278,7 +325,8 @@ impl ServerClient {
 			next_entity_id: 1,
 			next_update_time: Instant::now(),
 
-			reader_id: None,
+			network_reader_id: None,
+			transform_reader_id: None,
 		}
 	}
 }

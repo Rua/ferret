@@ -32,8 +32,33 @@ impl Component for TransformComponent {
 	type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
-/*impl Component for TransformComponent {
-	fn read_delta(&mut self, reader: &mut dyn Read) -> std::io::Result<()> {
+impl Default for TransformComponent {
+	fn default() -> TransformComponent {
+		TransformComponent {
+			position: Vector3::new(0.0, 0.0, 0.0),
+			rotation: Vector3::new(0.0, 0.0, 0.0),
+		}
+	}
+}
+
+impl TransformComponent {
+	pub fn write_delta(&self, writer: &mut dyn Write) -> std::io::Result<()> {
+		writer.write_u8(1)?;
+		writer.write_f32::<NE>(self.position[0])?;
+		writer.write_f32::<NE>(self.position[1])?;
+		writer.write_f32::<NE>(self.position[2])?;
+
+		writer.write_u8(2)?;
+		writer.write_f32::<NE>(self.rotation[0])?;
+		writer.write_f32::<NE>(self.rotation[1])?;
+		writer.write_f32::<NE>(self.rotation[2])?;
+
+		writer.write_u8(0)?;
+
+		Ok(())
+	}
+
+	pub fn read_delta(&mut self, reader: &mut dyn Read) -> std::io::Result<()> {
 		loop {
 			match reader.read_u8()? {
 				1 => {
@@ -52,7 +77,9 @@ impl Component for TransformComponent {
 
 		Ok(())
 	}
+}
 
+/*impl Component for TransformComponent {
 	fn write_delta(&self, other: &dyn Component, writer: &mut dyn Write) -> std::io::Result<()> {
 		if let Some(other) = other.downcast_ref::<Self>() {
 			if self.position != other.position {
