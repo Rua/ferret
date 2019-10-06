@@ -1,17 +1,20 @@
 use sdl2::video::Window;
-use std::cmp::{max, min};
-use std::error::Error;
-use std::ffi::CString;
-use std::sync::Arc;
-use std::u32;
-use vulkano::VulkanObject;
-use vulkano::device::{Device, DeviceExtensions, Features, Queue};
-use vulkano::format::Format;
-use vulkano::image::{AttachmentImage, ImageCreationError, ImageUsage};
-use vulkano::image::swapchain::SwapchainImage;
-use vulkano::instance::{Instance, PhysicalDevice, QueueFamily, RawInstanceExtensions};
-use vulkano::swapchain::{ColorSpace, CompositeAlpha, PresentMode, Surface, Swapchain};
-use vulkano::sync::SharingMode;
+use std::{
+	cmp::{max, min},
+	error::Error,
+	ffi::CString,
+	sync::Arc,
+	u32,
+};
+use vulkano::{
+	VulkanObject,
+	device::{Device, DeviceExtensions, Features, Queue},
+	format::Format,
+	image::{AttachmentImage, ImageCreationError, ImageUsage, swapchain::SwapchainImage},
+	instance::{Instance, PhysicalDevice, QueueFamily, RawInstanceExtensions},
+	swapchain::{ColorSpace, CompositeAlpha, PresentMode, Surface, Swapchain},
+	sync::SharingMode,
+};
 
 
 pub(super) fn create_instance(window: &Window) -> Result<(Arc<Instance>, Arc<Surface<()>>), Box<dyn Error>> {

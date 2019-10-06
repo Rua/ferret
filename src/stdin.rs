@@ -1,8 +1,9 @@
-use std::io;
-use std::io::BufRead;
-use std::thread::Builder;
-
+use std::{
+	io::{self, BufRead},
+	thread::Builder,
+};
 use crate::commands::CommandSender;
+
 
 // Spawns a thread to read commands from stdin asynchronously
 pub fn spawn(stdin_sender: CommandSender) -> Result<(), io::Error> {

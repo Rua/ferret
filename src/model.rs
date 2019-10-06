@@ -1,21 +1,25 @@
 use nalgebra::Vector3;
-use sdl2::pixels::PixelFormatEnum;
-use sdl2::surface::Surface;
-use std::cell::RefCell;
-use std::error::Error;
-use std::rc::Rc;
-use std::sync::Arc;
-use vulkano::buffer::{BufferUsage, ImmutableBuffer};
-use vulkano::buffer::cpu_access::CpuAccessibleBuffer;
-use vulkano::device::Queue;
-use vulkano::format::Format;
-use vulkano::image::{Dimensions, ImmutableImage, sys::ImageCreationError};
-use vulkano::memory::DeviceMemoryAllocError;
-use vulkano::sync;
-use vulkano::sync::GpuFuture;
-
-use crate::geometry::{BoundingBox3, Plane};
-use crate::sprite::SpriteFrame;
+use sdl2::{
+	pixels::PixelFormatEnum,
+	surface::Surface,
+};
+use std::{
+	cell::RefCell,
+	error::Error,
+	rc::Rc,
+	sync::Arc,
+};
+use vulkano::{
+	buffer::{BufferUsage, ImmutableBuffer, cpu_access::CpuAccessibleBuffer},
+	device::Queue,
+	format::Format,
+	image::{Dimensions, ImmutableImage, sys::ImageCreationError},
+	sync::{self, GpuFuture},
+};
+use crate::{
+	geometry::{BoundingBox3, Plane},
+	sprite::SpriteFrame,
+};
 
 
 pub struct BSPModel {

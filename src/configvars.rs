@@ -1,9 +1,8 @@
-use std::borrow::BorrowMut;
-use std::cell::{Cell, Ref, RefCell};
-use std::collections::HashMap;
-use std::error::Error;
-use std::fmt;
-use std::str::FromStr;
+use std::{
+	cell::{Cell, Ref, RefCell},
+	fmt,
+	str::FromStr,
+};
 
 
 pub struct ConfigVariable<T> {

@@ -1,11 +1,11 @@
 use regex::{Captures, Regex};
-use std::borrow::Cow;
-use std::collections::hash_map::{Entry, HashMap};
-use std::error::Error;
-use std::string::String;
-use std::sync::{Arc, mpsc};
-use std::sync::mpsc::{Receiver, Sender};
-
+use std::{
+	borrow::Cow,
+	collections::hash_map::HashMap,
+	error::Error,
+	string::String,
+	sync::mpsc::Sender,
+};
 
 #[derive(Clone)]
 pub struct CommandSender {
@@ -168,4 +168,3 @@ pub fn quote_escape(text: &str) -> Cow<'_, str> {
 pub fn foobar () {
 	println!("test");
 }
-

@@ -1,9 +1,10 @@
 use byteorder::{NetworkEndian as NE, ReadBytesExt, WriteBytesExt};
-use std::convert::TryFrom;
-use std::error::Error;
-use std::io::{Cursor, Read, Write};
-use std::str;
-
+use std::{
+	convert::TryFrom,
+	error::Error,
+	io::{Cursor, Read, Write},
+	str,
+};
 use crate::commands;
 
 

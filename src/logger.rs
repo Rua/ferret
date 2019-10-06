@@ -1,5 +1,4 @@
-use log;
-use log::{Level, Log, Metadata, Record, SetLoggerError};
+use log::{self, Level, Log, Metadata, Record, SetLoggerError};
 use colored::Colorize;
 
 pub static LOGGER: Logger = Logger;

@@ -1,31 +1,30 @@
 use nalgebra::{Matrix4, Point3, Vector3};
-use sdl2::{Sdl, VideoSubsystem};
-use sdl2::video::{Window, WindowContext};
-use std::error::Error;
-use std::f32::consts::FRAC_PI_4;
-use std::ops::Range;
-use std::rc::Rc;
-use std::sync::Arc;
-use vulkano::buffer::{BufferSlice, BufferUsage, CpuAccessibleBuffer};
-use vulkano::device::DeviceOwned;
-use vulkano::command_buffer::{AutoCommandBufferBuilder, DynamicState};
-use vulkano::descriptor::descriptor_set::FixedSizeDescriptorSetsPool;
-use vulkano::format::Format;
-use vulkano::framebuffer::{Framebuffer, FramebufferAbstract, Subpass};
-use vulkano::image::ImageViewAccess;
-use vulkano::instance::debug::DebugCallback;
-use vulkano::pipeline::{GraphicsPipeline, GraphicsPipelineAbstract};
-use vulkano::pipeline::viewport::Viewport;
-use vulkano::sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode};
-use vulkano::swapchain;
-use vulkano::swapchain::Swapchain;
-use vulkano::sync::GpuFuture;
-
-use crate::client::vulkan;
-use crate::client::vulkan::Queues;
-use crate::doom::map;
-use crate::doom::wad::WadLoader;
-use crate::model::{BSPModel, VertexData};
+use sdl2::{Sdl, VideoSubsystem, video::Window};
+use std::{
+	error::Error,
+	f32::consts::FRAC_PI_4,
+	ops::Range,
+	sync::Arc,
+};
+use vulkano::{
+	buffer::{BufferSlice, BufferUsage, CpuAccessibleBuffer},
+	device::DeviceOwned,
+	command_buffer::{AutoCommandBufferBuilder, DynamicState},
+	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
+	framebuffer::{Framebuffer, FramebufferAbstract, Subpass},
+	image::ImageViewAccess,
+	instance::debug::DebugCallback,
+	pipeline::{GraphicsPipeline, GraphicsPipelineAbstract},
+	pipeline::viewport::Viewport,
+	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
+	swapchain::{self, Swapchain},
+	sync::GpuFuture,
+};
+use crate::{
+	client::vulkan::{self, Queues},
+	doom::{map, wad::WadLoader},
+	model::{BSPModel, VertexData},
+};
 
 
 mod vs {

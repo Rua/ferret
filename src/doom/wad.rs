@@ -1,12 +1,14 @@
 use byteorder::{LE, ReadBytesExt};
-use std::collections::HashMap;
-use std::error::Error;
-use std::fs::File;
-use std::io::{BufReader, Cursor, Read, Seek, SeekFrom};
-use std::path::Path;
-use std::str;
-use std::string::String;
-use std::vec::Vec;
+use std::{
+	collections::HashMap,
+	error::Error,
+	fs::File,
+	io::{BufReader, Cursor, Read, Seek, SeekFrom},
+	str,
+	string::String,
+	vec::Vec,
+};
+
 
 struct Lump {
 	file: String,

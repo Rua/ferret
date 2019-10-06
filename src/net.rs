@@ -1,14 +1,14 @@
 use byteorder::{NetworkEndian as NE, ReadBytesExt, WriteBytesExt};
 use net2::UdpBuilder;
-use std::error::Error;
-use std::fmt;
-use std::io;
-use std::io::{Cursor, ErrorKind, Read, Write};
-use std::marker::PhantomData;
-use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6, UdpSocket};
-use std::rc::Rc;
-use std::sync::mpsc::{Receiver, Sender, TryRecvError};
-
+use std::{
+	error::Error,
+	fmt,
+	io::{self, Cursor, ErrorKind, Read, Write},
+	marker::PhantomData,
+	net::{Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6, UdpSocket},
+	rc::Rc,
+	sync::mpsc::{Receiver, Sender, TryRecvError},
+};
 use crate::protocol::{SequencedPacket, TryRead};
 
 

@@ -1,5 +1,4 @@
 use byteorder::{NetworkEndian as NE, ReadBytesExt, WriteBytesExt};
-use downcast_rs::Downcast;
 use nalgebra::Vector3;
 use specs::{Component, FlaggedStorage, VecStorage};
 use std::io::{Read, Write};

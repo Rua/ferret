@@ -1,24 +1,24 @@
 use byteorder::{LE, ReadBytesExt};
 use nalgebra::{Matrix, Vector2, Vector3};
-use sdl2::pixels::PixelFormatEnum;
-use sdl2::surface::Surface;
-use specs::{World, WorldExt};
-use specs::world::Builder;
-use std::cell::RefCell;
-use std::cmp;
-use std::collections::HashSet;
-use std::collections::hash_map::{Entry, HashMap};
-use std::error::Error;
-use std::io;
-use std::io::{ErrorKind, Read};
-use std::rc::Rc;
-use std::str;
-
-use crate::components::{NetworkComponent, TransformComponent};
-use crate::geometry::{BoundingBox2, BoundingBox3, Plane};
-use crate::model::{BSPBranch, BSPLeaf, BSPModel, BSPNode, Face, Texture, VertexData};
-use crate::doom::types::{flat, palette, pnames, texture, texture_info};
-use crate::doom::wad::WadLoader;
+use sdl2::{pixels::PixelFormatEnum, surface::Surface};
+use specs::{World, WorldExt, world::Builder};
+use std::{
+	cell::RefCell,
+	collections::{HashSet, hash_map::{Entry, HashMap}},
+	error::Error,
+	io::{self, ErrorKind, Read},
+	rc::Rc,
+	str,
+};
+use crate::{
+	components::{NetworkComponent, TransformComponent},
+	geometry::{BoundingBox2, BoundingBox3, Plane},
+	model::{BSPBranch, BSPLeaf, BSPModel, BSPNode, Face, Texture, VertexData},
+	doom::{
+		types::{flat, palette, pnames, texture, texture_info},
+		wad::WadLoader,
+	},
+};
 
 
 pub fn spawn_map_entities(world: &mut World, name: &str, loader: &mut WadLoader) -> Result<(), Box<dyn Error>> {

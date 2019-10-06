@@ -1,28 +1,29 @@
 use byteorder::{LE, ReadBytesExt};
 use nalgebra::Vector2;
-use sdl2::surface::Surface;
-use sdl2::pixels::{Color, PixelFormatEnum};
-use sdl2::rect::Rect;
-use std::cell::RefCell;
-use std::cmp::max;
-use std::collections::hash_map::{Entry, HashMap};
-use std::error::Error;
-use std::io;
-use std::io::{Read, Seek, SeekFrom};
-use std::rc::Rc;
-use std::str;
-use std::vec::Vec;
-
-use crate::model::Texture;
-use crate::palette::Palette;
-use crate::sprite::{Sprite, SpriteFrame, SpriteImage, SpriteOrientation, SpriteRotation};
-use crate::doom::wad::WadLoader;
+use sdl2::{
+	surface::Surface,
+	pixels::{Color, PixelFormatEnum},
+	rect::Rect,
+};
+use std::{
+	cmp::max,
+	collections::hash_map::HashMap,
+	error::Error,
+	io::{self, Read, Seek, SeekFrom},
+	str,
+	vec::Vec,
+};
+use crate::{
+	palette::Palette,
+	sprite::{Sprite, SpriteFrame, SpriteImage, SpriteOrientation, SpriteRotation},
+	doom::wad::WadLoader,
+};
 
 
 pub mod flat {
 	use super::*;
 
-	pub fn from_data<T: Read>(data: &mut T, palette: &Palette) -> Result<Surface<'static>, Box<Error>> {
+	pub fn from_data<T: Read>(data: &mut T, palette: &Palette) -> Result<Surface<'static>, Box<dyn Error>> {
 		let mut surface = Surface::new(64, 64, PixelFormatEnum::RGBA32)?;
 		let pitch = surface.pitch() as usize;
 

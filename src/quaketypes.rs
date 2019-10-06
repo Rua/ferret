@@ -1,18 +1,22 @@
 use byteorder::{LE, ReadBytesExt};
 use nalgebra::Vector2;
-use sdl2::surface::Surface;
-use sdl2::pixels::{Color, PixelFormatEnum};
-use sdl2::rect::Rect;
-use std::collections::hash_map::{Entry, HashMap};
-use std::error::Error;
-use std::io;
-use std::io::{Read, Seek, SeekFrom};
-use std::str;
-use std::vec::Vec;
-
-use palette::Palette;
-use sprite::{Sprite, SpriteFrame, SpriteImage, SpriteOrientation, SpriteRotation};
-use wad::WadLoader;
+use sdl2::{
+	surface::Surface,
+	pixels::{Color, PixelFormatEnum},
+	rect::Rect,
+};
+use std::{
+	collections::hash_map::{Entry, HashMap},
+	error::Error,
+	io::{self, Read, Seek, SeekFrom},
+	str,
+	vec::Vec,
+};
+use crate::{
+	palette::Palette,
+	sprite::{Sprite, SpriteFrame, SpriteImage, SpriteOrientation, SpriteRotation},
+	wad::WadLoader,
+};
 
 
 pub mod palette {
