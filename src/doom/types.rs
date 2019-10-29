@@ -1,9 +1,14 @@
-use byteorder::{LE, ReadBytesExt};
+use crate::{
+	doom::wad::WadLoader,
+	palette::Palette,
+	sprite::{Sprite, SpriteFrame, SpriteImage, SpriteOrientation, SpriteRotation},
+};
+use byteorder::{ReadBytesExt, LE};
 use nalgebra::Vector2;
 use sdl2::{
-	surface::Surface,
 	pixels::{Color, PixelFormatEnum},
 	rect::Rect,
+	surface::Surface,
 };
 use std::{
 	cmp::max,
@@ -13,17 +18,14 @@ use std::{
 	str,
 	vec::Vec,
 };
-use crate::{
-	palette::Palette,
-	sprite::{Sprite, SpriteFrame, SpriteImage, SpriteOrientation, SpriteRotation},
-	doom::wad::WadLoader,
-};
-
 
 pub mod flat {
 	use super::*;
 
-	pub fn from_data<T: Read>(data: &mut T, palette: &Palette) -> Result<Surface<'static>, Box<dyn Error>> {
+	pub fn from_data<T: Read>(
+		data: &mut T,
+		palette: &Palette,
+	) -> Result<Surface<'static>, Box<dyn Error>> {
 		let mut surface = Surface::new(64, 64, PixelFormatEnum::RGBA32)?;
 		let pitch = surface.pitch() as usize;
 
@@ -45,7 +47,11 @@ pub mod flat {
 		Ok(surface)
 	}
 
-	pub fn from_wad(name: &str, loader: &mut WadLoader, palette: &Palette) -> Result<Surface<'static>, Box<dyn Error>> {
+	pub fn from_wad(
+		name: &str,
+		loader: &mut WadLoader,
+		palette: &Palette,
+	) -> Result<Surface<'static>, Box<dyn Error>> {
 		let index = loader.index_for_name(name).unwrap();
 		let mut data = loader.read_lump(index)?;
 		from_data(&mut data, palette)
@@ -55,7 +61,10 @@ pub mod flat {
 pub mod image {
 	use super::*;
 
-	pub fn from_data<T: Read + Seek>(data: &mut T, palette: &Palette) -> Result<SpriteImage, Box<dyn Error>> {
+	pub fn from_data<T: Read + Seek>(
+		data: &mut T,
+		palette: &Palette,
+	) -> Result<SpriteImage, Box<dyn Error>> {
 		let size_x = data.read_u16::<LE>()? as u32;
 		let size_y = data.read_u16::<LE>()? as u32;
 		let offset_x = data.read_i16::<LE>()? as i32;
@@ -78,9 +87,9 @@ pub mod image {
 					// Read pixels in one vertical "post"
 					let post_height = data.read_u8()?;
 					let mut post_pixels = vec![0u8; post_height as usize];
-					data.read_u8()?;  // Padding byte
+					data.read_u8()?; // Padding byte
 					data.read_exact(&mut post_pixels)?;
-					data.read_u8()?;  // Padding byte
+					data.read_u8()?; // Padding byte
 
 					// Paint the pixels onto the main image
 					for i in 0..post_pixels.len() {
@@ -97,10 +106,17 @@ pub mod image {
 			}
 		}
 
-		Ok(SpriteImage::from_surface(surface, Vector2::new(offset_x, offset_y)))
+		Ok(SpriteImage::from_surface(
+			surface,
+			Vector2::new(offset_x, offset_y),
+		))
 	}
 
-	pub fn from_wad(name: &str, loader: &mut WadLoader, palette: &Palette) -> Result<SpriteImage, Box<dyn Error>> {
+	pub fn from_wad(
+		name: &str,
+		loader: &mut WadLoader,
+		palette: &Palette,
+	) -> Result<SpriteImage, Box<dyn Error>> {
 		let index = loader.index_for_name(name).unwrap();
 		let mut data = loader.read_lump(index)?;
 		from_data(&mut data, palette)
@@ -111,7 +127,12 @@ pub mod palette {
 	use super::*;
 
 	pub fn from_data<T: Read>(data: &mut T) -> Result<Palette, io::Error> {
-		let mut palette = [Color {r: 0, g: 0, b: 0, a: 0}; 256];
+		let mut palette = [Color {
+			r: 0,
+			g: 0,
+			b: 0,
+			a: 0,
+		}; 256];
 
 		for i in 0..256 {
 			let r = data.read_u8()?;
@@ -201,7 +222,11 @@ pub mod sound {
 pub mod sprite {
 	use super::*;
 
-	pub fn from_wad(prefix: &str, loader: &mut WadLoader, palette: &Palette) -> Result<Sprite, Box<dyn Error>> {
+	pub fn from_wad(
+		prefix: &str,
+		loader: &mut WadLoader,
+		palette: &Palette,
+	) -> Result<Sprite, Box<dyn Error>> {
 		let image_info = loader.find_with_prefix(prefix);
 		let mut images = Vec::with_capacity(image_info.len());
 		let mut name_indices = Vec::with_capacity(image_info.len());
@@ -225,12 +250,15 @@ pub mod sprite {
 
 		while slice.len() > 0 {
 			if slice[0].0.chars().nth(1).unwrap() == '0' {
-				frames.push(SpriteFrame::new(vec![SpriteRotation::new(slice[0].1, false)]));
+				frames.push(SpriteFrame::new(vec![SpriteRotation::new(
+					slice[0].1, false,
+				)]));
 				slice = &slice[1..];
 			} else {
-				let next_frame = slice.iter().position(|i|
-					i.0.chars().nth(0).unwrap() != slice[0].0.chars().nth(0).unwrap()
-				).unwrap();
+				let next_frame = slice
+					.iter()
+					.position(|i| i.0.chars().nth(0).unwrap() != slice[0].0.chars().nth(0).unwrap())
+					.unwrap();
 				let mut rotations = vec![None; 8];
 
 				for info in &slice[..next_frame] {
@@ -239,7 +267,10 @@ pub mod sprite {
 					rotations[rot] = Some(SpriteRotation::new(info.1, false));
 
 					if info.0.len() == 4 {
-						assert_eq!(info.0.chars().nth(2).unwrap(), info.0.chars().nth(0).unwrap());
+						assert_eq!(
+							info.0.chars().nth(2).unwrap(),
+							info.0.chars().nth(0).unwrap()
+						);
 						let rot = info.0.chars().nth(3).unwrap() as usize - '1' as usize;
 						assert!(rotations[rot].is_none());
 						rotations[rot] = Some(SpriteRotation::new(info.1, true));
@@ -248,28 +279,51 @@ pub mod sprite {
 
 				assert!(rotations.iter().all(|r| r.is_some()));
 				frames.push(SpriteFrame::new(
-					rotations.drain(..).map(Option::unwrap).collect::<Vec<_>>()
+					rotations.drain(..).map(Option::unwrap).collect::<Vec<_>>(),
 				));
 				slice = &slice[next_frame..];
 			}
 		}
 
-		Ok(Sprite::new(images, frames, SpriteOrientation::ViewPlaneParallelUpright, max_size))
+		Ok(Sprite::new(
+			images,
+			frames,
+			SpriteOrientation::ViewPlaneParallelUpright,
+			max_size,
+		))
 	}
 }
 
 pub mod texture {
 	use super::*;
 
-	pub fn from_wad(texture_info: &texture_info::DoomTextureInfo, loader: &mut WadLoader, palette: &Palette, pnames: &Vec<String>) -> Result<Surface<'static>, Box<dyn Error>> {
-		let mut surface = Surface::new(texture_info.size[0] as u32, texture_info.size[1] as u32, PixelFormatEnum::RGBA32)?;
+	pub fn from_wad(
+		texture_info: &texture_info::DoomTextureInfo,
+		loader: &mut WadLoader,
+		palette: &Palette,
+		pnames: &Vec<String>,
+	) -> Result<Surface<'static>, Box<dyn Error>> {
+		let mut surface = Surface::new(
+			texture_info.size[0] as u32,
+			texture_info.size[1] as u32,
+			PixelFormatEnum::RGBA32,
+		)?;
 
 		for patch_info in &texture_info.patches {
 			let name = &pnames[patch_info.index];
 
 			// Use to_surface because the offsets of patches are ignored anyway
 			let patch = image::from_wad(&name, loader, palette)?.to_surface();
-			patch.blit(None, &mut surface, Rect::new(patch_info.offset[0] as i32, patch_info.offset[1] as i32, 0, 0))?;
+			patch.blit(
+				None,
+				&mut surface,
+				Rect::new(
+					patch_info.offset[0] as i32,
+					patch_info.offset[1] as i32,
+					0,
+					0,
+				),
+			)?;
 		}
 
 		Ok(surface)
@@ -289,7 +343,9 @@ pub mod texture_info {
 		pub patches: Vec<DoomPatchInfo>,
 	}
 
-	pub fn from_data<T: Read + Seek>(data: &mut T) -> Result<HashMap<String, DoomTextureInfo>, Box<dyn Error>> {
+	pub fn from_data<T: Read + Seek>(
+		data: &mut T,
+	) -> Result<HashMap<String, DoomTextureInfo>, Box<dyn Error>> {
 		let mut texture_info = HashMap::new();
 
 		let count = data.read_u32::<LE>()? as usize;
@@ -326,16 +382,22 @@ pub mod texture_info {
 				});
 			}
 
-			texture_info.insert(name, DoomTextureInfo {
-				size: Vector2::new(size_x, size_y),
-				patches: patches,
-			});
+			texture_info.insert(
+				name,
+				DoomTextureInfo {
+					size: Vector2::new(size_x, size_y),
+					patches: patches,
+				},
+			);
 		}
 
 		Ok(texture_info)
 	}
 
-	pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<HashMap<String, DoomTextureInfo>, Box<dyn Error>> {
+	pub fn from_wad(
+		name: &str,
+		loader: &mut WadLoader,
+	) -> Result<HashMap<String, DoomTextureInfo>, Box<dyn Error>> {
 		let index = loader.index_for_name(name).unwrap();
 		let mut data = loader.read_lump(index)?;
 		from_data(&mut data)

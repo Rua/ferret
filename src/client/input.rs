@@ -17,26 +17,26 @@
 
 pub struct Input {
 	button_forward: Button,
-	button_back   : Button,
-	button_left   : Button,
-	button_right  : Button,
-	button_attack : Button,
-	button_use    : Button,
+	button_back: Button,
+	button_left: Button,
+	button_right: Button,
+	button_attack: Button,
+	button_use: Button,
 }
 
 impl Input {
 	pub fn init() -> Input {
 		Input {
 			button_forward: Button::new(),
-			button_back   : Button::new(),
-			button_left   : Button::new(),
-			button_right  : Button::new(),
-			button_attack : Button::new(),
-			button_use    : Button::new(),
+			button_back: Button::new(),
+			button_left: Button::new(),
+			button_right: Button::new(),
+			button_attack: Button::new(),
+			button_use: Button::new(),
 		}
 	}
 
-/*	pub fn process(&mut self) {
+	/*	pub fn process(&mut self) {
 		while let Ok(args) = self.receiver.try_recv() {
 			if let Some(command) = COMMANDS.get(&args[0]) {
 				command.call(self, args);
@@ -51,9 +51,7 @@ struct Button {
 
 impl Button {
 	fn new() -> Button {
-		Button {
-			state: false,
-		}
+		Button { state: false }
 	}
 
 	fn press(&mut self) {

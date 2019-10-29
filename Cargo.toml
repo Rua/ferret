@@ -15,7 +15,12 @@ nalgebra = "0.18.0"
 net2 = "0.2.33"
 regex = "1.1.7"
 sdl2 = {version = "0.32.2", features = ["bundled", "mixer"]}
-specs = "0.15.0"
+specs = "0.15.1"
 specs-derive = "0.4.0"
-vulkano = "0.12.0"
-vulkano-shaders = "0.12.0"
+vulkano = "0.14.0"
+vulkano-shaders = "0.14.0"
+vulkano-win = "0.15.0"
+winit = {git = "https://github.com/murarth/winit", branch = "fix-x11-run-return"}
+
+[patch.crates-io]
+winit = {git = "https://github.com/murarth/winit", branch = "fix-x11-run-return"}

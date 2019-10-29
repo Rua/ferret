@@ -4,28 +4,25 @@ mod input;
 mod video;
 mod vulkan;
 
-use sdl2::{
-	self,
-	EventPump,
-	event::Event,
+use crate::{
+	client::{audio::Audio, input::Input, video::Video},
+	commands::CommandSender,
 };
+use specs::World;
 use std::{
 	error::Error,
 	time::{Duration, Instant},
 };
-use crate::{
-	client::{
-		audio::Audio,
-		input::Input,
-		video::Video,
-	},
-	commands::CommandSender,
+use winit::{
+	event::{Event, WindowEvent},
+	event_loop::{ControlFlow, EventLoop},
+	platform::desktop::EventLoopExtDesktop,
 };
 
 pub struct Client {
 	audio: Audio,
 	command_sender: CommandSender,
-	event_pump: EventPump,
+	event_loop: EventLoop<()>,
 	input: Input,
 	video: Video,
 
@@ -42,33 +39,33 @@ impl Client {
 			}
 		};
 
-		let video = match Video::init(&sdl) {
+		let event_loop = EventLoop::new();
+		let video = match Video::init(&event_loop) {
 			Ok(val) => val,
 			Err(err) => {
-				return Err(Box::from(format!("Could not initialise video system: {}", err)));
+				return Err(Box::from(format!(
+					"Could not initialise video system: {}",
+					err
+				)));
 			}
 		};
 
 		let audio = match Audio::init() {
 			Ok(val) => val,
 			Err(err) => {
-				return Err(Box::from(format!("Could not initialise audio system: {}", err)));
+				return Err(Box::from(format!(
+					"Could not initialise audio system: {}",
+					err
+				)));
 			}
 		};
 
 		let input = Input::init();
 
-		let event_pump = match sdl.event_pump() {
-			Ok(val) => val,
-			Err(err) => {
-				return Err(Box::from(format!("Could not start event loop: {}", err)));
-			}
-		};
-
 		Ok(Client {
 			audio,
 			command_sender,
-			event_pump,
+			event_loop,
 			input,
 			video,
 
@@ -77,14 +74,31 @@ impl Client {
 		})
 	}
 
-	pub fn frame(&mut self, delta: Duration) {
+	pub fn frame(&mut self, delta: Duration, world: &mut World) {
 		self.real_time += delta;
+		let mut should_quit = false;
 
-		for event in self.event_pump.poll_iter() {
-			match event {
-				Event::Quit {..} => self.command_sender.send("quit"),
-				_ => {},
-			}
+		self.event_loop
+			.run_return(|event, _, control_flow| match event {
+				Event::WindowEvent {
+					event,
+					window_id: _,
+				} => match event {
+					WindowEvent::CloseRequested => {
+						should_quit = true;
+						*control_flow = ControlFlow::Exit;
+					}
+					_ => {}
+				},
+				Event::EventsCleared => {
+					*control_flow = ControlFlow::Exit;
+				}
+				_ => {}
+			});
+
+		if should_quit {
+			self.command_sender.send("quit");
+			return;
 		}
 
 		self.send_update();
@@ -95,6 +109,5 @@ impl Client {
 		self.should_quit = true;
 	}
 
-	fn send_update(&mut self) {
-	}
+	fn send_update(&mut self) {}
 }

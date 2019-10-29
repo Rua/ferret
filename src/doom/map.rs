@@ -1,38 +1,55 @@
-use byteorder::{LE, ReadBytesExt};
+use crate::{
+	components::TransformComponent,
+	doom::{
+		entities::{DOOMEDNUMS, ENTITIES},
+		types::{flat, palette, pnames, texture, texture_info},
+		wad::WadLoader,
+	},
+	geometry::{BoundingBox2, BoundingBox3, Plane},
+	model::{BSPBranch, BSPLeaf, BSPModel, BSPNode, Face, Texture, VertexData},
+};
+use byteorder::{ReadBytesExt, LE};
 use nalgebra::{Matrix, Vector2, Vector3};
 use sdl2::{pixels::PixelFormatEnum, surface::Surface};
-use specs::{World, WorldExt, world::Builder};
+use specs::{world::Builder, World, WorldExt};
 use std::{
 	cell::RefCell,
-	collections::{HashSet, hash_map::{Entry, HashMap}},
+	collections::{
+		hash_map::{Entry, HashMap},
+		HashSet,
+	},
 	error::Error,
 	io::{self, ErrorKind, Read},
 	rc::Rc,
 	str,
 };
-use crate::{
-	components::{NetworkComponent, TransformComponent},
-	geometry::{BoundingBox2, BoundingBox3, Plane},
-	model::{BSPBranch, BSPLeaf, BSPModel, BSPNode, Face, Texture, VertexData},
-	doom::{
-		types::{flat, palette, pnames, texture, texture_info},
-		wad::WadLoader,
-	},
-};
 
-
-pub fn spawn_map_entities(world: &mut World, name: &str, loader: &mut WadLoader) -> Result<(), Box<dyn Error>> {
+pub fn spawn_map_entities(
+	world: &mut World,
+	name: &str,
+	loader: &mut WadLoader,
+) -> Result<(), Box<dyn Error>> {
 	let index = loader.index_for_name(name).unwrap();
 	let things = things::from_data(&mut loader.read_lump(index + things::OFFSET)?)?;
 
 	for thing in things {
-		world.create_entity()
-			.with(NetworkComponent {})
-			.with(TransformComponent {
-				position: Vector3::new(thing.position[0], thing.position[1], 0.0),
-				rotation: Vector3::new(0.0, 0.0, 0.0),
-			})
-			.build();
+		println!("{:#?}", thing);
+		let mut b = world.create_entity().with(TransformComponent {
+			position: Vector3::new(thing.position[0], thing.position[1], 0.0),
+			rotation: Vector3::new(0.0, 0.0, thing.angle),
+		});
+
+		let name = DOOMEDNUMS
+			.get(&thing.doomednum)
+			.ok_or(
+				Box::from(format!("Doomednum not found: {}", thing.doomednum)) as Box<dyn Error>,
+			)?;
+		let spawn_function = ENTITIES
+			.get(name)
+			.ok_or(Box::from(format!("Entity not found: {}", name)) as Box<dyn Error>)?;
+		b = spawn_function(b);
+
+		b.build();
 	}
 
 	Ok(())
@@ -55,18 +72,23 @@ fn group_by_size(surfaces: Vec<Surface<'static>>) -> Vec<(Rc<RefCell<Texture>>, 
 	}
 
 	// Turn the grouped surfaces into textures
-	let textures_by_size: HashMap<[u32; 2], Rc<RefCell<Texture>>> =
-		surfaces_by_size.into_iter().map(|entry| {
-			(entry.0, Rc::new(RefCell::new(Texture::new(entry.1))))
-		}).collect();
+	let textures_by_size: HashMap<[u32; 2], Rc<RefCell<Texture>>> = surfaces_by_size
+		.into_iter()
+		.map(|entry| (entry.0, Rc::new(RefCell::new(Texture::new(entry.1)))))
+		.collect();
 
 	// Now create the final Vec and return
-	sizes_and_layers.into_iter().map(|entry| {
-		(textures_by_size[&entry.0].clone(), entry.1)
-	}).collect()
+	sizes_and_layers
+		.into_iter()
+		.map(|entry| (textures_by_size[&entry.0].clone(), entry.1))
+		.collect()
 }
 
-fn load_textures(texture_names: HashSet<&str>, flat_names: HashSet<&str>, loader: &mut WadLoader) -> Result<[HashMap<String, (Rc<RefCell<Texture>>, usize)>; 2], Box<dyn Error>> {
+fn load_textures(
+	texture_names: HashSet<&str>,
+	flat_names: HashSet<&str>,
+	loader: &mut WadLoader,
+) -> Result<[HashMap<String, (Rc<RefCell<Texture>>, usize)>; 2], Box<dyn Error>> {
 	let palette = palette::from_wad("PLAYPAL", loader)?;
 	let pnames = pnames::from_wad("PNAMES", loader)?;
 	let mut texture_info = texture_info::from_wad("TEXTURE1", loader)?;
@@ -94,12 +116,14 @@ fn load_textures(texture_names: HashSet<&str>, flat_names: HashSet<&str>, loader
 
 	// Recombine names with textures
 	Ok([
-		texture_names_indices.into_iter().map(|entry| {
-			(entry.0.to_owned(), grouped_textures[entry.1].clone())
-		}).collect(),
-		flat_names_indices.into_iter().map(|entry| {
-			(entry.0.to_owned(), grouped_textures[entry.1].clone())
-		}).collect(),
+		texture_names_indices
+			.into_iter()
+			.map(|entry| (entry.0.to_owned(), grouped_textures[entry.1].clone()))
+			.collect(),
+		flat_names_indices
+			.into_iter()
+			.map(|entry| (entry.0.to_owned(), grouped_textures[entry.1].clone()))
+			.collect(),
 	])
 }
 
@@ -168,10 +192,10 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 		let mut leaf = BSPLeaf {
 			first_face_index: faces.len(),
 			face_count: 0,
-			bounding_box: BoundingBox3::zero(),  // Temporary dummy value
+			bounding_box: BoundingBox3::zero(), // Temporary dummy value
 		};
 
-		let segs = &gl_segs[ssect.first_seg_index .. ssect.first_seg_index + ssect.seg_count];
+		let segs = &gl_segs[ssect.first_seg_index..ssect.first_seg_index + ssect.seg_count];
 		let mut sector = None;
 
 		// Walls
@@ -215,9 +239,18 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 						let back_sidedef = &sidedefs[back_sidedef_index];
 						let back_sector = &sectors[back_sidedef.sector_index];
 
-						let top_span = (front_sector.ceiling_height.min(back_sector.ceiling_height), front_sector.ceiling_height);
-						let bottom_span = (front_sector.floor_height, back_sector.floor_height.max(front_sector.floor_height));
-						let middle_span = (front_sector.floor_height.max(back_sector.floor_height), front_sector.ceiling_height.min(back_sector.ceiling_height));
+						let top_span = (
+							front_sector.ceiling_height.min(back_sector.ceiling_height),
+							front_sector.ceiling_height,
+						);
+						let bottom_span = (
+							front_sector.floor_height,
+							back_sector.floor_height.max(front_sector.floor_height),
+						);
+						let middle_span = (
+							front_sector.floor_height.max(back_sector.floor_height),
+							front_sector.ceiling_height.min(back_sector.ceiling_height),
+						);
 
 						let total_height = top_span.1 - bottom_span.0;
 						let top_height = top_span.1 - top_span.0;
@@ -232,7 +265,8 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
 								texture: texture.0.clone(),
-								lightmap: lightmaps[(front_sector.light_level >> 4) as usize].clone(),
+								lightmap: lightmaps[(front_sector.light_level >> 4) as usize]
+									.clone(),
 							});
 							leaf.face_count += 1;
 
@@ -240,37 +274,73 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 								in_position: [start_vertex[0], start_vertex[1], top_span.0],
 								in_texture_coord: [
 									(offset[0] + 0.0) / size[0] as f32,
-									(offset[1] + if linedef.flags & 8 != 0 { top_height } else { 0.0 }) / size[1] as f32,
+									(offset[1]
+										+ if linedef.flags & 8 != 0 {
+											top_height
+										} else {
+											0.0
+										}) / size[1] as f32,
 									texture.1 as f32,
 								],
-								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
+								in_lightmap_coord: [
+									0.0,
+									0.0,
+									(front_sector.light_level >> 4) as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], top_span.0],
 								in_texture_coord: [
 									(offset[0] + width) / size[0] as f32,
-									(offset[1] + if linedef.flags & 8 != 0 { top_height } else { 0.0 }) / size[1] as f32,
+									(offset[1]
+										+ if linedef.flags & 8 != 0 {
+											top_height
+										} else {
+											0.0
+										}) / size[1] as f32,
 									texture.1 as f32,
 								],
-								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
+								in_lightmap_coord: [
+									0.0,
+									0.0,
+									(front_sector.light_level >> 4) as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], top_span.1],
 								in_texture_coord: [
 									(offset[0] + width) / size[0] as f32,
-									(offset[1] + if linedef.flags & 8 != 0 { 0.0 } else { -top_height }) / size[1] as f32,
+									(offset[1]
+										+ if linedef.flags & 8 != 0 {
+											0.0
+										} else {
+											-top_height
+										}) / size[1] as f32,
 									texture.1 as f32,
 								],
-								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
+								in_lightmap_coord: [
+									0.0,
+									0.0,
+									(front_sector.light_level >> 4) as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], top_span.1],
 								in_texture_coord: [
 									(offset[0] + 0.0) / size[0] as f32,
-									(offset[1] + if linedef.flags & 8 != 0 { 0.0 } else { -top_height }) / size[1] as f32,
+									(offset[1]
+										+ if linedef.flags & 8 != 0 {
+											0.0
+										} else {
+											-top_height
+										}) / size[1] as f32,
 									texture.1 as f32,
 								],
-								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
+								in_lightmap_coord: [
+									0.0,
+									0.0,
+									(front_sector.light_level >> 4) as f32,
+								],
 							});
 						}
 
@@ -282,7 +352,8 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
 								texture: texture.0.clone(),
-								lightmap: lightmaps[(front_sector.light_level >> 4) as usize].clone(),
+								lightmap: lightmaps[(front_sector.light_level >> 4) as usize]
+									.clone(),
 							});
 							leaf.face_count += 1;
 
@@ -290,37 +361,73 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 								in_position: [start_vertex[0], start_vertex[1], bottom_span.0],
 								in_texture_coord: [
 									(offset[0] + 0.0) / size[0] as f32,
-									(offset[1] + if linedef.flags & 16 != 0 { total_height } else { bottom_height }) / size[1] as f32,
+									(offset[1]
+										+ if linedef.flags & 16 != 0 {
+											total_height
+										} else {
+											bottom_height
+										}) / size[1] as f32,
 									texture.1 as f32,
 								],
-								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
+								in_lightmap_coord: [
+									0.0,
+									0.0,
+									(front_sector.light_level >> 4) as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], bottom_span.0],
 								in_texture_coord: [
 									(offset[0] + width) / size[0] as f32,
-									(offset[1] + if linedef.flags & 16 != 0 { total_height } else { bottom_height }) / size[1] as f32,
+									(offset[1]
+										+ if linedef.flags & 16 != 0 {
+											total_height
+										} else {
+											bottom_height
+										}) / size[1] as f32,
 									texture.1 as f32,
 								],
-								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
+								in_lightmap_coord: [
+									0.0,
+									0.0,
+									(front_sector.light_level >> 4) as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], bottom_span.1],
 								in_texture_coord: [
 									(offset[0] + width) / size[0] as f32,
-									(offset[1] + if linedef.flags & 16 != 0 { total_height - bottom_height } else { 0.0 }) / size[1] as f32,
+									(offset[1]
+										+ if linedef.flags & 16 != 0 {
+											total_height - bottom_height
+										} else {
+											0.0
+										}) / size[1] as f32,
 									texture.1 as f32,
 								],
-								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
+								in_lightmap_coord: [
+									0.0,
+									0.0,
+									(front_sector.light_level >> 4) as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], bottom_span.1],
 								in_texture_coord: [
 									(offset[0] + 0.0) / size[0] as f32,
-									(offset[1] + if linedef.flags & 16 != 0 { total_height - bottom_height } else { 0.0 }) / size[1] as f32,
+									(offset[1]
+										+ if linedef.flags & 16 != 0 {
+											total_height - bottom_height
+										} else {
+											0.0
+										}) / size[1] as f32,
 									texture.1 as f32,
 								],
-								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
+								in_lightmap_coord: [
+									0.0,
+									0.0,
+									(front_sector.light_level >> 4) as f32,
+								],
 							});
 						}
 
@@ -332,7 +439,8 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
 								texture: texture.0.clone(),
-								lightmap: lightmaps[(front_sector.light_level >> 4) as usize].clone(),
+								lightmap: lightmaps[(front_sector.light_level >> 4) as usize]
+									.clone(),
 							});
 							leaf.face_count += 1;
 
@@ -340,88 +448,178 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 								in_position: [start_vertex[0], start_vertex[1], middle_span.0],
 								in_texture_coord: [
 									(offset[0] + 0.0) / size[0] as f32,
-									(offset[1] + if linedef.flags & 16 != 0 { 0.0 } else { middle_height }) / size[1] as f32,
+									(offset[1]
+										+ if linedef.flags & 16 != 0 {
+											0.0
+										} else {
+											middle_height
+										}) / size[1] as f32,
 									texture.1 as f32,
 								],
-								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
+								in_lightmap_coord: [
+									0.0,
+									0.0,
+									(front_sector.light_level >> 4) as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], middle_span.0],
 								in_texture_coord: [
 									(offset[0] + width) / size[0] as f32,
-									(offset[1] + if linedef.flags & 16 != 0 { 0.0 } else { middle_height }) / size[1] as f32,
+									(offset[1]
+										+ if linedef.flags & 16 != 0 {
+											0.0
+										} else {
+											middle_height
+										}) / size[1] as f32,
 									texture.1 as f32,
 								],
-								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
+								in_lightmap_coord: [
+									0.0,
+									0.0,
+									(front_sector.light_level >> 4) as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], middle_span.1],
 								in_texture_coord: [
 									(offset[0] + width) / size[0] as f32,
-									(offset[1] + if linedef.flags & 16 != 0 { -middle_height } else { 0.0 }) / size[1] as f32,
+									(offset[1]
+										+ if linedef.flags & 16 != 0 {
+											-middle_height
+										} else {
+											0.0
+										}) / size[1] as f32,
 									texture.1 as f32,
 								],
-								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
+								in_lightmap_coord: [
+									0.0,
+									0.0,
+									(front_sector.light_level >> 4) as f32,
+								],
 							});
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], middle_span.1],
 								in_texture_coord: [
 									(offset[0] + 0.0) / size[0] as f32,
-									(offset[1] + if linedef.flags & 16 != 0 { -middle_height } else { 0.0 }) / size[1] as f32,
+									(offset[1]
+										+ if linedef.flags & 16 != 0 {
+											-middle_height
+										} else {
+											0.0
+										}) / size[1] as f32,
 									texture.1 as f32,
 								],
-								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
+								in_lightmap_coord: [
+									0.0,
+									0.0,
+									(front_sector.light_level >> 4) as f32,
+								],
 							});
 						}
 					} else {
 						if let Some(texture_name) = &front_sidedef.middle_texture_name {
 							let texture = &textures[texture_name];
 							let size = texture.0.borrow().size();
-							let total_height = front_sector.ceiling_height - front_sector.floor_height;
+							let total_height =
+								front_sector.ceiling_height - front_sector.floor_height;
 
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
 								texture: texture.0.clone(),
-								lightmap: lightmaps[(front_sector.light_level >> 4) as usize].clone(),
+								lightmap: lightmaps[(front_sector.light_level >> 4) as usize]
+									.clone(),
 							});
 							leaf.face_count += 1;
 
 							vertices.push(VertexData {
-								in_position: [start_vertex[0], start_vertex[1], front_sector.floor_height],
+								in_position: [
+									start_vertex[0],
+									start_vertex[1],
+									front_sector.floor_height,
+								],
 								in_texture_coord: [
 									(offset[0] + 0.0) / size[0] as f32,
-									(offset[1] + if linedef.flags & 16 != 0 { 0.0 } else { total_height }) / size[1] as f32,
+									(offset[1]
+										+ if linedef.flags & 16 != 0 {
+											0.0
+										} else {
+											total_height
+										}) / size[1] as f32,
 									texture.1 as f32,
 								],
-								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
+								in_lightmap_coord: [
+									0.0,
+									0.0,
+									(front_sector.light_level >> 4) as f32,
+								],
 							});
 							vertices.push(VertexData {
-								in_position: [end_vertex[0], end_vertex[1], front_sector.floor_height],
+								in_position: [
+									end_vertex[0],
+									end_vertex[1],
+									front_sector.floor_height,
+								],
 								in_texture_coord: [
 									(offset[0] + width) / size[0] as f32,
-									(offset[1] + if linedef.flags & 16 != 0 { 0.0 } else { total_height }) / size[1] as f32,
+									(offset[1]
+										+ if linedef.flags & 16 != 0 {
+											0.0
+										} else {
+											total_height
+										}) / size[1] as f32,
 									texture.1 as f32,
 								],
-								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
+								in_lightmap_coord: [
+									0.0,
+									0.0,
+									(front_sector.light_level >> 4) as f32,
+								],
 							});
 							vertices.push(VertexData {
-								in_position: [end_vertex[0], end_vertex[1], front_sector.ceiling_height],
+								in_position: [
+									end_vertex[0],
+									end_vertex[1],
+									front_sector.ceiling_height,
+								],
 								in_texture_coord: [
 									(offset[0] + width) / size[0] as f32,
-									(offset[1] + if linedef.flags & 16 != 0 { -total_height } else { 0.0 }) / size[1] as f32,
+									(offset[1]
+										+ if linedef.flags & 16 != 0 {
+											-total_height
+										} else {
+											0.0
+										}) / size[1] as f32,
 									texture.1 as f32,
 								],
-								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
+								in_lightmap_coord: [
+									0.0,
+									0.0,
+									(front_sector.light_level >> 4) as f32,
+								],
 							});
 							vertices.push(VertexData {
-								in_position: [start_vertex[0], start_vertex[1], front_sector.ceiling_height],
+								in_position: [
+									start_vertex[0],
+									start_vertex[1],
+									front_sector.ceiling_height,
+								],
 								in_texture_coord: [
 									(offset[0] + 0.0) / size[0] as f32,
-									(offset[1] + if linedef.flags & 16 != 0 { -total_height } else { 0.0 }) / size[1] as f32,
+									(offset[1]
+										+ if linedef.flags & 16 != 0 {
+											-total_height
+										} else {
+											0.0
+										}) / size[1] as f32,
 									texture.1 as f32,
 								],
-								in_lightmap_coord: [0.0, 0.0, (front_sector.light_level >> 4) as f32],
+								in_lightmap_coord: [
+									0.0,
+									0.0,
+									(front_sector.light_level >> 4) as f32,
+								],
 							});
 						}
 					}
@@ -499,16 +697,17 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 	for node in &gl_nodes {
 		// Convert the Doom line definition into plane
 		let normal = Vector2::new(
-			node.partition_dir[1],  // 90 degree clockwise rotation
+			node.partition_dir[1], // 90 degree clockwise rotation
 			-node.partition_dir[0],
-		).normalize();
+		)
+		.normalize();
 
 		branches.push(BSPBranch {
 			plane: Plane {
 				normal: Vector3::new(normal[0], normal[1], 0.0),
 				distance: Matrix::dot(&normal, &node.partition_point),
 			},
-			bounding_box: BoundingBox3::zero(),  // Temporary dummy value
+			bounding_box: BoundingBox3::zero(), // Temporary dummy value
 			children: [node.right_child_index, node.left_child_index],
 		});
 	}
@@ -520,19 +719,19 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 		match node.right_child_index {
 			BSPNode::Leaf(index) => {
 				leaves[index].bounding_box = BoundingBox3::from(&node.right_bbox);
-			},
+			}
 			BSPNode::Branch(index) => {
 				branches[index].bounding_box = BoundingBox3::from(&node.right_bbox);
-			},
+			}
 		}
 
 		match node.left_child_index {
 			BSPNode::Leaf(index) => {
 				leaves[index].bounding_box = BoundingBox3::from(&node.left_bbox);
-			},
+			}
 			BSPNode::Branch(index) => {
 				branches[index].bounding_box = BoundingBox3::from(&node.left_bbox);
-			},
+			}
 		}
 	}
 
@@ -546,8 +745,8 @@ pub mod things {
 	#[derive(Debug)]
 	pub struct DoomMapThing {
 		pub position: Vector2<f32>,
-		pub angle: i16,
-		pub type_id: u16,
+		pub angle: f32,
+		pub doomednum: u16,
 		pub flags: u16,
 	}
 
@@ -559,21 +758,21 @@ pub mod things {
 				Ok(val) => val,
 				Err(err) => {
 					if err.kind() == ErrorKind::UnexpectedEof {
-						break
+						break;
 					} else {
-						return Err(err)
+						return Err(err);
 					}
 				}
 			} as f32;
 			let position_y = data.read_i16::<LE>()? as f32;
-			let angle = data.read_i16::<LE>()?;
-			let type_id = data.read_u16::<LE>()?;
+			let angle = data.read_i16::<LE>()? as f32;
+			let doomednum = data.read_u16::<LE>()?;
 			let flags = data.read_u16::<LE>()?;
 
-			things.push(DoomMapThing{
+			things.push(DoomMapThing {
 				position: Vector2::new(position_x, position_y),
 				angle,
-				type_id,
+				doomednum,
 				flags,
 			});
 		}
@@ -604,9 +803,9 @@ pub mod linedefs {
 				Ok(val) => val,
 				Err(err) => {
 					if err.kind() == ErrorKind::UnexpectedEof {
-						break
+						break;
 					} else {
-						return Err(err)
+						return Err(err);
 					}
 				}
 			} as usize;
@@ -617,7 +816,7 @@ pub mod linedefs {
 			let right_sidedef_index = data.read_u16::<LE>()? as usize;
 			let left_sidedef_index = data.read_u16::<LE>()? as usize;
 
-			linedefs.push(DoomMapLinedef{
+			linedefs.push(DoomMapLinedef {
 				start_vertex_index,
 				end_vertex_index,
 				flags,
@@ -633,7 +832,7 @@ pub mod linedefs {
 						None
 					} else {
 						Some(left_sidedef_index)
-					}
+					},
 				],
 			});
 		}
@@ -663,9 +862,9 @@ pub mod sidedefs {
 				Ok(val) => val,
 				Err(err) => {
 					if err.kind() == ErrorKind::UnexpectedEof {
-						break
+						break;
 					} else {
-						return Err(Box::from(err))
+						return Err(Box::from(err));
 					}
 				}
 			} as f32;
@@ -687,11 +886,23 @@ pub mod sidedefs {
 			};
 			let sector_index = data.read_u16::<LE>()? as usize;
 
-			sidedefs.push(DoomMapSidedef{
+			sidedefs.push(DoomMapSidedef {
 				texture_offset: Vector2::new(texture_offset_x, texture_offset_y),
-				top_texture_name: if top_texture_name == "-" { None } else { Some(top_texture_name) },
-				bottom_texture_name: if bottom_texture_name == "-" { None } else { Some(bottom_texture_name) },
-				middle_texture_name: if middle_texture_name == "-" { None } else { Some(middle_texture_name) },
+				top_texture_name: if top_texture_name == "-" {
+					None
+				} else {
+					Some(top_texture_name)
+				},
+				bottom_texture_name: if bottom_texture_name == "-" {
+					None
+				} else {
+					Some(bottom_texture_name)
+				},
+				middle_texture_name: if middle_texture_name == "-" {
+					None
+				} else {
+					Some(middle_texture_name)
+				},
 				sector_index,
 			});
 		}
@@ -712,9 +923,9 @@ pub mod vertexes {
 				Ok(val) => val,
 				Err(err) => {
 					if err.kind() == ErrorKind::UnexpectedEof {
-						break
+						break;
 					} else {
-						return Err(err)
+						return Err(err);
 					}
 				}
 			} as f32;
@@ -750,9 +961,9 @@ pub mod sectors {
 				Ok(val) => val,
 				Err(err) => {
 					if err.kind() == ErrorKind::UnexpectedEof {
-						break
+						break;
 					} else {
-						return Err(Box::from(err))
+						return Err(Box::from(err));
 					}
 				}
 			} as f32;
@@ -797,7 +1008,7 @@ pub mod gl_vert {
 		data.read_exact(&mut signature)?;
 
 		if &signature != b"gNd2" {
-			return Err(Box::from("No gNd2 signature found"))
+			return Err(Box::from("No gNd2 signature found"));
 		}
 
 		loop {
@@ -805,9 +1016,9 @@ pub mod gl_vert {
 				Ok(val) => val,
 				Err(err) => {
 					if err.kind() == ErrorKind::UnexpectedEof {
-						break
+						break;
 					} else {
-						return Err(Box::from(err))
+						return Err(Box::from(err));
 					}
 				}
 			} as f32;
@@ -841,9 +1052,9 @@ pub mod gl_segs {
 				Ok(val) => val,
 				Err(err) => {
 					if err.kind() == ErrorKind::UnexpectedEof {
-						break
+						break;
 					} else {
-						return Err(err)
+						return Err(err);
 					}
 				}
 			} as usize;
@@ -907,9 +1118,9 @@ pub mod gl_ssect {
 				Ok(val) => val,
 				Err(err) => {
 					if err.kind() == ErrorKind::UnexpectedEof {
-						break
+						break;
 					} else {
-						return Err(err)
+						return Err(err);
 					}
 				}
 			} as usize;
@@ -947,9 +1158,9 @@ pub mod gl_nodes {
 				Ok(val) => val,
 				Err(err) => {
 					if err.kind() == ErrorKind::UnexpectedEof {
-						break
+						break;
 					} else {
-						return Err(err)
+						return Err(err);
 					}
 				}
 			} as f32;

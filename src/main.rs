@@ -25,16 +25,11 @@ mod server;
 mod sprite;
 mod stdin;
 
+use crate::{client::Client, commands::CommandSender, logger::Logger, server::Server};
 use std::{
 	error::Error,
 	sync::mpsc::{self, Receiver},
 	time::{Duration, Instant},
-};
-use crate::{
-	client::Client,
-	commands::CommandSender,
-	logger::Logger,
-	server::Server,
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -65,10 +60,11 @@ impl MainLoop {
 			}
 		};
 
-		let mut client = Client::new(command_sender.clone())?;
+		let client = Client::new(command_sender.clone())?;
 		let mut server = Server::new()?;
+		server.new_map("E1M1")?;
 
-		Ok(MainLoop{
+		Ok(MainLoop {
 			client,
 			command_receiver,
 			old_time: Instant::now(),
@@ -79,10 +75,11 @@ impl MainLoop {
 
 	fn start(&mut self) {
 		self.old_time = Instant::now();
-		let mut new_time = Instant::now();
-		let mut delta = new_time - self.old_time;
 
 		while !self.should_quit {
+			let mut delta;
+			let mut new_time;
+
 			// Busy-loop until there is at least a millisecond of delta
 			while {
 				new_time = Instant::now();
@@ -108,7 +105,7 @@ impl MainLoop {
 			return;
 		}
 
-		self.client.frame(delta);
 		self.server.frame(delta);
+		self.client.frame(delta, self.server.world());
 	}
 }

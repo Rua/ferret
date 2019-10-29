@@ -1,26 +1,17 @@
-use nalgebra::Vector3;
-use sdl2::{
-	pixels::PixelFormatEnum,
-	surface::Surface,
-};
-use std::{
-	cell::RefCell,
-	error::Error,
-	rc::Rc,
-	sync::Arc,
-};
-use vulkano::{
-	buffer::{BufferUsage, ImmutableBuffer, cpu_access::CpuAccessibleBuffer},
-	device::Queue,
-	format::Format,
-	image::{Dimensions, ImmutableImage, sys::ImageCreationError},
-	sync::{self, GpuFuture},
-};
 use crate::{
 	geometry::{BoundingBox3, Plane},
 	sprite::SpriteFrame,
 };
-
+use nalgebra::Vector3;
+use sdl2::{pixels::PixelFormatEnum, surface::Surface};
+use std::{cell::RefCell, error::Error, rc::Rc, sync::Arc};
+use vulkano::{
+	buffer::{cpu_access::CpuAccessibleBuffer, BufferUsage, ImmutableBuffer},
+	device::Queue,
+	format::Format,
+	image::{sys::ImageCreationError, Dimensions, ImmutableImage},
+	sync::{self, GpuFuture},
+};
 
 pub struct BSPModel {
 	vertices: DataOrBuffer,
@@ -30,7 +21,12 @@ pub struct BSPModel {
 }
 
 impl BSPModel {
-	pub fn new(vertices: Vec<VertexData>, faces: Vec<Face>, leaves: Vec<BSPLeaf>, branches: Vec<BSPBranch>) -> BSPModel {
+	pub fn new(
+		vertices: Vec<VertexData>,
+		faces: Vec<Face>,
+		leaves: Vec<BSPLeaf>,
+		branches: Vec<BSPBranch>,
+	) -> BSPModel {
 		BSPModel {
 			vertices: DataOrBuffer::Data(vertices),
 			faces,
@@ -55,10 +51,8 @@ impl BSPModel {
 
 				self.vertices = DataOrBuffer::Buffer(buffer);
 				Ok(Box::from(future))
-			},
-			DataOrBuffer::Buffer(buffer) => {
-				Ok(Box::from(sync::now(queue.device().clone())))
-			},
+			}
+			DataOrBuffer::Buffer(buffer) => Ok(Box::from(sync::now(queue.device().clone()))),
 		}
 	}
 
@@ -75,7 +69,7 @@ impl BSPModel {
 	}
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct VertexData {
 	pub in_position: [f32; 3],
 	pub in_texture_coord: [f32; 3],
@@ -116,9 +110,7 @@ pub struct SpriteModel {
 	// bounding_box
 }
 
-impl SpriteModel {
-
-}
+impl SpriteModel {}
 
 pub struct Texture {
 	image: DataOrImage,
@@ -145,20 +137,16 @@ impl Texture {
 
 	pub fn size(&self) -> Vector3<u32> {
 		match &self.image {
-			DataOrImage::Data(surfaces) => {
-				Vector3::new(
-					surfaces[0].width(),
-					surfaces[0].height(),
-					surfaces.len() as u32,
-				)
-			},
-			DataOrImage::Image(image) => {
-				Vector3::new(
-					image.dimensions().width(),
-					image.dimensions().height(),
-					image.dimensions().array_layers(),
-				)
-			},
+			DataOrImage::Data(surfaces) => Vector3::new(
+				surfaces[0].width(),
+				surfaces[0].height(),
+				surfaces.len() as u32,
+			),
+			DataOrImage::Image(image) => Vector3::new(
+				image.dimensions().width(),
+				image.dimensions().height(),
+				image.dimensions().array_layers(),
+			),
 		}
 	}
 
@@ -168,11 +156,13 @@ impl Texture {
 				// Create staging buffer
 				let layer_size = surfaces[0].without_lock().unwrap().len();
 
-				let buffer = unsafe { CpuAccessibleBuffer::uninitialized_array(
-					queue.device().clone(),
-					layer_size * surfaces.len(),
-					BufferUsage::transfer_source(),
-				) }?;
+				let buffer = unsafe {
+					CpuAccessibleBuffer::uninitialized_array(
+						queue.device().clone(),
+						layer_size * surfaces.len(),
+						BufferUsage::transfer_source(),
+					)
+				}?;
 
 				// Copy all the layers into the buffer
 				{
@@ -206,10 +196,8 @@ impl Texture {
 
 				self.image = DataOrImage::Image(image);
 				Ok(Box::from(future))
-			},
-			DataOrImage::Image(image) => {
-				Ok(Box::from(sync::now(queue.device().clone())))
-			},
+			}
+			DataOrImage::Image(image) => Ok(Box::from(sync::now(queue.device().clone()))),
 		}
 	}
 

@@ -4,7 +4,6 @@ use std::{
 	str::FromStr,
 };
 
-
 pub struct ConfigVariable<T> {
 	name: &'static str,
 	value: RefCell<T>,
@@ -13,7 +12,11 @@ pub struct ConfigVariable<T> {
 }
 
 impl<T: PartialEq> ConfigVariable<T> {
-	pub fn new(name: &'static str, default: T, mut validator: Option<Box<dyn Fn(&T) -> bool + Sync>>) -> ConfigVariable<T> {
+	pub fn new(
+		name: &'static str,
+		default: T,
+		mut validator: Option<Box<dyn Fn(&T) -> bool + Sync>>,
+	) -> ConfigVariable<T> {
 		assert!(validator.is_none() || validator.as_mut().unwrap()(&default));
 
 		ConfigVariable {
@@ -29,7 +32,9 @@ impl<T: PartialEq> ConfigVariable<T> {
 	}
 
 	fn set(&self, newvalue: T) {
-		if *self.value.borrow() != newvalue && (self.validator.is_none() || self.validator.as_ref().unwrap()(&newvalue)) {
+		if *self.value.borrow() != newvalue
+			&& (self.validator.is_none() || self.validator.as_ref().unwrap()(&newvalue))
+		{
 			self.value.replace(newvalue);
 			self.modified.set(true);
 		}
@@ -48,7 +53,9 @@ pub trait ConfigVariableT: fmt::Display {
 }
 
 impl<T: PartialEq + FromStr + fmt::Display> ConfigVariableT for ConfigVariable<T>
-where <T as FromStr>::Err: std::fmt::Debug {
+where
+	<T as FromStr>::Err: std::fmt::Debug,
+{
 	fn name(&self) -> &'static str {
 		self.name
 	}
@@ -98,7 +105,6 @@ impl ConfigVariables {
 		}
 	}
 }*/
-
 
 /*
 impl<T: FromStr + ToString> ConsoleVariableT for ConsoleVariable<T> {

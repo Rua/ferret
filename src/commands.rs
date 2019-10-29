@@ -1,10 +1,6 @@
 use regex::{Captures, Regex};
 use std::{
-	borrow::Cow,
-	collections::hash_map::HashMap,
-	error::Error,
-	string::String,
-	sync::mpsc::Sender,
+	borrow::Cow, collections::hash_map::HashMap, error::Error, string::String, sync::mpsc::Sender,
 };
 
 #[derive(Clone)]
@@ -14,9 +10,7 @@ pub struct CommandSender {
 
 impl CommandSender {
 	pub fn new(sender: Sender<Vec<String>>) -> CommandSender {
-		CommandSender {
-			sender,
-		}
+		CommandSender { sender }
 	}
 
 	pub fn send(&self, command: &str) {
@@ -37,10 +31,17 @@ impl<T> CommandList<T> {
 		}
 	}
 
-	pub fn add<F: Fn(&mut T, Vec<String>) + Sync + 'static>(mut self, name: &str, func: F) -> CommandList<T> {
-		self.commands.insert(name.to_owned(), Command {
-			func: Box::new(func),
-		});
+	pub fn add<F: Fn(&mut T, Vec<String>) + Sync + 'static>(
+		mut self,
+		name: &str,
+		func: F,
+	) -> CommandList<T> {
+		self.commands.insert(
+			name.to_owned(),
+			Command {
+				func: Box::new(func),
+			},
+		);
 
 		self
 	}
@@ -109,13 +110,14 @@ pub fn tokenize(mut text: &str) -> Result<Vec<String>, Box<dyn Error>> {
 			tokens.push(String::from(&text[..mat.end()]));
 			text = &text[mat.end()..];
 		} else if let Some(mat) = RE_QUOTED.find(text) {
-			let unescaped = RE_ESCAPE.replace_all(&text[1..mat.end() - 1], |caps: &Captures<'_>| {
-				String::from(match &caps[0] {
-					r#"\\"# => r#"\"#,
-					r#"\""# => r#"""#,
-					_ => unreachable!(),
-				})
-			});
+			let unescaped =
+				RE_ESCAPE.replace_all(&text[1..mat.end() - 1], |caps: &Captures<'_>| {
+					String::from(match &caps[0] {
+						r#"\\"# => r#"\"#,
+						r#"\""# => r#"""#,
+						_ => unreachable!(),
+					})
+				});
 			tokens.push(String::from(unescaped));
 			text = &text[mat.end()..];
 		} else if text.starts_with("\"") {
@@ -129,9 +131,9 @@ pub fn tokenize(mut text: &str) -> Result<Vec<String>, Box<dyn Error>> {
 			text = &text[mat.end()..];
 		} else if let Some(mat) = RE_CMT_LINE.find(text) {
 			if mat.end() == text.len() {
-				text = &text[mat.end()..];  // Closed by end of string
+				text = &text[mat.end()..]; // Closed by end of string
 			} else {
-				text = &text[mat.end() - 1..];  // Leave the newline
+				text = &text[mat.end() - 1..]; // Leave the newline
 			}
 		} else if let Some(mat) = RE_CMT_BLOCK.find(text) {
 			text = &text[mat.end()..];
@@ -165,6 +167,6 @@ pub fn quote_escape(text: &str) -> Cow<'_, str> {
 	}
 }
 
-pub fn foobar () {
+pub fn foobar() {
 	println!("test");
 }

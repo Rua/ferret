@@ -1,8 +1,7 @@
-use log::{self, Level, Log, Metadata, Record, SetLoggerError};
 use colored::Colorize;
+use log::{self, Level, Log, Metadata, Record, SetLoggerError};
 
 pub static LOGGER: Logger = Logger;
-
 
 pub struct Logger;
 
@@ -24,22 +23,22 @@ impl Log for Logger {
 			match record.level() {
 				Level::Error => {
 					eprintln!("{}: {}", "ERROR".bright_red(), record.args());
-				},
+				}
 				Level::Warn => {
 					eprintln!("{}: {}", "WARNING".bright_yellow(), record.args());
-				},
+				}
 				Level::Info => {
 					println!("{}: {}", "INFO", record.args());
-				},
+				}
 				Level::Debug => {
 					println!("{}: {}", "DEBUG".bright_cyan(), record.args());
-				},
+				}
 				Level::Trace => {
 					println!("{}", record.args());
-				},
+				}
 			}
 		}
 	}
 
-	fn flush(&self) { }
+	fn flush(&self) {}
 }

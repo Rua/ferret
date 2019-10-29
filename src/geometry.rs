@@ -12,10 +12,7 @@ impl BoundingBox2 {
 		assert!(min[0] <= max[0]);
 		assert!(min[1] <= max[1]);
 
-		BoundingBox2 {
-			min,
-			max,
-		}
+		BoundingBox2 { min, max }
 	}
 
 	pub fn zero() -> BoundingBox2 {
@@ -39,10 +36,7 @@ impl BoundingBox3 {
 		assert!(min[1] <= max[1]);
 		assert!(min[2] <= max[2]);
 
-		BoundingBox3 {
-			min,
-			max,
-		}
+		BoundingBox3 { min, max }
 	}
 
 	pub fn zero() -> BoundingBox3 {
@@ -53,16 +47,8 @@ impl BoundingBox3 {
 impl From<&BoundingBox2> for BoundingBox3 {
 	fn from(bounding_box: &BoundingBox2) -> BoundingBox3 {
 		BoundingBox3::new(
-			Vector3::new(
-				bounding_box.min[0],
-				bounding_box.min[1],
-				NEG_INFINITY,
-			),
-			Vector3::new(
-				bounding_box.max[0],
-				bounding_box.max[1],
-				INFINITY,
-			),
+			Vector3::new(bounding_box.min[0], bounding_box.min[1], NEG_INFINITY),
+			Vector3::new(bounding_box.max[0], bounding_box.max[1], INFINITY),
 		)
 	}
 }

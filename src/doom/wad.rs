@@ -1,4 +1,4 @@
-use byteorder::{LE, ReadBytesExt};
+use byteorder::{ReadBytesExt, LE};
 use std::{
 	collections::HashMap,
 	error::Error,
@@ -8,7 +8,6 @@ use std::{
 	string::String,
 	vec::Vec,
 };
-
 
 struct Lump {
 	file: String,
@@ -72,7 +71,10 @@ impl WadLoader {
 
 	pub fn read_lump(&mut self, number: usize) -> Result<Cursor<Vec<u8>>, Box<dyn Error>> {
 		let lump = &self.lumps[number];
-		let file = self.files.get_mut(&lump.file).expect("File referenced but not loaded");
+		let file = self
+			.files
+			.get_mut(&lump.file)
+			.expect("File referenced but not loaded");
 
 		// Read lump
 		let mut data = vec![0; lump.size as usize];
@@ -100,7 +102,9 @@ impl WadLoader {
 
 		// Iterate in reverse, so that lumps added later are used first
 		for (i, ref lump) in self.lumps.iter().enumerate().rev() {
-			if lump.name.starts_with(prefix) && !names.iter().any(|n: &(String, usize)| n.0 == lump.name) {
+			if lump.name.starts_with(prefix)
+				&& !names.iter().any(|n: &(String, usize)| n.0 == lump.name)
+			{
 				names.push((lump.name.clone(), i));
 			}
 		}

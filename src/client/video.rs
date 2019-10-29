@@ -1,41 +1,38 @@
-use nalgebra::{Matrix4, Point3, Vector3};
-use sdl2::{Sdl, VideoSubsystem, video::Window};
-use std::{
-	error::Error,
-	f32::consts::FRAC_PI_4,
-	ops::Range,
-	sync::Arc,
-};
-use vulkano::{
-	buffer::{BufferSlice, BufferUsage, CpuAccessibleBuffer},
-	device::DeviceOwned,
-	command_buffer::{AutoCommandBufferBuilder, DynamicState},
-	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
-	framebuffer::{Framebuffer, FramebufferAbstract, Subpass},
-	image::ImageViewAccess,
-	instance::debug::DebugCallback,
-	pipeline::{GraphicsPipeline, GraphicsPipelineAbstract},
-	pipeline::viewport::Viewport,
-	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
-	swapchain::{self, Swapchain},
-	sync::GpuFuture,
-};
 use crate::{
 	client::vulkan::{self, Queues},
 	doom::{map, wad::WadLoader},
 	model::{BSPModel, VertexData},
 };
-
+use nalgebra::{Matrix4, Point3, Vector3};
+use std::{error::Error, f32::consts::FRAC_PI_4, ops::Range, sync::Arc};
+use vulkano::{
+	buffer::{BufferSlice, BufferUsage, CpuAccessibleBuffer},
+	command_buffer::{AutoCommandBufferBuilder, DynamicState},
+	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
+	device::DeviceOwned,
+	framebuffer::{Framebuffer, FramebufferAbstract, Subpass},
+	image::ImageViewAccess,
+	instance::debug::DebugCallback,
+	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
+	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
+	swapchain::{self, Surface, Swapchain},
+	sync::GpuFuture,
+};
+use vulkano_win::VkSurfaceBuild;
+use winit::{
+	event_loop::EventLoop,
+	window::{Window, WindowBuilder},
+};
 
 mod vs {
-	vulkano_shaders::shader!{
+	vulkano_shaders::shader! {
 		ty: "vertex",
 		path: "shaders/world.vert",
 	}
 }
 
 mod fs {
-	vulkano_shaders::shader!{
+	vulkano_shaders::shader! {
 		ty: "fragment",
 		path: "shaders/world.frag",
 	}
@@ -45,33 +42,28 @@ pub struct Video {
 	map: BSPModel,
 
 	debug_callback: DebugCallback,
-	descriptor_sets_pool: FixedSizeDescriptorSetsPool<Arc<dyn GraphicsPipelineAbstract + Send + Sync>>,
+	descriptor_sets_pool:
+		FixedSizeDescriptorSetsPool<Arc<dyn GraphicsPipelineAbstract + Send + Sync>>,
 	framebuffers: Vec<Arc<dyn FramebufferAbstract + Send + Sync>>,
 	pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
 	queues: Queues,
 	sampler: Arc<Sampler>,
-	swapchain: Arc<Swapchain<()>>,
+	surface: Arc<Surface<Window>>,
+	swapchain: Arc<Swapchain<Window>>,
 	uniform_buffer: Arc<CpuAccessibleBuffer<vs::ty::UniformBufferObject>>,
-
-	sdl_video: VideoSubsystem,
-	window: Window,
 }
 
 impl Video {
-	pub fn init(sdl: &Sdl) -> Result<Video, Box<dyn Error>> {
-		let sdl_video = sdl.video()?;
+	pub fn init(event_loop: &EventLoop<()>) -> Result<Video, Box<dyn Error>> {
+		// Create Vulkan instance
+		let instance = vulkan::create_instance()?;
 
-		let window = sdl_video
-			.window("Ferret", 640, 480)
-			.vulkan()
-			.position_centered()
-			.build()?;
-
-		// Create Vulkan instance and surface
-		let (instance, surface) = vulkan::create_instance(&window)?;
+		let surface = WindowBuilder::new()
+			.with_inner_size((640, 480).into())
+			.with_title("Ferret")
+			.build_vk_surface(event_loop, instance.clone())?;
 
 		// Setup debug callback for validation layers
-		#[cfg(debug_assertions)]
 		let debug_callback = DebugCallback::errors_and_warnings(&instance, |ref message| {
 			if message.ty.error {
 				error!("{}: {}", message.layer_prefix, message.description);
@@ -84,13 +76,9 @@ impl Video {
 		let (device, queues) = vulkan::create_device(&instance, &surface)?;
 
 		// Create swapchain
-		let dimensions = window.vulkan_drawable_size();
-		let (swapchain, swapchain_images) = vulkan::create_swapchain(
-			&surface,
-			&device,
-			&queues,
-			[dimensions.0, dimensions.1],
-		)?;
+		let (width, height) = surface.window().inner_size().into();
+		let (swapchain, swapchain_images) =
+			vulkan::create_swapchain(&surface, &device, &queues, [width, height])?;
 
 		// Create depth buffer
 		let depth_buffer = vulkan::create_depth_buffer(&device, swapchain.dimensions())?;
@@ -122,13 +110,12 @@ impl Video {
 			let mut framebuffers = Vec::with_capacity(swapchain_images.len());
 
 			for image in swapchain_images.iter() {
-				framebuffers.push(
-					Arc::new(Framebuffer::start(render_pass.clone())
+				framebuffers.push(Arc::new(
+					Framebuffer::start(render_pass.clone())
 						.add(image.clone())?
 						.add(depth_buffer.clone())?
-						.build()?
-					) as Arc<dyn FramebufferAbstract + Send + Sync>
-				);
+						.build()?,
+				) as Arc<dyn FramebufferAbstract + Send + Sync>);
 			}
 
 			framebuffers
@@ -138,26 +125,30 @@ impl Video {
 		let vs = vs::Shader::load(device.clone())?;
 		let fs = fs::Shader::load(device.clone())?;
 
-		let pipeline = Arc::new(GraphicsPipeline::start()
-			.render_pass(Subpass::from(render_pass.clone(), 0).unwrap())
-			.vertex_input_single_buffer::<VertexData>()
-			.vertex_shader(vs.main_entry_point(), ())
-			.fragment_shader(fs.main_entry_point(), ())
-			.triangle_fan()
-			.viewports_dynamic_scissors_irrelevant(1)
-			.cull_mode_back()
-			.depth_stencil_simple_depth()
-			.build(device.clone())?
+		let pipeline = Arc::new(
+			GraphicsPipeline::start()
+				.render_pass(Subpass::from(render_pass.clone(), 0).unwrap())
+				.vertex_input_single_buffer::<VertexData>()
+				.vertex_shader(vs.main_entry_point(), ())
+				.fragment_shader(fs.main_entry_point(), ())
+				.triangle_fan()
+				.viewports_dynamic_scissors_irrelevant(1)
+				.cull_mode_back()
+				.depth_stencil_simple_depth()
+				.build(device.clone())?,
 		);
 
 		let mut loader = WadLoader::new();
 		loader.add("doom.wad")?;
 		loader.add("doom.gwa")?;
 		let mut map = map::from_wad("E1M1", &mut loader)?;
-		map.upload(&queues.graphics)?.then_signal_fence_and_flush()?.wait(None)?;
+		map.upload(&queues.graphics)?
+			.then_signal_fence_and_flush()?
+			.wait(None)?;
 
 		// Create texture sampler
-		let sampler = Sampler::new(device.clone(),
+		let sampler = Sampler::new(
+			device.clone(),
 			Filter::Nearest,
 			Filter::Nearest,
 			MipmapMode::Nearest,
@@ -194,11 +185,9 @@ impl Video {
 			pipeline,
 			queues,
 			sampler,
+			surface,
 			swapchain,
 			uniform_buffer,
-
-			sdl_video,
-			window,
 		};
 
 		Ok(video)
@@ -207,12 +196,13 @@ impl Video {
 	pub fn draw_frame(&mut self) -> Result<(), Box<dyn Error>> {
 		// Update uniform buffer
 		let model = Matrix4::identity();
-		let view = Matrix4::look_at_rh(&Point3::new(1670.0, -2500.0, 50.0), &Point3::new(1671.0, -2500.0, 50.0), &Vector3::new(0.0, 0.0, 1.0));
+		let view = Matrix4::look_at_rh(
+			&Point3::new(1670.0, -2500.0, 50.0),
+			&Point3::new(1671.0, -2500.0, 50.0),
+			&Vector3::new(0.0, 0.0, 1.0),
+		);
 		let proj = Matrix4::new(
-			1.0,  0.0, 0.0, 0.0,
-			0.0, -1.0, 0.0, 0.0,
-			0.0,  0.0, 0.5, 0.5,
-			0.0,  0.0, 0.0, 1.0,
+			1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 1.0,
 		) * Matrix4::new_perspective(4.0 / 3.0, FRAC_PI_4, 0.1, 10000.0);
 
 		let data = vs::ty::UniformBufferObject {
@@ -224,9 +214,10 @@ impl Video {
 		*self.uniform_buffer.write()? = data;
 
 		// Prepare for drawing
-		let (image_num, future) = match swapchain::acquire_next_image(self.swapchain.clone(), None) {
+		let (image_num, future) = match swapchain::acquire_next_image(self.swapchain.clone(), None)
+		{
 			Ok(r) => r,
-			Err(err) => panic!("{:?}", err)
+			Err(err) => panic!("{:?}", err),
 		};
 
 		let framebuffer = &self.framebuffers[image_num];
@@ -235,7 +226,10 @@ impl Video {
 		let viewport = Viewport {
 			origin: [0.0; 2],
 			dimensions: [framebuffer.width() as f32, framebuffer.height() as f32],
-			depth_range: Range {start: 0.0, end: 1.0},
+			depth_range: Range {
+				start: 0.0,
+				end: 1.0,
+			},
 		};
 
 		let dynamic_state = DynamicState {
@@ -244,18 +238,19 @@ impl Video {
 			scissors: None,
 		};
 
-		let mut command_buffer_builder = AutoCommandBufferBuilder::primary_one_time_submit(self.swapchain.device().clone(), self.queues.graphics.family())?
-			.begin_render_pass(
-				framebuffer.clone(),
-				false,
-				clear_value,
-			)?;
+		let mut command_buffer_builder = AutoCommandBufferBuilder::primary_one_time_submit(
+			self.swapchain.device().clone(),
+			self.queues.graphics.family(),
+		)?
+		.begin_render_pass(framebuffer.clone(), false, clear_value)?;
 
 		for face in self.map.faces() {
 			let texture = face.texture.borrow().image().unwrap();
 			let lightmap = face.lightmap.borrow().image().unwrap();
 
-			let descriptor_set = self.descriptor_sets_pool.next()
+			let descriptor_set = self
+				.descriptor_sets_pool
+				.next()
 				.add_buffer(self.uniform_buffer.clone())?
 				.add_sampled_image(texture, self.sampler.clone())?
 				.add_sampled_image(lightmap, self.sampler.clone())?
@@ -263,7 +258,10 @@ impl Video {
 
 			let buffer = self.map.buffer().unwrap();
 			let slice = BufferSlice::from_typed_buffer_access(buffer.clone());
-			let range = Range { start: face.first_vertex_index, end: face.first_vertex_index + face.vertex_count};
+			let range = Range {
+				start: face.first_vertex_index,
+				end: face.first_vertex_index + face.vertex_count,
+			};
 			let slice2 = slice.slice(range).unwrap();
 
 			command_buffer_builder = command_buffer_builder.draw(
@@ -276,14 +274,15 @@ impl Video {
 		}
 
 		// Finalise
-		let command_buffer = Arc::new(command_buffer_builder
-			.end_render_pass()?
-			.build()?
-		);
+		let command_buffer = Arc::new(command_buffer_builder.end_render_pass()?.build()?);
 
 		future
 			.then_execute(self.queues.graphics.clone(), command_buffer)?
-			.then_swapchain_present(self.queues.present.clone(), self.swapchain.clone(), image_num)
+			.then_swapchain_present(
+				self.queues.present.clone(),
+				self.swapchain.clone(),
+				image_num,
+			)
 			.then_signal_fence_and_flush()?
 			.wait(None)?;
 

@@ -9,14 +9,24 @@ pub struct Sprite {
 }
 
 impl Sprite {
-	pub fn new(images: Vec<SpriteImage>, frames: Vec<SpriteFrame>, orientation: SpriteOrientation, max_size: Vector2<u32>) -> Sprite {
+	pub fn new(
+		images: Vec<SpriteImage>,
+		frames: Vec<SpriteFrame>,
+		orientation: SpriteOrientation,
+		max_size: Vector2<u32>,
+	) -> Sprite {
 		for frame in &frames {
 			for rotation in &frame.rotations {
 				assert!(rotation.image_index < images.len());
 			}
 		}
 
-		Sprite {images, frames, orientation, max_size}
+		Sprite {
+			images,
+			frames,
+			orientation,
+			max_size,
+		}
 	}
 
 	pub fn images(&self) -> &Vec<SpriteImage> {
@@ -35,7 +45,7 @@ pub struct SpriteFrame {
 
 impl SpriteFrame {
 	pub fn new(rotations: Vec<SpriteRotation>) -> SpriteFrame {
-		SpriteFrame {rotations}
+		SpriteFrame { rotations }
 	}
 }
 
@@ -47,7 +57,10 @@ pub struct SpriteRotation {
 
 impl SpriteRotation {
 	pub fn new(image_index: usize, flipped: bool) -> SpriteRotation {
-		SpriteRotation {image_index, flipped}
+		SpriteRotation {
+			image_index,
+			flipped,
+		}
 	}
 }
 
@@ -58,7 +71,6 @@ pub enum SpriteOrientation {
 	ViewPlaneParallelUpright = 0,
 	FacingUpright = 1,
 }
-
 
 pub struct SpriteImage {
 	surface: Surface<'static>,
@@ -84,7 +96,11 @@ impl SpriteImage {
 			}
 		}
 
-		SpriteImage {surface, offset, has_transparency}
+		SpriteImage {
+			surface,
+			offset,
+			has_transparency,
+		}
 	}
 
 	pub fn surface(&self) -> &Surface<'static> {

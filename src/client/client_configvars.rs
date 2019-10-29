@@ -1,6 +1,5 @@
 use crate::configvars::{ConfigVariable, ConfigVariableT};
 
-
 pub struct ClientConfigVars {
 	pub cl_timeout: ConfigVariable<u64>,
 }
@@ -13,8 +12,6 @@ impl ClientConfigVars {
 	}
 
 	pub fn refs(&self) -> Vec<&dyn ConfigVariableT> {
-		vec![
-			&self.cl_timeout,
-		]
+		vec![&self.cl_timeout]
 	}
 }

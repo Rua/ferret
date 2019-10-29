@@ -1,30 +1,26 @@
 mod server_configvars;
 
-use specs::{
-	World,
-	WorldExt,
-};
+use crate::{components::TransformComponent, doom};
+use specs::{World, WorldExt};
 use std::{
 	error::Error,
 	time::{Duration, Instant},
 };
-use crate::{
-	components::{NetworkComponent, TransformComponent},
-	doom,
-};
-
 
 pub struct Server {
 	real_time: Instant,
-	session: ServerSession,
+	world: World,
 	should_quit: bool,
 }
 
 impl Server {
 	pub fn new() -> Result<Server, Box<dyn Error>> {
+		let mut world = World::new();
+		world.register::<TransformComponent>();
+
 		Ok(Server {
 			real_time: Instant::now(),
-			session: ServerSession::new("E1M1")?,
+			world,
 			should_quit: false,
 		})
 	}
@@ -36,29 +32,16 @@ impl Server {
 	pub fn quit(&mut self) {
 		self.should_quit = true;
 	}
-}
 
-struct ServerSession {
-	world: World,
-}
+	pub fn world(&mut self) -> &mut World {
+		&mut self.world
+	}
 
-impl ServerSession {
-	fn new(mapname: &str) -> Result<ServerSession, Box<dyn Error>> {
-		let mut world = World::new();
-		world.register::<NetworkComponent>();
-		world.register::<TransformComponent>();
-
+	pub fn new_map(&mut self, mapname: &str) -> Result<(), Box<dyn Error>> {
 		let mut loader = doom::wad::WadLoader::new();
 		loader.add("doom.wad")?;
 		loader.add("doom.gwa")?;
-		doom::map::spawn_map_entities(&mut world, mapname, &mut loader)?;
-
-		Ok(ServerSession {
-			world,
-		})
-	}
-
-	fn world(&mut self) -> &mut World {
-		&mut self.world
+		doom::map::spawn_map_entities(&mut self.world, mapname, &mut loader)?;
+		Ok(())
 	}
 }
