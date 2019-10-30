@@ -1,7 +1,7 @@
 use crate::{
-	client::vulkan::{self, Queues},
 	doom::{map, wad::WadLoader},
 	model::{BSPModel, VertexData},
+	vulkan::{self, Queues},
 };
 use nalgebra::{Matrix4, Point3, Vector3};
 use std::{error::Error, f32::consts::FRAC_PI_4, ops::Range, sync::Arc};

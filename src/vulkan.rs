@@ -1,7 +1,6 @@
 use std::{
 	cmp::{max, min},
 	error::Error,
-	ffi::CString,
 	sync::Arc,
 	u32,
 };
@@ -9,10 +8,9 @@ use vulkano::{
 	device::{Device, DeviceExtensions, Features, Queue},
 	format::Format,
 	image::{swapchain::SwapchainImage, AttachmentImage, ImageCreationError, ImageUsage},
-	instance::{Instance, PhysicalDevice, QueueFamily, RawInstanceExtensions},
+	instance::{Instance, PhysicalDevice, QueueFamily},
 	swapchain::{ColorSpace, CompositeAlpha, PresentMode, Surface, Swapchain},
 	sync::SharingMode,
-	VulkanObject,
 };
 use winit::window::Window;
 

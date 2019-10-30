@@ -10,7 +10,7 @@ extern crate specs_derive;
 #[macro_use]
 extern crate vulkano;
 
-mod client;
+mod audio;
 mod commands;
 mod components;
 mod configvars;
@@ -21,15 +21,25 @@ mod model;
 //mod net;
 //mod protocol;
 mod palette;
-mod server;
 mod sprite;
 mod stdin;
+mod video;
+mod vulkan;
 
-use crate::{client::Client, commands::CommandSender, logger::Logger, server::Server};
+use crate::{
+	audio::Audio, commands::CommandSender, components::TransformComponent, logger::Logger,
+	video::Video,
+};
+use specs::{World, WorldExt};
 use std::{
 	error::Error,
 	sync::mpsc::{self, Receiver},
 	time::{Duration, Instant},
+};
+use winit::{
+	event::{Event, WindowEvent},
+	event_loop::{ControlFlow, EventLoop},
+	platform::desktop::EventLoopExtDesktop,
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -41,11 +51,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 struct MainLoop {
-	client: Client,
+	audio: Audio,
 	command_receiver: Receiver<Vec<String>>,
+	command_sender: CommandSender,
+	event_loop: EventLoop<()>,
 	old_time: Instant,
-	server: Server,
 	should_quit: bool,
+	video: Video,
+	world: World,
 }
 
 impl MainLoop {
@@ -60,16 +73,51 @@ impl MainLoop {
 			}
 		};
 
-		let client = Client::new(command_sender.clone())?;
-		let mut server = Server::new()?;
-		server.new_map("E1M1")?;
+		let sdl = match sdl2::init() {
+			Ok(val) => val,
+			Err(err) => {
+				return Err(Box::from(format!("Could not initialise SDL: {}", err)));
+			}
+		};
+
+		let event_loop = EventLoop::new();
+		let video = match Video::init(&event_loop) {
+			Ok(val) => val,
+			Err(err) => {
+				return Err(Box::from(format!(
+					"Could not initialise video system: {}",
+					err
+				)));
+			}
+		};
+
+		let audio = match Audio::init() {
+			Ok(val) => val,
+			Err(err) => {
+				return Err(Box::from(format!(
+					"Could not initialise audio system: {}",
+					err
+				)));
+			}
+		};
+
+		let mut world = World::new();
+		world.register::<TransformComponent>();
+
+		let mut loader = doom::wad::WadLoader::new();
+		loader.add("doom.wad")?;
+		loader.add("doom.gwa")?;
+		doom::map::spawn_map_entities(&mut world, "E1M1", &mut loader)?;
 
 		Ok(MainLoop {
-			client,
+			audio,
 			command_receiver,
+			command_sender,
+			event_loop,
 			old_time: Instant::now(),
-			server,
 			should_quit: false,
+			video,
+			world,
 		})
 	}
 
@@ -105,7 +153,25 @@ impl MainLoop {
 			return;
 		}
 
-		self.server.frame(delta);
-		self.client.frame(delta, self.server.world());
+		let sender2 = self.command_sender.clone();
+		self.event_loop
+			.run_return(|event, _, control_flow| match event {
+				Event::WindowEvent {
+					event,
+					window_id: _,
+				} => match event {
+					WindowEvent::CloseRequested => {
+						sender2.send("quit");
+						*control_flow = ControlFlow::Exit;
+					}
+					_ => {}
+				},
+				Event::EventsCleared => {
+					*control_flow = ControlFlow::Exit;
+				}
+				_ => {}
+			});
+
+		self.video.draw_frame().unwrap();
 	}
 }
