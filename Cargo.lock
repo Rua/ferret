@@ -388,9 +388,9 @@ dependencies = [
 
 [[package]]
 name = "derivative"
-version = "1.0.2"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6073e9676dbebdddeabaeb63e3b7cefd23c86f5c41d381ee1237cc77b1079898"
+checksum = "942ca430eef7a3806595a6737bc388bf51adb888d3fc0dd1b50f1c170167ee3a"
 dependencies = [
  "proc-macro2 0.4.24",
  "quote 0.6.10",
@@ -440,6 +440,7 @@ dependencies = [
  "alto",
  "byteorder",
  "colored",
+ "derivative",
  "lazy_static 1.4.0",
  "log",
  "nalgebra",

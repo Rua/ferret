@@ -10,6 +10,7 @@ extern crate specs_derive;
 #[macro_use]
 extern crate vulkano;
 
+mod assets;
 mod audio;
 mod commands;
 mod components;
@@ -103,11 +104,10 @@ impl MainLoop {
 
 		let mut world = World::new();
 		world.register::<TransformComponent>();
-
 		let mut loader = doom::wad::WadLoader::new();
 		loader.add("doom.wad")?;
 		loader.add("doom.gwa")?;
-		doom::map::spawn_map_entities(&mut world, "E1M1", &mut loader)?;
+		world.insert(loader);
 
 		Ok(MainLoop {
 			audio,
@@ -121,7 +121,7 @@ impl MainLoop {
 		})
 	}
 
-	fn start(&mut self) {
+	fn start(&mut self) -> Result<(), Box<dyn Error>> {
 		self.old_time = Instant::now();
 
 		while !self.should_quit {
@@ -135,27 +135,17 @@ impl MainLoop {
 				delta.as_millis() < 1
 			} {}
 
-			self.frame(delta);
+			self.frame(delta)?;
 			self.old_time = new_time;
 		}
+
+		Ok(())
 	}
 
-	fn frame(&mut self, delta: Duration) {
-		// Execute console commands
-		while let Some(args) = self.command_receiver.try_iter().next() {
-			match args[0].as_str() {
-				"quit" => self.should_quit = true,
-				_ => debug!("Received invalid command: {}", args[0]),
-			}
-		}
-
-		if self.should_quit {
-			return;
-		}
-
+	fn frame(&mut self, delta: Duration) -> Result<(), Box<dyn Error>> {
 		let sender2 = self.command_sender.clone();
-		self.event_loop
-			.run_return(|event, _, control_flow| match event {
+		self.event_loop	.run_return(
+			|event, _, control_flow| match event {
 				Event::WindowEvent {
 					event,
 					window_id: _,
@@ -170,8 +160,24 @@ impl MainLoop {
 					*control_flow = ControlFlow::Exit;
 				}
 				_ => {}
-			});
+			}
+		);
+
+		// Execute console commands
+		while let Some(args) = self.command_receiver.try_iter().next() {
+			match args[0].as_str() {
+				"map" => doom::map::spawn_map_entities(&mut self.world, "E1M1")?,
+				"quit" => self.should_quit = true,
+				_ => debug!("Received invalid command: {}", args[0]),
+			}
+		}
+
+		if self.should_quit {
+			return Ok(());
+		}
 
 		self.video.draw_frame().unwrap();
+
+		Ok(())
 	}
 }

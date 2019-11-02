@@ -27,10 +27,12 @@ use std::{
 pub fn spawn_map_entities(
 	world: &mut World,
 	name: &str,
-	loader: &mut WadLoader,
 ) -> Result<(), Box<dyn Error>> {
-	let index = loader.index_for_name(name).unwrap();
-	let things = things::from_data(&mut loader.read_lump(index + things::OFFSET)?)?;
+	let things = {
+		let mut loader = world.fetch_mut::<WadLoader>();
+		let index = loader.index_for_name(name).unwrap();
+		things::from_data(&mut loader.read_lump(index + things::OFFSET)?)?
+	};
 
 	for thing in things {
 		println!("{:#?}", thing);

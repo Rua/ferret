@@ -1,4 +1,5 @@
 use crate::{
+	assets::DataSource,
 	doom::wad::WadLoader,
 	palette::Palette,
 	sprite::{Sprite, SpriteFrame, SpriteImage, SpriteOrientation, SpriteRotation},
@@ -14,7 +15,7 @@ use std::{
 	cmp::max,
 	collections::hash_map::HashMap,
 	error::Error,
-	io::{self, Read, Seek, SeekFrom},
+	io::{self, Cursor, Read, Seek, SeekFrom},
 	str,
 	vec::Vec,
 };
@@ -52,8 +53,7 @@ pub mod flat {
 		loader: &mut WadLoader,
 		palette: &Palette,
 	) -> Result<Surface<'static>, Box<dyn Error>> {
-		let index = loader.index_for_name(name).unwrap();
-		let mut data = loader.read_lump(index)?;
+		let mut data = Cursor::new(loader.load(name)?);
 		from_data(&mut data, palette)
 	}
 }
@@ -117,8 +117,7 @@ pub mod image {
 		loader: &mut WadLoader,
 		palette: &Palette,
 	) -> Result<SpriteImage, Box<dyn Error>> {
-		let index = loader.index_for_name(name).unwrap();
-		let mut data = loader.read_lump(index)?;
+		let mut data = Cursor::new(loader.load(name)?);
 		from_data(&mut data, palette)
 	}
 }
@@ -146,8 +145,7 @@ pub mod palette {
 	}
 
 	pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<Palette, Box<dyn Error>> {
-		let index = loader.index_for_name(name).unwrap();
-		let mut data = loader.read_lump(index)?;
+		let mut data = Cursor::new(loader.load(name)?);
 		Ok(from_data(&mut data)?)
 	}
 }
@@ -170,8 +168,7 @@ pub mod pnames {
 	}
 
 	pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<Vec<String>, Box<dyn Error>> {
-		let index = loader.index_for_name(name).unwrap();
-		let mut data = loader.read_lump(index)?;
+		let mut data = Cursor::new(loader.load(name)?);
 		from_data(&mut data)
 	}
 }
@@ -213,8 +210,7 @@ pub mod sound {
 	}
 
 	pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<DoomSound, Box<dyn Error>> {
-		let index = loader.index_for_name(name).unwrap();
-		let mut data = loader.read_lump(index)?;
+		let mut data = Cursor::new(loader.load(name)?);
 		from_data(&mut data)
 	}
 }
@@ -398,8 +394,7 @@ pub mod texture_info {
 		name: &str,
 		loader: &mut WadLoader,
 	) -> Result<HashMap<String, DoomTextureInfo>, Box<dyn Error>> {
-		let index = loader.index_for_name(name).unwrap();
-		let mut data = loader.read_lump(index)?;
+		let mut data = Cursor::new(loader.load(name)?);
 		from_data(&mut data)
 	}
 }

@@ -1,4 +1,5 @@
 use byteorder::{ReadBytesExt, LE};
+use crate::assets::DataSource;
 use std::{
 	collections::HashMap,
 	error::Error,
@@ -112,5 +113,24 @@ impl WadLoader {
 		// Reverse the list back when we're done
 		names.reverse();
 		names
+	}
+}
+
+impl DataSource for WadLoader {
+	fn load(&mut self, path: &str) -> Result<Vec<u8>, Box<dyn Error>> {
+		let number = self.index_for_name(path).ok_or(Box::from(format!("Lump \"{}\" not found", path)) as Box<dyn Error>)?;
+
+		let lump = &self.lumps[number];
+		let file = self
+			.files
+			.get_mut(&lump.file)
+			.expect("File referenced but not loaded");
+
+		// Read lump
+		let mut data = vec![0; lump.size as usize];
+		file.seek(SeekFrom::Start(lump.offset as u64))?;
+		file.read_exact(&mut data)?;
+
+		Ok(data)
 	}
 }
