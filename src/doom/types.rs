@@ -1,8 +1,8 @@
 use crate::{
-	assets::DataSource,
+	assets::{AssetFormat, DataSource},
 	doom::wad::WadLoader,
-	palette::Palette,
-	sprite::{Sprite, SpriteFrame, SpriteImage, SpriteOrientation, SpriteRotation},
+	renderer::palette::Palette,
+	renderer::sprite::{Sprite, SpriteFrame, SpriteImage, SpriteOrientation, SpriteRotation},
 };
 use byteorder::{ReadBytesExt, LE};
 use nalgebra::Vector2;
@@ -15,23 +15,49 @@ use std::{
 	cmp::max,
 	collections::hash_map::HashMap,
 	error::Error,
-	io::{self, Cursor, Read, Seek, SeekFrom},
+	io::{Cursor, Read, Seek, SeekFrom},
 	str,
 	vec::Vec,
 };
 
-pub mod flat {
-	use super::*;
+pub struct DoomPalette;
 
-	pub fn from_data<T: Read>(
-		data: &mut T,
-		palette: &Palette,
-	) -> Result<Surface<'static>, Box<dyn Error>> {
+impl AssetFormat for DoomPalette {
+	type Asset = Palette;
+
+	fn import(&self, name: &str, source: &mut impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(name)?);
+		let mut palette = [Color {
+			r: 0,
+			g: 0,
+			b: 0,
+			a: 0,
+		}; 256];
+
+		for i in 0..256 {
+			let r = data.read_u8()?;
+			let g = data.read_u8()?;
+			let b = data.read_u8()?;
+
+			palette[i] = Color::RGB(r, g, b);
+		}
+
+		Ok(Palette(palette))
+	}
+}
+
+pub struct DoomFlat;
+
+impl AssetFormat for DoomFlat {
+	type Asset = Surface<'static>;
+
+	fn import(&self, name: &str, source: &mut impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+		let palette = DoomPalette.import("PLAYPAL", source)?;
+		let mut data = Cursor::new(source.load(name)?);
 		let mut surface = Surface::new(64, 64, PixelFormatEnum::RGBA32)?;
-		let pitch = surface.pitch() as usize;
 
 		{
-			let mut pixels = surface.without_lock_mut().unwrap();
+			let pixels = surface.without_lock_mut().unwrap();
 			let mut flat_pixels = [0u8; 64 * 64];
 
 			data.read_exact(&mut flat_pixels)?;
@@ -47,24 +73,17 @@ pub mod flat {
 
 		Ok(surface)
 	}
-
-	pub fn from_wad(
-		name: &str,
-		loader: &mut WadLoader,
-		palette: &Palette,
-	) -> Result<Surface<'static>, Box<dyn Error>> {
-		let mut data = Cursor::new(loader.load(name)?);
-		from_data(&mut data, palette)
-	}
 }
 
-pub mod image {
-	use super::*;
+pub struct DoomImage;
 
-	pub fn from_data<T: Read + Seek>(
-		data: &mut T,
-		palette: &Palette,
-	) -> Result<SpriteImage, Box<dyn Error>> {
+impl AssetFormat for DoomImage {
+	type Asset = SpriteImage;
+
+	fn import(&self, name: &str, source: &mut impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+		let palette = DoomPalette.import("PLAYPAL", source)?;
+		let mut data = Cursor::new(source.load(name)?);
+
 		let size_x = data.read_u16::<LE>()? as u32;
 		let size_y = data.read_u16::<LE>()? as u32;
 		let offset_x = data.read_i16::<LE>()? as i32;
@@ -77,7 +96,7 @@ pub mod image {
 		let pitch = surface.pitch() as usize;
 
 		{
-			let mut pixels = surface.without_lock_mut().unwrap();
+			let pixels = surface.without_lock_mut().unwrap();
 
 			for col in 0..size_x as usize {
 				data.seek(SeekFrom::Start(column_offsets[col] as u64))?;
@@ -111,69 +130,30 @@ pub mod image {
 			Vector2::new(offset_x, offset_y),
 		))
 	}
-
-	pub fn from_wad(
-		name: &str,
-		loader: &mut WadLoader,
-		palette: &Palette,
-	) -> Result<SpriteImage, Box<dyn Error>> {
-		let mut data = Cursor::new(loader.load(name)?);
-		from_data(&mut data, palette)
-	}
 }
 
-pub mod palette {
-	use super::*;
+pub struct DoomPNames;
 
-	pub fn from_data<T: Read>(data: &mut T) -> Result<Palette, io::Error> {
-		let mut palette = [Color {
-			r: 0,
-			g: 0,
-			b: 0,
-			a: 0,
-		}; 256];
+impl AssetFormat for DoomPNames {
+	type Asset = Vec<String>;
 
-		for i in 0..256 {
-			let r = data.read_u8()?;
-			let g = data.read_u8()?;
-			let b = data.read_u8()?;
-
-			palette[i] = Color::RGB(r, g, b);
-		}
-
-		Ok(Palette(palette))
-	}
-
-	pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<Palette, Box<dyn Error>> {
-		let mut data = Cursor::new(loader.load(name)?);
-		Ok(from_data(&mut data)?)
-	}
-}
-
-pub mod pnames {
-	use super::*;
-
-	pub fn from_data<T: Read>(data: &mut T) -> Result<Vec<String>, Box<dyn Error>> {
+	fn import(&self, name: &str, source: &mut impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(name)?);
 		let count = data.read_u32::<LE>()? as usize;
 		let mut pnames = Vec::with_capacity(count);
 
-		for i in 0..count {
+		for _ in 0..count {
 			let mut name = [0u8; 8];
 			data.read_exact(&mut name)?;
-			let mut name = String::from(str::from_utf8(&name)?.trim_end_matches('\0'));
+			let name = String::from(str::from_utf8(&name)?.trim_end_matches('\0'));
 			pnames.push(name);
 		}
 
 		Ok(pnames)
 	}
-
-	pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<Vec<String>, Box<dyn Error>> {
-		let mut data = Cursor::new(loader.load(name)?);
-		from_data(&mut data)
-	}
 }
 
-pub mod sound {
+/*pub mod sound {
 	use super::*;
 
 	pub struct DoomSound {
@@ -213,32 +193,34 @@ pub mod sound {
 		let mut data = Cursor::new(loader.load(name)?);
 		from_data(&mut data)
 	}
-}
+}*/
 
-pub mod sprite {
-	use super::*;
+pub struct DoomSprite;
 
-	pub fn from_wad(
-		prefix: &str,
-		loader: &mut WadLoader,
-		palette: &Palette,
-	) -> Result<Sprite, Box<dyn Error>> {
-		let image_info = loader.find_with_prefix(prefix);
-		let mut images = Vec::with_capacity(image_info.len());
-		let mut name_indices = Vec::with_capacity(image_info.len());
+impl AssetFormat for DoomSprite {
+	type Asset = Sprite;
+
+	fn import(&self, name: &str, source: &mut impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut lumpnames = source.names()
+			.filter(|n| n.starts_with(name))
+			.map(str::to_owned)
+			.collect::<Vec<_>>();
+		lumpnames.sort_unstable();
+
+		let mut images = Vec::with_capacity(lumpnames.len());
+		let mut name_indices = Vec::with_capacity(lumpnames.len());
 		let mut max_size = Vector2::new(0, 0);
 
-		for (i, info) in image_info.iter().enumerate() {
-			assert!(info.0.starts_with(prefix) && (info.0.len() == 6 || info.0.len() == 8));
+		for (i, lump) in lumpnames.iter().enumerate() {
+			assert!(lump.starts_with(name) && (lump.len() == 6 || lump.len() == 8));
 
-			let mut data = loader.read_lump(info.1)?;
-			let image = super::image::from_data(&mut data, palette)?;
+			let image = DoomImage.import(lump, source)?;
 			let size = image.surface().size();
 			max_size[0] = max(size.0, max_size[0]);
 			max_size[1] = max(size.1, max_size[1]);
 
 			images.push(image);
-			name_indices.push((&info.0[4..], i));
+			name_indices.push((&lump[4..], i));
 		}
 
 		let mut slice = name_indices.as_slice();
@@ -290,15 +272,17 @@ pub mod sprite {
 	}
 }
 
-pub mod texture {
-	use super::*;
+pub struct DoomTexture;
 
-	pub fn from_wad(
-		texture_info: &texture_info::DoomTextureInfo,
-		loader: &mut WadLoader,
-		palette: &Palette,
-		pnames: &Vec<String>,
-	) -> Result<Surface<'static>, Box<dyn Error>> {
+impl AssetFormat for DoomTexture {
+	type Asset = Surface<'static>;
+
+	fn import(&self, name: &str, source: &mut impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+		let pnames = DoomPNames.import("PNAMES", source)?;
+		let mut texture_info = TextureInfoLump.import("TEXTURE1", source)?;
+		texture_info.extend(TextureInfoLump.import("TEXTURE2", source)?);
+		let texture_info = &texture_info[name];
+
 		let mut surface = Surface::new(
 			texture_info.size[0] as u32,
 			texture_info.size[1] as u32,
@@ -309,7 +293,7 @@ pub mod texture {
 			let name = &pnames[patch_info.index];
 
 			// Use to_surface because the offsets of patches are ignored anyway
-			let patch = image::from_wad(&name, loader, palette)?.to_surface();
+			let patch = DoomImage.import(&name, source)?.to_surface();
 			patch.blit(
 				None,
 				&mut surface,
@@ -326,22 +310,23 @@ pub mod texture {
 	}
 }
 
-pub mod texture_info {
-	use super::*;
+pub struct DoomPatchInfo {
+	pub offset: Vector2<i32>,
+	pub index: usize,
+}
 
-	pub struct DoomPatchInfo {
-		pub offset: Vector2<i32>,
-		pub index: usize,
-	}
+pub struct DoomTextureInfo {
+	pub size: Vector2<u32>,
+	pub patches: Vec<DoomPatchInfo>,
+}
 
-	pub struct DoomTextureInfo {
-		pub size: Vector2<u32>,
-		pub patches: Vec<DoomPatchInfo>,
-	}
+pub struct TextureInfoLump;
 
-	pub fn from_data<T: Read + Seek>(
-		data: &mut T,
-	) -> Result<HashMap<String, DoomTextureInfo>, Box<dyn Error>> {
+impl AssetFormat for TextureInfoLump {
+	type Asset = HashMap<String, DoomTextureInfo>;
+
+	fn import(&self, name: &str, source: &mut impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(name)?);
 		let mut texture_info = HashMap::new();
 
 		let count = data.read_u32::<LE>()? as usize;
@@ -353,7 +338,7 @@ pub mod texture_info {
 
 			let mut name = [0u8; 8];
 			data.read_exact(&mut name)?;
-			let mut name = String::from(str::from_utf8(&name)?.trim_end_matches('\0'));
+			let name = String::from(str::from_utf8(&name)?.trim_end_matches('\0'));
 
 			data.read_u32::<LE>()?; // unused bytes
 
@@ -388,13 +373,5 @@ pub mod texture_info {
 		}
 
 		Ok(texture_info)
-	}
-
-	pub fn from_wad(
-		name: &str,
-		loader: &mut WadLoader,
-	) -> Result<HashMap<String, DoomTextureInfo>, Box<dyn Error>> {
-		let mut data = Cursor::new(loader.load(name)?);
-		from_data(&mut data)
 	}
 }

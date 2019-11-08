@@ -1,6 +1,6 @@
 use crate::{
 	geometry::{BoundingBox3, Plane},
-	sprite::SpriteFrame,
+	renderer::sprite::SpriteFrame,
 };
 use nalgebra::Vector3;
 use sdl2::{pixels::PixelFormatEnum, surface::Surface};

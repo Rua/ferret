@@ -1,12 +1,13 @@
 use crate::{
+	assets::AssetFormat,
 	components::TransformComponent,
 	doom::{
 		entities::{DOOMEDNUMS, ENTITIES},
-		types::{flat, palette, pnames, texture, texture_info},
+		types::{DoomFlat, DoomTexture},
 		wad::WadLoader,
 	},
 	geometry::{BoundingBox2, BoundingBox3, Plane},
-	model::{BSPBranch, BSPLeaf, BSPModel, BSPNode, Face, Texture, VertexData},
+	renderer::model::{BSPBranch, BSPLeaf, BSPModel, BSPNode, Face, Texture, VertexData},
 };
 use byteorder::{ReadBytesExt, LE};
 use nalgebra::{Matrix, Vector2, Vector3};
@@ -36,10 +37,10 @@ pub fn spawn_map_entities(
 
 	for thing in things {
 		println!("{:#?}", thing);
-		let mut b = world.create_entity().with(TransformComponent {
+		let entity = world.create_entity().with(TransformComponent {
 			position: Vector3::new(thing.position[0], thing.position[1], 0.0),
 			rotation: Vector3::new(0.0, 0.0, thing.angle),
-		});
+		}).build();
 
 		let name = DOOMEDNUMS
 			.get(&thing.doomednum)
@@ -49,9 +50,8 @@ pub fn spawn_map_entities(
 		let spawn_function = ENTITIES
 			.get(name)
 			.ok_or(Box::from(format!("Entity not found: {}", name)) as Box<dyn Error>)?;
-		b = spawn_function(b);
 
-		b.build();
+		spawn_function(entity, world);
 	}
 
 	Ok(())
@@ -91,24 +91,19 @@ fn load_textures(
 	flat_names: HashSet<&str>,
 	loader: &mut WadLoader,
 ) -> Result<[HashMap<String, (Rc<RefCell<Texture>>, usize)>; 2], Box<dyn Error>> {
-	let palette = palette::from_wad("PLAYPAL", loader)?;
-	let pnames = pnames::from_wad("PNAMES", loader)?;
-	let mut texture_info = texture_info::from_wad("TEXTURE1", loader)?;
-	texture_info.extend(texture_info::from_wad("TEXTURE2", loader)?);
-
 	// Load all the surfaces, while storing name-index mapping
 	let mut surfaces = Vec::with_capacity(texture_names.len() + flat_names.len());
 	let mut texture_names_indices = HashMap::with_capacity(texture_names.len());
 	let mut flat_names_indices = HashMap::with_capacity(flat_names.len());
 
 	for name in texture_names {
-		let surface = texture::from_wad(&texture_info[name], loader, &palette, &pnames)?;
+		let surface = DoomTexture.import(name, loader)?;
 		texture_names_indices.insert(name, surfaces.len());
 		surfaces.push(surface);
 	}
 
 	for name in flat_names {
-		let surface = flat::from_wad(&name, loader, &palette)?;
+		let surface = DoomFlat.import(name, loader)?;
 		flat_names_indices.insert(name, surfaces.len());
 		surfaces.push(surface);
 	}
@@ -134,7 +129,7 @@ fn generate_lightmaps() -> Result<Vec<Rc<RefCell<Texture>>>, Box<dyn Error>> {
 
 	for i in 0..=15 {
 		let mut surface = Surface::new(1, 1, PixelFormatEnum::RGBA32)?;
-		let mut pixels = surface.without_lock_mut().unwrap();
+		let pixels = surface.without_lock_mut().unwrap();
 		pixels[0] = i * 16;
 		pixels[1] = i * 16;
 		pixels[2] = i * 16;

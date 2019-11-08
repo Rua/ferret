@@ -18,18 +18,17 @@ mod configvars;
 mod doom;
 mod geometry;
 mod logger;
-mod model;
+mod renderer;
 //mod net;
 //mod protocol;
-mod palette;
-mod sprite;
 mod stdin;
-mod video;
-mod vulkan;
 
 use crate::{
-	audio::Audio, commands::CommandSender, components::TransformComponent, logger::Logger,
-	video::Video,
+	audio::Audio,
+	commands::CommandSender,
+	components::TransformComponent,
+	logger::Logger,
+	renderer::video::Video,
 };
 use specs::{World, WorldExt};
 use std::{
@@ -46,7 +45,7 @@ use winit::{
 fn main() -> Result<(), Box<dyn Error>> {
 	Logger::init().unwrap();
 	let mut main_loop = MainLoop::new()?;
-	main_loop.start();
+	main_loop.start()?;
 
 	Ok(())
 }
@@ -104,6 +103,8 @@ impl MainLoop {
 
 		let mut world = World::new();
 		world.register::<TransformComponent>();
+
+
 		let mut loader = doom::wad::WadLoader::new();
 		loader.add("doom.wad")?;
 		loader.add("doom.gwa")?;

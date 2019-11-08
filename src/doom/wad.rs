@@ -97,23 +97,6 @@ impl WadLoader {
 
 		None
 	}
-
-	pub fn find_with_prefix(&self, prefix: &str) -> Vec<(String, usize)> {
-		let mut names = Vec::new();
-
-		// Iterate in reverse, so that lumps added later are used first
-		for (i, ref lump) in self.lumps.iter().enumerate().rev() {
-			if lump.name.starts_with(prefix)
-				&& !names.iter().any(|n: &(String, usize)| n.0 == lump.name)
-			{
-				names.push((lump.name.clone(), i));
-			}
-		}
-
-		// Reverse the list back when we're done
-		names.reverse();
-		names
-	}
 }
 
 impl DataSource for WadLoader {
@@ -132,5 +115,9 @@ impl DataSource for WadLoader {
 		file.read_exact(&mut data)?;
 
 		Ok(data)
+	}
+
+	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a> {
+		Box::from(self.files.keys().map(String::as_str))
 	}
 }

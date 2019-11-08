@@ -10,7 +10,13 @@ use std::{
 };
 
 #[derive(Derivative)]
-#[derivative(Clone(bound=""))]
+#[derivative(
+    Clone(bound = ""),
+    Eq(bound = ""),
+    Hash(bound = ""),
+    PartialEq(bound = ""),
+    Debug(bound = "")
+)]
 pub struct AssetHandle<A: ?Sized> {
     id: Arc<u32>,
     marker: PhantomData<A>,
@@ -106,4 +112,11 @@ impl<A> AssetStorage<A> {
 
 pub trait DataSource {
     fn load(&mut self, path: &str) -> Result<Vec<u8>, Box<dyn Error>>;
+    fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a>;
+}
+
+pub trait AssetFormat {
+    type Asset;
+
+    fn import(&self, name: &str, source: &mut impl DataSource) -> Result<Self::Asset, Box<dyn Error>>;
 }
