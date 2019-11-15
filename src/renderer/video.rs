@@ -245,22 +245,25 @@ impl Video {
 		.begin_render_pass(framebuffer.clone(), false, clear_value)?;
 
 		for face in self.map.faces() {
-			let texture = face.texture.borrow().image().unwrap();
-			let lightmap = face.lightmap.borrow().image().unwrap();
+			let texture = face.texture.borrow();
+			let texture = texture.texture().unwrap();
+			let lightmap = face.lightmap.borrow();
+			let lightmap = lightmap.texture().unwrap();
 
 			let descriptor_set = self
 				.descriptor_sets_pool
 				.next()
 				.add_buffer(self.uniform_buffer.clone())?
-				.add_sampled_image(texture, self.sampler.clone())?
-				.add_sampled_image(lightmap, self.sampler.clone())?
+				.add_sampled_image(texture.inner.clone(), self.sampler.clone())?
+				.add_sampled_image(lightmap.inner.clone(), self.sampler.clone())?
 				.build()?;
 
-			let buffer = self.map.buffer().unwrap();
-			let slice = BufferSlice::from_typed_buffer_access(buffer.clone());
+			let mesh = self.map.mesh().unwrap();
+			let slice = BufferSlice::from_typed_buffer_access(mesh.inner.clone());
 			let range = Range {
-				start: face.first_vertex_index,
-				end: face.first_vertex_index + face.vertex_count,
+				start: face.first_vertex_index * std::mem::size_of::<VertexData>(),
+				end: (face.first_vertex_index + face.vertex_count)
+					* std::mem::size_of::<VertexData>(),
 			};
 			let slice2 = slice.slice(range).unwrap();
 

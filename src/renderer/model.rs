@@ -1,20 +1,20 @@
 use crate::{
 	geometry::{BoundingBox3, Plane},
-	renderer::sprite::SpriteFrame,
+	renderer::mesh::{Mesh, MeshBuilder},
+	renderer::texture::{Texture, TextureBuilder},
 };
 use nalgebra::Vector3;
 use sdl2::{pixels::PixelFormatEnum, surface::Surface};
 use std::{cell::RefCell, error::Error, rc::Rc, sync::Arc};
 use vulkano::{
-	buffer::{cpu_access::CpuAccessibleBuffer, BufferUsage, ImmutableBuffer},
 	device::Queue,
 	format::Format,
-	image::{sys::ImageCreationError, Dimensions, ImmutableImage},
+	image::{sys::ImageCreationError, Dimensions, ImageViewAccess},
 	sync::{self, GpuFuture},
 };
 
 pub struct BSPModel {
-	vertices: DataOrBuffer,
+	mesh: DataOrMesh,
 	faces: Vec<Face>,
 	leaves: Vec<BSPLeaf>,
 	branches: Vec<BSPBranch>,
@@ -28,7 +28,7 @@ impl BSPModel {
 		branches: Vec<BSPBranch>,
 	) -> BSPModel {
 		BSPModel {
-			vertices: DataOrBuffer::Data(vertices),
+			mesh: DataOrMesh::Data(vertices),
 			faces,
 			leaves,
 			branches,
@@ -41,24 +41,20 @@ impl BSPModel {
 			face.lightmap.borrow_mut().upload(queue)?;
 		}
 
-		match &self.vertices {
-			DataOrBuffer::Data(data) => {
-				let (buffer, future) = ImmutableBuffer::from_iter(
-					data.iter().cloned(),
-					BufferUsage::vertex_buffer(),
-					queue.clone(),
-				)?;
+		match &self.mesh {
+			DataOrMesh::Data(data) => {
+				let (mesh, future) = MeshBuilder::new().with_data(data.clone()).build(queue)?;
 
-				self.vertices = DataOrBuffer::Buffer(buffer);
+				self.mesh = DataOrMesh::Mesh(mesh);
 				Ok(Box::from(future))
 			}
-			DataOrBuffer::Buffer(buffer) => Ok(Box::from(sync::now(queue.device().clone()))),
+			DataOrMesh::Mesh(_) => Ok(Box::from(sync::now(queue.device().clone()))),
 		}
 	}
 
-	pub fn buffer(&self) -> Option<Arc<ImmutableBuffer<[VertexData]>>> {
-		if let DataOrBuffer::Buffer(buffer) = &self.vertices {
-			Some(buffer.clone())
+	pub fn mesh(&self) -> Option<&Mesh> {
+		if let DataOrMesh::Mesh(mesh) = &self.mesh {
+			Some(mesh)
 		} else {
 			None
 		}
@@ -80,8 +76,8 @@ impl_vertex!(VertexData, in_position, in_texture_coord, in_lightmap_coord);
 pub struct Face {
 	pub first_vertex_index: usize,
 	pub vertex_count: usize,
-	pub texture: Rc<RefCell<Texture>>,
-	pub lightmap: Rc<RefCell<Texture>>,
+	pub texture: Rc<RefCell<OldTexture>>,
+	pub lightmap: Rc<RefCell<OldTexture>>,
 }
 
 #[derive(Debug, Clone)]
@@ -104,20 +100,12 @@ pub enum BSPNode {
 	Branch(usize),
 }
 
-pub struct SpriteModel {
-	frames: Vec<SpriteFrame>,
-	//orientation: SpriteOrientation,
-	// bounding_box
+pub struct OldTexture {
+	texture: DataOrTexture,
 }
 
-impl SpriteModel {}
-
-pub struct Texture {
-	image: DataOrImage,
-}
-
-impl Texture {
-	pub fn new(surfaces: Vec<Surface<'static>>) -> Texture {
+impl OldTexture {
+	pub fn new(surfaces: Vec<Surface<'static>>) -> OldTexture {
 		assert!(!surfaces.is_empty());
 		let size = surfaces[0].size();
 		let pixel_format = surfaces[0].pixel_format_enum();
@@ -130,47 +118,35 @@ impl Texture {
 			assert_eq!(surface.pixel_format_enum(), pixel_format);
 		}
 
-		Texture {
-			image: DataOrImage::Data(surfaces),
+		OldTexture {
+			texture: DataOrTexture::Data(surfaces),
 		}
 	}
 
 	pub fn size(&self) -> Vector3<u32> {
-		match &self.image {
-			DataOrImage::Data(surfaces) => Vector3::new(
+		match &self.texture {
+			DataOrTexture::Data(surfaces) => Vector3::new(
 				surfaces[0].width(),
 				surfaces[0].height(),
 				surfaces.len() as u32,
 			),
-			DataOrImage::Image(image) => Vector3::new(
-				image.dimensions().width(),
-				image.dimensions().height(),
-				image.dimensions().array_layers(),
+			DataOrTexture::Texture(image) => Vector3::new(
+				image.inner.dimensions().width(),
+				image.inner.dimensions().height(),
+				image.inner.dimensions().array_layers(),
 			),
 		}
 	}
 
 	pub fn upload(&mut self, queue: &Arc<Queue>) -> Result<Box<dyn GpuFuture>, ImageCreationError> {
-		match &self.image {
-			DataOrImage::Data(surfaces) => {
-				// Create staging buffer
+		match &self.texture {
+			DataOrTexture::Data(surfaces) => {
 				let layer_size = surfaces[0].without_lock().unwrap().len();
-
-				let buffer = unsafe {
-					CpuAccessibleBuffer::uninitialized_array(
-						queue.device().clone(),
-						layer_size * surfaces.len(),
-						BufferUsage::transfer_source(),
-					)
-				}?;
+				let mut data = vec![0u8; layer_size * surfaces.len()];
 
 				// Copy all the layers into the buffer
-				{
-					let slice = &mut *buffer.write().unwrap();
-
-					for (chunk, surface) in slice.chunks_exact_mut(layer_size).zip(surfaces) {
-						chunk.copy_from_slice(surface.without_lock().unwrap());
-					}
+				for (chunk, surface) in data.chunks_exact_mut(layer_size).zip(surfaces) {
+					chunk.copy_from_slice(surface.without_lock().unwrap());
 				}
 
 				// Find the corresponding Vulkan pixel format
@@ -183,39 +159,37 @@ impl Texture {
 				};
 
 				// Create the image
-				let (image, future) = ImmutableImage::from_buffer(
-					buffer,
-					Dimensions::Dim2dArray {
+				let (texture, future) = TextureBuilder::new()
+					.with_data(data, format)
+					.with_dimensions(Dimensions::Dim2dArray {
 						width: surfaces[0].width(),
 						height: surfaces[0].height(),
 						array_layers: surfaces.len() as u32,
-					},
-					format,
-					queue.clone(),
-				)?;
+					})
+					.build(queue)?;
 
-				self.image = DataOrImage::Image(image);
+				self.texture = DataOrTexture::Texture(texture);
 				Ok(Box::from(future))
 			}
-			DataOrImage::Image(image) => Ok(Box::from(sync::now(queue.device().clone()))),
+			DataOrTexture::Texture(_) => Ok(Box::from(sync::now(queue.device().clone()))),
 		}
 	}
 
-	pub fn image(&self) -> Option<Arc<ImmutableImage<Format>>> {
-		if let DataOrImage::Image(image) = &self.image {
-			Some(image.clone())
+	pub fn texture(&self) -> Option<&Texture> {
+		if let DataOrTexture::Texture(texture) = &self.texture {
+			Some(texture)
 		} else {
 			None
 		}
 	}
 }
 
-enum DataOrBuffer {
+enum DataOrMesh {
 	Data(Vec<VertexData>),
-	Buffer(Arc<ImmutableBuffer<[VertexData]>>),
+	Mesh(Mesh),
 }
 
-enum DataOrImage {
+enum DataOrTexture {
 	Data(Vec<Surface<'static>>),
-	Image(Arc<ImmutableImage<Format>>),
+	Texture(Texture),
 }

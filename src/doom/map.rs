@@ -7,7 +7,7 @@ use crate::{
 		wad::WadLoader,
 	},
 	geometry::{BoundingBox2, BoundingBox3, Plane},
-	renderer::model::{BSPBranch, BSPLeaf, BSPModel, BSPNode, Face, Texture, VertexData},
+	renderer::model::{BSPBranch, BSPLeaf, BSPModel, BSPNode, Face, OldTexture, VertexData},
 };
 use byteorder::{ReadBytesExt, LE};
 use nalgebra::{Matrix, Vector2, Vector3};
@@ -25,10 +25,7 @@ use std::{
 	str,
 };
 
-pub fn spawn_map_entities(
-	world: &mut World,
-	name: &str,
-) -> Result<(), Box<dyn Error>> {
+pub fn spawn_map_entities(world: &mut World, name: &str) -> Result<(), Box<dyn Error>> {
 	let things = {
 		let mut loader = world.fetch_mut::<WadLoader>();
 		let index = loader.index_for_name(name).unwrap();
@@ -37,10 +34,13 @@ pub fn spawn_map_entities(
 
 	for thing in things {
 		println!("{:#?}", thing);
-		let entity = world.create_entity().with(TransformComponent {
-			position: Vector3::new(thing.position[0], thing.position[1], 0.0),
-			rotation: Vector3::new(0.0, 0.0, thing.angle),
-		}).build();
+		let entity = world
+			.create_entity()
+			.with(TransformComponent {
+				position: Vector3::new(thing.position[0], thing.position[1], 0.0),
+				rotation: Vector3::new(0.0, 0.0, thing.angle),
+			})
+			.build();
 
 		let name = DOOMEDNUMS
 			.get(&thing.doomednum)
@@ -57,7 +57,7 @@ pub fn spawn_map_entities(
 	Ok(())
 }
 
-fn group_by_size(surfaces: Vec<Surface<'static>>) -> Vec<(Rc<RefCell<Texture>>, usize)> {
+fn group_by_size(surfaces: Vec<Surface<'static>>) -> Vec<(Rc<RefCell<OldTexture>>, usize)> {
 	// Group surfaces by size in a HashMap, while keeping track of which goes where
 	let mut surfaces_by_size: HashMap<[u32; 2], Vec<Surface<'static>>> = HashMap::new();
 	let mut sizes_and_layers: Vec<([u32; 2], usize)> = Vec::with_capacity(surfaces.len());
@@ -74,9 +74,9 @@ fn group_by_size(surfaces: Vec<Surface<'static>>) -> Vec<(Rc<RefCell<Texture>>, 
 	}
 
 	// Turn the grouped surfaces into textures
-	let textures_by_size: HashMap<[u32; 2], Rc<RefCell<Texture>>> = surfaces_by_size
+	let textures_by_size: HashMap<[u32; 2], Rc<RefCell<OldTexture>>> = surfaces_by_size
 		.into_iter()
-		.map(|entry| (entry.0, Rc::new(RefCell::new(Texture::new(entry.1)))))
+		.map(|entry| (entry.0, Rc::new(RefCell::new(OldTexture::new(entry.1)))))
 		.collect();
 
 	// Now create the final Vec and return
@@ -90,7 +90,7 @@ fn load_textures(
 	texture_names: HashSet<&str>,
 	flat_names: HashSet<&str>,
 	loader: &mut WadLoader,
-) -> Result<[HashMap<String, (Rc<RefCell<Texture>>, usize)>; 2], Box<dyn Error>> {
+) -> Result<[HashMap<String, (Rc<RefCell<OldTexture>>, usize)>; 2], Box<dyn Error>> {
 	// Load all the surfaces, while storing name-index mapping
 	let mut surfaces = Vec::with_capacity(texture_names.len() + flat_names.len());
 	let mut texture_names_indices = HashMap::with_capacity(texture_names.len());
@@ -124,7 +124,7 @@ fn load_textures(
 	])
 }
 
-fn generate_lightmaps() -> Result<Vec<Rc<RefCell<Texture>>>, Box<dyn Error>> {
+fn generate_lightmaps() -> Result<Vec<Rc<RefCell<OldTexture>>>, Box<dyn Error>> {
 	let mut surfaces = Vec::new();
 
 	for i in 0..=15 {
@@ -137,7 +137,7 @@ fn generate_lightmaps() -> Result<Vec<Rc<RefCell<Texture>>>, Box<dyn Error>> {
 		surfaces.push(surface);
 	}
 
-	Ok(vec![Rc::new(RefCell::new(Texture::new(surfaces))); 16])
+	Ok(vec![Rc::new(RefCell::new(OldTexture::new(surfaces))); 16])
 }
 
 pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn Error>> {

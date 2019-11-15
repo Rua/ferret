@@ -1,7 +1,4 @@
-use crate::{
-	assets::AssetHandle,
-	renderer::sprite::Sprite,
-};
+use crate::assets::AssetHandle;
 use nalgebra::Vector3;
 use specs::{Component, VecStorage};
 

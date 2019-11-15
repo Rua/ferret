@@ -1,4 +1,5 @@
-mod entities;
-pub(crate) mod map;
-mod types;
-pub(crate) mod wad;
+pub mod entities;
+pub mod map;
+pub mod sprite;
+pub mod types;
+pub mod wad;

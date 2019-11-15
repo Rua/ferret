@@ -24,10 +24,7 @@ mod renderer;
 mod stdin;
 
 use crate::{
-	audio::Audio,
-	commands::CommandSender,
-	components::TransformComponent,
-	logger::Logger,
+	audio::Audio, commands::CommandSender, components::TransformComponent, logger::Logger,
 	renderer::video::Video,
 };
 use specs::{World, WorldExt};
@@ -104,7 +101,6 @@ impl MainLoop {
 		let mut world = World::new();
 		world.register::<TransformComponent>();
 
-
 		let mut loader = doom::wad::WadLoader::new();
 		loader.add("doom.wad")?;
 		loader.add("doom.gwa")?;
@@ -145,8 +141,8 @@ impl MainLoop {
 
 	fn frame(&mut self, delta: Duration) -> Result<(), Box<dyn Error>> {
 		let sender2 = self.command_sender.clone();
-		self.event_loop	.run_return(
-			|event, _, control_flow| match event {
+		self.event_loop
+			.run_return(|event, _, control_flow| match event {
 				Event::WindowEvent {
 					event,
 					window_id: _,
@@ -161,8 +157,7 @@ impl MainLoop {
 					*control_flow = ControlFlow::Exit;
 				}
 				_ => {}
-			}
-		);
+			});
 
 		// Execute console commands
 		while let Some(args) = self.command_receiver.try_iter().next() {

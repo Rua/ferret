@@ -1,5 +1,5 @@
-use byteorder::{ReadBytesExt, LE};
 use crate::assets::DataSource;
+use byteorder::{ReadBytesExt, LE};
 use std::{
 	collections::HashMap,
 	error::Error,
@@ -101,7 +101,9 @@ impl WadLoader {
 
 impl DataSource for WadLoader {
 	fn load(&mut self, path: &str) -> Result<Vec<u8>, Box<dyn Error>> {
-		let number = self.index_for_name(path).ok_or(Box::from(format!("Lump \"{}\" not found", path)) as Box<dyn Error>)?;
+		let number = self
+			.index_for_name(path)
+			.ok_or(Box::from(format!("Lump \"{}\" not found", path)) as Box<dyn Error>)?;
 
 		let lump = &self.lumps[number];
 		let file = self
