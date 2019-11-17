@@ -17,6 +17,7 @@ mod components;
 mod configvars;
 mod doom;
 mod geometry;
+mod input;
 mod logger;
 mod renderer;
 //mod net;
@@ -24,131 +25,142 @@ mod renderer;
 mod stdin;
 
 use crate::{
-	audio::Audio, commands::CommandSender, components::TransformComponent, logger::Logger,
+	audio::Audio,
+	commands::CommandSender,
+	components::TransformComponent,
+	input::{Axis, Bindings, Button, InputState, MouseAxis},
+	logger::Logger,
 	renderer::video::Video,
 };
 use specs::{World, WorldExt};
-use std::{
-	error::Error,
-	sync::mpsc::{self, Receiver},
-	time::{Duration, Instant},
-};
+use std::{error::Error, sync::mpsc, time::Instant};
 use winit::{
-	event::{Event, WindowEvent},
+	event::{Event, MouseButton, VirtualKeyCode, WindowEvent},
 	event_loop::{ControlFlow, EventLoop},
 	platform::desktop::EventLoopExtDesktop,
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
 	Logger::init().unwrap();
-	let mut main_loop = MainLoop::new()?;
-	main_loop.start()?;
 
-	Ok(())
-}
+	let (command_sender, command_receiver) = mpsc::channel();
+	let command_sender = CommandSender::new(command_sender);
 
-struct MainLoop {
-	audio: Audio,
-	command_receiver: Receiver<Vec<String>>,
-	command_sender: CommandSender,
-	event_loop: EventLoop<()>,
-	old_time: Instant,
-	should_quit: bool,
-	video: Video,
-	world: World,
-}
+	match stdin::spawn(command_sender.clone()) {
+		Ok(_) => (),
+		Err(err) => {
+			return Err(Box::from(format!("Could not start stdin thread: {}", err)));
+		}
+	};
 
-impl MainLoop {
-	fn new() -> Result<MainLoop, Box<dyn Error>> {
-		let (command_sender, command_receiver) = mpsc::channel();
-		let command_sender = CommandSender::new(command_sender);
+	let _sdl = match sdl2::init() {
+		Ok(val) => val,
+		Err(err) => {
+			return Err(Box::from(format!("Could not initialise SDL: {}", err)));
+		}
+	};
 
-		match stdin::spawn(command_sender.clone()) {
-			Ok(_) => (),
-			Err(err) => {
-				return Err(Box::from(format!("Could not start stdin thread: {}", err)));
-			}
-		};
+	let mut event_loop = EventLoop::new();
+	let mut video = match Video::init(&event_loop) {
+		Ok(val) => val,
+		Err(err) => {
+			return Err(Box::from(format!(
+				"Could not initialise video system: {}",
+				err
+			)));
+		}
+	};
 
-		let sdl = match sdl2::init() {
-			Ok(val) => val,
-			Err(err) => {
-				return Err(Box::from(format!("Could not initialise SDL: {}", err)));
-			}
-		};
+	let mut world = World::new();
+	world.register::<TransformComponent>();
 
-		let event_loop = EventLoop::new();
-		let video = match Video::init(&event_loop) {
-			Ok(val) => val,
-			Err(err) => {
-				return Err(Box::from(format!(
-					"Could not initialise video system: {}",
-					err
-				)));
-			}
-		};
+	let audio = match Audio::init() {
+		Ok(val) => val,
+		Err(err) => {
+			return Err(Box::from(format!(
+				"Could not initialise audio system: {}",
+				err
+			)));
+		}
+	};
+	world.insert(audio);
 
-		let audio = match Audio::init() {
-			Ok(val) => val,
-			Err(err) => {
-				return Err(Box::from(format!(
-					"Could not initialise audio system: {}",
-					err
-				)));
-			}
-		};
+	let mut loader = doom::wad::WadLoader::new();
+	loader.add("doom.wad")?;
+	loader.add("doom.gwa")?;
+	world.insert(loader);
 
-		let mut world = World::new();
-		world.register::<TransformComponent>();
+	let input_state = InputState::new();
+	world.insert(input_state);
 
-		let mut loader = doom::wad::WadLoader::new();
-		loader.add("doom.wad")?;
-		loader.add("doom.gwa")?;
-		world.insert(loader);
+	let mut bindings = Bindings::new();
+	bindings.bind_action(
+		doom::input::Action::Attack,
+		Button::Mouse(MouseButton::Left),
+	);
+	bindings.bind_action(doom::input::Action::Use, Button::Key(VirtualKeyCode::Space));
+	bindings.bind_action(doom::input::Action::Use, Button::Mouse(MouseButton::Middle));
+	bindings.bind_axis(
+		doom::input::Axis::Forward,
+		Axis::Emulated {
+			pos: Button::Key(VirtualKeyCode::W),
+			neg: Button::Key(VirtualKeyCode::S),
+		},
+	);
+	bindings.bind_axis(
+		doom::input::Axis::Strafe,
+		Axis::Emulated {
+			pos: Button::Key(VirtualKeyCode::A),
+			neg: Button::Key(VirtualKeyCode::D),
+		},
+	);
+	bindings.bind_axis(
+		doom::input::Axis::Yaw,
+		Axis::Mouse {
+			axis: MouseAxis::X,
+			scale: 1.0,
+		},
+	);
+	bindings.bind_axis(
+		doom::input::Axis::Pitch,
+		Axis::Mouse {
+			axis: MouseAxis::Y,
+			scale: 1.0,
+		},
+	);
+	//println!("{}", serde_json::to_string(&bindings)?);
+	world.insert(bindings);
 
-		Ok(MainLoop {
-			audio,
-			command_receiver,
-			command_sender,
-			event_loop,
-			old_time: Instant::now(),
-			should_quit: false,
-			video,
-			world,
-		})
-	}
+	let mut should_quit = false;
+	let mut old_time = Instant::now();
 
-	fn start(&mut self) -> Result<(), Box<dyn Error>> {
-		self.old_time = Instant::now();
+	while !should_quit {
+		let mut delta;
+		let mut new_time;
 
-		while !self.should_quit {
-			let mut delta;
-			let mut new_time;
+		// Busy-loop until there is at least a millisecond of delta
+		while {
+			new_time = Instant::now();
+			delta = new_time - old_time;
+			delta.as_millis() < 1
+		} {}
 
-			// Busy-loop until there is at least a millisecond of delta
-			while {
-				new_time = Instant::now();
-				delta = new_time - self.old_time;
-				delta.as_millis() < 1
-			} {}
+		old_time = new_time;
 
-			self.frame(delta)?;
-			self.old_time = new_time;
+		// Process events from the system
+		{
+			let mut input_state = world.fetch_mut::<InputState>();
+			input_state.reset();
 		}
 
-		Ok(())
-	}
+		event_loop.run_return(|event, _, control_flow| {
+			let mut input_state = world.fetch_mut::<InputState>();
+			input_state.process_event(&event);
 
-	fn frame(&mut self, delta: Duration) -> Result<(), Box<dyn Error>> {
-		let sender2 = self.command_sender.clone();
-		self.event_loop
-			.run_return(|event, _, control_flow| match event {
-				Event::WindowEvent {
-					event,
-					window_id: _,
-				} => match event {
+			match event {
+				Event::WindowEvent { event, .. } => match event {
 					WindowEvent::CloseRequested => {
-						sender2.send("quit");
+						command_sender.send("quit");
 						*control_flow = ControlFlow::Exit;
 					}
 					_ => {}
@@ -157,23 +169,24 @@ impl MainLoop {
 					*control_flow = ControlFlow::Exit;
 				}
 				_ => {}
-			});
+			}
+		});
 
 		// Execute console commands
-		while let Some(args) = self.command_receiver.try_iter().next() {
+		while let Some(args) = command_receiver.try_iter().next() {
 			match args[0].as_str() {
-				"map" => doom::map::spawn_map_entities(&mut self.world, "E1M1")?,
-				"quit" => self.should_quit = true,
+				"map" => doom::map::spawn_map_entities(&mut world, "E1M1")?,
+				"quit" => should_quit = true,
 				_ => debug!("Received invalid command: {}", args[0]),
 			}
 		}
 
-		if self.should_quit {
+		if should_quit {
 			return Ok(());
 		}
 
-		self.video.draw_frame().unwrap();
-
-		Ok(())
+		video.draw_frame().unwrap();
 	}
+
+	Ok(())
 }

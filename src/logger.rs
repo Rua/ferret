@@ -34,7 +34,7 @@ impl Log for Logger {
 					println!("{}: {}", "DEBUG".bright_cyan(), record.args());
 				}
 				Level::Trace => {
-					println!("{}", record.args());
+					println!("{}: {}", "TRACE".bright_cyan(), record.args());
 				}
 			}
 		}
