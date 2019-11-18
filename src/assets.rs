@@ -105,6 +105,7 @@ impl<A> AssetStorage<A> {
 			self.highest_id
 		});
 
+		self.assets.insert(id, asset);
 		let handle = AssetHandle {
 			id: Arc::new(id),
 			marker: PhantomData,

@@ -3,7 +3,7 @@ use sdl2::mixer;
 use std::error::Error;
 
 pub struct Audio {
-	al_context: Context,
+	_al_context: Context,
 }
 
 impl Audio {
@@ -22,7 +22,7 @@ impl Audio {
 		mixer::open_audio(44100, mixer::AUDIO_S16SYS, 2, 1024)?;
 
 		Ok(Audio {
-			al_context: al_context,
+			_al_context: al_context,
 		})
 	}
 }

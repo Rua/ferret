@@ -16,8 +16,8 @@ use vulkano::{
 pub struct BSPModel {
 	mesh: DataOrMesh,
 	faces: Vec<Face>,
-	leaves: Vec<BSPLeaf>,
-	branches: Vec<BSPBranch>,
+	_leaves: Vec<BSPLeaf>,
+	_branches: Vec<BSPBranch>,
 }
 
 impl BSPModel {
@@ -30,8 +30,8 @@ impl BSPModel {
 		BSPModel {
 			mesh: DataOrMesh::Data(vertices),
 			faces,
-			leaves,
-			branches,
+			_leaves: leaves,
+			_branches: branches,
 		}
 	}
 

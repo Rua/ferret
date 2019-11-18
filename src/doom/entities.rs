@@ -1,3 +1,4 @@
+#![allow(unused_variables)]
 use specs::{Entity, World};
 use std::collections::HashMap;
 

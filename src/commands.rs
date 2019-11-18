@@ -1,6 +1,6 @@
 use regex::{Captures, Regex};
 use std::{
-	borrow::Cow, collections::hash_map::HashMap, error::Error, string::String, sync::mpsc::Sender,
+	/*borrow::Cow, collections::hash_map::HashMap, */error::Error, string::String, sync::mpsc::Sender,
 };
 
 #[derive(Clone)]
@@ -20,7 +20,7 @@ impl CommandSender {
 	}
 }
 
-pub struct CommandList<T> {
+/*pub struct CommandList<T> {
 	commands: HashMap<String, Command<T>>,
 }
 
@@ -75,7 +75,7 @@ impl<T> Command<T> {
 	pub fn call(&self, system: &mut T, args: Vec<String>) {
 		(self.func)(system, args);
 	}
-}
+}*/
 
 pub fn tokenize(mut text: &str) -> Result<Vec<String>, Box<dyn Error>> {
 	lazy_static! {
@@ -151,7 +151,7 @@ pub fn tokenize(mut text: &str) -> Result<Vec<String>, Box<dyn Error>> {
 	Ok(tokens)
 }
 
-pub fn quote_escape(text: &str) -> Cow<'_, str> {
+/*pub fn quote_escape(text: &str) -> Cow<'_, str> {
 	lazy_static! {
 		// As above, but anchored to end of string as well
 		static ref RE_UNQUOTED : Regex = Regex::new(r#"^[+-]?[.0-9A-Za-z_]+$"#).unwrap();
@@ -166,7 +166,4 @@ pub fn quote_escape(text: &str) -> Cow<'_, str> {
 		Cow::from(format!("\"{}\"", RE_ESCAPE.replace_all(text, "\\$0")))
 	}
 }
-
-pub fn foobar() {
-	println!("test");
-}
+*/

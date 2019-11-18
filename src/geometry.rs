@@ -15,9 +15,9 @@ impl BoundingBox2 {
 		BoundingBox2 { min, max }
 	}
 
-	pub fn zero() -> BoundingBox2 {
+/*	pub fn zero() -> BoundingBox2 {
 		BoundingBox2::new(Vector2::zeros(), Vector2::zeros())
-	}
+	}*/
 
 	pub fn from_extents(top: f32, bottom: f32, left: f32, right: f32) -> BoundingBox2 {
 		BoundingBox2::new(Vector2::new(bottom, left), Vector2::new(top, right))

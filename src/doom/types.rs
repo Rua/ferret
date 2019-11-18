@@ -1,10 +1,10 @@
 use crate::{
 	assets::{AssetFormat, DataSource},
-	doom::{
+/*	doom::{
 		sprite::{Sprite, SpriteBuilder},
 		wad::WadLoader,
-	},
-	renderer::{palette::Palette, texture::TextureBuilder},
+	},*/
+	renderer::{palette::Palette, /*texture::TextureBuilder*/},
 };
 use byteorder::{ReadBytesExt, LE};
 use nalgebra::Vector2;
@@ -14,14 +14,14 @@ use sdl2::{
 	surface::Surface,
 };
 use std::{
-	cmp::max,
+	//cmp::max,
 	collections::hash_map::HashMap,
 	error::Error,
 	io::{Cursor, Read, Seek, SeekFrom},
 	str,
 	vec::Vec,
 };
-use vulkano::{format::Format, image::Dimensions};
+/*use vulkano::{format::Format, image::Dimensions};*/
 
 pub struct DoomPalette;
 
@@ -89,7 +89,7 @@ impl AssetFormat for DoomFlat {
 pub struct DoomImage {
 	data: Vec<u8>,
 	size: Vector2<usize>,
-	offset: Vector2<f32>,
+	_offset: Vector2<f32>,
 }
 
 pub struct DoomImageLump;
@@ -148,7 +148,7 @@ impl AssetFormat for DoomImageLump {
 		Ok(DoomImage {
 			data: pixels.to_owned(),
 			size: Vector2::new(size_x, size_y),
-			offset: Vector2::new(offset_x, offset_y),
+			_offset: Vector2::new(offset_x, offset_y),
 		})
 	}
 }
@@ -220,7 +220,7 @@ impl AssetFormat for DoomPNames {
 	}
 }*/
 
-pub struct DoomSprite;
+//pub struct DoomSprite;
 
 /*impl AssetFormat for DoomSprite {
 	type Asset = SpriteBuilder;

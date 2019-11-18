@@ -41,14 +41,14 @@ mod fs {
 pub struct Video {
 	map: BSPModel,
 
-	debug_callback: DebugCallback,
+	_debug_callback: DebugCallback,
 	descriptor_sets_pool:
 		FixedSizeDescriptorSetsPool<Arc<dyn GraphicsPipelineAbstract + Send + Sync>>,
 	framebuffers: Vec<Arc<dyn FramebufferAbstract + Send + Sync>>,
 	pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
 	queues: Queues,
 	sampler: Arc<Sampler>,
-	surface: Arc<Surface<Window>>,
+	_surface: Arc<Surface<Window>>,
 	swapchain: Arc<Swapchain<Window>>,
 	uniform_buffer: Arc<CpuAccessibleBuffer<vs::ty::UniformBufferObject>>,
 }
@@ -179,13 +179,13 @@ impl Video {
 		let video = Video {
 			map,
 
-			debug_callback,
+			_debug_callback: debug_callback,
 			descriptor_sets_pool,
 			framebuffers,
 			pipeline,
 			queues,
 			sampler,
-			surface,
+			_surface: surface,
 			swapchain,
 			uniform_buffer,
 		};

@@ -1,8 +1,8 @@
-use nalgebra::Vector2;
+use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::{
 	collections::{hash_map::Entry, HashMap},
-	error::Error,
+	fmt::Debug,
 	hash::Hash,
 };
 use winit::event::{
@@ -39,9 +39,9 @@ pub enum MouseAxis {
 	Y,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct InputState {
-	mouse_delta: Vector2<f64>,
+	mouse_delta: [f64; 2],
 	pressed_keys: Vec<VirtualKeyCode>,
 	pressed_mouse_buttons: Vec<MouseButton>,
 }
@@ -49,14 +49,14 @@ pub struct InputState {
 impl InputState {
 	pub fn new() -> InputState {
 		InputState {
-			mouse_delta: Vector2::new(0.0, 0.0),
+			mouse_delta: [0.0, 0.0],
 			pressed_keys: Vec::new(),
 			pressed_mouse_buttons: Vec::new(),
 		}
 	}
 
 	pub fn reset(&mut self) {
-		self.mouse_delta.fill(0.0);
+		self.mouse_delta = [0.0, 0.0];
 	}
 
 	pub fn button_is_down(&self, button: Button) -> bool {
@@ -66,7 +66,6 @@ impl InputState {
 				.pressed_mouse_buttons
 				.iter()
 				.any(|&mb| mb == mouse_button),
-			_ => false,
 		}
 	}
 
@@ -129,9 +128,10 @@ impl InputState {
 			},
 			Event::DeviceEvent { event, .. } => match *event {
 				DeviceEvent::MouseMotion {
-					delta: (delta_x, delta_y),
+					delta,
 				} => {
-					self.mouse_delta += Vector2::new(delta_x, delta_y);
+					self.mouse_delta[0] += delta.0;
+					self.mouse_delta[1] += delta.1;
 				}
 				_ => {}
 			},
@@ -140,13 +140,14 @@ impl InputState {
 	}
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Bindings<A: Clone + Hash + Eq, X: Clone + Hash + Eq> {
+#[derive(Derivative, Deserialize, Serialize)]
+#[derivative(Debug(bound = ""), Default(bound = ""), Clone(bound = ""))]
+pub struct Bindings<A: Clone + Debug + Hash + Eq, X: Clone + Debug + Hash + Eq> {
 	actions: HashMap<A, Vec<Button>>,
 	axes: HashMap<X, Axis>,
 }
 
-impl<A: Clone + Hash + Eq, X: Clone + Hash + Eq> Bindings<A, X> {
+impl<A: Clone + Debug + Hash + Eq, X: Clone + Debug + Hash + Eq> Bindings<A, X> {
 	pub fn new() -> Bindings<A, X> {
 		Bindings {
 			actions: HashMap::new(),

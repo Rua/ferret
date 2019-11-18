@@ -1,4 +1,4 @@
-use crate::assets::AssetHandle;
+//use crate::assets::AssetHandle;
 use nalgebra::Vector3;
 use specs::{Component, VecStorage};
 

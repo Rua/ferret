@@ -32,7 +32,7 @@ use crate::{
 	logger::Logger,
 	renderer::video::Video,
 };
-use specs::{World, WorldExt};
+use specs::{RunNow, World, WorldExt};
 use std::{error::Error, sync::mpsc, time::Instant};
 use winit::{
 	event::{Event, MouseButton, VirtualKeyCode, WindowEvent},
@@ -90,8 +90,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 	loader.add("doom.gwa")?;
 	world.insert(loader);
 
-	let input_state = InputState::new();
-	world.insert(input_state);
+	world.insert(InputState::new());
+	world.insert(None as Option<doom::input::UserCommand>);
 
 	let mut bindings = Bindings::new();
 	bindings.bind_action(
@@ -185,6 +185,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 			return Ok(());
 		}
 
+		// Send user commands
+		doom::input::UserCommandSenderSystem.run_now(&world);
+
+		// Draw frame
 		video.draw_frame().unwrap();
 	}
 
