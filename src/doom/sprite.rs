@@ -157,3 +157,24 @@ impl SpriteImage {
 	}
 }
 */
+
+//pub struct DoomSpriteFormat;
+
+/*impl AssetFormat for DoomSpriteFormat {
+	type Asset = SpriteBuilder;
+
+	fn import(&self, name: &str, source: &mut impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut lumpnames = source.names()
+			.filter(|n| n.starts_with(name))
+			.map(str::to_owned)
+			.collect::<Vec<_>>();
+		lumpnames.sort_unstable();
+
+		Ok(Sprite::new(
+			images,
+			frames,
+			SpriteOrientation::ViewPlaneParallelUpright,
+			max_size,
+		))
+	}
+}*/

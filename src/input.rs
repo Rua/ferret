@@ -127,9 +127,7 @@ impl InputState {
 				_ => {}
 			},
 			Event::DeviceEvent { event, .. } => match *event {
-				DeviceEvent::MouseMotion {
-					delta,
-				} => {
+				DeviceEvent::MouseMotion { delta } => {
 					self.mouse_delta[0] += delta.0;
 					self.mouse_delta[1] += delta.1;
 				}

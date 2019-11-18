@@ -4,7 +4,7 @@ use std::{
 	collections::HashMap,
 	error::Error,
 	fs::File,
-	io::{BufReader, Cursor, Read, Seek, SeekFrom},
+	io::{BufReader, Read, Seek, SeekFrom},
 	str,
 	string::String,
 	vec::Vec,
@@ -69,43 +69,30 @@ impl WadLoader {
 		self.files.insert(String::from(filename), file);
 		Ok(())
 	}
-
-	pub fn read_lump(&mut self, number: usize) -> Result<Cursor<Vec<u8>>, Box<dyn Error>> {
-		let lump = &self.lumps[number];
-		let file = self
-			.files
-			.get_mut(&lump.file)
-			.expect("File referenced but not loaded");
-
-		// Read lump
-		let mut data = vec![0; lump.size as usize];
-		file.seek(SeekFrom::Start(lump.offset as u64))?;
-		file.read_exact(&mut data)?;
-
-		Ok(Cursor::new(data))
-	}
-
-	pub fn index_for_name(&self, name: &str) -> Option<usize> {
-		let name = name.to_ascii_uppercase();
-
-		// Iterate in reverse, so that lumps added later are used first
-		for (i, ref lump) in self.lumps.iter().enumerate().rev() {
-			if lump.name == name {
-				return Some(i);
-			}
-		}
-
-		None
-	}
 }
 
 impl DataSource for WadLoader {
 	fn load(&mut self, path: &str) -> Result<Vec<u8>, Box<dyn Error>> {
-		let number = self
-			.index_for_name(path)
+		let path = path.to_ascii_uppercase();
+
+		let (path, offset) = if let Some(index) = path.rfind("/+") {
+			let (path, rest) = path.split_at(index);
+			(path, rest[2..].parse()?)
+		} else {
+			(path.as_str(), 0)
+		};
+
+		// Find the index of this lump in the list
+		let index = self
+			.lumps
+			.iter()
+			.enumerate()
+			.rev()
+			.filter_map(|(i, lump)| if lump.name == path { Some(i) } else { None })
+			.next()
 			.ok_or(Box::from(format!("Lump \"{}\" not found", path)) as Box<dyn Error>)?;
 
-		let lump = &self.lumps[number];
+		let lump = &self.lumps[index + offset];
 		let file = self
 			.files
 			.get_mut(&lump.file)

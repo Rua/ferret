@@ -1,9 +1,9 @@
 use crate::{
-	assets::AssetFormat,
+	assets::{AssetFormat, DataSource},
 	components::TransformComponent,
 	doom::{
 		entities::{DOOMEDNUMS, ENTITIES},
-		types::{DoomFlat, DoomTexture},
+		image::{DoomImageFormat, DoomPaletteFormat},
 		wad::WadLoader,
 	},
 	geometry::{BoundingBox2, BoundingBox3, Plane},
@@ -11,7 +11,7 @@ use crate::{
 };
 use byteorder::{ReadBytesExt, LE};
 use nalgebra::{Matrix, Vector2, Vector3};
-use sdl2::{pixels::PixelFormatEnum, surface::Surface};
+use sdl2::{pixels::PixelFormatEnum, rect::Rect, surface::Surface};
 use specs::{world::Builder, World, WorldExt};
 use std::{
 	cell::RefCell,
@@ -20,7 +20,7 @@ use std::{
 		HashSet,
 	},
 	error::Error,
-	io::{self, ErrorKind, Read},
+	io::{Cursor, ErrorKind, Read, Seek, SeekFrom},
 	rc::Rc,
 	str,
 };
@@ -28,8 +28,7 @@ use std::{
 pub fn spawn_map_entities(world: &mut World, name: &str) -> Result<(), Box<dyn Error>> {
 	let things = {
 		let mut loader = world.fetch_mut::<WadLoader>();
-		let index = loader.index_for_name(name).unwrap();
-		things::from_data(&mut loader.read_lump(index + things::OFFSET)?)?
+		DoomMapThingsFormat.import(name, &mut *loader)?
 	};
 
 	for thing in things {
@@ -97,13 +96,13 @@ fn load_textures(
 	let mut flat_names_indices = HashMap::with_capacity(flat_names.len());
 
 	for name in texture_names {
-		let surface = DoomTexture.import(name, loader)?;
+		let surface = DoomTextureFormat.import(name, loader)?;
 		texture_names_indices.insert(name, surfaces.len());
 		surfaces.push(surface);
 	}
 
 	for name in flat_names {
-		let surface = DoomFlat.import(name, loader)?;
+		let surface = DoomFlatFormat.import(name, loader)?;
 		flat_names_indices.insert(name, surfaces.len());
 		surfaces.push(surface);
 	}
@@ -141,17 +140,16 @@ fn generate_lightmaps() -> Result<Vec<Rc<RefCell<OldTexture>>>, Box<dyn Error>> 
 }
 
 pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn Error>> {
-	let index = loader.index_for_name(name).unwrap();
-	let linedefs = linedefs::from_data(&mut loader.read_lump(index + linedefs::OFFSET)?)?;
-	let sidedefs = sidedefs::from_data(&mut loader.read_lump(index + sidedefs::OFFSET)?)?;
-	let vertexes = vertexes::from_data(&mut loader.read_lump(index + vertexes::OFFSET)?)?;
-	let sectors = sectors::from_data(&mut loader.read_lump(index + sectors::OFFSET)?)?;
+	let linedefs = DoomMapLinedefsFormat.import(name, loader)?;
+	let sidedefs = DoomMapSidedefsFormat.import(name, loader)?;
+	let vertexes = DoomMapVertexesFormat.import(name, loader)?;
+	let sectors = DoomMapSectorsFormat.import(name, loader)?;
 
-	let index = loader.index_for_name(&("GL_".to_owned() + name)).unwrap();
-	let gl_vert = gl_vert::from_data(&mut loader.read_lump(index + gl_vert::OFFSET)?)?;
-	let gl_segs = gl_segs::from_data(&mut loader.read_lump(index + gl_segs::OFFSET)?)?;
-	let gl_ssect = gl_ssect::from_data(&mut loader.read_lump(index + gl_ssect::OFFSET)?)?;
-	let gl_nodes = gl_nodes::from_data(&mut loader.read_lump(index + gl_nodes::OFFSET)?)?;
+	let gl_name = format!("GL_{}", name);
+	let gl_vert = DoomMapGLVertFormat.import(&gl_name, loader)?;
+	let gl_segs = DoomMapGLSegsFormat.import(&gl_name, loader)?;
+	let gl_ssect = DoomMapGLSSectFormat.import(&gl_name, loader)?;
+	let gl_nodes = DoomMapGLNodesFormat.import(&gl_name, loader)?;
 
 	// Load textures and flats
 	let mut texture_names = HashSet::new();
@@ -735,19 +733,25 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 	Ok(BSPModel::new(vertices, faces, leaves, branches))
 }
 
-pub mod things {
-	use super::*;
-	pub const OFFSET: usize = 1;
+#[derive(Clone, Debug)]
+pub struct DoomMapThing {
+	pub position: Vector2<f32>,
+	pub angle: f32,
+	pub doomednum: u16,
+	pub flags: u16,
+}
 
-	#[derive(Debug)]
-	pub struct DoomMapThing {
-		pub position: Vector2<f32>,
-		pub angle: f32,
-		pub doomednum: u16,
-		pub flags: u16,
-	}
+pub struct DoomMapThingsFormat;
 
-	pub fn from_data<T: Read>(data: &mut T) -> Result<Vec<DoomMapThing>, io::Error> {
+impl AssetFormat for DoomMapThingsFormat {
+	type Asset = Vec<DoomMapThing>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 1))?);
 		let mut things = Vec::new();
 
 		loop {
@@ -757,7 +761,7 @@ pub mod things {
 					if err.kind() == ErrorKind::UnexpectedEof {
 						break;
 					} else {
-						return Err(err);
+						return Err(Box::from(err));
 					}
 				}
 			} as f32;
@@ -778,21 +782,27 @@ pub mod things {
 	}
 }
 
-pub mod linedefs {
-	use super::*;
-	pub const OFFSET: usize = 2;
+#[derive(Clone, Debug)]
+pub struct DoomMapLinedef {
+	pub start_vertex_index: usize,
+	pub end_vertex_index: usize,
+	pub flags: u16,
+	pub special_type: u16,
+	pub sector_tag: u16,
+	pub sidedef_indices: [Option<usize>; 2],
+}
 
-	#[derive(Debug)]
-	pub struct DoomMapLinedef {
-		pub start_vertex_index: usize,
-		pub end_vertex_index: usize,
-		pub flags: u16,
-		pub special_type: u16,
-		pub sector_tag: u16,
-		pub sidedef_indices: [Option<usize>; 2],
-	}
+pub struct DoomMapLinedefsFormat;
 
-	pub fn from_data<T: Read>(data: &mut T) -> Result<Vec<DoomMapLinedef>, io::Error> {
+impl AssetFormat for DoomMapLinedefsFormat {
+	type Asset = Vec<DoomMapLinedef>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 2))?);
 		let mut linedefs = Vec::new();
 
 		loop {
@@ -802,7 +812,7 @@ pub mod linedefs {
 					if err.kind() == ErrorKind::UnexpectedEof {
 						break;
 					} else {
-						return Err(err);
+						return Err(Box::from(err));
 					}
 				}
 			} as usize;
@@ -838,20 +848,26 @@ pub mod linedefs {
 	}
 }
 
-pub mod sidedefs {
-	use super::*;
-	pub const OFFSET: usize = 3;
+#[derive(Clone, Debug)]
+pub struct DoomMapSidedef {
+	pub texture_offset: Vector2<f32>,
+	pub top_texture_name: Option<String>,
+	pub bottom_texture_name: Option<String>,
+	pub middle_texture_name: Option<String>,
+	pub sector_index: usize,
+}
 
-	#[derive(Debug)]
-	pub struct DoomMapSidedef {
-		pub texture_offset: Vector2<f32>,
-		pub top_texture_name: Option<String>,
-		pub bottom_texture_name: Option<String>,
-		pub middle_texture_name: Option<String>,
-		pub sector_index: usize,
-	}
+pub struct DoomMapSidedefsFormat;
 
-	pub fn from_data<T: Read>(data: &mut T) -> Result<Vec<DoomMapSidedef>, Box<dyn Error>> {
+impl AssetFormat for DoomMapSidedefsFormat {
+	type Asset = Vec<DoomMapSidedef>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 3))?);
 		let mut sidedefs = Vec::new();
 
 		loop {
@@ -908,11 +924,17 @@ pub mod sidedefs {
 	}
 }
 
-pub mod vertexes {
-	use super::*;
-	pub const OFFSET: usize = 4;
+pub struct DoomMapVertexesFormat;
 
-	pub fn from_data<T: Read>(data: &mut T) -> Result<Vec<Vector2<f32>>, io::Error> {
+impl AssetFormat for DoomMapVertexesFormat {
+	type Asset = Vec<Vector2<f32>>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 4))?);
 		let mut vertexes = Vec::new();
 
 		loop {
@@ -922,7 +944,7 @@ pub mod vertexes {
 					if err.kind() == ErrorKind::UnexpectedEof {
 						break;
 					} else {
-						return Err(err);
+						return Err(Box::from(err));
 					}
 				}
 			} as f32;
@@ -935,22 +957,28 @@ pub mod vertexes {
 	}
 }
 
-pub mod sectors {
-	use super::*;
-	pub const OFFSET: usize = 8;
+#[derive(Clone, Debug)]
+pub struct DoomMapSector {
+	pub floor_height: f32,
+	pub ceiling_height: f32,
+	pub floor_flat_name: String,
+	pub ceiling_flat_name: String,
+	pub light_level: u16,
+	pub special_type: u16,
+	pub sector_tag: u16,
+}
 
-	#[derive(Debug)]
-	pub struct DoomMapSector {
-		pub floor_height: f32,
-		pub ceiling_height: f32,
-		pub floor_flat_name: String,
-		pub ceiling_flat_name: String,
-		pub light_level: u16,
-		pub special_type: u16,
-		pub sector_tag: u16,
-	}
+pub struct DoomMapSectorsFormat;
 
-	pub fn from_data<T: Read>(data: &mut T) -> Result<Vec<DoomMapSector>, Box<dyn Error>> {
+impl AssetFormat for DoomMapSectorsFormat {
+	type Asset = Vec<DoomMapSector>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 8))?);
 		let mut sectors = Vec::new();
 
 		loop {
@@ -994,11 +1022,17 @@ pub mod sectors {
 	}
 }
 
-pub mod gl_vert {
-	use super::*;
-	pub const OFFSET: usize = 1;
+pub struct DoomMapGLVertFormat;
 
-	pub fn from_data<T: Read>(data: &mut T) -> Result<Vec<Vector2<f32>>, Box<dyn Error>> {
+impl AssetFormat for DoomMapGLVertFormat {
+	type Asset = Vec<Vector2<f32>>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 1))?);
 		let mut gl_vert = Vec::new();
 
 		let mut signature = [0u8; 4];
@@ -1028,20 +1062,26 @@ pub mod gl_vert {
 	}
 }
 
-pub mod gl_segs {
-	use super::*;
-	pub const OFFSET: usize = 2;
+#[derive(Clone, Debug)]
+pub struct DoomMapGLSeg {
+	pub start_vertex_index: (usize, bool),
+	pub end_vertex_index: (usize, bool),
+	pub linedef_index: Option<usize>,
+	pub side: bool,
+	pub partner_seg_index: Option<usize>,
+}
 
-	#[derive(Debug)]
-	pub struct DoomMapGLSegs {
-		pub start_vertex_index: (usize, bool),
-		pub end_vertex_index: (usize, bool),
-		pub linedef_index: Option<usize>,
-		pub side: bool,
-		pub partner_seg_index: Option<usize>,
-	}
+pub struct DoomMapGLSegsFormat;
 
-	pub fn from_data<T: Read>(data: &mut T) -> Result<Vec<DoomMapGLSegs>, io::Error> {
+impl AssetFormat for DoomMapGLSegsFormat {
+	type Asset = Vec<DoomMapGLSeg>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 2))?);
 		let mut gl_segs = Vec::new();
 
 		loop {
@@ -1051,7 +1091,7 @@ pub mod gl_segs {
 					if err.kind() == ErrorKind::UnexpectedEof {
 						break;
 					} else {
-						return Err(err);
+						return Err(Box::from(err));
 					}
 				}
 			} as usize;
@@ -1060,7 +1100,7 @@ pub mod gl_segs {
 			let side = data.read_u16::<LE>()? != 0;
 			let partner_seg_index = data.read_u16::<LE>()? as usize;
 
-			gl_segs.push(DoomMapGLSegs {
+			gl_segs.push(DoomMapGLSeg {
 				start_vertex_index: {
 					if (start_vertex_index & 0x8000) != 0 {
 						(start_vertex_index & 0x7FFF, true)
@@ -1097,17 +1137,23 @@ pub mod gl_segs {
 	}
 }
 
-pub mod gl_ssect {
-	use super::*;
-	pub const OFFSET: usize = 3;
+#[derive(Clone, Debug)]
+pub struct DoomMapGLSSect {
+	pub seg_count: usize,
+	pub first_seg_index: usize,
+}
 
-	#[derive(Debug)]
-	pub struct DoomMapGLSSect {
-		pub seg_count: usize,
-		pub first_seg_index: usize,
-	}
+pub struct DoomMapGLSSectFormat;
 
-	pub fn from_data<T: Read>(data: &mut T) -> Result<Vec<DoomMapGLSSect>, io::Error> {
+impl AssetFormat for DoomMapGLSSectFormat {
+	type Asset = Vec<DoomMapGLSSect>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 3))?);
 		let mut gl_ssect = Vec::new();
 
 		loop {
@@ -1117,7 +1163,7 @@ pub mod gl_ssect {
 					if err.kind() == ErrorKind::UnexpectedEof {
 						break;
 					} else {
-						return Err(err);
+						return Err(Box::from(err));
 					}
 				}
 			} as usize;
@@ -1133,21 +1179,27 @@ pub mod gl_ssect {
 	}
 }
 
-pub mod gl_nodes {
-	use super::*;
-	pub const OFFSET: usize = 4;
+#[derive(Clone, Debug)]
+pub struct DoomMapGLNode {
+	pub partition_point: Vector2<f32>,
+	pub partition_dir: Vector2<f32>,
+	pub right_bbox: BoundingBox2,
+	pub left_bbox: BoundingBox2,
+	pub right_child_index: BSPNode,
+	pub left_child_index: BSPNode,
+}
 
-	#[derive(Debug)]
-	pub struct DoomMapGLNodes {
-		pub partition_point: Vector2<f32>,
-		pub partition_dir: Vector2<f32>,
-		pub right_bbox: BoundingBox2,
-		pub left_bbox: BoundingBox2,
-		pub right_child_index: BSPNode,
-		pub left_child_index: BSPNode,
-	}
+pub struct DoomMapGLNodesFormat;
 
-	pub fn from_data<T: Read>(data: &mut T) -> Result<Vec<DoomMapGLNodes>, io::Error> {
+impl AssetFormat for DoomMapGLNodesFormat {
+	type Asset = Vec<DoomMapGLNode>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 4))?);
 		let mut gl_nodes = Vec::new();
 
 		loop {
@@ -1157,7 +1209,7 @@ pub mod gl_nodes {
 					if err.kind() == ErrorKind::UnexpectedEof {
 						break;
 					} else {
-						return Err(err);
+						return Err(Box::from(err));
 					}
 				}
 			} as f32;
@@ -1175,7 +1227,7 @@ pub mod gl_nodes {
 			let right_child_index = data.read_u16::<LE>()? as usize;
 			let left_child_index = data.read_u16::<LE>()? as usize;
 
-			gl_nodes.push(DoomMapGLNodes {
+			gl_nodes.push(DoomMapGLNode {
 				partition_point: Vector2::new(partition_point_x, partition_point_y),
 				partition_dir: Vector2::new(partition_dir_x, partition_dir_y),
 				right_bbox: BoundingBox2::from_extents(
@@ -1208,5 +1260,182 @@ pub mod gl_nodes {
 		}
 
 		Ok(gl_nodes)
+	}
+}
+
+pub struct DoomFlatFormat;
+
+impl AssetFormat for DoomFlatFormat {
+	type Asset = Surface<'static>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let palette = DoomPaletteFormat.import("PLAYPAL", source)?;
+		let mut data = Cursor::new(source.load(name)?);
+		let mut surface = Surface::new(64, 64, PixelFormatEnum::RGBA32)?;
+
+		{
+			let pixels = surface.without_lock_mut().unwrap();
+			let mut flat_pixels = [0u8; 64 * 64];
+
+			data.read_exact(&mut flat_pixels)?;
+
+			for i in 0..flat_pixels.len() {
+				let color = palette[flat_pixels[i] as usize];
+				pixels[4 * i + 0] = color.r;
+				pixels[4 * i + 1] = color.g;
+				pixels[4 * i + 2] = color.b;
+				pixels[4 * i + 3] = color.a;
+			}
+		}
+
+		Ok(surface)
+	}
+}
+
+pub struct DoomPNamesFormat;
+
+impl AssetFormat for DoomPNamesFormat {
+	type Asset = Vec<String>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(name)?);
+		let count = data.read_u32::<LE>()? as usize;
+		let mut pnames = Vec::with_capacity(count);
+
+		for _ in 0..count {
+			let mut name = [0u8; 8];
+			data.read_exact(&mut name)?;
+			let name = String::from(str::from_utf8(&name)?.trim_end_matches('\0'));
+			pnames.push(name);
+		}
+
+		Ok(pnames)
+	}
+}
+
+pub struct DoomTextureFormat;
+
+impl AssetFormat for DoomTextureFormat {
+	type Asset = Surface<'static>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let pnames = DoomPNamesFormat.import("PNAMES", source)?;
+		let mut texture_info = DoomTexturesFormat.import("TEXTURE1", source)?;
+		texture_info.extend(DoomTexturesFormat.import("TEXTURE2", source)?);
+		let texture_info = &texture_info[name];
+
+		let mut surface = Surface::new(
+			texture_info.size[0] as u32,
+			texture_info.size[1] as u32,
+			PixelFormatEnum::RGBA32,
+		)?;
+
+		for patch_info in &texture_info.patches {
+			let name = &pnames[patch_info.index];
+
+			// Use to_surface because the offsets of patches are ignored anyway
+			let mut patch = DoomImageFormat.import(&name, source)?;
+			let surface2 = Surface::from_data(
+				&mut patch.data,
+				patch.size[0] as u32,
+				patch.size[1] as u32,
+				patch.size[0] as u32 * 4,
+				PixelFormatEnum::RGBA32,
+			)?;
+			surface2.blit(
+				None,
+				&mut surface,
+				Rect::new(
+					patch_info.offset[0] as i32,
+					patch_info.offset[1] as i32,
+					0,
+					0,
+				),
+			)?;
+		}
+
+		Ok(surface)
+	}
+}
+
+pub struct DoomPatchInfo {
+	pub offset: Vector2<i32>,
+	pub index: usize,
+}
+
+pub struct DoomTextureInfo {
+	pub size: Vector2<u32>,
+	pub patches: Vec<DoomPatchInfo>,
+}
+
+pub struct DoomTexturesFormat;
+
+impl AssetFormat for DoomTexturesFormat {
+	type Asset = HashMap<String, DoomTextureInfo>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(name)?);
+		let mut texture_info = HashMap::new();
+
+		let count = data.read_u32::<LE>()? as usize;
+		let mut offsets = vec![0u32; count];
+		data.read_u32_into::<LE>(&mut offsets)?;
+
+		for i in 0..count {
+			data.seek(SeekFrom::Start(offsets[i] as u64))?;
+
+			let mut name = [0u8; 8];
+			data.read_exact(&mut name)?;
+			let name = String::from(str::from_utf8(&name)?.trim_end_matches('\0'));
+
+			data.read_u32::<LE>()?; // unused bytes
+
+			let size_x = data.read_u16::<LE>()? as u32;
+			let size_y = data.read_u16::<LE>()? as u32;
+
+			data.read_u32::<LE>()?; // unused bytes
+
+			let patch_count = data.read_u16::<LE>()? as usize;
+			let mut patches = Vec::with_capacity(patch_count);
+
+			for _j in 0..patch_count {
+				let offset_x = data.read_i16::<LE>()? as i32;
+				let offset_y = data.read_i16::<LE>()? as i32;
+				let patch_index = data.read_u16::<LE>()? as usize;
+
+				data.read_u32::<LE>()?; // unused bytes
+
+				patches.push(DoomPatchInfo {
+					offset: Vector2::new(offset_x, offset_y),
+					index: patch_index,
+				});
+			}
+
+			texture_info.insert(
+				name,
+				DoomTextureInfo {
+					size: Vector2::new(size_x, size_y),
+					patches: patches,
+				},
+			);
+		}
+
+		Ok(texture_info)
 	}
 }

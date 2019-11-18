@@ -15,7 +15,7 @@ impl BoundingBox2 {
 		BoundingBox2 { min, max }
 	}
 
-/*	pub fn zero() -> BoundingBox2 {
+	/*	pub fn zero() -> BoundingBox2 {
 		BoundingBox2::new(Vector2::zeros(), Vector2::zeros())
 	}*/
 

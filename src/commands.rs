@@ -1,6 +1,7 @@
 use regex::{Captures, Regex};
 use std::{
-	/*borrow::Cow, collections::hash_map::HashMap, */error::Error, string::String, sync::mpsc::Sender,
+	/*borrow::Cow, collections::hash_map::HashMap, */ error::Error, string::String,
+	sync::mpsc::Sender,
 };
 
 #[derive(Clone)]

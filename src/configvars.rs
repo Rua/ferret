@@ -1,5 +1,5 @@
 use std::{
-	cell::{Cell, /*Ref, */RefCell},
+	cell::{Cell, /*Ref, */ RefCell},
 	fmt,
 	str::FromStr,
 };
@@ -12,25 +12,25 @@ pub struct ConfigVariable<T> {
 }
 
 impl<T: PartialEq> ConfigVariable<T> {
-/*	pub fn new(
-		name: &'static str,
-		default: T,
-		mut validator: Option<Box<dyn Fn(&T) -> bool + Sync>>,
-	) -> ConfigVariable<T> {
-		assert!(validator.is_none() || validator.as_mut().unwrap()(&default));
+	/*	pub fn new(
+			name: &'static str,
+			default: T,
+			mut validator: Option<Box<dyn Fn(&T) -> bool + Sync>>,
+		) -> ConfigVariable<T> {
+			assert!(validator.is_none() || validator.as_mut().unwrap()(&default));
 
-		ConfigVariable {
-			name: name,
-			value: RefCell::new(default),
-			validator,
-			modified: Cell::new(false),
+			ConfigVariable {
+				name: name,
+				value: RefCell::new(default),
+				validator,
+				modified: Cell::new(false),
+			}
 		}
-	}
 
-	pub fn get(&self) -> Ref<T> {
-		self.value.borrow()
-	}
-*/
+		pub fn get(&self) -> Ref<T> {
+			self.value.borrow()
+		}
+	*/
 	fn set(&self, newvalue: T) {
 		if *self.value.borrow() != newvalue
 			&& (self.validator.is_none() || self.validator.as_ref().unwrap()(&newvalue))
