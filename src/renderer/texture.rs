@@ -8,7 +8,17 @@ use vulkano::{
 };
 
 pub struct Texture {
-	pub(super) inner: Arc<dyn ImageViewAccess + Send + Sync>,
+	inner: Arc<dyn ImageViewAccess + Send + Sync>,
+}
+
+impl Texture {
+	pub fn inner(&self) -> Arc<dyn ImageViewAccess + Send + Sync> {
+		self.inner.clone()
+	}
+
+	pub fn dimensions(&self) -> Dimensions {
+		self.inner.dimensions()
+	}
 }
 
 pub struct TextureBuilder {

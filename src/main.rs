@@ -61,7 +61,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 	};
 
 	let mut event_loop = EventLoop::new();
-	let mut video = match Video::init(&event_loop) {
+
+	let mut world = World::new();
+	world.register::<TransformComponent>();
+
+	let (video, _debug_callback) = match Video::new(&event_loop) {
 		Ok(val) => val,
 		Err(err) => {
 			return Err(Box::from(format!(
@@ -70,11 +74,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 			)));
 		}
 	};
+	world.insert(video);
 
-	let mut world = World::new();
-	world.register::<TransformComponent>();
-
-	let audio = match Audio::init() {
+	let audio = match Audio::new() {
 		Ok(val) => val,
 		Err(err) => {
 			return Err(Box::from(format!(
@@ -130,6 +132,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 	);
 	//println!("{}", serde_json::to_string(&bindings)?);
 	world.insert(bindings);
+
+	let mut render_system = doom::render::RenderSystem::new(&world)?;
 
 	let mut should_quit = false;
 	let mut old_time = Instant::now();
@@ -189,7 +193,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		doom::input::UserCommandSenderSystem.run_now(&world);
 
 		// Draw frame
-		video.draw_frame().unwrap();
+		render_system.run_now(&world);
 	}
 
 	Ok(())

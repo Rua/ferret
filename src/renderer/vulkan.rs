@@ -96,7 +96,7 @@ fn find_suitable_physical_device<'a>(
 	Ok(None)
 }
 
-pub(super) struct Queues {
+pub struct Queues {
 	pub graphics: Arc<Queue>,
 	pub present: Arc<Queue>,
 }

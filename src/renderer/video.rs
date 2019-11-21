@@ -1,22 +1,13 @@
-use crate::{
-	doom::{map, wad::WadLoader},
-	renderer::model::{BSPModel, VertexData},
-	renderer::vulkan::{self, Queues},
-};
-use nalgebra::{Matrix4, Point3, Vector3};
-use std::{error::Error, f32::consts::FRAC_PI_4, ops::Range, sync::Arc};
+use crate::renderer::vulkan;
+pub use crate::renderer::vulkan::Queues;
+use std::{error::Error, sync::Arc};
 use vulkano::{
-	buffer::{BufferSlice, BufferUsage, CpuAccessibleBuffer},
-	command_buffer::{AutoCommandBufferBuilder, DynamicState},
-	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
-	device::DeviceOwned,
-	framebuffer::{Framebuffer, FramebufferAbstract, Subpass},
+	device::Device,
+	framebuffer::{Framebuffer, FramebufferAbstract, RenderPassAbstract},
 	image::ImageViewAccess,
 	instance::debug::DebugCallback,
-	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
 	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
-	swapchain::{self, Surface, Swapchain},
-	sync::GpuFuture,
+	swapchain::{Surface, Swapchain},
 };
 use vulkano_win::VkSurfaceBuild;
 use winit::{
@@ -24,37 +15,18 @@ use winit::{
 	window::{Window, WindowBuilder},
 };
 
-mod vs {
-	vulkano_shaders::shader! {
-		ty: "vertex",
-		path: "shaders/world.vert",
-	}
-}
-
-mod fs {
-	vulkano_shaders::shader! {
-		ty: "fragment",
-		path: "shaders/world.frag",
-	}
-}
-
 pub struct Video {
-	map: BSPModel,
-
-	_debug_callback: DebugCallback,
-	descriptor_sets_pool:
-		FixedSizeDescriptorSetsPool<Arc<dyn GraphicsPipelineAbstract + Send + Sync>>,
+	device: Arc<Device>,
 	framebuffers: Vec<Arc<dyn FramebufferAbstract + Send + Sync>>,
-	pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
 	queues: Queues,
+	render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
 	sampler: Arc<Sampler>,
 	_surface: Arc<Surface<Window>>,
 	swapchain: Arc<Swapchain<Window>>,
-	uniform_buffer: Arc<CpuAccessibleBuffer<vs::ty::UniformBufferObject>>,
 }
 
 impl Video {
-	pub fn init(event_loop: &EventLoop<()>) -> Result<Video, Box<dyn Error>> {
+	pub fn new(event_loop: &EventLoop<()>) -> Result<(Video, DebugCallback), Box<dyn Error>> {
 		// Create Vulkan instance
 		let instance = vulkan::create_instance()?;
 
@@ -121,31 +93,6 @@ impl Video {
 			framebuffers
 		};
 
-		// Create pipeline
-		let vs = vs::Shader::load(device.clone())?;
-		let fs = fs::Shader::load(device.clone())?;
-
-		let pipeline = Arc::new(
-			GraphicsPipeline::start()
-				.render_pass(Subpass::from(render_pass.clone(), 0).unwrap())
-				.vertex_input_single_buffer::<VertexData>()
-				.vertex_shader(vs.main_entry_point(), ())
-				.fragment_shader(fs.main_entry_point(), ())
-				.triangle_fan()
-				.viewports_dynamic_scissors_irrelevant(1)
-				.cull_mode_back()
-				.depth_stencil_simple_depth()
-				.build(device.clone())?,
-		);
-
-		let mut loader = WadLoader::new();
-		loader.add("doom.wad")?;
-		loader.add("doom.gwa")?;
-		let mut map = map::from_wad("E1M1", &mut loader)?;
-		map.upload(&queues.graphics)?
-			.then_signal_fence_and_flush()?
-			.wait(None)?;
-
 		// Create texture sampler
 		let sampler = Sampler::new(
 			device.clone(),
@@ -161,134 +108,41 @@ impl Video {
 			0.0,
 		)?;
 
-		// Create descriptor sets pool
-		let descriptor_sets_pool = FixedSizeDescriptorSetsPool::new(
-			pipeline.clone() as Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
-			0,
-		);
-
-		// Create uniform buffer
-		let uniform_buffer = unsafe {
-			CpuAccessibleBuffer::<vs::ty::UniformBufferObject>::uninitialized(
-				device.clone(),
-				BufferUsage::uniform_buffer(),
-			)?
-		};
-
 		// All done!
 		let video = Video {
-			map,
-
-			_debug_callback: debug_callback,
-			descriptor_sets_pool,
+			device,
 			framebuffers,
-			pipeline,
 			queues,
+			render_pass,
 			sampler,
 			_surface: surface,
 			swapchain,
-			uniform_buffer,
 		};
 
-		Ok(video)
+		Ok((video, debug_callback))
 	}
 
-	pub fn draw_frame(&mut self) -> Result<(), Box<dyn Error>> {
-		// Update uniform buffer
-		let model = Matrix4::identity();
-		let view = Matrix4::look_at_rh(
-			&Point3::new(1670.0, -2500.0, 50.0),
-			&Point3::new(1671.0, -2500.0, 50.0),
-			&Vector3::new(0.0, 0.0, 1.0),
-		);
-		let proj = Matrix4::new(
-			1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 1.0,
-		) * Matrix4::new_perspective(4.0 / 3.0, FRAC_PI_4, 0.1, 10000.0);
+	pub fn device(&self) -> Arc<Device> {
+		self.device.clone()
+	}
 
-		let data = vs::ty::UniformBufferObject {
-			model: model.into(),
-			view: view.into(),
-			proj: proj.into(),
-		};
+	pub fn framebuffer(&self, index: usize) -> Arc<dyn FramebufferAbstract + Send + Sync> {
+		self.framebuffers[index].clone()
+	}
 
-		*self.uniform_buffer.write()? = data;
+	pub fn queues(&self) -> &Queues {
+		&self.queues
+	}
 
-		// Prepare for drawing
-		let (image_num, future) = match swapchain::acquire_next_image(self.swapchain.clone(), None)
-		{
-			Ok(r) => r,
-			Err(err) => panic!("{:?}", err),
-		};
+	pub fn render_pass(&self) -> Arc<dyn RenderPassAbstract + Send + Sync> {
+		self.render_pass.clone()
+	}
 
-		let framebuffer = &self.framebuffers[image_num];
-		let clear_value = vec![[0.0, 0.0, 1.0, 1.0].into(), 1.0.into()];
+	pub fn sampler(&self) -> Arc<Sampler> {
+		self.sampler.clone()
+	}
 
-		let viewport = Viewport {
-			origin: [0.0; 2],
-			dimensions: [framebuffer.width() as f32, framebuffer.height() as f32],
-			depth_range: Range {
-				start: 0.0,
-				end: 1.0,
-			},
-		};
-
-		let dynamic_state = DynamicState {
-			line_width: None,
-			viewports: Some(vec![viewport]),
-			scissors: None,
-		};
-
-		let mut command_buffer_builder = AutoCommandBufferBuilder::primary_one_time_submit(
-			self.swapchain.device().clone(),
-			self.queues.graphics.family(),
-		)?
-		.begin_render_pass(framebuffer.clone(), false, clear_value)?;
-
-		for face in self.map.faces() {
-			let texture = face.texture.borrow();
-			let texture = texture.texture().unwrap();
-			let lightmap = face.lightmap.borrow();
-			let lightmap = lightmap.texture().unwrap();
-
-			let descriptor_set = self
-				.descriptor_sets_pool
-				.next()
-				.add_buffer(self.uniform_buffer.clone())?
-				.add_sampled_image(texture.inner.clone(), self.sampler.clone())?
-				.add_sampled_image(lightmap.inner.clone(), self.sampler.clone())?
-				.build()?;
-
-			let mesh = self.map.mesh().unwrap();
-			let slice = BufferSlice::from_typed_buffer_access(mesh.inner.clone());
-			let range = Range {
-				start: face.first_vertex_index * std::mem::size_of::<VertexData>(),
-				end: (face.first_vertex_index + face.vertex_count)
-					* std::mem::size_of::<VertexData>(),
-			};
-			let slice2 = slice.slice(range).unwrap();
-
-			command_buffer_builder = command_buffer_builder.draw(
-				self.pipeline.clone(),
-				&dynamic_state,
-				vec![Arc::new(slice2)],
-				descriptor_set,
-				(),
-			)?;
-		}
-
-		// Finalise
-		let command_buffer = Arc::new(command_buffer_builder.end_render_pass()?.build()?);
-
-		future
-			.then_execute(self.queues.graphics.clone(), command_buffer)?
-			.then_swapchain_present(
-				self.queues.present.clone(),
-				self.swapchain.clone(),
-				image_num,
-			)
-			.then_signal_fence_and_flush()?
-			.wait(None)?;
-
-		Ok(())
+	pub fn swapchain(&self) -> Arc<Swapchain<Window>> {
+		self.swapchain.clone()
 	}
 }

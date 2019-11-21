@@ -9,7 +9,7 @@ use std::{cell::RefCell, error::Error, rc::Rc, sync::Arc};
 use vulkano::{
 	device::Queue,
 	format::Format,
-	image::{sys::ImageCreationError, Dimensions, ImageViewAccess},
+	image::{sys::ImageCreationError, Dimensions},
 	sync::{self, GpuFuture},
 };
 
@@ -131,9 +131,9 @@ impl OldTexture {
 				surfaces.len() as u32,
 			),
 			DataOrTexture::Texture(image) => Vector3::new(
-				image.inner.dimensions().width(),
-				image.inner.dimensions().height(),
-				image.inner.dimensions().array_layers(),
+				image.dimensions().width(),
+				image.dimensions().height(),
+				image.dimensions().array_layers(),
 			),
 		}
 	}

@@ -7,7 +7,7 @@ pub struct Audio {
 }
 
 impl Audio {
-	pub fn init() -> Result<Audio, Box<dyn Error>> {
+	pub fn new() -> Result<Audio, Box<dyn Error>> {
 		let alto_context = Alto::load_default()?;
 
 		// Open OpenAL

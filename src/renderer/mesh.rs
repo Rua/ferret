@@ -8,7 +8,13 @@ use vulkano::{
 };
 
 pub struct Mesh {
-	pub(super) inner: Arc<dyn TypedBufferAccess<Content = [u8]> + Send + Sync>,
+	inner: Arc<dyn TypedBufferAccess<Content = [u8]> + Send + Sync>,
+}
+
+impl Mesh {
+	pub fn inner(&self) -> Arc<dyn TypedBufferAccess<Content = [u8]> + Send + Sync> {
+		self.inner.clone()
+	}
 }
 
 pub struct MeshBuilder {
