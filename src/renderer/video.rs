@@ -6,7 +6,6 @@ use vulkano::{
 	framebuffer::{Framebuffer, FramebufferAbstract, RenderPassAbstract},
 	image::ImageViewAccess,
 	instance::debug::DebugCallback,
-	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
 	swapchain::{Surface, Swapchain},
 };
 use vulkano_win::VkSurfaceBuild;
@@ -20,7 +19,6 @@ pub struct Video {
 	framebuffers: Vec<Arc<dyn FramebufferAbstract + Send + Sync>>,
 	queues: Queues,
 	render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
-	sampler: Arc<Sampler>,
 	_surface: Arc<Surface<Window>>,
 	swapchain: Arc<Swapchain<Window>>,
 }
@@ -93,28 +91,12 @@ impl Video {
 			framebuffers
 		};
 
-		// Create texture sampler
-		let sampler = Sampler::new(
-			device.clone(),
-			Filter::Nearest,
-			Filter::Nearest,
-			MipmapMode::Nearest,
-			SamplerAddressMode::Repeat,
-			SamplerAddressMode::Repeat,
-			SamplerAddressMode::Repeat,
-			0.0,
-			1.0,
-			0.0,
-			0.0,
-		)?;
-
 		// All done!
 		let video = Video {
 			device,
 			framebuffers,
 			queues,
 			render_pass,
-			sampler,
 			_surface: surface,
 			swapchain,
 		};
@@ -136,10 +118,6 @@ impl Video {
 
 	pub fn render_pass(&self) -> Arc<dyn RenderPassAbstract + Send + Sync> {
 		self.render_pass.clone()
-	}
-
-	pub fn sampler(&self) -> Arc<Sampler> {
-		self.sampler.clone()
 	}
 
 	pub fn swapchain(&self) -> Arc<Swapchain<Window>> {

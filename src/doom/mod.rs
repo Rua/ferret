@@ -1,3 +1,4 @@
+pub mod components;
 pub mod entities;
 pub mod image;
 pub mod input;

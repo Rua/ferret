@@ -13,7 +13,6 @@ extern crate vulkano;
 mod assets;
 mod audio;
 mod commands;
-mod components;
 mod configvars;
 mod doom;
 mod geometry;
@@ -25,14 +24,14 @@ mod renderer;
 mod stdin;
 
 use crate::{
+	assets::AssetStorage,
 	audio::Audio,
 	commands::CommandSender,
-	components::TransformComponent,
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
 	logger::Logger,
-	renderer::video::Video,
+	renderer::{texture::Texture, video::Video},
 };
-use specs::{RunNow, World, WorldExt};
+use specs::{world::Builder, RunNow, World, WorldExt};
 use std::{error::Error, sync::mpsc, time::Instant};
 use winit::{
 	event::{Event, MouseButton, VirtualKeyCode, WindowEvent},
@@ -62,9 +61,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 	let mut event_loop = EventLoop::new();
 
-	let mut world = World::new();
-	world.register::<TransformComponent>();
-
 	let (video, _debug_callback) = match Video::new(&event_loop) {
 		Ok(val) => val,
 		Err(err) => {
@@ -74,7 +70,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 			)));
 		}
 	};
-	world.insert(video);
 
 	let audio = match Audio::new() {
 		Ok(val) => val,
@@ -85,15 +80,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 			)));
 		}
 	};
-	world.insert(audio);
 
 	let mut loader = doom::wad::WadLoader::new();
 	loader.add("doom.wad")?;
 	loader.add("doom.gwa")?;
-	world.insert(loader);
-
-	world.insert(InputState::new());
-	world.insert(None as Option<doom::input::UserCommand>);
 
 	let mut bindings = Bindings::new();
 	bindings.bind_action(
@@ -131,9 +121,21 @@ fn main() -> Result<(), Box<dyn Error>> {
 		},
 	);
 	//println!("{}", serde_json::to_string(&bindings)?);
+
+	let mut world = World::new();
+	world.register::<doom::components::MapComponent>();
+	world.register::<doom::components::TransformComponent>();
+	world.insert(video);
+	world.insert(audio);
+	world.insert(loader);
+	world.insert(InputState::new());
+	world.insert(None as Option<doom::input::UserCommand>);
 	world.insert(bindings);
+	world.insert(AssetStorage::<Texture>::new());
 
 	let mut render_system = doom::render::RenderSystem::new(&world)?;
+
+	command_sender.send("map E1M1");
 
 	let mut should_quit = false;
 	let mut old_time = Instant::now();
@@ -179,7 +181,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 		// Execute console commands
 		while let Some(args) = command_receiver.try_iter().next() {
 			match args[0].as_str() {
-				"map" => doom::map::spawn_map_entities(&mut world, "E1M1")?,
+				"map" => {
+					let name = &args[1];
+					info!("Loading map {}...", name);
+					let map = doom::map::from_wad(name, &world)?;
+					world
+						.create_entity()
+						.with(doom::components::MapComponent { map })
+						.build();
+
+					doom::map::spawn_map_entities(&mut world, name)?;
+				}
 				"quit" => should_quit = true,
 				_ => debug!("Received invalid command: {}", args[0]),
 			}

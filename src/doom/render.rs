@@ -1,15 +1,13 @@
 use crate::{
-	doom::{map, wad::WadLoader},
-	renderer::{
-		model::{BSPModel, VertexData},
-		video::Video,
-	},
+	assets::AssetStorage,
+	doom::components::MapComponent,
+	renderer::{model::VertexData, texture::Texture, video::Video},
 };
 use nalgebra::{Matrix4, Point3, Vector3};
-use specs::{RunNow, World};
+use specs::{join::Join, ReadExpect, ReadStorage, RunNow, SystemData, World};
 use std::{error::Error, f32::consts::FRAC_PI_4, sync::Arc};
 use vulkano::{
-	buffer::{BufferSlice, BufferUsage, CpuAccessibleBuffer},
+	buffer::{BufferAccess, BufferUsage, CpuAccessibleBuffer},
 	command_buffer::{
 		pool::standard::StandardCommandPoolBuilder, AutoCommandBufferBuilder, DynamicState,
 	},
@@ -17,18 +15,38 @@ use vulkano::{
 	device::DeviceOwned,
 	framebuffer::Subpass,
 	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
+	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
 	swapchain,
 	sync::GpuFuture,
 };
 
 pub struct RenderSystem {
 	map: MapRenderSystem,
+	sampler: Arc<Sampler>,
 }
 
 impl RenderSystem {
 	pub fn new(world: &World) -> Result<RenderSystem, Box<dyn Error>> {
+		let video = world.fetch::<Video>();
+
+		// Create texture sampler
+		let sampler = Sampler::new(
+			video.device(),
+			Filter::Nearest,
+			Filter::Nearest,
+			MipmapMode::Nearest,
+			SamplerAddressMode::Repeat,
+			SamplerAddressMode::Repeat,
+			SamplerAddressMode::Repeat,
+			0.0,
+			1.0,
+			0.0,
+			0.0,
+		)?;
+
 		Ok(RenderSystem {
 			map: MapRenderSystem::new(world)?,
+			sampler,
 		})
 	}
 
@@ -65,10 +83,13 @@ impl RenderSystem {
 		)?
 		.begin_render_pass(framebuffer.clone(), false, clear_value)?;
 
-        // Draw the map
-		command_buffer_builder = self
-			.map
-			.draw(world, command_buffer_builder, dynamic_state)?;
+		// Draw the map
+		command_buffer_builder = self.map.draw(
+			world,
+			command_buffer_builder,
+			dynamic_state,
+			self.sampler.clone(),
+		)?;
 
 		// Finalise
 		let command_buffer = Arc::new(command_buffer_builder.end_render_pass()?.build()?);
@@ -89,7 +110,7 @@ impl<'a> RunNow<'a> for RenderSystem {
 	fn run_now(&mut self, world: &'a World) {
 		self.draw(world).unwrap_or_else(|e| {
 			panic!("Error while rendering: {}", e);
-		})
+		});
 	}
 }
 
@@ -108,9 +129,8 @@ mod fs {
 }
 
 pub struct MapRenderSystem {
-	descriptor_sets_pool:
-		FixedSizeDescriptorSetsPool<Arc<dyn GraphicsPipelineAbstract + Send + Sync>>,
-	map: BSPModel,
+	matrix_pool: FixedSizeDescriptorSetsPool<Arc<dyn GraphicsPipelineAbstract + Send + Sync>>,
+	texture_pool: FixedSizeDescriptorSetsPool<Arc<dyn GraphicsPipelineAbstract + Send + Sync>>,
 	pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
 	uniform_buffer: Arc<CpuAccessibleBuffer<vs::ty::UniformBufferObject>>,
 }
@@ -120,7 +140,6 @@ impl MapRenderSystem {
 		let video = world.fetch::<Video>();
 		let device = video.device();
 		let render_pass = video.render_pass();
-		let queues = video.queues();
 
 		// Create pipeline
 		let vs = vs::Shader::load(device.clone())?;
@@ -141,16 +160,9 @@ impl MapRenderSystem {
 				.build(device.clone())?,
 		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
-		let mut loader = WadLoader::new();
-		loader.add("doom.wad")?;
-		loader.add("doom.gwa")?;
-		let mut map = map::from_wad("E1M1", &mut loader)?;
-		map.upload(&queues.graphics)?
-			.then_signal_fence_and_flush()?
-			.wait(None)?;
-
 		// Create descriptor sets pool
-		let descriptor_sets_pool = FixedSizeDescriptorSetsPool::new(pipeline.clone(), 0);
+		let matrix_pool = FixedSizeDescriptorSetsPool::new(pipeline.clone(), 0);
+		let texture_pool = FixedSizeDescriptorSetsPool::new(pipeline.clone(), 1);
 
 		// Create uniform buffer
 		let uniform_buffer = unsafe {
@@ -161,9 +173,9 @@ impl MapRenderSystem {
 		};
 
 		Ok(MapRenderSystem {
-			descriptor_sets_pool,
-			map,
+			matrix_pool,
 			pipeline,
+			texture_pool,
 			uniform_buffer,
 		})
 	}
@@ -173,12 +185,9 @@ impl MapRenderSystem {
 		world: &World,
 		mut command_buffer_builder: AutoCommandBufferBuilder<StandardCommandPoolBuilder>,
 		dynamic_state: DynamicState,
+		sampler: Arc<Sampler>,
 	) -> Result<AutoCommandBufferBuilder, Box<dyn Error>> {
-		let video = world.fetch::<Video>();
-		let sampler = video.sampler();
-
 		// Update uniform buffer
-		let model = Matrix4::identity();
 		let view = Matrix4::look_at_rh(
 			&Point3::new(1670.0, -2500.0, 50.0),
 			&Point3::new(1671.0, -2500.0, 50.0),
@@ -189,41 +198,54 @@ impl MapRenderSystem {
 		) * Matrix4::new_perspective(4.0 / 3.0, FRAC_PI_4, 0.1, 10000.0);
 
 		let data = vs::ty::UniformBufferObject {
-			model: model.into(),
 			view: view.into(),
 			proj: proj.into(),
 		};
 
 		*self.uniform_buffer.write()? = data;
 
-		// Draw the map
-		for face in self.map.faces() {
-			let texture = face.texture.borrow();
-			let texture = texture.texture().unwrap();
-			let lightmap = face.lightmap.borrow();
-			let lightmap = lightmap.texture().unwrap();
-
-			let descriptor_set = self
-				.descriptor_sets_pool
+		let matrix_set = Arc::new(
+			self.matrix_pool
 				.next()
 				.add_buffer(self.uniform_buffer.clone())?
-				.add_sampled_image(texture.inner(), sampler.clone())?
-				.add_sampled_image(lightmap.inner(), sampler.clone())?
-				.build()?;
+				.build()?,
+		);
 
-			let mesh = self.map.mesh().unwrap();
-			let slice = BufferSlice::from_typed_buffer_access(mesh.inner());
-			let range = face.first_vertex_index * std::mem::size_of::<VertexData>()
-				..(face.first_vertex_index + face.vertex_count) * std::mem::size_of::<VertexData>();
-			let slice2 = slice.slice(range).unwrap();
+		// Draw the map
+		let (texture_storage, map_component) =
+			<(ReadExpect<AssetStorage<Texture>>, ReadStorage<MapComponent>)>::fetch(world);
 
-			command_buffer_builder = command_buffer_builder.draw(
-				self.pipeline.clone(),
-				&dynamic_state,
-				vec![Arc::new(slice2)],
-				descriptor_set,
-				(),
-			)?;
+		for component in map_component.join() {
+			for face in component.map.faces() {
+				let texture = texture_storage.get(&face.texture).unwrap();
+				let lightmap = texture_storage.get(&face.lightmap).unwrap();
+
+				let texture_set = Arc::new(
+					self.texture_pool
+						.next()
+						.add_sampled_image(texture.inner(), sampler.clone())?
+						.add_sampled_image(lightmap.inner(), sampler.clone())?
+						.build()?,
+				);
+
+				let mesh = component.map.mesh().inner();
+				let slice = mesh
+					.into_buffer_slice()
+					.slice(
+						face.first_vertex_index * std::mem::size_of::<VertexData>()
+							..(face.first_vertex_index + face.vertex_count)
+								* std::mem::size_of::<VertexData>(),
+					)
+					.unwrap();
+
+				command_buffer_builder = command_buffer_builder.draw(
+					self.pipeline.clone(),
+					&dynamic_state,
+					vec![Arc::new(slice)],
+					(matrix_set.clone(), texture_set),
+					(),
+				)?;
+			}
 		}
 
 		Ok(command_buffer_builder)

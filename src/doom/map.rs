@@ -1,29 +1,33 @@
 use crate::{
-	assets::{AssetFormat, DataSource},
-	components::TransformComponent,
+	assets::{AssetFormat, AssetHandle, AssetStorage, DataSource},
 	doom::{
+		components::TransformComponent,
 		entities::{DOOMEDNUMS, ENTITIES},
 		image::{DoomImageFormat, DoomPaletteFormat},
 		wad::WadLoader,
 	},
 	geometry::{BoundingBox2, BoundingBox3, Plane},
-	renderer::model::{BSPBranch, BSPLeaf, BSPModel, BSPNode, Face, OldTexture, VertexData},
+	renderer::{
+		mesh::MeshBuilder,
+		model::{BSPBranch, BSPLeaf, BSPModel, BSPNode, Face, VertexData},
+		texture::{Texture, TextureBuilder},
+		video::Video,
+	},
 };
 use byteorder::{ReadBytesExt, LE};
 use nalgebra::{Matrix, Vector2, Vector3};
 use sdl2::{pixels::PixelFormatEnum, rect::Rect, surface::Surface};
-use specs::{world::Builder, World, WorldExt};
+use specs::{world::Builder, ReadExpect, SystemData, World, WorldExt, Write};
 use std::{
-	cell::RefCell,
 	collections::{
 		hash_map::{Entry, HashMap},
 		HashSet,
 	},
 	error::Error,
 	io::{Cursor, ErrorKind, Read, Seek, SeekFrom},
-	rc::Rc,
 	str,
 };
+use vulkano::{format::Format, image::Dimensions};
 
 pub fn spawn_map_entities(world: &mut World, name: &str) -> Result<(), Box<dyn Error>> {
 	let things = {
@@ -32,7 +36,7 @@ pub fn spawn_map_entities(world: &mut World, name: &str) -> Result<(), Box<dyn E
 	};
 
 	for thing in things {
-		println!("{:#?}", thing);
+		//println!("{:#?}", thing);
 		let entity = world
 			.create_entity()
 			.with(TransformComponent {
@@ -56,7 +60,10 @@ pub fn spawn_map_entities(world: &mut World, name: &str) -> Result<(), Box<dyn E
 	Ok(())
 }
 
-fn group_by_size(surfaces: Vec<Surface<'static>>) -> Vec<(Rc<RefCell<OldTexture>>, usize)> {
+fn group_by_size(
+	surfaces: Vec<Surface<'static>>,
+	world: &World,
+) -> Vec<(AssetHandle<Texture>, usize)> {
 	// Group surfaces by size in a HashMap, while keeping track of which goes where
 	let mut surfaces_by_size: HashMap<[u32; 2], Vec<Surface<'static>>> = HashMap::new();
 	let mut sizes_and_layers: Vec<([u32; 2], usize)> = Vec::with_capacity(surfaces.len());
@@ -73,10 +80,50 @@ fn group_by_size(surfaces: Vec<Surface<'static>>) -> Vec<(Rc<RefCell<OldTexture>
 	}
 
 	// Turn the grouped surfaces into textures
-	let textures_by_size: HashMap<[u32; 2], Rc<RefCell<OldTexture>>> = surfaces_by_size
+	let (mut texture_storage, video) =
+		<(Write<AssetStorage<Texture>>, ReadExpect<Video>) as SystemData>::fetch(world);
+	let textures_by_size = surfaces_by_size
 		.into_iter()
-		.map(|entry| (entry.0, Rc::new(RefCell::new(OldTexture::new(entry.1)))))
-		.collect();
+		.map(|entry| {
+			let surfaces = entry.1;
+			let size = Vector3::new(
+				surfaces[0].width(),
+				surfaces[0].height(),
+				surfaces.len() as u32,
+			);
+
+			// Find the corresponding Vulkan pixel format
+			let format = match surfaces[0].pixel_format_enum() {
+				PixelFormatEnum::RGB24 => Format::R8G8B8Unorm,
+				PixelFormatEnum::BGR24 => Format::B8G8R8Unorm,
+				PixelFormatEnum::RGBA32 => Format::R8G8B8A8Unorm,
+				PixelFormatEnum::BGRA32 => Format::B8G8R8A8Unorm,
+				_ => unimplemented!(),
+			};
+
+			let layer_size = surfaces[0].without_lock().unwrap().len();
+			let mut data = vec![0u8; layer_size * surfaces.len()];
+
+			// Copy all the layers into the buffer
+			for (chunk, surface) in data.chunks_exact_mut(layer_size).zip(surfaces) {
+				chunk.copy_from_slice(surface.without_lock().unwrap());
+			}
+
+			// Create the image
+			let (texture, future) = TextureBuilder::new()
+				.with_data(data, format)
+				.with_dimensions(Dimensions::Dim2dArray {
+					width: size[0],
+					height: size[1],
+					array_layers: size[2],
+				})
+				.build(&video.queues().graphics)
+				.unwrap_or_else(|e| panic!("Error building texture: {}", e));
+
+			let handle = texture_storage.insert(texture);
+			(entry.0, handle)
+		})
+		.collect::<HashMap<[u32; 2], AssetHandle<Texture>>>();
 
 	// Now create the final Vec and return
 	sizes_and_layers
@@ -88,27 +135,29 @@ fn group_by_size(surfaces: Vec<Surface<'static>>) -> Vec<(Rc<RefCell<OldTexture>
 fn load_textures(
 	texture_names: HashSet<&str>,
 	flat_names: HashSet<&str>,
-	loader: &mut WadLoader,
-) -> Result<[HashMap<String, (Rc<RefCell<OldTexture>>, usize)>; 2], Box<dyn Error>> {
+	world: &World,
+) -> Result<[HashMap<String, (AssetHandle<Texture>, usize)>; 2], Box<dyn Error>> {
+	let mut loader = world.fetch_mut::<WadLoader>();
+
 	// Load all the surfaces, while storing name-index mapping
 	let mut surfaces = Vec::with_capacity(texture_names.len() + flat_names.len());
 	let mut texture_names_indices = HashMap::with_capacity(texture_names.len());
 	let mut flat_names_indices = HashMap::with_capacity(flat_names.len());
 
 	for name in texture_names {
-		let surface = DoomTextureFormat.import(name, loader)?;
+		let surface = DoomTextureFormat.import(name, &mut *loader)?;
 		texture_names_indices.insert(name, surfaces.len());
 		surfaces.push(surface);
 	}
 
 	for name in flat_names {
-		let surface = DoomFlatFormat.import(name, loader)?;
+		let surface = DoomFlatFormat.import(name, &mut *loader)?;
 		flat_names_indices.insert(name, surfaces.len());
 		surfaces.push(surface);
 	}
 
 	// Convert into textures grouped by size
-	let grouped_textures = group_by_size(surfaces);
+	let grouped_textures = group_by_size(surfaces, world);
 
 	// Recombine names with textures
 	Ok([
@@ -123,7 +172,9 @@ fn load_textures(
 	])
 }
 
-fn generate_lightmaps() -> Result<Vec<Rc<RefCell<OldTexture>>>, Box<dyn Error>> {
+fn generate_lightmaps(world: &World) -> Result<AssetHandle<Texture>, Box<dyn Error>> {
+	let (mut texture_storage, video) =
+		<(Write<AssetStorage<Texture>>, ReadExpect<Video>)>::fetch(world);
 	let mut surfaces = Vec::new();
 
 	for i in 0..=15 {
@@ -136,20 +187,49 @@ fn generate_lightmaps() -> Result<Vec<Rc<RefCell<OldTexture>>>, Box<dyn Error>> 
 		surfaces.push(surface);
 	}
 
-	Ok(vec![Rc::new(RefCell::new(OldTexture::new(surfaces))); 16])
+	let size = Vector3::new(
+		surfaces[0].width(),
+		surfaces[0].height(),
+		surfaces.len() as u32,
+	);
+
+	let layer_size = surfaces[0].without_lock().unwrap().len();
+	let mut data = vec![0u8; layer_size * surfaces.len()];
+
+	// Copy all the layers into the buffer
+	for (chunk, surface) in data.chunks_exact_mut(layer_size).zip(surfaces) {
+		chunk.copy_from_slice(surface.without_lock().unwrap());
+	}
+
+	// Create the image
+	let (texture, future) = TextureBuilder::new()
+		.with_data(data, Format::R8G8B8A8Unorm)
+		.with_dimensions(Dimensions::Dim2dArray {
+			width: size[0],
+			height: size[1],
+			array_layers: size[2],
+		})
+		.build(&video.queues().graphics)?;
+
+	Ok(texture_storage.insert(texture))
 }
 
-pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn Error>> {
-	let linedefs = DoomMapLinedefsFormat.import(name, loader)?;
-	let sidedefs = DoomMapSidedefsFormat.import(name, loader)?;
-	let vertexes = DoomMapVertexesFormat.import(name, loader)?;
-	let sectors = DoomMapSectorsFormat.import(name, loader)?;
+pub fn from_wad(name: &str, world: &World) -> Result<BSPModel, Box<dyn Error>> {
+	let (linedefs, sidedefs, vertexes, sectors, gl_vert, gl_segs, gl_ssect, gl_nodes) = {
+		let mut loader = world.fetch_mut::<WadLoader>();
+		let gl_name = format!("GL_{}", name);
 
-	let gl_name = format!("GL_{}", name);
-	let gl_vert = DoomMapGLVertFormat.import(&gl_name, loader)?;
-	let gl_segs = DoomMapGLSegsFormat.import(&gl_name, loader)?;
-	let gl_ssect = DoomMapGLSSectFormat.import(&gl_name, loader)?;
-	let gl_nodes = DoomMapGLNodesFormat.import(&gl_name, loader)?;
+		(
+			DoomMapLinedefsFormat.import(name, &mut *loader)?,
+			DoomMapSidedefsFormat.import(name, &mut *loader)?,
+			DoomMapVertexesFormat.import(name, &mut *loader)?,
+			DoomMapSectorsFormat.import(name, &mut *loader)?,
+			DoomMapGLVertFormat.import(&gl_name, &mut *loader)?,
+			DoomMapGLSegsFormat.import(&gl_name, &mut *loader)?,
+			DoomMapGLSSectFormat.import(&gl_name, &mut *loader)?,
+			DoomMapGLNodesFormat.import(&gl_name, &mut *loader)?,
+		)
+	};
 
 	// Load textures and flats
 	let mut texture_names = HashSet::new();
@@ -173,15 +253,17 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 		flat_names.insert(sector.ceiling_flat_name.as_str());
 	}
 
-	let [textures, flats] = load_textures(texture_names, flat_names, loader)?;
+	let [textures, flats] = load_textures(texture_names, flat_names, world)?;
 
 	// Generate lightmaps
-	let lightmaps = generate_lightmaps()?;
+	let lightmaps = generate_lightmaps(world)?;
 
 	// Process all subsectors, add geometry for each seg
 	let mut vertices = Vec::new();
 	let mut faces = Vec::new();
 	let mut leaves = Vec::new();
+	let (texture_storage, video) =
+		<(ReadExpect<AssetStorage<Texture>>, ReadExpect<Video>)>::fetch(world);
 
 	for ssect in gl_ssect {
 		let mut leaf = BSPLeaf {
@@ -255,26 +337,25 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 						// Top section
 						if let Some(texture_name) = &front_sidedef.top_texture_name {
 							let texture = &textures[texture_name];
-							let size = texture.0.borrow().size();
+							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
 								texture: texture.0.clone(),
-								lightmap: lightmaps[(front_sector.light_level >> 4) as usize]
-									.clone(),
+								lightmap: lightmaps.clone(),
 							});
 							leaf.face_count += 1;
 
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], top_span.0],
 								in_texture_coord: [
-									(offset[0] + 0.0) / size[0] as f32,
+									(offset[0] + 0.0) / dimensions.width() as f32,
 									(offset[1]
 										+ if linedef.flags & 8 != 0 {
 											top_height
 										} else {
 											0.0
-										}) / size[1] as f32,
+										}) / dimensions.height() as f32,
 									texture.1 as f32,
 								],
 								in_lightmap_coord: [
@@ -286,13 +367,13 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], top_span.0],
 								in_texture_coord: [
-									(offset[0] + width) / size[0] as f32,
+									(offset[0] + width) / dimensions.width() as f32,
 									(offset[1]
 										+ if linedef.flags & 8 != 0 {
 											top_height
 										} else {
 											0.0
-										}) / size[1] as f32,
+										}) / dimensions.height() as f32,
 									texture.1 as f32,
 								],
 								in_lightmap_coord: [
@@ -304,13 +385,13 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], top_span.1],
 								in_texture_coord: [
-									(offset[0] + width) / size[0] as f32,
+									(offset[0] + width) / dimensions.width() as f32,
 									(offset[1]
 										+ if linedef.flags & 8 != 0 {
 											0.0
 										} else {
 											-top_height
-										}) / size[1] as f32,
+										}) / dimensions.height() as f32,
 									texture.1 as f32,
 								],
 								in_lightmap_coord: [
@@ -322,13 +403,13 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], top_span.1],
 								in_texture_coord: [
-									(offset[0] + 0.0) / size[0] as f32,
+									(offset[0] + 0.0) / dimensions.width() as f32,
 									(offset[1]
 										+ if linedef.flags & 8 != 0 {
 											0.0
 										} else {
 											-top_height
-										}) / size[1] as f32,
+										}) / dimensions.height() as f32,
 									texture.1 as f32,
 								],
 								in_lightmap_coord: [
@@ -342,26 +423,25 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 						// Bottom section
 						if let Some(texture_name) = &front_sidedef.bottom_texture_name {
 							let texture = &textures[texture_name];
-							let size = texture.0.borrow().size();
+							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
 								texture: texture.0.clone(),
-								lightmap: lightmaps[(front_sector.light_level >> 4) as usize]
-									.clone(),
+								lightmap: lightmaps.clone(),
 							});
 							leaf.face_count += 1;
 
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], bottom_span.0],
 								in_texture_coord: [
-									(offset[0] + 0.0) / size[0] as f32,
+									(offset[0] + 0.0) / dimensions.width() as f32,
 									(offset[1]
 										+ if linedef.flags & 16 != 0 {
 											total_height
 										} else {
 											bottom_height
-										}) / size[1] as f32,
+										}) / dimensions.height() as f32,
 									texture.1 as f32,
 								],
 								in_lightmap_coord: [
@@ -373,13 +453,13 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], bottom_span.0],
 								in_texture_coord: [
-									(offset[0] + width) / size[0] as f32,
+									(offset[0] + width) / dimensions.width() as f32,
 									(offset[1]
 										+ if linedef.flags & 16 != 0 {
 											total_height
 										} else {
 											bottom_height
-										}) / size[1] as f32,
+										}) / dimensions.height() as f32,
 									texture.1 as f32,
 								],
 								in_lightmap_coord: [
@@ -391,13 +471,13 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], bottom_span.1],
 								in_texture_coord: [
-									(offset[0] + width) / size[0] as f32,
+									(offset[0] + width) / dimensions.width() as f32,
 									(offset[1]
 										+ if linedef.flags & 16 != 0 {
 											total_height - bottom_height
 										} else {
 											0.0
-										}) / size[1] as f32,
+										}) / dimensions.height() as f32,
 									texture.1 as f32,
 								],
 								in_lightmap_coord: [
@@ -409,13 +489,13 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], bottom_span.1],
 								in_texture_coord: [
-									(offset[0] + 0.0) / size[0] as f32,
+									(offset[0] + 0.0) / dimensions.width() as f32,
 									(offset[1]
 										+ if linedef.flags & 16 != 0 {
 											total_height - bottom_height
 										} else {
 											0.0
-										}) / size[1] as f32,
+										}) / dimensions.height() as f32,
 									texture.1 as f32,
 								],
 								in_lightmap_coord: [
@@ -429,26 +509,25 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 						// Middle section
 						if let Some(texture_name) = &front_sidedef.middle_texture_name {
 							let texture = &textures[texture_name];
-							let size = texture.0.borrow().size();
+							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
 								texture: texture.0.clone(),
-								lightmap: lightmaps[(front_sector.light_level >> 4) as usize]
-									.clone(),
+								lightmap: lightmaps.clone(),
 							});
 							leaf.face_count += 1;
 
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], middle_span.0],
 								in_texture_coord: [
-									(offset[0] + 0.0) / size[0] as f32,
+									(offset[0] + 0.0) / dimensions.width() as f32,
 									(offset[1]
 										+ if linedef.flags & 16 != 0 {
 											0.0
 										} else {
 											middle_height
-										}) / size[1] as f32,
+										}) / dimensions.height() as f32,
 									texture.1 as f32,
 								],
 								in_lightmap_coord: [
@@ -460,13 +539,13 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], middle_span.0],
 								in_texture_coord: [
-									(offset[0] + width) / size[0] as f32,
+									(offset[0] + width) / dimensions.width() as f32,
 									(offset[1]
 										+ if linedef.flags & 16 != 0 {
 											0.0
 										} else {
 											middle_height
-										}) / size[1] as f32,
+										}) / dimensions.height() as f32,
 									texture.1 as f32,
 								],
 								in_lightmap_coord: [
@@ -478,13 +557,13 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 							vertices.push(VertexData {
 								in_position: [end_vertex[0], end_vertex[1], middle_span.1],
 								in_texture_coord: [
-									(offset[0] + width) / size[0] as f32,
+									(offset[0] + width) / dimensions.width() as f32,
 									(offset[1]
 										+ if linedef.flags & 16 != 0 {
 											-middle_height
 										} else {
 											0.0
-										}) / size[1] as f32,
+										}) / dimensions.height() as f32,
 									texture.1 as f32,
 								],
 								in_lightmap_coord: [
@@ -496,13 +575,13 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 							vertices.push(VertexData {
 								in_position: [start_vertex[0], start_vertex[1], middle_span.1],
 								in_texture_coord: [
-									(offset[0] + 0.0) / size[0] as f32,
+									(offset[0] + 0.0) / dimensions.width() as f32,
 									(offset[1]
 										+ if linedef.flags & 16 != 0 {
 											-middle_height
 										} else {
 											0.0
-										}) / size[1] as f32,
+										}) / dimensions.height() as f32,
 									texture.1 as f32,
 								],
 								in_lightmap_coord: [
@@ -515,7 +594,7 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 					} else {
 						if let Some(texture_name) = &front_sidedef.middle_texture_name {
 							let texture = &textures[texture_name];
-							let size = texture.0.borrow().size();
+							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
 							let total_height =
 								front_sector.ceiling_height - front_sector.floor_height;
 
@@ -523,8 +602,7 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 								first_vertex_index: vertices.len(),
 								vertex_count: 4,
 								texture: texture.0.clone(),
-								lightmap: lightmaps[(front_sector.light_level >> 4) as usize]
-									.clone(),
+								lightmap: lightmaps.clone(),
 							});
 							leaf.face_count += 1;
 
@@ -535,13 +613,13 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 									front_sector.floor_height,
 								],
 								in_texture_coord: [
-									(offset[0] + 0.0) / size[0] as f32,
+									(offset[0] + 0.0) / dimensions.width() as f32,
 									(offset[1]
 										+ if linedef.flags & 16 != 0 {
 											0.0
 										} else {
 											total_height
-										}) / size[1] as f32,
+										}) / dimensions.height() as f32,
 									texture.1 as f32,
 								],
 								in_lightmap_coord: [
@@ -557,13 +635,13 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 									front_sector.floor_height,
 								],
 								in_texture_coord: [
-									(offset[0] + width) / size[0] as f32,
+									(offset[0] + width) / dimensions.width() as f32,
 									(offset[1]
 										+ if linedef.flags & 16 != 0 {
 											0.0
 										} else {
 											total_height
-										}) / size[1] as f32,
+										}) / dimensions.height() as f32,
 									texture.1 as f32,
 								],
 								in_lightmap_coord: [
@@ -579,13 +657,13 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 									front_sector.ceiling_height,
 								],
 								in_texture_coord: [
-									(offset[0] + width) / size[0] as f32,
+									(offset[0] + width) / dimensions.width() as f32,
 									(offset[1]
 										+ if linedef.flags & 16 != 0 {
 											-total_height
 										} else {
 											0.0
-										}) / size[1] as f32,
+										}) / dimensions.height() as f32,
 									texture.1 as f32,
 								],
 								in_lightmap_coord: [
@@ -601,13 +679,13 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 									front_sector.ceiling_height,
 								],
 								in_texture_coord: [
-									(offset[0] + 0.0) / size[0] as f32,
+									(offset[0] + 0.0) / dimensions.width() as f32,
 									(offset[1]
 										+ if linedef.flags & 16 != 0 {
 											-total_height
 										} else {
 											0.0
-										}) / size[1] as f32,
+										}) / dimensions.height() as f32,
 									texture.1 as f32,
 								],
 								in_lightmap_coord: [
@@ -626,12 +704,12 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 
 		// Floor
 		let flat = &flats[&sector.floor_flat_name];
-		let size = flat.0.borrow().size();
+		let dimensions = texture_storage.get(&flat.0).unwrap().dimensions();
 		faces.push(Face {
 			first_vertex_index: vertices.len(),
 			vertex_count: segs.len(),
 			texture: flat.0.clone(),
-			lightmap: lightmaps[(sector.light_level >> 4) as usize].clone(),
+			lightmap: lightmaps.clone(),
 		});
 		leaf.face_count += 1;
 
@@ -645,8 +723,8 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 			vertices.push(VertexData {
 				in_position: [start_vertex[0], start_vertex[1], sector.floor_height],
 				in_texture_coord: [
-					start_vertex[0] / size[0] as f32,
-					start_vertex[1] / size[1] as f32,
+					start_vertex[0] / dimensions.width() as f32,
+					start_vertex[1] / dimensions.height() as f32,
 					flat.1 as f32,
 				],
 				in_lightmap_coord: [0.0, 0.0, (sector.light_level >> 4) as f32],
@@ -655,12 +733,12 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 
 		// Ceiling
 		let flat = &flats[&sector.ceiling_flat_name];
-		let size = flat.0.borrow().size();
+		let dimensions = texture_storage.get(&flat.0).unwrap().dimensions();
 		faces.push(Face {
 			first_vertex_index: vertices.len(),
 			vertex_count: segs.len(),
 			texture: flat.0.clone(),
-			lightmap: lightmaps[(sector.light_level >> 4) as usize].clone(),
+			lightmap: lightmaps.clone(),
 		});
 		leaf.face_count += 1;
 
@@ -674,8 +752,8 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 			vertices.push(VertexData {
 				in_position: [start_vertex[0], start_vertex[1], sector.ceiling_height],
 				in_texture_coord: [
-					start_vertex[0] / size[0] as f32,
-					start_vertex[1] / size[1] as f32,
+					start_vertex[0] / dimensions.width() as f32,
+					start_vertex[1] / dimensions.height() as f32,
 					flat.1 as f32,
 				],
 				in_lightmap_coord: [0.0, 0.0, (sector.light_level >> 4) as f32],
@@ -730,7 +808,10 @@ pub fn from_wad(name: &str, loader: &mut WadLoader) -> Result<BSPModel, Box<dyn 
 		}
 	}
 
-	Ok(BSPModel::new(vertices, faces, leaves, branches))
+	let (mesh, future) = MeshBuilder::new()
+		.with_data(vertices)
+		.build(&video.queues().graphics)?;
+	Ok(BSPModel::new(mesh, faces, leaves, branches))
 }
 
 #[derive(Clone, Debug)]
@@ -1334,7 +1415,11 @@ impl AssetFormat for DoomTextureFormat {
 		let pnames = DoomPNamesFormat.import("PNAMES", source)?;
 		let mut texture_info = DoomTexturesFormat.import("TEXTURE1", source)?;
 		texture_info.extend(DoomTexturesFormat.import("TEXTURE2", source)?);
-		let texture_info = &texture_info[name];
+
+		let name = name.to_ascii_uppercase();
+		let texture_info = texture_info
+			.get(&name)
+			.ok_or(format!("Texture {} does not exist", name))?;
 
 		let mut surface = Surface::new(
 			texture_info.size[0] as u32,
@@ -1402,7 +1487,8 @@ impl AssetFormat for DoomTexturesFormat {
 
 			let mut name = [0u8; 8];
 			data.read_exact(&mut name)?;
-			let name = String::from(str::from_utf8(&name)?.trim_end_matches('\0'));
+			let mut name = String::from(str::from_utf8(&name)?.trim_end_matches('\0'));
+			name.make_ascii_uppercase();
 
 			data.read_u32::<LE>()?; // unused bytes
 

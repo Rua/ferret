@@ -53,7 +53,7 @@ impl<A> WeakHandle<A> {
 	}
 }
 
-#[derive(Derivative)]
+/*#[derive(Derivative)]
 #[derivative(Default(bound = ""))]
 pub struct AssetCache<A> {
 	map: HashMap<String, WeakHandle<A>>,
@@ -79,7 +79,7 @@ impl<A> AssetCache<A> {
 	{
 		self.map.get(key).and_then(WeakHandle::upgrade)
 	}
-}
+}*/
 
 #[derive(Derivative)]
 #[derivative(Default(bound = ""))]

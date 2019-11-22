@@ -1,12 +1,19 @@
 //use crate::assets::AssetHandle;
+use crate::renderer::model::BSPModel;
 use nalgebra::Vector3;
-use specs::{Component, VecStorage};
+use specs::{Component, HashMapStorage, VecStorage};
 
 /*#[derive(Clone, Component, Debug)]
 #[storage(VecStorage)]
 pub struct SpriteRenderComponent {
 	pub sprite: AssetHandle<Sprite>,
 }*/
+
+#[derive(Component)]
+#[storage(HashMapStorage)]
+pub struct MapComponent {
+	pub map: BSPModel,
+}
 
 #[derive(Clone, Component, Copy, Debug)]
 #[storage(VecStorage)]
