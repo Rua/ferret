@@ -191,6 +191,7 @@ fn load_textures(map: &DoomMap, world: &World) -> Result<[HashMap<String, (Asset
 
 fn push_wall(
 	vertices: &mut Vec<VertexData>,
+	indices: &mut Vec<u32>,
 	vert_h: [&Vector2<f32>; 2],
 	vert_v: [f32; 2],
 	offset: Vector2<f32>,
@@ -203,7 +204,8 @@ fn push_wall(
 	let width = Matrix::norm(&diff);
 	let height = vert_v[1] - vert_v[0];
 
-	for (h, v) in [(0, 0), (1, 0), (1, 1), (1, 1), (0, 1), (0, 0)].iter().copied() {
+	for (h, v) in [(0, 0), (1, 0), (1, 1), (0, 1)].iter().copied() {
+		indices.push(vertices.len() as u32);
 		vertices.push(VertexData {
 			in_position: [vert_h[h][0], vert_h[h][1], vert_v[v]],
 			in_texture_coord: [
@@ -218,31 +220,24 @@ fn push_wall(
 
 fn push_flat<'a>(
 	vertices: &mut Vec<VertexData>,
-	mut iter: impl Iterator<Item = &'a Vector2<f32>>,
+	indices: &mut Vec<u32>,
+	iter: impl Iterator<Item = &'a Vector2<f32>>,
 	vert_z: f32,
 	dimensions: Dimensions,
 	texture_layer: f32,
 	light_level: f32,
 ) {
-	let first = iter.next().unwrap();
-	let mut previous = iter.next().unwrap();
-
 	for vert in iter {
-		let vert_h = [first, previous, vert];
-
-		for h in [0, 1, 2].iter().copied() {
-			vertices.push(VertexData {
-				in_position: [vert_h[h][0], vert_h[h][1], vert_z],
-				in_texture_coord: [
-					vert_h[h][0] / dimensions.width() as f32,
-					vert_h[h][1] / dimensions.height() as f32,
-					texture_layer,
-				],
-				in_lightlevel: light_level,
-			});
-		}
-
-		previous = vert;
+		indices.push(vertices.len() as u32);
+		vertices.push(VertexData {
+			in_position: [vert[0], vert[1], vert_z],
+			in_texture_coord: [
+				vert[0] / dimensions.width() as f32,
+				vert[1] / dimensions.height() as f32,
+				texture_layer,
+			],
+			in_lightlevel: light_level,
+		});
 	}
 }
 
@@ -251,9 +246,10 @@ fn make_meshes(
 	textures: &HashMap<String, (AssetHandle<Texture>, usize)>,
 	flats: &HashMap<String, (AssetHandle<Texture>, usize)>,
 	world: &World,
-) -> Result<(Vec<VertexData>, Vec<Face>), Box<dyn Error>> {
-	let mut vertices = Vec::new();
-	let mut faces = Vec::new();
+) -> Result<(Vec<VertexData>, Vec<u32>, Vec<Face>), Box<dyn Error>> {
+	let mut vertices: Vec<VertexData> = Vec::new();
+	let mut indices: Vec<u32> = Vec::new();
+	let mut faces: Vec<Face> = Vec::new();
 	let texture_storage = <ReadExpect<AssetStorage<Texture>>>::fetch(world);
 
 	for ssect in &map.gl_ssect {
@@ -321,12 +317,13 @@ fn make_meshes(
 							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
-								vertex_count: 6,
+								vertex_count: 4,
 								texture: texture.0.clone(),
 							});
 
 							push_wall(
 								&mut vertices,
+								&mut indices,
 								[start_vertex, end_vertex],
 								[spans[2], spans[3]],
 								front_sidedef.texture_offset,
@@ -343,12 +340,13 @@ fn make_meshes(
 							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
-								vertex_count: 6,
+								vertex_count: 4,
 								texture: texture.0.clone(),
 							});
 
 							push_wall(
 								&mut vertices,
+								&mut indices,
 								[start_vertex, end_vertex],
 								[spans[0], spans[1]],
 								front_sidedef.texture_offset,
@@ -365,12 +363,13 @@ fn make_meshes(
 							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
-								vertex_count: 6,
+								vertex_count: 4,
 								texture: texture.0.clone(),
 							});
 
 							push_wall(
 								&mut vertices,
+								&mut indices,
 								[start_vertex, end_vertex],
 								[spans[1], spans[2]],
 								front_sidedef.texture_offset,
@@ -387,12 +386,13 @@ fn make_meshes(
 
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
-								vertex_count: 6,
+								vertex_count: 4,
 								texture: texture.0.clone(),
 							});
 
 							push_wall(
 								&mut vertices,
+								&mut indices,
 								[start_vertex, end_vertex],
 								[front_sector.floor_height, front_sector.ceiling_height],
 								front_sidedef.texture_offset,
@@ -414,12 +414,13 @@ fn make_meshes(
 		let dimensions = texture_storage.get(&flat.0).unwrap().dimensions();
 		faces.push(Face {
 			first_vertex_index: vertices.len(),
-			vertex_count: segs.len() * 3 - 6,
+			vertex_count: segs.len(),
 			texture: flat.0.clone(),
 		});
 
 		push_flat(
 			&mut vertices,
+			&mut indices,
 			segs.iter().rev().map(|seg| if seg.vertex_indices[0].1 {
 				&map.gl_vert[seg.vertex_indices[0].0]
 			} else {
@@ -436,12 +437,13 @@ fn make_meshes(
 		let dimensions = texture_storage.get(&flat.0).unwrap().dimensions();
 		faces.push(Face {
 			first_vertex_index: vertices.len(),
-			vertex_count: segs.len() * 3 - 6,
+			vertex_count: segs.len(),
 			texture: flat.0.clone(),
 		});
 
 		push_flat(
 			&mut vertices,
+			&mut indices,
 			segs.iter().map(|seg| if seg.vertex_indices[0].1 {
 				&map.gl_vert[seg.vertex_indices[0].0]
 			} else {
@@ -454,7 +456,7 @@ fn make_meshes(
 		);
 	}
 
-	Ok((vertices, faces))
+	Ok((vertices, indices, faces))
 }
 
 pub fn from_wad(name: &str, world: &World) -> Result<BSPModel, Box<dyn Error>> {
@@ -467,12 +469,13 @@ pub fn from_wad(name: &str, world: &World) -> Result<BSPModel, Box<dyn Error>> {
 	let [textures, flats] = load_textures(&map, world)?;
 
 	// Process all subsectors, add geometry for each seg
-	let (vertices, faces) = make_meshes(&map, &textures, &flats, world)?;
+	let (vertices, indices, faces) = make_meshes(&map, &textures, &flats, world)?;
 
 	let video = world.fetch::<Video>();
 
 	let (mesh, future) = MeshBuilder::new()
-		.with_data(vertices)
+		.with_vertices(vertices)
+		.with_indices(indices)
 		.build(&video.queues().graphics)?;
 	Ok(BSPModel::new(mesh, faces))
 }

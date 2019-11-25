@@ -152,6 +152,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		} {}
 
 		old_time = new_time;
+		//println!("{} fps", 1.0/delta.as_secs_f32());
 
 		// Process events from the system
 		{

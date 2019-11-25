@@ -40,9 +40,9 @@ impl<'a> RunNow<'a> for UserCommandSenderSystem {
 			Write<Option<UserCommand>>,
 		) as SystemData>::fetch(&world);
 
-		if command.is_some() {
+		/*if command.is_some() {
 			debug!("Command was not handled!");
-		}
+		}*/
 
 		*command = Some(UserCommand {
 			action_attack: bindings.action_is_down(&Action::Attack, &input_state),

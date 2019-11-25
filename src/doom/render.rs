@@ -153,7 +153,7 @@ impl MapRenderSystem {
 				.vertex_input_single_buffer::<VertexData>()
 				.vertex_shader(vs.main_entry_point(), ())
 				.fragment_shader(fs.main_entry_point(), ())
-				.triangle_list()
+				.triangle_fan()
 				.viewports_dynamic_scissors_irrelevant(1)
 				.cull_mode_back()
 				.depth_stencil_simple_depth()
@@ -243,19 +243,18 @@ impl MapRenderSystem {
 				);
 
 				for face in faces {
-					let slice = component.map.mesh().inner()
+					let slice = component.map.mesh().index_buffer().unwrap()
 						.into_buffer_slice()
 						.slice(
-							face.first_vertex_index * std::mem::size_of::<VertexData>()
-								..(face.first_vertex_index + face.vertex_count)
-									* std::mem::size_of::<VertexData>(),
+							face.first_vertex_index .. (face.first_vertex_index + face.vertex_count),
 						)
 						.unwrap();
 
-					command_buffer_builder = command_buffer_builder.draw(
+					command_buffer_builder = command_buffer_builder.draw_indexed(
 						self.pipeline.clone(),
 						&dynamic_state,
-						vec![Arc::new(slice)],
+						vec![Arc::new(component.map.mesh().vertex_buffer().into_buffer_slice())],
+						slice,
 						(matrix_set.clone(), texture_set.clone()),
 						(),
 					)?;
