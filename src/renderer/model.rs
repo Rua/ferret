@@ -1,6 +1,5 @@
 use crate::{
 	assets::AssetHandle,
-	geometry::{BoundingBox3, Plane},
 	renderer::mesh::Mesh,
 	renderer::texture::Texture,
 };
@@ -8,22 +7,15 @@ use crate::{
 pub struct BSPModel {
 	mesh: Mesh,
 	faces: Vec<Face>,
-	_leaves: Vec<BSPLeaf>,
-	_branches: Vec<BSPBranch>,
+	lightmap: AssetHandle<Texture>,
 }
 
 impl BSPModel {
-	pub fn new(
-		mesh: Mesh,
-		faces: Vec<Face>,
-		leaves: Vec<BSPLeaf>,
-		branches: Vec<BSPBranch>,
-	) -> BSPModel {
+	pub fn new(mesh: Mesh, faces: Vec<Face>, lightmap: AssetHandle<Texture>) -> BSPModel {
 		BSPModel {
 			mesh,
 			faces,
-			_leaves: leaves,
-			_branches: branches,
+			lightmap,
 		}
 	}
 
@@ -33,6 +25,10 @@ impl BSPModel {
 
 	pub fn faces(&self) -> &Vec<Face> {
 		&self.faces
+	}
+
+	pub fn lightmap(&self) -> AssetHandle<Texture> {
+		self.lightmap.clone()
 	}
 }
 
@@ -48,25 +44,4 @@ pub struct Face {
 	pub first_vertex_index: usize,
 	pub vertex_count: usize,
 	pub texture: AssetHandle<Texture>,
-	pub lightmap: AssetHandle<Texture>,
-}
-
-#[derive(Debug, Clone)]
-pub struct BSPBranch {
-	pub plane: Plane,
-	pub bounding_box: BoundingBox3,
-	pub children: [BSPNode; 2],
-}
-
-#[derive(Debug, Clone)]
-pub struct BSPLeaf {
-	pub first_face_index: usize,
-	pub face_count: usize,
-	pub bounding_box: BoundingBox3,
-}
-
-#[derive(Debug, Copy, Clone)]
-pub enum BSPNode {
-	Leaf(usize),
-	Branch(usize),
 }

@@ -6,10 +6,10 @@ use crate::{
 		image::{DoomImageFormat, DoomPaletteFormat},
 		wad::WadLoader,
 	},
-	geometry::{BoundingBox2, BoundingBox3, Plane},
+	geometry::BoundingBox2,
 	renderer::{
 		mesh::MeshBuilder,
-		model::{BSPBranch, BSPLeaf, BSPModel, BSPNode, Face, VertexData},
+		model::{BSPModel, Face, VertexData},
 		texture::{Texture, TextureBuilder},
 		video::Video,
 	},
@@ -132,11 +132,28 @@ fn group_by_size(
 		.collect()
 }
 
-fn load_textures(
-	texture_names: HashSet<&str>,
-	flat_names: HashSet<&str>,
-	world: &World,
-) -> Result<[HashMap<String, (AssetHandle<Texture>, usize)>; 2], Box<dyn Error>> {
+fn load_textures(map: &DoomMap, world: &World) -> Result<[HashMap<String, (AssetHandle<Texture>, usize)>; 2], Box<dyn Error>> {
+	let mut texture_names = HashSet::new();
+	for sidedef in &map.sidedefs {
+		if let Some(name) = &sidedef.top_texture_name {
+			texture_names.insert(name.as_str());
+		}
+
+		if let Some(name) = &sidedef.bottom_texture_name {
+			texture_names.insert(name.as_str());
+		}
+
+		if let Some(name) = &sidedef.middle_texture_name {
+			texture_names.insert(name.as_str());
+		}
+	}
+
+	let mut flat_names = HashSet::new();
+	for sector in &map.sectors {
+		flat_names.insert(sector.floor_flat_name.as_str());
+		flat_names.insert(sector.ceiling_flat_name.as_str());
+	}
+
 	let mut loader = world.fetch_mut::<WadLoader>();
 
 	// Load all the surfaces, while storing name-index mapping
@@ -214,125 +231,135 @@ fn generate_lightmaps(world: &World) -> Result<AssetHandle<Texture>, Box<dyn Err
 	Ok(texture_storage.insert(texture))
 }
 
-pub fn from_wad(name: &str, world: &World) -> Result<BSPModel, Box<dyn Error>> {
-	let (linedefs, sidedefs, vertexes, sectors, gl_vert, gl_segs, gl_ssect, gl_nodes) = {
-		let mut loader = world.fetch_mut::<WadLoader>();
-		let gl_name = format!("GL_{}", name);
+fn push_wall(
+	vertices: &mut Vec<VertexData>,
+	vert_h: [&Vector2<f32>; 2],
+	vert_v: [f32; 2],
+	offset: Vector2<f32>,
+	peg_factor: [f32; 2],
+	dimensions: Dimensions,
+	texture_layer: f32,
+	light_layer: f32,
+) {
+	let diff = vert_h[1] - vert_h[0];
+	let width = Matrix::norm(&diff);
+	let height = vert_v[1] - vert_v[0];
 
-		(
-			DoomMapLinedefsFormat.import(name, &mut *loader)?,
-			DoomMapSidedefsFormat.import(name, &mut *loader)?,
-			DoomMapVertexesFormat.import(name, &mut *loader)?,
-			DoomMapSectorsFormat.import(name, &mut *loader)?,
-			DoomMapGLVertFormat.import(&gl_name, &mut *loader)?,
-			DoomMapGLSegsFormat.import(&gl_name, &mut *loader)?,
-			DoomMapGLSSectFormat.import(&gl_name, &mut *loader)?,
-			DoomMapGLNodesFormat.import(&gl_name, &mut *loader)?,
-		)
-	};
-
-	// Load textures and flats
-	let mut texture_names = HashSet::new();
-	for sidedef in &sidedefs {
-		if let Some(name) = &sidedef.top_texture_name {
-			texture_names.insert(name.as_str());
-		}
-
-		if let Some(name) = &sidedef.bottom_texture_name {
-			texture_names.insert(name.as_str());
-		}
-
-		if let Some(name) = &sidedef.middle_texture_name {
-			texture_names.insert(name.as_str());
-		}
+	for (h, v) in [(0, 0), (1, 0), (1, 1), (1, 1), (0, 1), (0, 0)].iter().copied() {
+		vertices.push(VertexData {
+			in_position: [vert_h[h][0], vert_h[h][1], vert_v[v]],
+			in_texture_coord: [
+				(offset[0] + width * h as f32) / dimensions.width() as f32,
+				(offset[1] + height * peg_factor[v]) / dimensions.height() as f32,
+				texture_layer,
+			],
+			in_lightmap_coord: [
+				0.0,
+				0.0,
+				light_layer,
+			],
+		});
 	}
+}
 
-	let mut flat_names = HashSet::new();
-	for sector in &sectors {
-		flat_names.insert(sector.floor_flat_name.as_str());
-		flat_names.insert(sector.ceiling_flat_name.as_str());
+fn push_flat<'a>(
+	vertices: &mut Vec<VertexData>,
+	mut iter: impl Iterator<Item = &'a Vector2<f32>>,
+	vert_z: f32,
+	dimensions: Dimensions,
+	texture_layer: f32,
+	light_layer: f32,
+) {
+	let first = iter.next().unwrap();
+	let mut previous = iter.next().unwrap();
+
+	for vert in iter {
+		let vert_h = [first, previous, vert];
+
+		for h in [0, 1, 2].iter().copied() {
+			vertices.push(VertexData {
+				in_position: [vert_h[h][0], vert_h[h][1], vert_z],
+				in_texture_coord: [
+					vert_h[h][0] / dimensions.width() as f32,
+					vert_h[h][1] / dimensions.height() as f32,
+					texture_layer,
+				],
+				in_lightmap_coord: [0.0, 0.0, light_layer],
+			});
+		}
+
+		previous = vert;
 	}
+}
 
-	let [textures, flats] = load_textures(texture_names, flat_names, world)?;
-
-	// Generate lightmaps
-	let lightmaps = generate_lightmaps(world)?;
-
-	// Process all subsectors, add geometry for each seg
+fn make_meshes(
+	map: &DoomMap,
+	textures: &HashMap<String, (AssetHandle<Texture>, usize)>,
+	flats: &HashMap<String, (AssetHandle<Texture>, usize)>,
+	world: &World,
+) -> Result<(Vec<VertexData>, Vec<Face>), Box<dyn Error>> {
 	let mut vertices = Vec::new();
 	let mut faces = Vec::new();
-	let mut leaves = Vec::new();
-	let (texture_storage, video) =
-		<(ReadExpect<AssetStorage<Texture>>, ReadExpect<Video>)>::fetch(world);
+	let texture_storage = <ReadExpect<AssetStorage<Texture>>>::fetch(world);
 
-	for ssect in gl_ssect {
-		let mut leaf = BSPLeaf {
-			first_face_index: faces.len(),
-			face_count: 0,
-			bounding_box: BoundingBox3::zero(), // Temporary dummy value
-		};
-
-		let segs = &gl_segs[ssect.first_seg_index..ssect.first_seg_index + ssect.seg_count];
+	for ssect in &map.gl_ssect {
+		let segs = &map.gl_segs[ssect.first_seg_index..ssect.first_seg_index + ssect.seg_count];
 		let mut sector = None;
 
 		// Walls
 		for seg in segs.iter() {
 			if let Some(linedef_index) = seg.linedef_index {
-				let linedef = &linedefs[linedef_index];
+				let linedef = &map.linedefs[linedef_index];
 
 				if let Some(front_sidedef_index) = linedef.sidedef_indices[seg.side as usize] {
-					let front_sidedef = &sidedefs[front_sidedef_index];
+					let front_sidedef = &map.sidedefs[front_sidedef_index];
 
 					// Assign sector
 					if let Some(s) = sector {
-						if s as *const _ != &sectors[front_sidedef.sector_index] as *const _ {
+						if s as *const _ != &map.sectors[front_sidedef.sector_index] as *const _ {
 							return Err(Box::from("Not all the segs belong to the same sector!"));
 						}
 					} else {
-						sector = Some(&sectors[front_sidedef.sector_index]);
+						sector = Some(&map.sectors[front_sidedef.sector_index]);
 					}
 
 					let front_sector = sector.unwrap();
 
 					// Add wall
-					let start_vertex = if seg.start_vertex_index.1 {
-						&gl_vert[seg.start_vertex_index.0]
+					let start_vertex = if seg.vertex_indices[0].1 {
+						&map.gl_vert[seg.vertex_indices[0].0]
 					} else {
-						&vertexes[seg.start_vertex_index.0]
+						&map.vertexes[seg.vertex_indices[0].0]
 					};
 
-					let end_vertex = if seg.end_vertex_index.1 {
-						&gl_vert[seg.end_vertex_index.0]
+					let end_vertex = if seg.vertex_indices[1].1 {
+						&map.gl_vert[seg.vertex_indices[1].0]
 					} else {
-						&vertexes[seg.end_vertex_index.0]
+						&map.vertexes[seg.vertex_indices[1].0]
 					};
 
-					let diff = end_vertex - start_vertex;
-					let width = Matrix::norm(&diff);
-					let offset = front_sidedef.texture_offset;
+					let top_peg_factor = if linedef.flags & 8 != 0 {
+						[0.0, -1.0]
+					} else {
+						[1.0, 0.0]
+					};
+
+					let bottom_peg_factor = if linedef.flags & 16 != 0 {
+						[1.0, 0.0]
+					} else {
+						[0.0, -1.0]
+					};
 
 					// Two-sided or one-sided sidedef?
 					if let Some(back_sidedef_index) = linedef.sidedef_indices[!seg.side as usize] {
-						let back_sidedef = &sidedefs[back_sidedef_index];
-						let back_sector = &sectors[back_sidedef.sector_index];
-
-						let top_span = (
-							front_sector.ceiling_height.min(back_sector.ceiling_height),
-							front_sector.ceiling_height,
-						);
-						let bottom_span = (
+						let back_sidedef = &map.sidedefs[back_sidedef_index];
+						let back_sector = &map.sectors[back_sidedef.sector_index];
+						let spans = [
 							front_sector.floor_height,
-							back_sector.floor_height.max(front_sector.floor_height),
-						);
-						let middle_span = (
-							front_sector.floor_height.max(back_sector.floor_height),
-							front_sector.ceiling_height.min(back_sector.ceiling_height),
-						);
-
-						let total_height = top_span.1 - bottom_span.0;
-						let top_height = top_span.1 - top_span.0;
-						let bottom_height = bottom_span.1 - bottom_span.0;
-						let middle_height = middle_span.1 - middle_span.0;
+							f32::max(back_sector.floor_height, front_sector.floor_height),
+							f32::min(front_sector.ceiling_height, back_sector.ceiling_height),
+							front_sector.ceiling_height,
+						];
 
 						// Top section
 						if let Some(texture_name) = &front_sidedef.top_texture_name {
@@ -340,84 +367,20 @@ pub fn from_wad(name: &str, world: &World) -> Result<BSPModel, Box<dyn Error>> {
 							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
-								vertex_count: 4,
+								vertex_count: 6,
 								texture: texture.0.clone(),
-								lightmap: lightmaps.clone(),
 							});
-							leaf.face_count += 1;
 
-							vertices.push(VertexData {
-								in_position: [start_vertex[0], start_vertex[1], top_span.0],
-								in_texture_coord: [
-									(offset[0] + 0.0) / dimensions.width() as f32,
-									(offset[1]
-										+ if linedef.flags & 8 != 0 {
-											top_height
-										} else {
-											0.0
-										}) / dimensions.height() as f32,
-									texture.1 as f32,
-								],
-								in_lightmap_coord: [
-									0.0,
-									0.0,
-									(front_sector.light_level >> 4) as f32,
-								],
-							});
-							vertices.push(VertexData {
-								in_position: [end_vertex[0], end_vertex[1], top_span.0],
-								in_texture_coord: [
-									(offset[0] + width) / dimensions.width() as f32,
-									(offset[1]
-										+ if linedef.flags & 8 != 0 {
-											top_height
-										} else {
-											0.0
-										}) / dimensions.height() as f32,
-									texture.1 as f32,
-								],
-								in_lightmap_coord: [
-									0.0,
-									0.0,
-									(front_sector.light_level >> 4) as f32,
-								],
-							});
-							vertices.push(VertexData {
-								in_position: [end_vertex[0], end_vertex[1], top_span.1],
-								in_texture_coord: [
-									(offset[0] + width) / dimensions.width() as f32,
-									(offset[1]
-										+ if linedef.flags & 8 != 0 {
-											0.0
-										} else {
-											-top_height
-										}) / dimensions.height() as f32,
-									texture.1 as f32,
-								],
-								in_lightmap_coord: [
-									0.0,
-									0.0,
-									(front_sector.light_level >> 4) as f32,
-								],
-							});
-							vertices.push(VertexData {
-								in_position: [start_vertex[0], start_vertex[1], top_span.1],
-								in_texture_coord: [
-									(offset[0] + 0.0) / dimensions.width() as f32,
-									(offset[1]
-										+ if linedef.flags & 8 != 0 {
-											0.0
-										} else {
-											-top_height
-										}) / dimensions.height() as f32,
-									texture.1 as f32,
-								],
-								in_lightmap_coord: [
-									0.0,
-									0.0,
-									(front_sector.light_level >> 4) as f32,
-								],
-							});
+							push_wall(
+								&mut vertices,
+								[start_vertex, end_vertex],
+								[spans[2], spans[3]],
+								front_sidedef.texture_offset,
+								top_peg_factor,
+								dimensions,
+								texture.1 as f32,
+								(front_sector.light_level >> 4) as f32,
+							);
 						}
 
 						// Bottom section
@@ -426,84 +389,20 @@ pub fn from_wad(name: &str, world: &World) -> Result<BSPModel, Box<dyn Error>> {
 							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
-								vertex_count: 4,
+								vertex_count: 6,
 								texture: texture.0.clone(),
-								lightmap: lightmaps.clone(),
 							});
-							leaf.face_count += 1;
 
-							vertices.push(VertexData {
-								in_position: [start_vertex[0], start_vertex[1], bottom_span.0],
-								in_texture_coord: [
-									(offset[0] + 0.0) / dimensions.width() as f32,
-									(offset[1]
-										+ if linedef.flags & 16 != 0 {
-											total_height
-										} else {
-											bottom_height
-										}) / dimensions.height() as f32,
-									texture.1 as f32,
-								],
-								in_lightmap_coord: [
-									0.0,
-									0.0,
-									(front_sector.light_level >> 4) as f32,
-								],
-							});
-							vertices.push(VertexData {
-								in_position: [end_vertex[0], end_vertex[1], bottom_span.0],
-								in_texture_coord: [
-									(offset[0] + width) / dimensions.width() as f32,
-									(offset[1]
-										+ if linedef.flags & 16 != 0 {
-											total_height
-										} else {
-											bottom_height
-										}) / dimensions.height() as f32,
-									texture.1 as f32,
-								],
-								in_lightmap_coord: [
-									0.0,
-									0.0,
-									(front_sector.light_level >> 4) as f32,
-								],
-							});
-							vertices.push(VertexData {
-								in_position: [end_vertex[0], end_vertex[1], bottom_span.1],
-								in_texture_coord: [
-									(offset[0] + width) / dimensions.width() as f32,
-									(offset[1]
-										+ if linedef.flags & 16 != 0 {
-											total_height - bottom_height
-										} else {
-											0.0
-										}) / dimensions.height() as f32,
-									texture.1 as f32,
-								],
-								in_lightmap_coord: [
-									0.0,
-									0.0,
-									(front_sector.light_level >> 4) as f32,
-								],
-							});
-							vertices.push(VertexData {
-								in_position: [start_vertex[0], start_vertex[1], bottom_span.1],
-								in_texture_coord: [
-									(offset[0] + 0.0) / dimensions.width() as f32,
-									(offset[1]
-										+ if linedef.flags & 16 != 0 {
-											total_height - bottom_height
-										} else {
-											0.0
-										}) / dimensions.height() as f32,
-									texture.1 as f32,
-								],
-								in_lightmap_coord: [
-									0.0,
-									0.0,
-									(front_sector.light_level >> 4) as f32,
-								],
-							});
+							push_wall(
+								&mut vertices,
+								[start_vertex, end_vertex],
+								[spans[0], spans[1]],
+								front_sidedef.texture_offset,
+								bottom_peg_factor,
+								dimensions,
+								texture.1 as f32,
+								(front_sector.light_level >> 4) as f32,
+							);
 						}
 
 						// Middle section
@@ -512,188 +411,42 @@ pub fn from_wad(name: &str, world: &World) -> Result<BSPModel, Box<dyn Error>> {
 							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
-								vertex_count: 4,
+								vertex_count: 6,
 								texture: texture.0.clone(),
-								lightmap: lightmaps.clone(),
 							});
-							leaf.face_count += 1;
 
-							vertices.push(VertexData {
-								in_position: [start_vertex[0], start_vertex[1], middle_span.0],
-								in_texture_coord: [
-									(offset[0] + 0.0) / dimensions.width() as f32,
-									(offset[1]
-										+ if linedef.flags & 16 != 0 {
-											0.0
-										} else {
-											middle_height
-										}) / dimensions.height() as f32,
-									texture.1 as f32,
-								],
-								in_lightmap_coord: [
-									0.0,
-									0.0,
-									(front_sector.light_level >> 4) as f32,
-								],
-							});
-							vertices.push(VertexData {
-								in_position: [end_vertex[0], end_vertex[1], middle_span.0],
-								in_texture_coord: [
-									(offset[0] + width) / dimensions.width() as f32,
-									(offset[1]
-										+ if linedef.flags & 16 != 0 {
-											0.0
-										} else {
-											middle_height
-										}) / dimensions.height() as f32,
-									texture.1 as f32,
-								],
-								in_lightmap_coord: [
-									0.0,
-									0.0,
-									(front_sector.light_level >> 4) as f32,
-								],
-							});
-							vertices.push(VertexData {
-								in_position: [end_vertex[0], end_vertex[1], middle_span.1],
-								in_texture_coord: [
-									(offset[0] + width) / dimensions.width() as f32,
-									(offset[1]
-										+ if linedef.flags & 16 != 0 {
-											-middle_height
-										} else {
-											0.0
-										}) / dimensions.height() as f32,
-									texture.1 as f32,
-								],
-								in_lightmap_coord: [
-									0.0,
-									0.0,
-									(front_sector.light_level >> 4) as f32,
-								],
-							});
-							vertices.push(VertexData {
-								in_position: [start_vertex[0], start_vertex[1], middle_span.1],
-								in_texture_coord: [
-									(offset[0] + 0.0) / dimensions.width() as f32,
-									(offset[1]
-										+ if linedef.flags & 16 != 0 {
-											-middle_height
-										} else {
-											0.0
-										}) / dimensions.height() as f32,
-									texture.1 as f32,
-								],
-								in_lightmap_coord: [
-									0.0,
-									0.0,
-									(front_sector.light_level >> 4) as f32,
-								],
-							});
+							push_wall(
+								&mut vertices,
+								[start_vertex, end_vertex],
+								[spans[1], spans[2]],
+								front_sidedef.texture_offset,
+								bottom_peg_factor,
+								dimensions,
+								texture.1 as f32,
+								(front_sector.light_level >> 4) as f32,
+							);
 						}
 					} else {
 						if let Some(texture_name) = &front_sidedef.middle_texture_name {
 							let texture = &textures[texture_name];
 							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
-							let total_height =
-								front_sector.ceiling_height - front_sector.floor_height;
 
 							faces.push(Face {
 								first_vertex_index: vertices.len(),
-								vertex_count: 4,
+								vertex_count: 6,
 								texture: texture.0.clone(),
-								lightmap: lightmaps.clone(),
 							});
-							leaf.face_count += 1;
 
-							vertices.push(VertexData {
-								in_position: [
-									start_vertex[0],
-									start_vertex[1],
-									front_sector.floor_height,
-								],
-								in_texture_coord: [
-									(offset[0] + 0.0) / dimensions.width() as f32,
-									(offset[1]
-										+ if linedef.flags & 16 != 0 {
-											0.0
-										} else {
-											total_height
-										}) / dimensions.height() as f32,
-									texture.1 as f32,
-								],
-								in_lightmap_coord: [
-									0.0,
-									0.0,
-									(front_sector.light_level >> 4) as f32,
-								],
-							});
-							vertices.push(VertexData {
-								in_position: [
-									end_vertex[0],
-									end_vertex[1],
-									front_sector.floor_height,
-								],
-								in_texture_coord: [
-									(offset[0] + width) / dimensions.width() as f32,
-									(offset[1]
-										+ if linedef.flags & 16 != 0 {
-											0.0
-										} else {
-											total_height
-										}) / dimensions.height() as f32,
-									texture.1 as f32,
-								],
-								in_lightmap_coord: [
-									0.0,
-									0.0,
-									(front_sector.light_level >> 4) as f32,
-								],
-							});
-							vertices.push(VertexData {
-								in_position: [
-									end_vertex[0],
-									end_vertex[1],
-									front_sector.ceiling_height,
-								],
-								in_texture_coord: [
-									(offset[0] + width) / dimensions.width() as f32,
-									(offset[1]
-										+ if linedef.flags & 16 != 0 {
-											-total_height
-										} else {
-											0.0
-										}) / dimensions.height() as f32,
-									texture.1 as f32,
-								],
-								in_lightmap_coord: [
-									0.0,
-									0.0,
-									(front_sector.light_level >> 4) as f32,
-								],
-							});
-							vertices.push(VertexData {
-								in_position: [
-									start_vertex[0],
-									start_vertex[1],
-									front_sector.ceiling_height,
-								],
-								in_texture_coord: [
-									(offset[0] + 0.0) / dimensions.width() as f32,
-									(offset[1]
-										+ if linedef.flags & 16 != 0 {
-											-total_height
-										} else {
-											0.0
-										}) / dimensions.height() as f32,
-									texture.1 as f32,
-								],
-								in_lightmap_coord: [
-									0.0,
-									0.0,
-									(front_sector.light_level >> 4) as f32,
-								],
-							});
+							push_wall(
+								&mut vertices,
+								[start_vertex, end_vertex],
+								[front_sector.floor_height, front_sector.ceiling_height],
+								front_sidedef.texture_offset,
+								bottom_peg_factor,
+								dimensions,
+								texture.1 as f32,
+								(front_sector.light_level >> 4) as f32,
+							);
 						}
 					}
 				}
@@ -707,111 +460,107 @@ pub fn from_wad(name: &str, world: &World) -> Result<BSPModel, Box<dyn Error>> {
 		let dimensions = texture_storage.get(&flat.0).unwrap().dimensions();
 		faces.push(Face {
 			first_vertex_index: vertices.len(),
-			vertex_count: segs.len(),
+			vertex_count: segs.len() * 3 - 6,
 			texture: flat.0.clone(),
-			lightmap: lightmaps.clone(),
 		});
-		leaf.face_count += 1;
 
-		for seg in segs.iter().rev() {
-			let start_vertex = if seg.start_vertex_index.1 {
-				gl_vert[seg.start_vertex_index.0]
+		push_flat(
+			&mut vertices,
+			segs.iter().rev().map(|seg| if seg.vertex_indices[0].1 {
+				&map.gl_vert[seg.vertex_indices[0].0]
 			} else {
-				vertexes[seg.start_vertex_index.0]
-			};
-
-			vertices.push(VertexData {
-				in_position: [start_vertex[0], start_vertex[1], sector.floor_height],
-				in_texture_coord: [
-					start_vertex[0] / dimensions.width() as f32,
-					start_vertex[1] / dimensions.height() as f32,
-					flat.1 as f32,
-				],
-				in_lightmap_coord: [0.0, 0.0, (sector.light_level >> 4) as f32],
-			});
-		}
+				&map.vertexes[seg.vertex_indices[0].0]
+			}),
+			sector.floor_height,
+			dimensions,
+			flat.1 as f32,
+			(sector.light_level >> 4) as f32,
+		);
 
 		// Ceiling
 		let flat = &flats[&sector.ceiling_flat_name];
 		let dimensions = texture_storage.get(&flat.0).unwrap().dimensions();
 		faces.push(Face {
 			first_vertex_index: vertices.len(),
-			vertex_count: segs.len(),
+			vertex_count: segs.len() * 3 - 6,
 			texture: flat.0.clone(),
-			lightmap: lightmaps.clone(),
 		});
-		leaf.face_count += 1;
 
-		for seg in segs.iter() {
-			let start_vertex = if seg.start_vertex_index.1 {
-				gl_vert[seg.start_vertex_index.0]
+		push_flat(
+			&mut vertices,
+			segs.iter().map(|seg| if seg.vertex_indices[0].1 {
+				&map.gl_vert[seg.vertex_indices[0].0]
 			} else {
-				vertexes[seg.start_vertex_index.0]
-			};
-
-			vertices.push(VertexData {
-				in_position: [start_vertex[0], start_vertex[1], sector.ceiling_height],
-				in_texture_coord: [
-					start_vertex[0] / dimensions.width() as f32,
-					start_vertex[1] / dimensions.height() as f32,
-					flat.1 as f32,
-				],
-				in_lightmap_coord: [0.0, 0.0, (sector.light_level >> 4) as f32],
-			});
-		}
-
-		// Add the BSP leaf
-		leaves.push(leaf);
+				&map.vertexes[seg.vertex_indices[0].0]
+			}),
+			sector.ceiling_height,
+			dimensions,
+			flat.1 as f32,
+			(sector.light_level >> 4) as f32,
+		);
 	}
 
-	// Process nodes
-	let mut branches = Vec::new();
+	Ok((vertices, faces))
+}
 
-	for node in &gl_nodes {
-		// Convert the Doom line definition into plane
-		let normal = Vector2::new(
-			node.partition_dir[1], // 90 degree clockwise rotation
-			-node.partition_dir[0],
-		)
-		.normalize();
+pub fn from_wad(name: &str, world: &World) -> Result<BSPModel, Box<dyn Error>> {
+	let map = {
+		let mut loader = world.fetch_mut::<WadLoader>();
+		DoomMapFormat.import(name, &mut *loader)?
+	};
 
-		branches.push(BSPBranch {
-			plane: Plane {
-				normal: Vector3::new(normal[0], normal[1], 0.0),
-				distance: Matrix::dot(&normal, &node.partition_point),
-			},
-			bounding_box: BoundingBox3::zero(), // Temporary dummy value
-			children: [node.right_child_index, node.left_child_index],
-		});
-	}
+	// Load textures and flats
+	let [textures, flats] = load_textures(&map, world)?;
 
-	// Set the bounding box values.
-	// Doom stores bounding boxes in the parent node,
-	// but BSPModel wants them in the current node.
-	for node in &gl_nodes {
-		match node.right_child_index {
-			BSPNode::Leaf(index) => {
-				leaves[index].bounding_box = BoundingBox3::from(&node.right_bbox);
-			}
-			BSPNode::Branch(index) => {
-				branches[index].bounding_box = BoundingBox3::from(&node.right_bbox);
-			}
-		}
+	// Generate lightmaps
+	let lightmaps = generate_lightmaps(world)?;
 
-		match node.left_child_index {
-			BSPNode::Leaf(index) => {
-				leaves[index].bounding_box = BoundingBox3::from(&node.left_bbox);
-			}
-			BSPNode::Branch(index) => {
-				branches[index].bounding_box = BoundingBox3::from(&node.left_bbox);
-			}
-		}
-	}
+	// Process all subsectors, add geometry for each seg
+	let (vertices, faces) = make_meshes(&map, &textures, &flats, world)?;
+
+	let video = world.fetch::<Video>();
 
 	let (mesh, future) = MeshBuilder::new()
 		.with_data(vertices)
 		.build(&video.queues().graphics)?;
-	Ok(BSPModel::new(mesh, faces, leaves, branches))
+	Ok(BSPModel::new(mesh, faces, lightmaps))
+}
+
+#[derive(Clone, Debug)]
+pub struct DoomMap {
+	linedefs: Vec<DoomMapLinedef>,
+	sidedefs: Vec<DoomMapSidedef>,
+	vertexes: Vec<Vector2<f32>>,
+	sectors: Vec<DoomMapSector>,
+	gl_vert: Vec<Vector2<f32>>,
+	gl_segs: Vec<DoomMapGLSeg>,
+	gl_ssect: Vec<DoomMapGLSSect>,
+	gl_nodes: Vec<DoomMapGLNode>,
+}
+
+pub struct DoomMapFormat;
+
+impl AssetFormat for DoomMapFormat {
+	type Asset = DoomMap;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let gl_name = format!("GL_{}", name);
+
+		Ok(DoomMap {
+			linedefs: DoomMapLinedefsFormat.import(name, source)?,
+			sidedefs: DoomMapSidedefsFormat.import(name, source)?,
+			vertexes: DoomMapVertexesFormat.import(name, source)?,
+			sectors: DoomMapSectorsFormat.import(name, source)?,
+			gl_vert: DoomMapGLVertFormat.import(&gl_name, source)?,
+			gl_segs: DoomMapGLSegsFormat.import(&gl_name, source)?,
+			gl_ssect: DoomMapGLSSectFormat.import(&gl_name, source)?,
+			gl_nodes: DoomMapGLNodesFormat.import(&gl_name, source)?,
+		})
+	}
 }
 
 #[derive(Clone, Debug)]
@@ -1145,8 +894,7 @@ impl AssetFormat for DoomMapGLVertFormat {
 
 #[derive(Clone, Debug)]
 pub struct DoomMapGLSeg {
-	pub start_vertex_index: (usize, bool),
-	pub end_vertex_index: (usize, bool),
+	pub vertex_indices: [(usize, bool); 2],
 	pub linedef_index: Option<usize>,
 	pub side: bool,
 	pub partner_seg_index: Option<usize>,
@@ -1182,20 +930,18 @@ impl AssetFormat for DoomMapGLSegsFormat {
 			let partner_seg_index = data.read_u16::<LE>()? as usize;
 
 			gl_segs.push(DoomMapGLSeg {
-				start_vertex_index: {
+				vertex_indices: [
 					if (start_vertex_index & 0x8000) != 0 {
 						(start_vertex_index & 0x7FFF, true)
 					} else {
 						(start_vertex_index, false)
-					}
-				},
-				end_vertex_index: {
+					},
 					if (end_vertex_index & 0x8000) != 0 {
 						(end_vertex_index & 0x7FFF, true)
 					} else {
 						(end_vertex_index, false)
 					}
-				},
+				],
 				linedef_index: {
 					if linedef_index == 0xFFFF {
 						None
@@ -1266,8 +1012,14 @@ pub struct DoomMapGLNode {
 	pub partition_dir: Vector2<f32>,
 	pub right_bbox: BoundingBox2,
 	pub left_bbox: BoundingBox2,
-	pub right_child_index: BSPNode,
-	pub left_child_index: BSPNode,
+	pub right_child_index: BSPChildNode,
+	pub left_child_index: BSPChildNode,
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum BSPChildNode {
+	Leaf(usize),
+	Branch(usize),
 }
 
 pub struct DoomMapGLNodesFormat;
@@ -1325,16 +1077,16 @@ impl AssetFormat for DoomMapGLNodesFormat {
 				),
 				right_child_index: {
 					if (right_child_index & 0x8000) != 0 {
-						BSPNode::Leaf(right_child_index & 0x7FFF)
+						BSPChildNode::Leaf(right_child_index & 0x7FFF)
 					} else {
-						BSPNode::Branch(right_child_index)
+						BSPChildNode::Branch(right_child_index)
 					}
 				},
 				left_child_index: {
 					if (left_child_index & 0x8000) != 0 {
-						BSPNode::Leaf(left_child_index & 0x7FFF)
+						BSPChildNode::Leaf(left_child_index & 0x7FFF)
 					} else {
-						BSPNode::Branch(left_child_index)
+						BSPChildNode::Branch(left_child_index)
 					}
 				},
 			});

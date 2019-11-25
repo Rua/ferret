@@ -1,11 +1,11 @@
 use crate::{
-	assets::AssetStorage,
+	assets::{AssetHandle, AssetStorage},
 	doom::components::MapComponent,
-	renderer::{model::VertexData, texture::Texture, video::Video},
+	renderer::{model::{Face, VertexData}, texture::Texture, video::Video},
 };
 use nalgebra::{Matrix4, Point3, Vector3};
 use specs::{join::Join, ReadExpect, ReadStorage, RunNow, SystemData, World};
-use std::{error::Error, f32::consts::FRAC_PI_4, sync::Arc};
+use std::{collections::{HashMap, hash_map::Entry}, error::Error, f32::consts::FRAC_PI_4, sync::Arc};
 use vulkano::{
 	buffer::{BufferAccess, BufferUsage, CpuAccessibleBuffer},
 	command_buffer::{
@@ -153,7 +153,7 @@ impl MapRenderSystem {
 				.vertex_input_single_buffer::<VertexData>()
 				.vertex_shader(vs.main_entry_point(), ())
 				.fragment_shader(fs.main_entry_point(), ())
-				.triangle_fan()
+				.triangle_list()
 				.viewports_dynamic_scissors_irrelevant(1)
 				.cull_mode_back()
 				.depth_stencil_simple_depth()
@@ -211,14 +211,31 @@ impl MapRenderSystem {
 				.build()?,
 		);
 
-		// Draw the map
+		// Sort into batches
 		let (texture_storage, map_component) =
 			<(ReadExpect<AssetStorage<Texture>>, ReadStorage<MapComponent>)>::fetch(world);
 
+		let mut batches: HashMap<AssetHandle<Texture>, Vec<&Face>> = HashMap::new();
+
 		for component in map_component.join() {
 			for face in component.map.faces() {
-				let texture = texture_storage.get(&face.texture).unwrap();
-				let lightmap = texture_storage.get(&face.lightmap).unwrap();
+				match batches.entry(face.texture.clone()) {
+					Entry::Occupied(mut entry) => {
+						entry.get_mut().push(&face);
+					}
+					Entry::Vacant(entry) => {
+						entry.insert(vec![&face]);
+					}
+				}
+			}
+		}
+
+		// Draw the map
+		for component in map_component.join() {
+			let lightmap = texture_storage.get(&component.map.lightmap()).unwrap();
+
+			for (texture, faces) in batches.iter() {
+				let texture = texture_storage.get(&texture).unwrap();
 
 				let texture_set = Arc::new(
 					self.texture_pool
@@ -228,23 +245,24 @@ impl MapRenderSystem {
 						.build()?,
 				);
 
-				let mesh = component.map.mesh().inner();
-				let slice = mesh
-					.into_buffer_slice()
-					.slice(
-						face.first_vertex_index * std::mem::size_of::<VertexData>()
-							..(face.first_vertex_index + face.vertex_count)
-								* std::mem::size_of::<VertexData>(),
-					)
-					.unwrap();
+				for face in faces {
+					let slice = component.map.mesh().inner()
+						.into_buffer_slice()
+						.slice(
+							face.first_vertex_index * std::mem::size_of::<VertexData>()
+								..(face.first_vertex_index + face.vertex_count)
+									* std::mem::size_of::<VertexData>(),
+						)
+						.unwrap();
 
-				command_buffer_builder = command_buffer_builder.draw(
-					self.pipeline.clone(),
-					&dynamic_state,
-					vec![Arc::new(slice)],
-					(matrix_set.clone(), texture_set),
-					(),
-				)?;
+					command_buffer_builder = command_buffer_builder.draw(
+						self.pipeline.clone(),
+						&dynamic_state,
+						vec![Arc::new(slice)],
+						(matrix_set.clone(), texture_set.clone()),
+						(),
+					)?;
+				}
 			}
 		}
 

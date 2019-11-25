@@ -39,9 +39,9 @@ impl BoundingBox3 {
 		BoundingBox3 { min, max }
 	}
 
-	pub fn zero() -> BoundingBox3 {
+	/*pub fn zero() -> BoundingBox3 {
 		BoundingBox3::new(Vector3::zeros(), Vector3::zeros())
-	}
+	}*/
 }
 
 impl From<&BoundingBox2> for BoundingBox3 {
