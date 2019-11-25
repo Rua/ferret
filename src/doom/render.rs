@@ -1,11 +1,11 @@
 use crate::{
-	assets::{AssetHandle, AssetStorage},
+	assets::AssetStorage,
 	doom::components::MapComponent,
-	renderer::{model::{Face, VertexData}, texture::Texture, video::Video},
+	renderer::{model::VertexData, texture::Texture, video::Video},
 };
 use nalgebra::{Matrix4, Point3, Vector3};
 use specs::{join::Join, ReadExpect, ReadStorage, RunNow, SystemData, World};
-use std::{collections::{HashMap, hash_map::Entry}, error::Error, f32::consts::FRAC_PI_4, sync::Arc};
+use std::{error::Error, f32::consts::FRAC_PI_4, sync::Arc};
 use vulkano::{
 	buffer::{BufferAccess, BufferUsage, CpuAccessibleBuffer},
 	command_buffer::{
@@ -154,6 +154,7 @@ impl MapRenderSystem {
 				.vertex_shader(vs.main_entry_point(), ())
 				.fragment_shader(fs.main_entry_point(), ())
 				.triangle_fan()
+				.primitive_restart(true)
 				.viewports_dynamic_scissors_irrelevant(1)
 				.cull_mode_back()
 				.depth_stencil_simple_depth()
@@ -211,28 +212,12 @@ impl MapRenderSystem {
 				.build()?,
 		);
 
-		// Sort into batches
 		let (texture_storage, map_component) =
 			<(ReadExpect<AssetStorage<Texture>>, ReadStorage<MapComponent>)>::fetch(world);
 
-		let mut batches: HashMap<AssetHandle<Texture>, Vec<&Face>> = HashMap::new();
-
-		for component in map_component.join() {
-			for face in component.map.faces() {
-				match batches.entry(face.texture.clone()) {
-					Entry::Occupied(mut entry) => {
-						entry.get_mut().push(&face);
-					}
-					Entry::Vacant(entry) => {
-						entry.insert(vec![&face]);
-					}
-				}
-			}
-		}
-
 		// Draw the map
 		for component in map_component.join() {
-			for (texture, faces) in batches.iter() {
+			for (texture, mesh) in component.map.meshes() {
 				let texture = texture_storage.get(&texture).unwrap();
 
 				let texture_set = Arc::new(
@@ -242,23 +227,14 @@ impl MapRenderSystem {
 						.build()?,
 				);
 
-				for face in faces {
-					let slice = component.map.mesh().index_buffer().unwrap()
-						.into_buffer_slice()
-						.slice(
-							face.first_vertex_index .. (face.first_vertex_index + face.vertex_count),
-						)
-						.unwrap();
-
-					command_buffer_builder = command_buffer_builder.draw_indexed(
-						self.pipeline.clone(),
-						&dynamic_state,
-						vec![Arc::new(component.map.mesh().vertex_buffer().into_buffer_slice())],
-						slice,
-						(matrix_set.clone(), texture_set.clone()),
-						(),
-					)?;
-				}
+				command_buffer_builder = command_buffer_builder.draw_indexed(
+					self.pipeline.clone(),
+					&dynamic_state,
+					vec![Arc::new(mesh.vertex_buffer().into_buffer_slice())],
+					mesh.index_buffer().unwrap(),
+					(matrix_set.clone(), texture_set.clone()),
+					(),
+				)?;
 			}
 		}
 

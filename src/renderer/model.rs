@@ -5,24 +5,18 @@ use crate::{
 };
 
 pub struct BSPModel {
-	mesh: Mesh,
-	faces: Vec<Face>,
+	meshes: Vec<(AssetHandle<Texture>, Mesh)>,
 }
 
 impl BSPModel {
-	pub fn new(mesh: Mesh, faces: Vec<Face>) -> BSPModel {
+	pub fn new(meshes: Vec<(AssetHandle<Texture>, Mesh)>) -> BSPModel {
 		BSPModel {
-			mesh,
-			faces,
+			meshes,
 		}
 	}
 
-	pub fn mesh(&self) -> &Mesh {
-		&self.mesh
-	}
-
-	pub fn faces(&self) -> &Vec<Face> {
-		&self.faces
+	pub fn meshes(&self) -> &Vec<(AssetHandle<Texture>, Mesh)> {
+		&self.meshes
 	}
 }
 
@@ -33,9 +27,3 @@ pub struct VertexData {
 	pub in_lightlevel: f32,
 }
 impl_vertex!(VertexData, in_position, in_texture_coord, in_lightlevel);
-
-pub struct Face {
-	pub first_vertex_index: usize,
-	pub vertex_count: usize,
-	pub texture: AssetHandle<Texture>,
-}
