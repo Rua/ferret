@@ -189,48 +189,6 @@ fn load_textures(map: &DoomMap, world: &World) -> Result<[HashMap<String, (Asset
 	])
 }
 
-fn generate_lightmaps(world: &World) -> Result<AssetHandle<Texture>, Box<dyn Error>> {
-	let (mut texture_storage, video) =
-		<(Write<AssetStorage<Texture>>, ReadExpect<Video>)>::fetch(world);
-	let mut surfaces = Vec::new();
-
-	for i in 0..=15 {
-		let mut surface = Surface::new(1, 1, PixelFormatEnum::RGBA32)?;
-		let pixels = surface.without_lock_mut().unwrap();
-		pixels[0] = i * 16;
-		pixels[1] = i * 16;
-		pixels[2] = i * 16;
-		pixels[3] = 255;
-		surfaces.push(surface);
-	}
-
-	let size = Vector3::new(
-		surfaces[0].width(),
-		surfaces[0].height(),
-		surfaces.len() as u32,
-	);
-
-	let layer_size = surfaces[0].without_lock().unwrap().len();
-	let mut data = vec![0u8; layer_size * surfaces.len()];
-
-	// Copy all the layers into the buffer
-	for (chunk, surface) in data.chunks_exact_mut(layer_size).zip(surfaces) {
-		chunk.copy_from_slice(surface.without_lock().unwrap());
-	}
-
-	// Create the image
-	let (texture, future) = TextureBuilder::new()
-		.with_data(data, Format::R8G8B8A8Unorm)
-		.with_dimensions(Dimensions::Dim2dArray {
-			width: size[0],
-			height: size[1],
-			array_layers: size[2],
-		})
-		.build(&video.queues().graphics)?;
-
-	Ok(texture_storage.insert(texture))
-}
-
 fn push_wall(
 	vertices: &mut Vec<VertexData>,
 	vert_h: [&Vector2<f32>; 2],
@@ -239,7 +197,7 @@ fn push_wall(
 	peg_factor: [f32; 2],
 	dimensions: Dimensions,
 	texture_layer: f32,
-	light_layer: f32,
+	light_level: f32,
 ) {
 	let diff = vert_h[1] - vert_h[0];
 	let width = Matrix::norm(&diff);
@@ -253,11 +211,7 @@ fn push_wall(
 				(offset[1] + height * peg_factor[v]) / dimensions.height() as f32,
 				texture_layer,
 			],
-			in_lightmap_coord: [
-				0.0,
-				0.0,
-				light_layer,
-			],
+			in_lightlevel: light_level,
 		});
 	}
 }
@@ -268,7 +222,7 @@ fn push_flat<'a>(
 	vert_z: f32,
 	dimensions: Dimensions,
 	texture_layer: f32,
-	light_layer: f32,
+	light_level: f32,
 ) {
 	let first = iter.next().unwrap();
 	let mut previous = iter.next().unwrap();
@@ -284,7 +238,7 @@ fn push_flat<'a>(
 					vert_h[h][1] / dimensions.height() as f32,
 					texture_layer,
 				],
-				in_lightmap_coord: [0.0, 0.0, light_layer],
+				in_lightlevel: light_level,
 			});
 		}
 
@@ -379,7 +333,7 @@ fn make_meshes(
 								top_peg_factor,
 								dimensions,
 								texture.1 as f32,
-								(front_sector.light_level >> 4) as f32,
+								(front_sector.light_level as f32) / 255.0,
 							);
 						}
 
@@ -401,7 +355,7 @@ fn make_meshes(
 								bottom_peg_factor,
 								dimensions,
 								texture.1 as f32,
-								(front_sector.light_level >> 4) as f32,
+								(front_sector.light_level as f32) / 255.0,
 							);
 						}
 
@@ -423,7 +377,7 @@ fn make_meshes(
 								bottom_peg_factor,
 								dimensions,
 								texture.1 as f32,
-								(front_sector.light_level >> 4) as f32,
+								(front_sector.light_level as f32) / 255.0,
 							);
 						}
 					} else {
@@ -445,7 +399,7 @@ fn make_meshes(
 								bottom_peg_factor,
 								dimensions,
 								texture.1 as f32,
-								(front_sector.light_level >> 4) as f32,
+								(front_sector.light_level as f32) / 255.0,
 							);
 						}
 					}
@@ -474,7 +428,7 @@ fn make_meshes(
 			sector.floor_height,
 			dimensions,
 			flat.1 as f32,
-			(sector.light_level >> 4) as f32,
+			(sector.light_level as f32) / 255.0,
 		);
 
 		// Ceiling
@@ -496,7 +450,7 @@ fn make_meshes(
 			sector.ceiling_height,
 			dimensions,
 			flat.1 as f32,
-			(sector.light_level >> 4) as f32,
+			(sector.light_level as f32) / 255.0,
 		);
 	}
 
@@ -512,9 +466,6 @@ pub fn from_wad(name: &str, world: &World) -> Result<BSPModel, Box<dyn Error>> {
 	// Load textures and flats
 	let [textures, flats] = load_textures(&map, world)?;
 
-	// Generate lightmaps
-	let lightmaps = generate_lightmaps(world)?;
-
 	// Process all subsectors, add geometry for each seg
 	let (vertices, faces) = make_meshes(&map, &textures, &flats, world)?;
 
@@ -523,7 +474,7 @@ pub fn from_wad(name: &str, world: &World) -> Result<BSPModel, Box<dyn Error>> {
 	let (mesh, future) = MeshBuilder::new()
 		.with_data(vertices)
 		.build(&video.queues().graphics)?;
-	Ok(BSPModel::new(mesh, faces, lightmaps))
+	Ok(BSPModel::new(mesh, faces))
 }
 
 #[derive(Clone, Debug)]

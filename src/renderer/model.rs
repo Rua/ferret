@@ -7,15 +7,13 @@ use crate::{
 pub struct BSPModel {
 	mesh: Mesh,
 	faces: Vec<Face>,
-	lightmap: AssetHandle<Texture>,
 }
 
 impl BSPModel {
-	pub fn new(mesh: Mesh, faces: Vec<Face>, lightmap: AssetHandle<Texture>) -> BSPModel {
+	pub fn new(mesh: Mesh, faces: Vec<Face>) -> BSPModel {
 		BSPModel {
 			mesh,
 			faces,
-			lightmap,
 		}
 	}
 
@@ -26,19 +24,15 @@ impl BSPModel {
 	pub fn faces(&self) -> &Vec<Face> {
 		&self.faces
 	}
-
-	pub fn lightmap(&self) -> AssetHandle<Texture> {
-		self.lightmap.clone()
-	}
 }
 
 #[derive(Debug, Default, Clone)]
 pub struct VertexData {
 	pub in_position: [f32; 3],
 	pub in_texture_coord: [f32; 3],
-	pub in_lightmap_coord: [f32; 3],
+	pub in_lightlevel: f32,
 }
-impl_vertex!(VertexData, in_position, in_texture_coord, in_lightmap_coord);
+impl_vertex!(VertexData, in_position, in_texture_coord, in_lightlevel);
 
 pub struct Face {
 	pub first_vertex_index: usize,

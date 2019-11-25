@@ -232,8 +232,6 @@ impl MapRenderSystem {
 
 		// Draw the map
 		for component in map_component.join() {
-			let lightmap = texture_storage.get(&component.map.lightmap()).unwrap();
-
 			for (texture, faces) in batches.iter() {
 				let texture = texture_storage.get(&texture).unwrap();
 
@@ -241,7 +239,6 @@ impl MapRenderSystem {
 					self.texture_pool
 						.next()
 						.add_sampled_image(texture.inner(), sampler.clone())?
-						.add_sampled_image(lightmap.inner(), sampler.clone())?
 						.build()?,
 				);
 
