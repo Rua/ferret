@@ -15,7 +15,15 @@ impl CommandSender {
 	}
 
 	pub fn send(&self, command: &str) {
-		for args in tokenize(command).unwrap().split(|tok| tok == ";") {
+		let tokens = match tokenize(command) {
+			Ok(tokens) => tokens,
+			Err(e) => {
+				error!("Invalid syntax: {}", e);
+				return;
+			}
+		};
+
+		for args in tokens.split(|tok| tok == ";") {
 			self.sender.send(args.to_vec()).ok();
 		}
 	}
