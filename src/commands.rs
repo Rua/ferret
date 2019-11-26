@@ -1,33 +1,7 @@
 use regex::{Captures, Regex};
 use std::{
-	/*borrow::Cow, collections::hash_map::HashMap, */ error::Error, string::String,
-	sync::mpsc::Sender,
+	error::Error, string::String,
 };
-
-#[derive(Clone)]
-pub struct CommandSender {
-	sender: Sender<Vec<String>>,
-}
-
-impl CommandSender {
-	pub fn new(sender: Sender<Vec<String>>) -> CommandSender {
-		CommandSender { sender }
-	}
-
-	pub fn send(&self, command: &str) {
-		let tokens = match tokenize(command) {
-			Ok(tokens) => tokens,
-			Err(e) => {
-				error!("Invalid syntax: {}", e);
-				return;
-			}
-		};
-
-		for args in tokens.split(|tok| tok == ";") {
-			self.sender.send(args.to_vec()).ok();
-		}
-	}
-}
 
 /*pub struct CommandList<T> {
 	commands: HashMap<String, Command<T>>,

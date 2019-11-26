@@ -26,7 +26,6 @@ mod stdin;
 use crate::{
 	assets::AssetStorage,
 	audio::Audio,
-	commands::CommandSender,
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
 	logger::Logger,
 	renderer::{texture::Texture, video::Video},
@@ -43,7 +42,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 	Logger::init().unwrap();
 
 	let (command_sender, command_receiver) = mpsc::channel();
-	let command_sender = CommandSender::new(command_sender);
 
 	match stdin::spawn(command_sender.clone()) {
 		Ok(_) => (),
@@ -135,7 +133,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 	let mut render_system = doom::render::RenderSystem::new(&world)?;
 
-	command_sender.send("map E1M1");
+	command_sender.send("map E1M1".to_owned()).ok();
 
 	let mut should_quit = false;
 	let mut old_time = Instant::now();
@@ -167,7 +165,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 			match event {
 				Event::WindowEvent { event, .. } => match event {
 					WindowEvent::CloseRequested => {
-						command_sender.send("quit");
+						command_sender.send("quit".to_owned()).ok();
 						*control_flow = ControlFlow::Exit;
 					}
 					_ => {}
@@ -180,21 +178,33 @@ fn main() -> Result<(), Box<dyn Error>> {
 		});
 
 		// Execute console commands
-		while let Some(args) = command_receiver.try_iter().next() {
-			match args[0].as_str() {
-				"map" => {
-					let name = &args[1];
-					info!("Loading map {}...", name);
-					let map = doom::map::from_wad(name, &world)?;
-					world
-						.create_entity()
-						.with(doom::components::MapComponent { map })
-						.build();
-
-					doom::map::spawn_map_entities(&mut world, name)?;
+		while let Some(command) = command_receiver.try_iter().next() {
+			// Split into tokens
+			let tokens = match commands::tokenize(&command) {
+				Ok(tokens) => tokens,
+				Err(e) => {
+					error!("Invalid syntax: {}", e);
+					continue;
 				}
-				"quit" => should_quit = true,
-				_ => debug!("Received invalid command: {}", args[0]),
+			};
+
+			// Split further into subcommands
+			for args in tokens.split(|tok| tok == ";") {
+				match args[0].as_str() {
+					"map" => {
+						let name = &args[1];
+						info!("Loading map {}...", name);
+						let map = doom::map::from_wad(name, &world)?;
+						world
+							.create_entity()
+							.with(doom::components::MapComponent { map })
+							.build();
+
+						doom::map::spawn_map_entities(&mut world, name)?;
+					}
+					"quit" => should_quit = true,
+					_ => error!("Unknown command: {}", args[0]),
+				}
 			}
 		}
 
