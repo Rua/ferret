@@ -24,7 +24,7 @@ mod renderer;
 mod stdin;
 
 use crate::{
-	assets::AssetStorage,
+	assets::{AssetFormat, AssetStorage},
 	audio::Audio,
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
 	logger::Logger,
@@ -194,13 +194,22 @@ fn main() -> Result<(), Box<dyn Error>> {
 					"map" => {
 						let name = &args[1];
 						info!("Loading map {}...", name);
-						let map = doom::map::from_wad(name, &world)?;
+
+						let map_data = {
+							let mut loader = world.fetch_mut::<doom::wad::WadLoader>();
+							doom::map::DoomMapFormat.import(name, &mut *loader)?
+						};
+						let map_model = doom::map::make_model(&map_data, &world)?;
 						world
 							.create_entity()
-							.with(doom::components::MapComponent { map })
+							.with(doom::components::MapComponent { map_model })
 							.build();
 
-						doom::map::spawn_map_entities(&mut world, name)?;
+						let things = {
+							let mut loader = world.fetch_mut::<doom::wad::WadLoader>();
+							doom::map::ThingsFormat.import(name, &mut *loader)?
+						};
+						doom::map::spawn_map_entities(things, &mut world, &map_data)?;
 					}
 					"quit" => should_quit = true,
 					_ => error!("Unknown command: {}", args[0]),

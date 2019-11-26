@@ -1,5 +1,5 @@
 //use crate::assets::AssetHandle;
-use crate::renderer::model::BSPModel;
+use crate::doom::map::MapModel;
 use nalgebra::Vector3;
 use specs::{Component, HashMapStorage, VecStorage};
 
@@ -12,7 +12,7 @@ pub struct SpriteRenderComponent {
 #[derive(Component)]
 #[storage(HashMapStorage)]
 pub struct MapComponent {
-	pub map: BSPModel,
+	pub map_model: MapModel,
 }
 
 #[derive(Clone, Component, Copy, Debug)]

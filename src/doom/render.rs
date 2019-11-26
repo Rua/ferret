@@ -1,7 +1,7 @@
 use crate::{
 	assets::AssetStorage,
-	doom::components::MapComponent,
-	renderer::{model::VertexData, texture::Texture, video::Video},
+	doom::{components::MapComponent, map::VertexData},
+	renderer::{texture::Texture, video::Video},
 };
 use nalgebra::{Matrix4, Point3, Vector3};
 use specs::{join::Join, ReadExpect, ReadStorage, RunNow, SystemData, World};
@@ -217,7 +217,7 @@ impl MapRenderSystem {
 
 		// Draw the map
 		for component in map_component.join() {
-			for (texture, mesh) in component.map.meshes() {
+			for (texture, mesh) in component.map_model.meshes() {
 				let texture = texture_storage.get(&texture).unwrap();
 
 				let texture_set = Arc::new(

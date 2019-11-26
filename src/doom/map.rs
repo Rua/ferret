@@ -8,8 +8,7 @@ use crate::{
 	},
 	geometry::BoundingBox2,
 	renderer::{
-		mesh::MeshBuilder,
-		model::{BSPModel, VertexData},
+		mesh::{Mesh, MeshBuilder},
 		texture::{Texture, TextureBuilder},
 		video::Video,
 	},
@@ -29,18 +28,20 @@ use std::{
 };
 use vulkano::{format::Format, image::Dimensions};
 
-pub fn spawn_map_entities(world: &mut World, name: &str) -> Result<(), Box<dyn Error>> {
-	let things = {
-		let mut loader = world.fetch_mut::<WadLoader>();
-		DoomMapThingsFormat.import(name, &mut *loader)?
-	};
-
+pub fn spawn_map_entities(
+	things: Vec<Thing>,
+	world: &mut World,
+	map_data: &DoomMap,
+) -> Result<(), Box<dyn Error>> {
 	for thing in things {
-		//println!("{:#?}", thing);
+		let ssect = map_data.find_subsector(thing.position);
+		let sector = &map_data.sectors[ssect.sector_index];
+		let z = sector.floor_height;
+
 		let entity = world
 			.create_entity()
 			.with(TransformComponent {
-				position: Vector3::new(thing.position[0], thing.position[1], 0.0),
+				position: Vector3::new(thing.position[0], thing.position[1], z),
 				rotation: Vector3::new(0.0, 0.0, thing.angle),
 			})
 			.build();
@@ -60,10 +61,99 @@ pub fn spawn_map_entities(world: &mut World, name: &str) -> Result<(), Box<dyn E
 	Ok(())
 }
 
-fn group_by_size(
-	surfaces: Vec<Surface<'static>>,
+pub struct MapModel {
+	meshes: Vec<(AssetHandle<Texture>, Mesh)>,
+}
+
+impl MapModel {
+	pub fn new(meshes: Vec<(AssetHandle<Texture>, Mesh)>) -> MapModel {
+		MapModel { meshes }
+	}
+
+	pub fn meshes(&self) -> &Vec<(AssetHandle<Texture>, Mesh)> {
+		&self.meshes
+	}
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct VertexData {
+	pub in_position: [f32; 3],
+	pub in_texture_coord: [f32; 3],
+	pub in_lightlevel: f32,
+}
+impl_vertex!(VertexData, in_position, in_texture_coord, in_lightlevel);
+
+pub fn make_model(map_data: &DoomMap, world: &World) -> Result<MapModel, Box<dyn Error>> {
+	// Load textures and flats
+	let [textures, flats] = load_textures(map_data, world)?;
+
+	// Create meshes
+	let meshes = make_meshes(map_data, &textures, &flats, world)?;
+	let mut ret = Vec::new();
+
+	let video = world.fetch::<Video>();
+
+	for (tex, (vertices, indices)) in meshes {
+		let (mesh, future) = MeshBuilder::new()
+			.with_vertices(vertices)
+			.with_indices(indices)
+			.build(&video.queues().graphics)?;
+
+		ret.push((tex, mesh));
+	}
+
+	Ok(MapModel::new(ret))
+}
+
+fn load_textures(
+	map: &DoomMap,
 	world: &World,
-) -> Vec<(AssetHandle<Texture>, usize)> {
+) -> Result<[HashMap<String, (AssetHandle<Texture>, usize)>; 2], Box<dyn Error>> {
+	let (mut loader, mut texture_storage, video) = <(
+		Write<WadLoader>,
+		Write<AssetStorage<Texture>>,
+		ReadExpect<Video>,
+	) as SystemData>::fetch(world);
+
+	let mut texture_names: HashSet<&str> = HashSet::new();
+	for sidedef in &map.sidedefs {
+		if let Some(name) = &sidedef.top_texture_name {
+			texture_names.insert(name.as_str());
+		}
+
+		if let Some(name) = &sidedef.bottom_texture_name {
+			texture_names.insert(name.as_str());
+		}
+
+		if let Some(name) = &sidedef.middle_texture_name {
+			texture_names.insert(name.as_str());
+		}
+	}
+
+	let mut flat_names: HashSet<&str> = HashSet::new();
+	for sector in &map.sectors {
+		flat_names.insert(sector.floor_flat_name.as_str());
+		flat_names.insert(sector.ceiling_flat_name.as_str());
+	}
+
+	// Load all the surfaces, while storing name-index mapping
+	let mut surfaces: Vec<Surface> = Vec::with_capacity(texture_names.len() + flat_names.len());
+	let mut texture_names_indices: HashMap<&str, usize> =
+		HashMap::with_capacity(texture_names.len());
+	let mut flat_names_indices: HashMap<&str, usize> = HashMap::with_capacity(flat_names.len());
+
+	for name in texture_names {
+		let surface = DoomTextureFormat.import(name, &mut *loader)?;
+		texture_names_indices.insert(name, surfaces.len());
+		surfaces.push(surface);
+	}
+
+	for name in flat_names {
+		let surface = DoomFlatFormat.import(name, &mut *loader)?;
+		flat_names_indices.insert(name, surfaces.len());
+		surfaces.push(surface);
+	}
+
 	// Group surfaces by size in a HashMap, while keeping track of which goes where
 	let mut surfaces_by_size: HashMap<[u32; 2], Vec<Surface<'static>>> = HashMap::new();
 	let mut sizes_and_layers: Vec<([u32; 2], usize)> = Vec::with_capacity(surfaces.len());
@@ -80,8 +170,6 @@ fn group_by_size(
 	}
 
 	// Turn the grouped surfaces into textures
-	let (mut texture_storage, video) =
-		<(Write<AssetStorage<Texture>>, ReadExpect<Video>) as SystemData>::fetch(world);
 	let textures_by_size = surfaces_by_size
 		.into_iter()
 		.map(|entry| {
@@ -126,55 +214,10 @@ fn group_by_size(
 		.collect::<HashMap<[u32; 2], AssetHandle<Texture>>>();
 
 	// Now create the final Vec and return
-	sizes_and_layers
+	let grouped_textures: Vec<(AssetHandle<Texture>, usize)> = sizes_and_layers
 		.into_iter()
 		.map(|entry| (textures_by_size[&entry.0].clone(), entry.1))
-		.collect()
-}
-
-fn load_textures(map: &DoomMap, world: &World) -> Result<[HashMap<String, (AssetHandle<Texture>, usize)>; 2], Box<dyn Error>> {
-	let mut texture_names = HashSet::new();
-	for sidedef in &map.sidedefs {
-		if let Some(name) = &sidedef.top_texture_name {
-			texture_names.insert(name.as_str());
-		}
-
-		if let Some(name) = &sidedef.bottom_texture_name {
-			texture_names.insert(name.as_str());
-		}
-
-		if let Some(name) = &sidedef.middle_texture_name {
-			texture_names.insert(name.as_str());
-		}
-	}
-
-	let mut flat_names = HashSet::new();
-	for sector in &map.sectors {
-		flat_names.insert(sector.floor_flat_name.as_str());
-		flat_names.insert(sector.ceiling_flat_name.as_str());
-	}
-
-	let mut loader = world.fetch_mut::<WadLoader>();
-
-	// Load all the surfaces, while storing name-index mapping
-	let mut surfaces = Vec::with_capacity(texture_names.len() + flat_names.len());
-	let mut texture_names_indices = HashMap::with_capacity(texture_names.len());
-	let mut flat_names_indices = HashMap::with_capacity(flat_names.len());
-
-	for name in texture_names {
-		let surface = DoomTextureFormat.import(name, &mut *loader)?;
-		texture_names_indices.insert(name, surfaces.len());
-		surfaces.push(surface);
-	}
-
-	for name in flat_names {
-		let surface = DoomFlatFormat.import(name, &mut *loader)?;
-		flat_names_indices.insert(name, surfaces.len());
-		surfaces.push(surface);
-	}
-
-	// Convert into textures grouped by size
-	let grouped_textures = group_by_size(surfaces, world);
+		.collect();
 
 	// Recombine names with textures
 	Ok([
@@ -189,67 +232,67 @@ fn load_textures(map: &DoomMap, world: &World) -> Result<[HashMap<String, (Asset
 	])
 }
 
-fn push_wall(
-	vertices: &mut Vec<VertexData>,
-	indices: &mut Vec<u32>,
-	vert_h: [&Vector2<f32>; 2],
-	vert_v: [f32; 2],
-	offset: Vector2<f32>,
-	peg_factor: [f32; 2],
-	dimensions: Dimensions,
-	texture_layer: f32,
-	light_level: f32,
-) {
-	let diff = vert_h[1] - vert_h[0];
-	let width = Matrix::norm(&diff);
-	let height = vert_v[1] - vert_v[0];
-	indices.push(u32::max_value());
-
-	for (h, v) in [(0, 0), (1, 0), (1, 1), (0, 1)].iter().copied() {
-		indices.push(vertices.len() as u32);
-		vertices.push(VertexData {
-			in_position: [vert_h[h][0], vert_h[h][1], vert_v[v]],
-			in_texture_coord: [
-				(offset[0] + width * h as f32) / dimensions.width() as f32,
-				(offset[1] + height * peg_factor[v]) / dimensions.height() as f32,
-				texture_layer,
-			],
-			in_lightlevel: light_level,
-		});
-	}
-}
-
-fn push_flat<'a>(
-	vertices: &mut Vec<VertexData>,
-	indices: &mut Vec<u32>,
-	iter: impl Iterator<Item = &'a Vector2<f32>>,
-	vert_z: f32,
-	dimensions: Dimensions,
-	texture_layer: f32,
-	light_level: f32,
-) {
-	indices.push(u32::max_value());
-
-	for vert in iter {
-		indices.push(vertices.len() as u32);
-		vertices.push(VertexData {
-			in_position: [vert[0], vert[1], vert_z],
-			in_texture_coord: [
-				vert[0] / dimensions.width() as f32,
-				vert[1] / dimensions.height() as f32,
-				texture_layer,
-			],
-			in_lightlevel: light_level,
-		});
-	}
-}
-
 fn make_meshes(
 	map: &DoomMap,
 	textures: &HashMap<String, (AssetHandle<Texture>, usize)>,
 	flats: &HashMap<String, (AssetHandle<Texture>, usize)>,
 	world: &World,
 ) -> Result<HashMap<AssetHandle<Texture>, (Vec<VertexData>, Vec<u32>)>, Box<dyn Error>> {
+	fn push_wall(
+		vertices: &mut Vec<VertexData>,
+		indices: &mut Vec<u32>,
+		vert_h: [&Vector2<f32>; 2],
+		vert_v: [f32; 2],
+		offset: Vector2<f32>,
+		peg_factor: [f32; 2],
+		dimensions: Dimensions,
+		texture_layer: f32,
+		light_level: f32,
+	) {
+		let diff = vert_h[1] - vert_h[0];
+		let width = Matrix::norm(&diff);
+		let height = vert_v[1] - vert_v[0];
+		indices.push(u32::max_value());
+
+		for (h, v) in [(0, 0), (1, 0), (1, 1), (0, 1)].iter().copied() {
+			indices.push(vertices.len() as u32);
+			vertices.push(VertexData {
+				in_position: [vert_h[h][0], vert_h[h][1], vert_v[v]],
+				in_texture_coord: [
+					(offset[0] + width * h as f32) / dimensions.width() as f32,
+					(offset[1] + height * peg_factor[v]) / dimensions.height() as f32,
+					texture_layer,
+				],
+				in_lightlevel: light_level,
+			});
+		}
+	}
+
+	fn push_flat<'a>(
+		vertices: &mut Vec<VertexData>,
+		indices: &mut Vec<u32>,
+		iter: impl Iterator<Item = &'a Vector2<f32>>,
+		vert_z: f32,
+		dimensions: Dimensions,
+		texture_layer: f32,
+		light_level: f32,
+	) {
+		indices.push(u32::max_value());
+
+		for vert in iter {
+			indices.push(vertices.len() as u32);
+			vertices.push(VertexData {
+				in_position: [vert[0], vert[1], vert_z],
+				in_texture_coord: [
+					vert[0] / dimensions.width() as f32,
+					vert[1] / dimensions.height() as f32,
+					texture_layer,
+				],
+				in_lightlevel: light_level,
+			});
+		}
+	}
+
 	let mut meshes: HashMap<AssetHandle<Texture>, (Vec<VertexData>, Vec<u32>)> = HashMap::new();
 	let texture_storage = <ReadExpect<AssetStorage<Texture>>>::fetch(world);
 
@@ -277,16 +320,14 @@ fn make_meshes(
 					let front_sector = sector.unwrap();
 
 					// Add wall
-					let start_vertex = if seg.vertex_indices[0].1 {
-						&map.gl_vert[seg.vertex_indices[0].0]
-					} else {
-						&map.vertexes[seg.vertex_indices[0].0]
+					let start_vertex = match seg.vertex_indices[0] {
+						EitherVertex::Normal(index) => &map.vertexes[index],
+						EitherVertex::GL(index) => &map.gl_vert[index],
 					};
 
-					let end_vertex = if seg.vertex_indices[1].1 {
-						&map.gl_vert[seg.vertex_indices[1].0]
-					} else {
-						&map.vertexes[seg.vertex_indices[1].0]
+					let end_vertex = match seg.vertex_indices[1] {
+						EitherVertex::Normal(index) => &map.vertexes[index],
+						EitherVertex::GL(index) => &map.gl_vert[index],
 					};
 
 					let top_peg_factor = if linedef.flags & 8 != 0 {
@@ -316,7 +357,8 @@ fn make_meshes(
 						if let Some(texture_name) = &front_sidedef.top_texture_name {
 							let texture = &textures[texture_name];
 							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
-							let (ref mut vertices, ref mut indices) = meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
+							let (ref mut vertices, ref mut indices) =
+								meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
 
 							push_wall(
 								vertices,
@@ -335,7 +377,8 @@ fn make_meshes(
 						if let Some(texture_name) = &front_sidedef.bottom_texture_name {
 							let texture = &textures[texture_name];
 							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
-							let (ref mut vertices, ref mut indices) = meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
+							let (ref mut vertices, ref mut indices) =
+								meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
 
 							push_wall(
 								vertices,
@@ -354,7 +397,8 @@ fn make_meshes(
 						if let Some(texture_name) = &front_sidedef.middle_texture_name {
 							let texture = &textures[texture_name];
 							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
-							let (ref mut vertices, ref mut indices) = meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
+							let (ref mut vertices, ref mut indices) =
+								meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
 
 							push_wall(
 								vertices,
@@ -372,7 +416,8 @@ fn make_meshes(
 						if let Some(texture_name) = &front_sidedef.middle_texture_name {
 							let texture = &textures[texture_name];
 							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
-							let (ref mut vertices, ref mut indices) = meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
+							let (ref mut vertices, ref mut indices) =
+								meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
 
 							push_wall(
 								vertices,
@@ -397,15 +442,15 @@ fn make_meshes(
 		{
 			let flat = &flats[&sector.floor_flat_name];
 			let dimensions = texture_storage.get(&flat.0).unwrap().dimensions();
-			let (ref mut vertices, ref mut indices) = meshes.entry(flat.0.clone()).or_insert((vec![], vec![]));
+			let (ref mut vertices, ref mut indices) =
+				meshes.entry(flat.0.clone()).or_insert((vec![], vec![]));
 
 			push_flat(
 				vertices,
 				indices,
-				segs.iter().rev().map(|seg| if seg.vertex_indices[0].1 {
-					&map.gl_vert[seg.vertex_indices[0].0]
-				} else {
-					&map.vertexes[seg.vertex_indices[0].0]
+				segs.iter().rev().map(|seg| match seg.vertex_indices[0] {
+					EitherVertex::Normal(index) => &map.vertexes[index],
+					EitherVertex::GL(index) => &map.gl_vert[index],
 				}),
 				sector.floor_height,
 				dimensions,
@@ -418,15 +463,15 @@ fn make_meshes(
 		{
 			let flat = &flats[&sector.ceiling_flat_name];
 			let dimensions = texture_storage.get(&flat.0).unwrap().dimensions();
-			let (ref mut vertices, ref mut indices) = meshes.entry(flat.0.clone()).or_insert((vec![], vec![]));
+			let (ref mut vertices, ref mut indices) =
+				meshes.entry(flat.0.clone()).or_insert((vec![], vec![]));
 
 			push_flat(
 				vertices,
 				indices,
-				segs.iter().map(|seg| if seg.vertex_indices[0].1 {
-					&map.gl_vert[seg.vertex_indices[0].0]
-				} else {
-					&map.vertexes[seg.vertex_indices[0].0]
+				segs.iter().map(|seg| match seg.vertex_indices[0] {
+					EitherVertex::Normal(index) => &map.vertexes[index],
+					EitherVertex::GL(index) => &map.gl_vert[index],
 				}),
 				sector.ceiling_height,
 				dimensions,
@@ -439,43 +484,29 @@ fn make_meshes(
 	Ok(meshes)
 }
 
-pub fn from_wad(name: &str, world: &World) -> Result<BSPModel, Box<dyn Error>> {
-	let map = {
-		let mut loader = world.fetch_mut::<WadLoader>();
-		DoomMapFormat.import(name, &mut *loader)?
-	};
-
-	// Load textures and flats
-	let [textures, flats] = load_textures(&map, world)?;
-
-	// Create meshes
-	let meshes = make_meshes(&map, &textures, &flats, world)?;
-	let mut ret = Vec::new();
-
-	let video = world.fetch::<Video>();
-
-	for (tex, (vertices, indices)) in meshes {
-		let (mesh, future) = MeshBuilder::new()
-			.with_vertices(vertices)
-			.with_indices(indices)
-			.build(&video.queues().graphics)?;
-
-		ret.push((tex, mesh));
-	}
-
-	Ok(BSPModel::new(ret))
-}
-
 #[derive(Clone, Debug)]
 pub struct DoomMap {
-	linedefs: Vec<DoomMapLinedef>,
-	sidedefs: Vec<DoomMapSidedef>,
+	linedefs: Vec<Linedef>,
+	sidedefs: Vec<Sidedef>,
 	vertexes: Vec<Vector2<f32>>,
-	sectors: Vec<DoomMapSector>,
+	sectors: Vec<Sector>,
 	gl_vert: Vec<Vector2<f32>>,
-	gl_segs: Vec<DoomMapGLSeg>,
-	gl_ssect: Vec<DoomMapGLSSect>,
-	gl_nodes: Vec<DoomMapGLNode>,
+	gl_segs: Vec<GLSeg>,
+	gl_ssect: Vec<GLSSect>,
+	gl_nodes: Vec<GLNode>,
+}
+
+impl DoomMap {
+	fn find_subsector(&self, point: Vector2<f32>) -> &GLSSect {
+		let mut node = &self.gl_nodes[self.gl_nodes.len() - 1];
+
+		loop {
+			node = match node.child_indices[node.point_side(point) as usize] {
+				ChildNode::Branch(node_id) => &self.gl_nodes[node_id],
+				ChildNode::Leaf(ssect_id) => return &self.gl_ssect[ssect_id],
+			}
+		}
+	}
 }
 
 pub struct DoomMapFormat;
@@ -490,31 +521,164 @@ impl AssetFormat for DoomMapFormat {
 	) -> Result<Self::Asset, Box<dyn Error>> {
 		let gl_name = format!("GL_{}", name);
 
+		let vertexes = VertexesFormat.import(name, source)?;
+		let gl_vert = GLVertFormat.import(&gl_name, source)?;
+		let sectors = SectorsFormat.import(name, source)?;
+
+		let sidedefs = SidedefsFormat.import(name, source)?;
+		for (i, sidedef) in sidedefs.iter().enumerate() {
+			if sidedef.sector_index >= sectors.len() {
+				return Err(Box::from(format!(
+					"Sidedef {} has invalid sector index {}",
+					i, sidedef.sector_index
+				)));
+			}
+		}
+
+		let linedefs = LinedefsFormat.import(name, source)?;
+		for (i, linedef) in linedefs.iter().enumerate() {
+			for index in linedef.vertex_indices.iter() {
+				if *index >= vertexes.len() {
+					return Err(Box::from(format!(
+						"Linedef {} has invalid vertex index {}",
+						i, index
+					)));
+				}
+			}
+
+			for index in linedef.sidedef_indices.iter().filter_map(|x| *x) {
+				if index >= sidedefs.len() {
+					return Err(Box::from(format!(
+						"Linedef {} has invalid sidedef index {}",
+						i, index
+					)));
+				}
+			}
+		}
+
+		let mut gl_segs = GLSegsFormat.import(&gl_name, source)?;
+		for (i, seg) in gl_segs.iter().enumerate() {
+			if let Some(index) = seg.linedef_index {
+				if index >= linedefs.len() {
+					return Err(Box::from(format!(
+						"Seg {} has invalid linedef index {}",
+						i, index
+					)));
+				}
+			}
+
+			for vertex_index in &seg.vertex_indices {
+				let (list, index) = match vertex_index {
+					EitherVertex::Normal(index) => (&vertexes, index),
+					EitherVertex::GL(index) => (&gl_vert, index),
+				};
+
+				if *index >= list.len() {
+					return Err(Box::from(format!(
+						"Seg {} has invalid vertex index {}",
+						i, index
+					)));
+				}
+			}
+
+			if let Some(index) = seg.partner_seg_index {
+				if index >= gl_segs.len() {
+					return Err(Box::from(format!(
+						"Seg {} has invalid partner seg index {}",
+						i, index
+					)));
+				}
+			}
+		}
+
+		let mut gl_ssect = GLSSectFormat.import(&gl_name, source)?;
+		for (i, ssect) in gl_ssect.iter().enumerate() {
+			if ssect.first_seg_index >= gl_segs.len() {
+				return Err(Box::from(format!(
+					"Subsector {} has invalid first seg index {}",
+					i, ssect.first_seg_index
+				)));
+			}
+
+			if ssect.first_seg_index + ssect.seg_count > gl_segs.len() {
+				return Err(Box::from(format!(
+					"Subsector {} has overflowing seg count {}",
+					i, ssect.seg_count,
+				)));
+			}
+		}
+
+		let gl_nodes = GLNodesFormat.import(&gl_name, source)?;
+		for (i, node) in gl_nodes.iter().enumerate() {
+			for child in node.child_indices.iter() {
+				match child {
+					ChildNode::Branch(index) => {
+						if *index >= gl_nodes.len() {
+							return Err(Box::from(format!(
+								"Node {} has invalid child node index {}",
+								i, index
+							)));
+						}
+					}
+					ChildNode::Leaf(index) => {
+						if *index >= gl_ssect.len() {
+							return Err(Box::from(format!(
+								"Node {} has invalid subsector index {}",
+								i, index
+							)));
+						}
+					}
+				}
+			}
+		}
+
+		// Provide some extra links between items
+		for seg in gl_segs.iter_mut() {
+			if let Some(index) = seg.linedef_index {
+				seg.sidedef_index = linedefs[index].sidedef_indices[seg.side as usize];
+			}
+		}
+
+		for (i, ssect) in gl_ssect.iter_mut().enumerate() {
+			if let Some(sidedef_index) = &gl_segs
+				[ssect.first_seg_index..ssect.first_seg_index + ssect.seg_count]
+				.iter()
+				.find_map(|seg| seg.sidedef_index)
+			{
+				ssect.sector_index = sidedefs[*sidedef_index].sector_index;
+			} else {
+				return Err(Box::from(format!(
+					"No sector could be found for subsector {}",
+					i
+				)));
+			}
+		}
+
 		Ok(DoomMap {
-			linedefs: DoomMapLinedefsFormat.import(name, source)?,
-			sidedefs: DoomMapSidedefsFormat.import(name, source)?,
-			vertexes: DoomMapVertexesFormat.import(name, source)?,
-			sectors: DoomMapSectorsFormat.import(name, source)?,
-			gl_vert: DoomMapGLVertFormat.import(&gl_name, source)?,
-			gl_segs: DoomMapGLSegsFormat.import(&gl_name, source)?,
-			gl_ssect: DoomMapGLSSectFormat.import(&gl_name, source)?,
-			gl_nodes: DoomMapGLNodesFormat.import(&gl_name, source)?,
+			linedefs,
+			sidedefs,
+			vertexes,
+			sectors,
+			gl_vert,
+			gl_segs,
+			gl_ssect,
+			gl_nodes,
 		})
 	}
 }
 
 #[derive(Clone, Debug)]
-pub struct DoomMapThing {
+pub struct Thing {
 	pub position: Vector2<f32>,
 	pub angle: f32,
 	pub doomednum: u16,
 	pub flags: u16,
 }
 
-pub struct DoomMapThingsFormat;
+pub struct ThingsFormat;
 
-impl AssetFormat for DoomMapThingsFormat {
-	type Asset = Vec<DoomMapThing>;
+impl AssetFormat for ThingsFormat {
+	type Asset = Vec<Thing>;
 
 	fn import(
 		&self,
@@ -540,7 +704,7 @@ impl AssetFormat for DoomMapThingsFormat {
 			let doomednum = data.read_u16::<LE>()?;
 			let flags = data.read_u16::<LE>()?;
 
-			things.push(DoomMapThing {
+			things.push(Thing {
 				position: Vector2::new(position_x, position_y),
 				angle,
 				doomednum,
@@ -553,19 +717,18 @@ impl AssetFormat for DoomMapThingsFormat {
 }
 
 #[derive(Clone, Debug)]
-pub struct DoomMapLinedef {
-	pub start_vertex_index: usize,
-	pub end_vertex_index: usize,
+pub struct Linedef {
+	pub vertex_indices: [usize; 2],
 	pub flags: u16,
 	pub special_type: u16,
 	pub sector_tag: u16,
 	pub sidedef_indices: [Option<usize>; 2],
 }
 
-pub struct DoomMapLinedefsFormat;
+pub struct LinedefsFormat;
 
-impl AssetFormat for DoomMapLinedefsFormat {
-	type Asset = Vec<DoomMapLinedef>;
+impl AssetFormat for LinedefsFormat {
+	type Asset = Vec<Linedef>;
 
 	fn import(
 		&self,
@@ -593,9 +756,8 @@ impl AssetFormat for DoomMapLinedefsFormat {
 			let right_sidedef_index = data.read_u16::<LE>()? as usize;
 			let left_sidedef_index = data.read_u16::<LE>()? as usize;
 
-			linedefs.push(DoomMapLinedef {
-				start_vertex_index,
-				end_vertex_index,
+			linedefs.push(Linedef {
+				vertex_indices: [start_vertex_index, end_vertex_index],
 				flags,
 				special_type,
 				sector_tag,
@@ -619,7 +781,7 @@ impl AssetFormat for DoomMapLinedefsFormat {
 }
 
 #[derive(Clone, Debug)]
-pub struct DoomMapSidedef {
+pub struct Sidedef {
 	pub texture_offset: Vector2<f32>,
 	pub top_texture_name: Option<String>,
 	pub bottom_texture_name: Option<String>,
@@ -627,10 +789,10 @@ pub struct DoomMapSidedef {
 	pub sector_index: usize,
 }
 
-pub struct DoomMapSidedefsFormat;
+pub struct SidedefsFormat;
 
-impl AssetFormat for DoomMapSidedefsFormat {
-	type Asset = Vec<DoomMapSidedef>;
+impl AssetFormat for SidedefsFormat {
+	type Asset = Vec<Sidedef>;
 
 	fn import(
 		&self,
@@ -669,7 +831,7 @@ impl AssetFormat for DoomMapSidedefsFormat {
 			};
 			let sector_index = data.read_u16::<LE>()? as usize;
 
-			sidedefs.push(DoomMapSidedef {
+			sidedefs.push(Sidedef {
 				texture_offset: Vector2::new(texture_offset_x, texture_offset_y),
 				top_texture_name: if top_texture_name == "-" {
 					None
@@ -694,9 +856,9 @@ impl AssetFormat for DoomMapSidedefsFormat {
 	}
 }
 
-pub struct DoomMapVertexesFormat;
+pub struct VertexesFormat;
 
-impl AssetFormat for DoomMapVertexesFormat {
+impl AssetFormat for VertexesFormat {
 	type Asset = Vec<Vector2<f32>>;
 
 	fn import(
@@ -728,7 +890,7 @@ impl AssetFormat for DoomMapVertexesFormat {
 }
 
 #[derive(Clone, Debug)]
-pub struct DoomMapSector {
+pub struct Sector {
 	pub floor_height: f32,
 	pub ceiling_height: f32,
 	pub floor_flat_name: String,
@@ -738,10 +900,10 @@ pub struct DoomMapSector {
 	pub sector_tag: u16,
 }
 
-pub struct DoomMapSectorsFormat;
+pub struct SectorsFormat;
 
-impl AssetFormat for DoomMapSectorsFormat {
-	type Asset = Vec<DoomMapSector>;
+impl AssetFormat for SectorsFormat {
+	type Asset = Vec<Sector>;
 
 	fn import(
 		&self,
@@ -777,7 +939,7 @@ impl AssetFormat for DoomMapSectorsFormat {
 			let special_type = data.read_u16::<LE>()?;
 			let sector_tag = data.read_u16::<LE>()?;
 
-			sectors.push(DoomMapSector {
+			sectors.push(Sector {
 				floor_height,
 				ceiling_height,
 				floor_flat_name,
@@ -792,9 +954,9 @@ impl AssetFormat for DoomMapSectorsFormat {
 	}
 }
 
-pub struct DoomMapGLVertFormat;
+pub struct GLVertFormat;
 
-impl AssetFormat for DoomMapGLVertFormat {
+impl AssetFormat for GLVertFormat {
 	type Asset = Vec<Vector2<f32>>;
 
 	fn import(
@@ -833,17 +995,41 @@ impl AssetFormat for DoomMapGLVertFormat {
 }
 
 #[derive(Clone, Debug)]
-pub struct DoomMapGLSeg {
-	pub vertex_indices: [(usize, bool); 2],
+pub struct GLSeg {
+	pub vertex_indices: [EitherVertex; 2],
 	pub linedef_index: Option<usize>,
-	pub side: bool,
+	pub sidedef_index: Option<usize>,
+	pub side: Side,
 	pub partner_seg_index: Option<usize>,
 }
 
-pub struct DoomMapGLSegsFormat;
+#[derive(Clone, Copy, Debug)]
+pub enum EitherVertex {
+	Normal(usize),
+	GL(usize),
+}
 
-impl AssetFormat for DoomMapGLSegsFormat {
-	type Asset = Vec<DoomMapGLSeg>;
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Side {
+	Right = 0,
+	Left = 1,
+}
+
+impl std::ops::Not for Side {
+	type Output = Side;
+
+	fn not(self) -> Self::Output {
+		match self {
+			Side::Right => Side::Left,
+			Side::Left => Side::Right,
+		}
+	}
+}
+
+pub struct GLSegsFormat;
+
+impl AssetFormat for GLSegsFormat {
+	type Asset = Vec<GLSeg>;
 
 	fn import(
 		&self,
@@ -866,21 +1052,21 @@ impl AssetFormat for DoomMapGLSegsFormat {
 			} as usize;
 			let end_vertex_index = data.read_u16::<LE>()? as usize;
 			let linedef_index = data.read_u16::<LE>()? as usize;
-			let side = data.read_u16::<LE>()? != 0;
+			let side = data.read_u16::<LE>()?;
 			let partner_seg_index = data.read_u16::<LE>()? as usize;
 
-			gl_segs.push(DoomMapGLSeg {
+			gl_segs.push(GLSeg {
 				vertex_indices: [
 					if (start_vertex_index & 0x8000) != 0 {
-						(start_vertex_index & 0x7FFF, true)
+						EitherVertex::GL(start_vertex_index & 0x7FFF)
 					} else {
-						(start_vertex_index, false)
+						EitherVertex::Normal(start_vertex_index)
 					},
 					if (end_vertex_index & 0x8000) != 0 {
-						(end_vertex_index & 0x7FFF, true)
+						EitherVertex::GL(end_vertex_index & 0x7FFF)
 					} else {
-						(end_vertex_index, false)
-					}
+						EitherVertex::Normal(end_vertex_index)
+					},
 				],
 				linedef_index: {
 					if linedef_index == 0xFFFF {
@@ -889,7 +1075,8 @@ impl AssetFormat for DoomMapGLSegsFormat {
 						Some(linedef_index)
 					}
 				},
-				side,
+				sidedef_index: None,
+				side: if side != 0 { Side::Left } else { Side::Right },
 				partner_seg_index: {
 					if partner_seg_index == 0xFFFF {
 						None
@@ -905,15 +1092,16 @@ impl AssetFormat for DoomMapGLSegsFormat {
 }
 
 #[derive(Clone, Debug)]
-pub struct DoomMapGLSSect {
+pub struct GLSSect {
 	pub seg_count: usize,
 	pub first_seg_index: usize,
+	pub sector_index: usize,
 }
 
-pub struct DoomMapGLSSectFormat;
+pub struct GLSSectFormat;
 
-impl AssetFormat for DoomMapGLSSectFormat {
-	type Asset = Vec<DoomMapGLSSect>;
+impl AssetFormat for GLSSectFormat {
+	type Asset = Vec<GLSSect>;
 
 	fn import(
 		&self,
@@ -936,9 +1124,10 @@ impl AssetFormat for DoomMapGLSSectFormat {
 			} as usize;
 			let first_seg_index = data.read_u16::<LE>()? as usize;
 
-			gl_ssect.push(DoomMapGLSSect {
+			gl_ssect.push(GLSSect {
 				seg_count,
 				first_seg_index,
+				sector_index: 0,
 			});
 		}
 
@@ -947,25 +1136,37 @@ impl AssetFormat for DoomMapGLSSectFormat {
 }
 
 #[derive(Clone, Debug)]
-pub struct DoomMapGLNode {
+pub struct GLNode {
 	pub partition_point: Vector2<f32>,
 	pub partition_dir: Vector2<f32>,
-	pub right_bbox: BoundingBox2,
-	pub left_bbox: BoundingBox2,
-	pub right_child_index: BSPChildNode,
-	pub left_child_index: BSPChildNode,
+	pub bbox: [BoundingBox2; 2],
+	pub child_indices: [ChildNode; 2],
+}
+
+impl GLNode {
+	pub fn point_side(&self, point: Vector2<f32>) -> Side {
+		let d = point - self.partition_point;
+		let left = self.partition_dir[1] * d[0];
+		let right = self.partition_dir[0] * d[1];
+
+		if right < left {
+			Side::Right
+		} else {
+			Side::Left
+		}
+	}
 }
 
 #[derive(Copy, Clone, Debug)]
-pub enum BSPChildNode {
+pub enum ChildNode {
 	Leaf(usize),
 	Branch(usize),
 }
 
-pub struct DoomMapGLNodesFormat;
+pub struct GLNodesFormat;
 
-impl AssetFormat for DoomMapGLNodesFormat {
-	type Asset = Vec<DoomMapGLNode>;
+impl AssetFormat for GLNodesFormat {
+	type Asset = Vec<GLNode>;
 
 	fn import(
 		&self,
@@ -1000,35 +1201,35 @@ impl AssetFormat for DoomMapGLNodesFormat {
 			let right_child_index = data.read_u16::<LE>()? as usize;
 			let left_child_index = data.read_u16::<LE>()? as usize;
 
-			gl_nodes.push(DoomMapGLNode {
+			gl_nodes.push(GLNode {
 				partition_point: Vector2::new(partition_point_x, partition_point_y),
 				partition_dir: Vector2::new(partition_dir_x, partition_dir_y),
-				right_bbox: BoundingBox2::from_extents(
-					right_bbox_top,
-					right_bbox_bottom,
-					right_bbox_left,
-					right_bbox_right,
-				),
-				left_bbox: BoundingBox2::from_extents(
-					left_bbox_top,
-					left_bbox_bottom,
-					left_bbox_left,
-					left_bbox_right,
-				),
-				right_child_index: {
+				bbox: [
+					BoundingBox2::from_extents(
+						right_bbox_top,
+						right_bbox_bottom,
+						right_bbox_left,
+						right_bbox_right,
+					),
+					BoundingBox2::from_extents(
+						left_bbox_top,
+						left_bbox_bottom,
+						left_bbox_left,
+						left_bbox_right,
+					),
+				],
+				child_indices: [
 					if (right_child_index & 0x8000) != 0 {
-						BSPChildNode::Leaf(right_child_index & 0x7FFF)
+						ChildNode::Leaf(right_child_index & 0x7FFF)
 					} else {
-						BSPChildNode::Branch(right_child_index)
-					}
-				},
-				left_child_index: {
+						ChildNode::Branch(right_child_index)
+					},
 					if (left_child_index & 0x8000) != 0 {
-						BSPChildNode::Leaf(left_child_index & 0x7FFF)
+						ChildNode::Leaf(left_child_index & 0x7FFF)
 					} else {
-						BSPChildNode::Branch(left_child_index)
-					}
-				},
+						ChildNode::Branch(left_child_index)
+					},
+				],
 			});
 		}
 

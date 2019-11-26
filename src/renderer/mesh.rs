@@ -16,7 +16,9 @@ impl Mesh {
 		self.vertex_buffer.clone()
 	}
 
-	pub fn index_buffer(&self) -> Option<Arc<dyn TypedBufferAccess<Content = [u32]> + Send + Sync>> {
+	pub fn index_buffer(
+		&self,
+	) -> Option<Arc<dyn TypedBufferAccess<Content = [u32]> + Send + Sync>> {
 		self.index_buffer.clone()
 	}
 }
@@ -66,7 +68,7 @@ impl MeshBuilder {
 					vertex_buffer: vertex_buffer,
 					index_buffer: Some(index_buffer),
 				},
-				Box::from(future.join(index_future))
+				Box::from(future.join(index_future)),
 			))
 		} else {
 			Ok((
@@ -74,7 +76,7 @@ impl MeshBuilder {
 					vertex_buffer: vertex_buffer,
 					index_buffer: None,
 				},
-				Box::from(future)
+				Box::from(future),
 			))
 		}
 	}
@@ -88,10 +90,7 @@ impl<T> AsBytes for Vec<T> {
 	fn as_bytes<'a>(&'a self) -> &'a [u8] {
 		let slice = self.as_slice();
 		unsafe {
-			std::slice::from_raw_parts(
-				slice.as_ptr() as _,
-				std::mem::size_of::<T>() * slice.len(),
-			)
+			std::slice::from_raw_parts(slice.as_ptr() as _, std::mem::size_of::<T>() * slice.len())
 		}
 	}
 }

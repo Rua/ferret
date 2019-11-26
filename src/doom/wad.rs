@@ -17,6 +17,7 @@ struct Lump {
 	size: u32,
 }
 
+#[derive(Default)]
 pub struct WadLoader {
 	files: HashMap<String, BufReader<File>>,
 	lumps: Vec<Lump>,

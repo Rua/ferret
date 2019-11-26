@@ -1,7 +1,5 @@
 use regex::{Captures, Regex};
-use std::{
-	error::Error, string::String,
-};
+use std::{error::Error, string::String};
 
 /*pub struct CommandList<T> {
 	commands: HashMap<String, Command<T>>,
