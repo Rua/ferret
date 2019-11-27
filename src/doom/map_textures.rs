@@ -1,21 +1,24 @@
 use crate::{
-    assets::{AssetFormat, AssetHandle, AssetStorage, DataSource},
-    doom::{
-        image::{ImageFormat, PaletteFormat},
-        map::DoomMap,
-        wad::WadLoader,
-    },
-    renderer::{texture::{Texture, TextureBuilder}, video::Video},
+	assets::{AssetFormat, AssetHandle, AssetStorage, DataSource},
+	doom::{
+		image::{ImageFormat, PaletteFormat},
+		map::DoomMap,
+		wad::WadLoader,
+	},
+	renderer::{
+		texture::{Texture, TextureBuilder},
+		video::Video,
+	},
 };
 use nalgebra::{Vector2, Vector3};
 use sdl2::{pixels::PixelFormatEnum, rect::Rect, surface::Surface};
 use serde::Deserialize;
 use specs::{ReadExpect, SystemData, World, Write};
 use std::{
-    collections::{HashMap, hash_map::Entry, HashSet},
-    error::Error,
-    io::{Cursor, Read, Seek, SeekFrom},
-    str,
+	collections::{hash_map::Entry, HashMap, HashSet},
+	error::Error,
+	io::{Cursor, Read, Seek, SeekFrom},
+	str,
 };
 use vulkano::{format::Format, image::Dimensions};
 
@@ -220,39 +223,41 @@ impl AssetFormat for TextureFormat {
 			.get(&name)
 			.ok_or(format!("Texture {} does not exist", name))?;
 
-        let mut surface = Surface::new(
-            texture_info.size[0] as u32,
-            texture_info.size[1] as u32,
-            PixelFormatEnum::RGBA32,
-        )?;
+		let mut surface = Surface::new(
+			texture_info.size[0] as u32,
+			texture_info.size[1] as u32,
+			PixelFormatEnum::RGBA32,
+		)?;
 
-		texture_info.patches.iter().try_for_each(
-            |patch_info| -> Result<(), Box<dyn Error>> {
-                let name = String::from(str::from_utf8(&pnames[patch_info.index])?.trim_end_matches('\0'));
-    			let mut patch = ImageFormat.import(&name, source)?;
-    			let surface2 = Surface::from_data(
-    				&mut patch.data,
-    				patch.size[0] as u32,
-    				patch.size[1] as u32,
-    				patch.size[0] as u32 * 4,
-    				PixelFormatEnum::RGBA32,
-    			)?;
-    			surface2.blit(
-    				None,
-    				&mut surface,
-    				Rect::new(
-    					patch_info.offset[0] as i32,
-    					patch_info.offset[1] as i32,
-    					0,
-    					0,
-    				),
-    			)?;
+		texture_info
+			.patches
+			.iter()
+			.try_for_each(|patch_info| -> Result<(), Box<dyn Error>> {
+				let name =
+					String::from(str::from_utf8(&pnames[patch_info.index])?.trim_end_matches('\0'));
+				let mut patch = ImageFormat.import(&name, source)?;
+				let surface2 = Surface::from_data(
+					&mut patch.data,
+					patch.size[0] as u32,
+					patch.size[1] as u32,
+					patch.size[0] as u32 * 4,
+					PixelFormatEnum::RGBA32,
+				)?;
+				surface2.blit(
+					None,
+					&mut surface,
+					Rect::new(
+						patch_info.offset[0] as i32,
+						patch_info.offset[1] as i32,
+						0,
+						0,
+					),
+				)?;
 
-                Ok(())
-            }
-        )?;
+				Ok(())
+			})?;
 
-        Ok(surface)
+		Ok(surface)
 	}
 }
 
@@ -276,25 +281,30 @@ impl AssetFormat for TexturesFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
-		RawTexturesFormat.import(name, source)?.into_iter().map(|(texture, patches)| {
-			let mut name = String::from(str::from_utf8(&texture.name)?.trim_end_matches('\0'));
-			name.make_ascii_uppercase();
+		RawTexturesFormat
+			.import(name, source)?
+			.into_iter()
+			.map(|(texture, patches)| {
+				let mut name = String::from(str::from_utf8(&texture.name)?.trim_end_matches('\0'));
+				name.make_ascii_uppercase();
 
-			let patches = patches.into_iter().map(|patch|
-				PatchInfo {
-					offset: Vector2::new(patch.offset[0] as i32, patch.offset[1] as i32),
-					index: patch.index as usize,
-				}
-			).collect();
+				let patches = patches
+					.into_iter()
+					.map(|patch| PatchInfo {
+						offset: Vector2::new(patch.offset[0] as i32, patch.offset[1] as i32),
+						index: patch.index as usize,
+					})
+					.collect();
 
-			Ok((
-				name,
-				TextureInfo {
-					size: Vector2::new(texture.size[0] as u32, texture.size[1] as u32),
-					patches: patches,
-				},
-			))
-		}).collect()
+				Ok((
+					name,
+					TextureInfo {
+						size: Vector2::new(texture.size[0] as u32, texture.size[1] as u32),
+						patches: patches,
+					},
+				))
+			})
+			.collect()
 	}
 }
 
@@ -333,17 +343,21 @@ impl AssetFormat for RawTexturesFormat {
 			offsets.push(bincode::deserialize_from(&mut data)?);
 		}
 
-        offsets.into_iter().map(|offset| {
-			data.seek(SeekFrom::Start(offset as u64))?;
+		offsets
+			.into_iter()
+			.map(|offset| {
+				data.seek(SeekFrom::Start(offset as u64))?;
 
-			let texture_info: RawTextureInfo = bincode::deserialize_from(&mut data)?;
-			let mut patches: Vec<RawPatchInfo> = Vec::with_capacity(texture_info.patch_count as usize);
+				let texture_info: RawTextureInfo = bincode::deserialize_from(&mut data)?;
+				let mut patches: Vec<RawPatchInfo> =
+					Vec::with_capacity(texture_info.patch_count as usize);
 
-			for _ in 0..texture_info.patch_count {
-				patches.push(bincode::deserialize_from(&mut data)?);
-			}
+				for _ in 0..texture_info.patch_count {
+					patches.push(bincode::deserialize_from(&mut data)?);
+				}
 
-			Ok((texture_info, patches))
-		}).collect()
+				Ok((texture_info, patches))
+			})
+			.collect()
 	}
 }

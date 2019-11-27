@@ -1,9 +1,12 @@
 use crate::{
 	assets::AssetStorage,
-	doom::{components::{MapComponent, SpawnPointComponent, TransformComponent}, map::VertexData},
+	doom::{
+		components::{MapComponent, SpawnPointComponent, TransformComponent},
+		map::VertexData,
+	},
 	renderer::{texture::Texture, video::Video},
 };
-use nalgebra::{Matrix4,  Vector3};
+use nalgebra::{Matrix4, Vector3};
 use specs::{join::Join, ReadExpect, ReadStorage, RunNow, SystemData, World};
 use std::{error::Error, sync::Arc};
 use vulkano::{
@@ -188,17 +191,28 @@ impl MapRenderSystem {
 		dynamic_state: DynamicState,
 		sampler: Arc<Sampler>,
 	) -> Result<AutoCommandBufferBuilder, Box<dyn Error>> {
-		let (transform, spawn_point) = <(ReadStorage<TransformComponent>, ReadStorage<SpawnPointComponent>)>::fetch(world);
-		let (mut position, rotation) = (&transform, &spawn_point).join().find_map(|(t, s)| if s.player_num == 1 { Some((t.position, t.rotation)) } else { None }).unwrap();
+		let (transform, spawn_point) = <(
+			ReadStorage<TransformComponent>,
+			ReadStorage<SpawnPointComponent>,
+		)>::fetch(world);
+		let (mut position, rotation) = (&transform, &spawn_point)
+			.join()
+			.find_map(|(t, s)| {
+				if s.player_num == 1 {
+					Some((t.position, t.rotation))
+				} else {
+					None
+				}
+			})
+			.unwrap();
 		position += Vector3::new(0.0, 0.0, 41.0);
 
-		let view =
-			Matrix4::new_rotation(Vector3::new(-rotation[0].to_radians(), 0.0, 0.0)) *
-			Matrix4::new_rotation(Vector3::new(0.0, -rotation[1].to_radians(), 0.0)) *
-			Matrix4::new_rotation(Vector3::new(0.0, 0.0, -rotation[2].to_radians())) *
-			Matrix4::new_translation(&-position);
+		let view = Matrix4::new_rotation(Vector3::new(-rotation[0].to_radians(), 0.0, 0.0))
+			* Matrix4::new_rotation(Vector3::new(0.0, -rotation[1].to_radians(), 0.0))
+			* Matrix4::new_rotation(Vector3::new(0.0, 0.0, -rotation[2].to_radians()))
+			* Matrix4::new_translation(&-position);
 
-		let proj = projection_matrix(90.0, 4.0/3.0, 0.1, 10000.0);
+		let proj = projection_matrix(90.0, 4.0 / 3.0, 0.1, 10000.0);
 
 		let data = vs::ty::UniformBufferObject {
 			view: view.into(),
@@ -254,9 +268,21 @@ fn projection_matrix(fovx: f32, aspect: f32, near: f32, far: f32) -> Matrix4<f32
 	let f = 1.0 / (fovx * 0.5).tan();
 
 	Matrix4::new(
-		0.0       , -f , 0.0        , 0.0,
-		0.0       , 0.0, -f * aspect, 0.0,
-		-far / nmf, 0.0, 0.0        , (near * far) / nmf,
-		1.0       , 0.0, 0.0        , 0.0,
+		0.0,
+		-f,
+		0.0,
+		0.0,
+		0.0,
+		0.0,
+		-f * aspect,
+		0.0,
+		-far / nmf,
+		0.0,
+		0.0,
+		(near * far) / nmf,
+		1.0,
+		0.0,
+		0.0,
+		0.0,
 	)
 }

@@ -14,12 +14,7 @@ use crate::{
 use nalgebra::{Matrix, Vector2, Vector3};
 use serde::Deserialize;
 use specs::{world::Builder, ReadExpect, SystemData, World, WorldExt};
-use std::{
-	collections::HashMap,
-	error::Error,
-	io::Cursor,
-	str,
-};
+use std::{collections::HashMap, error::Error, io::Cursor, str};
 use vulkano::image::Dimensions;
 
 pub fn spawn_map_entities(
@@ -168,7 +163,7 @@ fn make_meshes(
 		let mut sector = None;
 
 		// Walls
-		for seg in segs.iter() {
+		for (seg_index, seg) in segs.iter().enumerate() {
 			if let Some(linedef_index) = seg.linedef_index {
 				let linedef = &map.linedefs[linedef_index];
 
@@ -186,7 +181,7 @@ fn make_meshes(
 
 					let front_sector = sector.unwrap();
 
-					// Add wall
+					// Get vertices
 					let start_vertex = match seg.vertex_indices[0] {
 						EitherVertex::Normal(index) => &map.vertexes[index],
 						EitherVertex::GL(index) => &map.gl_vert[index],
@@ -197,17 +192,23 @@ fn make_meshes(
 						EitherVertex::GL(index) => &map.gl_vert[index],
 					};
 
+					// Set pegging parameters
 					let top_peg_factor = if linedef.flags & 8 != 0 {
-						[0.0, -1.0]
+						[1.0, 0.0] // Align to top
 					} else {
-						[1.0, 0.0]
+						[0.0, -1.0] // Align to bottom
 					};
 
 					let bottom_peg_factor = if linedef.flags & 16 != 0 {
-						[1.0, 0.0]
+						[0.0, -1.0] // Align to bottom
 					} else {
-						[0.0, -1.0]
+						[1.0, 0.0] // Align to top
 					};
+
+					// Calculate texture offset
+					let distance =
+						Matrix::norm(&(start_vertex - &map.vertexes[linedef.vertex_indices[0]]));
+					let texture_offset = front_sidedef.texture_offset + Vector2::new(distance, 0.0);
 
 					// Two-sided or one-sided sidedef?
 					if let Some(back_sidedef_index) = linedef.sidedef_indices[!seg.side as usize] {
@@ -232,7 +233,7 @@ fn make_meshes(
 								indices,
 								[start_vertex, end_vertex],
 								[spans[2], spans[3]],
-								front_sidedef.texture_offset,
+								texture_offset,
 								top_peg_factor,
 								dimensions,
 								texture.1 as f32,
@@ -252,7 +253,7 @@ fn make_meshes(
 								indices,
 								[start_vertex, end_vertex],
 								[spans[0], spans[1]],
-								front_sidedef.texture_offset,
+								texture_offset,
 								bottom_peg_factor,
 								dimensions,
 								texture.1 as f32,
@@ -272,7 +273,7 @@ fn make_meshes(
 								indices,
 								[start_vertex, end_vertex],
 								[spans[1], spans[2]],
-								front_sidedef.texture_offset,
+								texture_offset,
 								bottom_peg_factor,
 								dimensions,
 								texture.1 as f32,
@@ -291,7 +292,7 @@ fn make_meshes(
 								indices,
 								[start_vertex, end_vertex],
 								[front_sector.floor_height, front_sector.ceiling_height],
-								front_sidedef.texture_offset,
+								texture_offset,
 								bottom_peg_factor,
 								dimensions,
 								texture.1 as f32,
@@ -552,14 +553,18 @@ impl AssetFormat for ThingsFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
-		RawThingsFormat.import(name, source)?.into_iter().map(|raw| {
-			Ok(Thing {
-				position: Vector2::new(raw.position[0] as f32, raw.position[1] as f32),
-				angle: raw.angle as f32,
-				doomednum: raw.doomednum,
-				flags: raw.flags,
+		RawThingsFormat
+			.import(name, source)?
+			.into_iter()
+			.map(|raw| {
+				Ok(Thing {
+					position: Vector2::new(raw.position[0] as f32, raw.position[1] as f32),
+					angle: raw.angle as f32,
+					doomednum: raw.doomednum,
+					flags: raw.flags,
+				})
 			})
-		}).collect()
+			.collect()
 	}
 }
 
@@ -611,26 +616,33 @@ impl AssetFormat for LinedefsFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
-		RawLinedefsFormat.import(name, source)?.into_iter().map(|raw| {
-			Ok(Linedef {
-				vertex_indices: [raw.vertex_indices[0] as usize, raw.vertex_indices[1] as usize],
-				flags: raw.flags,
-				special_type: raw.special_type,
-				sector_tag: raw.sector_tag,
-				sidedef_indices: [
-					if raw.sidedef_indices[0] == 0xFFFF {
-						None
-					} else {
-						Some(raw.sidedef_indices[0] as usize)
-					},
-					if raw.sidedef_indices[1] == 0xFFFF {
-						None
-					} else {
-						Some(raw.sidedef_indices[1] as usize)
-					},
-				],
+		RawLinedefsFormat
+			.import(name, source)?
+			.into_iter()
+			.map(|raw| {
+				Ok(Linedef {
+					vertex_indices: [
+						raw.vertex_indices[0] as usize,
+						raw.vertex_indices[1] as usize,
+					],
+					flags: raw.flags,
+					special_type: raw.special_type,
+					sector_tag: raw.sector_tag,
+					sidedef_indices: [
+						if raw.sidedef_indices[0] == 0xFFFF {
+							None
+						} else {
+							Some(raw.sidedef_indices[0] as usize)
+						},
+						if raw.sidedef_indices[1] == 0xFFFF {
+							None
+						} else {
+							Some(raw.sidedef_indices[1] as usize)
+						},
+					],
+				})
 			})
-		}).collect()
+			.collect()
 	}
 }
 
@@ -683,27 +695,40 @@ impl AssetFormat for SidedefsFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
-		RawSidedefsFormat.import(name, source)?.into_iter().map(|raw| {
-			Ok(Sidedef {
-				texture_offset: Vector2::new(raw.texture_offset[0] as f32, raw.texture_offset[1] as f32),
-				top_texture_name: if raw.top_texture_name == *b"-\0\0\0\0\0\0\0" {
-					None
-				} else {
-					Some(String::from(str::from_utf8(&raw.top_texture_name)?.trim_end_matches('\0')))
-				},
-				bottom_texture_name: if raw.bottom_texture_name == *b"-\0\0\0\0\0\0\0" {
-					None
-				} else {
-					Some(String::from(str::from_utf8(&raw.bottom_texture_name)?.trim_end_matches('\0')))
-				},
-				middle_texture_name: if raw.middle_texture_name == *b"-\0\0\0\0\0\0\0" {
-					None
-				} else {
-					Some(String::from(str::from_utf8(&raw.middle_texture_name)?.trim_end_matches('\0')))
-				},
-				sector_index: raw.sector_index as usize,
+		RawSidedefsFormat
+			.import(name, source)?
+			.into_iter()
+			.map(|raw| {
+				Ok(Sidedef {
+					texture_offset: Vector2::new(
+						raw.texture_offset[0] as f32,
+						raw.texture_offset[1] as f32,
+					),
+					top_texture_name: if raw.top_texture_name == *b"-\0\0\0\0\0\0\0" {
+						None
+					} else {
+						Some(String::from(
+							str::from_utf8(&raw.top_texture_name)?.trim_end_matches('\0'),
+						))
+					},
+					bottom_texture_name: if raw.bottom_texture_name == *b"-\0\0\0\0\0\0\0" {
+						None
+					} else {
+						Some(String::from(
+							str::from_utf8(&raw.bottom_texture_name)?.trim_end_matches('\0'),
+						))
+					},
+					middle_texture_name: if raw.middle_texture_name == *b"-\0\0\0\0\0\0\0" {
+						None
+					} else {
+						Some(String::from(
+							str::from_utf8(&raw.middle_texture_name)?.trim_end_matches('\0'),
+						))
+					},
+					sector_index: raw.sector_index as usize,
+				})
 			})
-		}).collect()
+			.collect()
 	}
 }
 
@@ -747,9 +772,11 @@ impl AssetFormat for VertexesFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
-		RawVertexesFormat.import(name, source)?.into_iter().map(|raw| {
-			Ok(Vector2::new(raw[0] as f32, raw[1] as f32))
-		}).collect()
+		RawVertexesFormat
+			.import(name, source)?
+			.into_iter()
+			.map(|raw| Ok(Vector2::new(raw[0] as f32, raw[1] as f32)))
+			.collect()
 	}
 }
 
@@ -795,17 +822,25 @@ impl AssetFormat for SectorsFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
-		RawSectorsFormat.import(name, source)?.into_iter().map(|raw| {
-			Ok(Sector {
-				floor_height: raw.floor_height as f32,
-				ceiling_height: raw.ceiling_height as f32,
-				floor_flat_name: String::from(str::from_utf8(&raw.floor_flat_name)?.trim_end_matches('\0')),
-				ceiling_flat_name: String::from(str::from_utf8(&raw.ceiling_flat_name)?.trim_end_matches('\0')),
-				light_level: raw.light_level,
-				special_type: raw.light_level,
-				sector_tag: raw.light_level,
+		RawSectorsFormat
+			.import(name, source)?
+			.into_iter()
+			.map(|raw| {
+				Ok(Sector {
+					floor_height: raw.floor_height as f32,
+					ceiling_height: raw.ceiling_height as f32,
+					floor_flat_name: String::from(
+						str::from_utf8(&raw.floor_flat_name)?.trim_end_matches('\0'),
+					),
+					ceiling_flat_name: String::from(
+						str::from_utf8(&raw.ceiling_flat_name)?.trim_end_matches('\0'),
+					),
+					light_level: raw.light_level,
+					special_type: raw.light_level,
+					sector_tag: raw.light_level,
+				})
 			})
-		}).collect()
+			.collect()
 	}
 }
 
@@ -851,9 +886,16 @@ impl AssetFormat for GLVertFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
-		RawGLVertFormat.import(name, source)?.into_iter().map(|raw| {
-			Ok(Vector2::new(raw[0] as f32 / 65536.0, raw[1] as f32 / 65536.0))
-		}).collect()
+		RawGLVertFormat
+			.import(name, source)?
+			.into_iter()
+			.map(|raw| {
+				Ok(Vector2::new(
+					raw[0] as f32 / 65536.0,
+					raw[1] as f32 / 65536.0,
+				))
+			})
+			.collect()
 	}
 }
 
@@ -925,38 +967,46 @@ impl AssetFormat for GLSegsFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
-		RawGLSegsFormat.import(name, source)?.into_iter().map(|raw| {
-			Ok(GLSeg {
-				vertex_indices: [
-					if (raw.vertex_indices[0] & 0x8000) != 0 {
-						EitherVertex::GL(raw.vertex_indices[0] as usize & 0x7FFF)
-					} else {
-						EitherVertex::Normal(raw.vertex_indices[0] as usize)
+		RawGLSegsFormat
+			.import(name, source)?
+			.into_iter()
+			.map(|raw| {
+				Ok(GLSeg {
+					vertex_indices: [
+						if (raw.vertex_indices[0] & 0x8000) != 0 {
+							EitherVertex::GL(raw.vertex_indices[0] as usize & 0x7FFF)
+						} else {
+							EitherVertex::Normal(raw.vertex_indices[0] as usize)
+						},
+						if (raw.vertex_indices[1] & 0x8000) != 0 {
+							EitherVertex::GL(raw.vertex_indices[1] as usize & 0x7FFF)
+						} else {
+							EitherVertex::Normal(raw.vertex_indices[1] as usize)
+						},
+					],
+					linedef_index: {
+						if raw.linedef_index == 0xFFFF {
+							None
+						} else {
+							Some(raw.linedef_index as usize)
+						}
 					},
-					if (raw.vertex_indices[1] & 0x8000) != 0 {
-						EitherVertex::GL(raw.vertex_indices[1] as usize & 0x7FFF)
+					sidedef_index: None,
+					side: if raw.side != 0 {
+						Side::Left
 					} else {
-						EitherVertex::Normal(raw.vertex_indices[1] as usize)
+						Side::Right
 					},
-				],
-				linedef_index: {
-					if raw.linedef_index == 0xFFFF {
-						None
-					} else {
-						Some(raw.linedef_index as usize)
-					}
-				},
-				sidedef_index: None,
-				side: if raw.side != 0 { Side::Left } else { Side::Right },
-				partner_seg_index: {
-					if raw.partner_seg_index == 0xFFFF {
-						None
-					} else {
-						Some(raw.partner_seg_index as usize)
-					}
-				},
+					partner_seg_index: {
+						if raw.partner_seg_index == 0xFFFF {
+							None
+						} else {
+							Some(raw.partner_seg_index as usize)
+						}
+					},
+				})
 			})
-		}).collect()
+			.collect()
 	}
 }
 
@@ -1006,13 +1056,17 @@ impl AssetFormat for GLSSectFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
-		RawGLSSectFormat.import(name, source)?.into_iter().map(|raw| {
-			Ok(GLSSect {
-				seg_count: raw.seg_count as usize,
-				first_seg_index: raw.first_seg_index as usize,
-				sector_index: 0,
+		RawGLSSectFormat
+			.import(name, source)?
+			.into_iter()
+			.map(|raw| {
+				Ok(GLSSect {
+					seg_count: raw.seg_count as usize,
+					first_seg_index: raw.first_seg_index as usize,
+					sector_index: 0,
+				})
 			})
-		}).collect()
+			.collect()
 	}
 }
 
@@ -1081,38 +1135,48 @@ impl AssetFormat for GLNodesFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
-		RawGLNodesFormat.import(name, source)?.into_iter().map(|raw| {
-			Ok(GLNode {
-				partition_point: Vector2::new(raw.partition_point[0] as f32, raw.partition_point[1] as f32),
-				partition_dir: Vector2::new(raw.partition_dir[0] as f32, raw.partition_dir[1] as f32),
-				bbox: [
-					BoundingBox2::from_extents(
-						raw.child_bboxes[0][0] as f32,
-						raw.child_bboxes[0][1] as f32,
-						raw.child_bboxes[0][2] as f32,
-						raw.child_bboxes[0][3] as f32,
+		RawGLNodesFormat
+			.import(name, source)?
+			.into_iter()
+			.map(|raw| {
+				Ok(GLNode {
+					partition_point: Vector2::new(
+						raw.partition_point[0] as f32,
+						raw.partition_point[1] as f32,
 					),
-					BoundingBox2::from_extents(
-						raw.child_bboxes[1][0] as f32,
-						raw.child_bboxes[1][1] as f32,
-						raw.child_bboxes[1][2] as f32,
-						raw.child_bboxes[1][3] as f32,
+					partition_dir: Vector2::new(
+						raw.partition_dir[0] as f32,
+						raw.partition_dir[1] as f32,
 					),
-				],
-				child_indices: [
-					if (raw.child_indices[0] & 0x8000) != 0 {
-						ChildNode::Leaf(raw.child_indices[0] as usize & 0x7FFF)
-					} else {
-						ChildNode::Branch(raw.child_indices[0] as usize)
-					},
-					if (raw.child_indices[1] & 0x8000) != 0 {
-						ChildNode::Leaf(raw.child_indices[1] as usize & 0x7FFF)
-					} else {
-						ChildNode::Branch(raw.child_indices[1] as usize)
-					},
-				],
+					bbox: [
+						BoundingBox2::from_extents(
+							raw.child_bboxes[0][0] as f32,
+							raw.child_bboxes[0][1] as f32,
+							raw.child_bboxes[0][2] as f32,
+							raw.child_bboxes[0][3] as f32,
+						),
+						BoundingBox2::from_extents(
+							raw.child_bboxes[1][0] as f32,
+							raw.child_bboxes[1][1] as f32,
+							raw.child_bboxes[1][2] as f32,
+							raw.child_bboxes[1][3] as f32,
+						),
+					],
+					child_indices: [
+						if (raw.child_indices[0] & 0x8000) != 0 {
+							ChildNode::Leaf(raw.child_indices[0] as usize & 0x7FFF)
+						} else {
+							ChildNode::Branch(raw.child_indices[0] as usize)
+						},
+						if (raw.child_indices[1] & 0x8000) != 0 {
+							ChildNode::Leaf(raw.child_indices[1] as usize & 0x7FFF)
+						} else {
+							ChildNode::Branch(raw.child_indices[1] as usize)
+						},
+					],
+				})
 			})
-		}).collect()
+			.collect()
 	}
 }
 

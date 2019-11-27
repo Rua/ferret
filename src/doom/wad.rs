@@ -64,7 +64,8 @@ impl WadLoader {
 		for _ in 0..header.dir_length {
 			let dir_entry: DirEntry = bincode::deserialize_from(&mut file)?;
 
-			let mut lump_name = String::from(str::from_utf8(&dir_entry.lump_name)?.trim_end_matches('\0'));
+			let mut lump_name =
+				String::from(str::from_utf8(&dir_entry.lump_name)?.trim_end_matches('\0'));
 			lump_name.make_ascii_uppercase();
 
 			self.lumps.push(Lump {

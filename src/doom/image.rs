@@ -71,7 +71,11 @@ impl AssetFormat for ImageFormat {
 			column_offsets.push(bincode::deserialize_from(&mut data)?);
 		}
 
-		let mut surface = Surface::new(header.size[0] as u32, header.size[1] as u32, PixelFormatEnum::RGBA32)?;
+		let mut surface = Surface::new(
+			header.size[0] as u32,
+			header.size[1] as u32,
+			PixelFormatEnum::RGBA32,
+		)?;
 		let pitch = surface.pitch() as usize;
 		assert_eq!(pitch, header.size[0] as usize * 4);
 
