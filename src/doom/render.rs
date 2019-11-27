@@ -1,11 +1,11 @@
 use crate::{
 	assets::AssetStorage,
-	doom::{components::MapComponent, map::VertexData},
+	doom::{components::{MapComponent, SpawnPointComponent, TransformComponent}, map::VertexData},
 	renderer::{texture::Texture, video::Video},
 };
-use nalgebra::{Matrix4, Point3, Vector3};
+use nalgebra::{Matrix4,  Vector3};
 use specs::{join::Join, ReadExpect, ReadStorage, RunNow, SystemData, World};
-use std::{error::Error, f32::consts::FRAC_PI_4, sync::Arc};
+use std::{error::Error, sync::Arc};
 use vulkano::{
 	buffer::{BufferAccess, BufferUsage, CpuAccessibleBuffer},
 	command_buffer::{
@@ -188,15 +188,17 @@ impl MapRenderSystem {
 		dynamic_state: DynamicState,
 		sampler: Arc<Sampler>,
 	) -> Result<AutoCommandBufferBuilder, Box<dyn Error>> {
-		// Update uniform buffer
-		let view = Matrix4::look_at_rh(
-			&Point3::new(1670.0, -2500.0, 50.0),
-			&Point3::new(1671.0, -2500.0, 50.0),
-			&Vector3::new(0.0, 0.0, 1.0),
-		);
-		let proj = Matrix4::new(
-			1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 1.0,
-		) * Matrix4::new_perspective(4.0 / 3.0, FRAC_PI_4, 0.1, 10000.0);
+		let (transform, spawn_point) = <(ReadStorage<TransformComponent>, ReadStorage<SpawnPointComponent>)>::fetch(world);
+		let (mut position, rotation) = (&transform, &spawn_point).join().find_map(|(t, s)| if s.player_num == 1 { Some((t.position, t.rotation)) } else { None }).unwrap();
+		position += Vector3::new(0.0, 0.0, 41.0);
+
+		let view =
+			Matrix4::new_rotation(Vector3::new(-rotation[0].to_radians(), 0.0, 0.0)) *
+			Matrix4::new_rotation(Vector3::new(0.0, -rotation[1].to_radians(), 0.0)) *
+			Matrix4::new_rotation(Vector3::new(0.0, 0.0, -rotation[2].to_radians())) *
+			Matrix4::new_translation(&-position);
+
+		let proj = projection_matrix(90.0, 4.0/3.0, 0.1, 10000.0);
 
 		let data = vs::ty::UniformBufferObject {
 			view: view.into(),
@@ -240,4 +242,21 @@ impl MapRenderSystem {
 
 		Ok(command_buffer_builder)
 	}
+}
+
+// A projection matrix that creates a world coordinate system with
+// x = forward
+// y = left
+// z = up
+fn projection_matrix(fovx: f32, aspect: f32, near: f32, far: f32) -> Matrix4<f32> {
+	let fovx = fovx.to_radians();
+	let nmf = near - far;
+	let f = 1.0 / (fovx * 0.5).tan();
+
+	Matrix4::new(
+		0.0       , -f , 0.0        , 0.0,
+		0.0       , 0.0, -f * aspect, 0.0,
+		-far / nmf, 0.0, 0.0        , (near * far) / nmf,
+		1.0       , 0.0, 0.0        , 0.0,
+	)
 }

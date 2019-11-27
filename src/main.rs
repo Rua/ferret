@@ -122,6 +122,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 	let mut world = World::new();
 	world.register::<doom::components::MapComponent>();
+	world.register::<doom::components::SpawnPointComponent>();
 	world.register::<doom::components::TransformComponent>();
 	world.insert(video);
 	world.insert(audio);

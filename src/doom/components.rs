@@ -15,6 +15,12 @@ pub struct MapComponent {
 	pub map_model: MapModel,
 }
 
+#[derive(Component)]
+#[storage(HashMapStorage)]
+pub struct SpawnPointComponent {
+	pub player_num: usize,
+}
+
 #[derive(Clone, Component, Copy, Debug)]
 #[storage(VecStorage)]
 pub struct TransformComponent {
