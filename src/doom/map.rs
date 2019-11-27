@@ -3,30 +3,24 @@ use crate::{
 	doom::{
 		components::TransformComponent,
 		entities::{DOOMEDNUMS, ENTITIES},
-		image::{DoomImageFormat, DoomPaletteFormat},
-		wad::WadLoader,
 	},
 	geometry::BoundingBox2,
 	renderer::{
 		mesh::{Mesh, MeshBuilder},
-		texture::{Texture, TextureBuilder},
+		texture::Texture,
 		video::Video,
 	},
 };
-use byteorder::{ReadBytesExt, LE};
 use nalgebra::{Matrix, Vector2, Vector3};
-use sdl2::{pixels::PixelFormatEnum, rect::Rect, surface::Surface};
-use specs::{world::Builder, ReadExpect, SystemData, World, WorldExt, Write};
+use serde::Deserialize;
+use specs::{world::Builder, ReadExpect, SystemData, World, WorldExt};
 use std::{
-	collections::{
-		hash_map::{Entry, HashMap},
-		HashSet,
-	},
+	collections::HashMap,
 	error::Error,
-	io::{Cursor, ErrorKind, Read, Seek, SeekFrom},
+	io::Cursor,
 	str,
 };
-use vulkano::{format::Format, image::Dimensions};
+use vulkano::image::Dimensions;
 
 pub fn spawn_map_entities(
 	things: Vec<Thing>,
@@ -85,7 +79,7 @@ impl_vertex!(VertexData, in_position, in_texture_coord, in_lightlevel);
 
 pub fn make_model(map_data: &DoomMap, world: &World) -> Result<MapModel, Box<dyn Error>> {
 	// Load textures and flats
-	let [textures, flats] = load_textures(map_data, world)?;
+	let [textures, flats] = super::map_textures::load_textures(map_data, world)?;
 
 	// Create meshes
 	let meshes = make_meshes(map_data, &textures, &flats, world)?;
@@ -103,133 +97,6 @@ pub fn make_model(map_data: &DoomMap, world: &World) -> Result<MapModel, Box<dyn
 	}
 
 	Ok(MapModel::new(ret))
-}
-
-fn load_textures(
-	map: &DoomMap,
-	world: &World,
-) -> Result<[HashMap<String, (AssetHandle<Texture>, usize)>; 2], Box<dyn Error>> {
-	let (mut loader, mut texture_storage, video) = <(
-		Write<WadLoader>,
-		Write<AssetStorage<Texture>>,
-		ReadExpect<Video>,
-	) as SystemData>::fetch(world);
-
-	let mut texture_names: HashSet<&str> = HashSet::new();
-	for sidedef in &map.sidedefs {
-		if let Some(name) = &sidedef.top_texture_name {
-			texture_names.insert(name.as_str());
-		}
-
-		if let Some(name) = &sidedef.bottom_texture_name {
-			texture_names.insert(name.as_str());
-		}
-
-		if let Some(name) = &sidedef.middle_texture_name {
-			texture_names.insert(name.as_str());
-		}
-	}
-
-	let mut flat_names: HashSet<&str> = HashSet::new();
-	for sector in &map.sectors {
-		flat_names.insert(sector.floor_flat_name.as_str());
-		flat_names.insert(sector.ceiling_flat_name.as_str());
-	}
-
-	// Load all the surfaces, while storing name-index mapping
-	let mut surfaces: Vec<Surface> = Vec::with_capacity(texture_names.len() + flat_names.len());
-	let mut texture_names_indices: HashMap<&str, usize> =
-		HashMap::with_capacity(texture_names.len());
-	let mut flat_names_indices: HashMap<&str, usize> = HashMap::with_capacity(flat_names.len());
-
-	for name in texture_names {
-		let surface = DoomTextureFormat.import(name, &mut *loader)?;
-		texture_names_indices.insert(name, surfaces.len());
-		surfaces.push(surface);
-	}
-
-	for name in flat_names {
-		let surface = DoomFlatFormat.import(name, &mut *loader)?;
-		flat_names_indices.insert(name, surfaces.len());
-		surfaces.push(surface);
-	}
-
-	// Group surfaces by size in a HashMap, while keeping track of which goes where
-	let mut surfaces_by_size: HashMap<[u32; 2], Vec<Surface<'static>>> = HashMap::new();
-	let mut sizes_and_layers: Vec<([u32; 2], usize)> = Vec::with_capacity(surfaces.len());
-
-	for surface in surfaces {
-		let size = [surface.width(), surface.height()];
-		let entry = match surfaces_by_size.entry(size) {
-			Entry::Occupied(item) => item.into_mut(),
-			Entry::Vacant(item) => item.insert(Vec::new()),
-		};
-
-		sizes_and_layers.push((size, entry.len()));
-		entry.push(surface);
-	}
-
-	// Turn the grouped surfaces into textures
-	let textures_by_size = surfaces_by_size
-		.into_iter()
-		.map(|entry| {
-			let surfaces = entry.1;
-			let size = Vector3::new(
-				surfaces[0].width(),
-				surfaces[0].height(),
-				surfaces.len() as u32,
-			);
-
-			// Find the corresponding Vulkan pixel format
-			let format = match surfaces[0].pixel_format_enum() {
-				PixelFormatEnum::RGB24 => Format::R8G8B8Unorm,
-				PixelFormatEnum::BGR24 => Format::B8G8R8Unorm,
-				PixelFormatEnum::RGBA32 => Format::R8G8B8A8Unorm,
-				PixelFormatEnum::BGRA32 => Format::B8G8R8A8Unorm,
-				_ => unimplemented!(),
-			};
-
-			let layer_size = surfaces[0].without_lock().unwrap().len();
-			let mut data = vec![0u8; layer_size * surfaces.len()];
-
-			// Copy all the layers into the buffer
-			for (chunk, surface) in data.chunks_exact_mut(layer_size).zip(surfaces) {
-				chunk.copy_from_slice(surface.without_lock().unwrap());
-			}
-
-			// Create the image
-			let (texture, future) = TextureBuilder::new()
-				.with_data(data, format)
-				.with_dimensions(Dimensions::Dim2dArray {
-					width: size[0],
-					height: size[1],
-					array_layers: size[2],
-				})
-				.build(&video.queues().graphics)
-				.unwrap_or_else(|e| panic!("Error building texture: {}", e));
-
-			let handle = texture_storage.insert(texture);
-			(entry.0, handle)
-		})
-		.collect::<HashMap<[u32; 2], AssetHandle<Texture>>>();
-
-	// Now create the final Vec and return
-	let grouped_textures: Vec<(AssetHandle<Texture>, usize)> = sizes_and_layers
-		.into_iter()
-		.map(|entry| (textures_by_size[&entry.0].clone(), entry.1))
-		.collect();
-
-	// Recombine names with textures
-	Ok([
-		texture_names_indices
-			.into_iter()
-			.map(|entry| (entry.0.to_owned(), grouped_textures[entry.1].clone()))
-			.collect(),
-		flat_names_indices
-			.into_iter()
-			.map(|entry| (entry.0.to_owned(), grouped_textures[entry.1].clone()))
-			.collect(),
-	])
 }
 
 fn make_meshes(
@@ -486,14 +353,14 @@ fn make_meshes(
 
 #[derive(Clone, Debug)]
 pub struct DoomMap {
-	linedefs: Vec<Linedef>,
-	sidedefs: Vec<Sidedef>,
-	vertexes: Vec<Vector2<f32>>,
-	sectors: Vec<Sector>,
-	gl_vert: Vec<Vector2<f32>>,
-	gl_segs: Vec<GLSeg>,
-	gl_ssect: Vec<GLSSect>,
-	gl_nodes: Vec<GLNode>,
+	pub linedefs: Vec<Linedef>,
+	pub sidedefs: Vec<Sidedef>,
+	pub vertexes: Vec<Vector2<f32>>,
+	pub sectors: Vec<Sector>,
+	pub gl_vert: Vec<Vector2<f32>>,
+	pub gl_segs: Vec<GLSeg>,
+	pub gl_ssect: Vec<GLSSect>,
+	pub gl_nodes: Vec<GLNode>,
 }
 
 impl DoomMap {
@@ -685,34 +552,43 @@ impl AssetFormat for ThingsFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
+		RawThingsFormat.import(name, source)?.into_iter().map(|raw| {
+			Ok(Thing {
+				position: Vector2::new(raw.position[0] as f32, raw.position[1] as f32),
+				angle: raw.angle as f32,
+				doomednum: raw.doomednum,
+				flags: raw.flags,
+			})
+		}).collect()
+	}
+}
+
+#[derive(Deserialize)]
+pub struct RawThing {
+	pub position: [i16; 2],
+	pub angle: i16,
+	pub doomednum: u16,
+	pub flags: u16,
+}
+
+pub struct RawThingsFormat;
+
+impl AssetFormat for RawThingsFormat {
+	type Asset = Vec<RawThing>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
 		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 1))?);
-		let mut things = Vec::new();
+		let mut ret = Vec::new();
 
-		loop {
-			let position_x = match data.read_i16::<LE>() {
-				Ok(val) => val,
-				Err(err) => {
-					if err.kind() == ErrorKind::UnexpectedEof {
-						break;
-					} else {
-						return Err(Box::from(err));
-					}
-				}
-			} as f32;
-			let position_y = data.read_i16::<LE>()? as f32;
-			let angle = data.read_i16::<LE>()? as f32;
-			let doomednum = data.read_u16::<LE>()?;
-			let flags = data.read_u16::<LE>()?;
-
-			things.push(Thing {
-				position: Vector2::new(position_x, position_y),
-				angle,
-				doomednum,
-				flags,
-			});
+		while (data.position() as usize) < data.get_ref().len() {
+			ret.push(bincode::deserialize_from(&mut data)?);
 		}
 
-		Ok(things)
+		Ok(ret)
 	}
 }
 
@@ -735,48 +611,56 @@ impl AssetFormat for LinedefsFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
-		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 2))?);
-		let mut linedefs = Vec::new();
-
-		loop {
-			let start_vertex_index = match data.read_u16::<LE>() {
-				Ok(val) => val,
-				Err(err) => {
-					if err.kind() == ErrorKind::UnexpectedEof {
-						break;
-					} else {
-						return Err(Box::from(err));
-					}
-				}
-			} as usize;
-			let end_vertex_index = data.read_u16::<LE>()? as usize;
-			let flags = data.read_u16::<LE>()?;
-			let special_type = data.read_u16::<LE>()?;
-			let sector_tag = data.read_u16::<LE>()?;
-			let right_sidedef_index = data.read_u16::<LE>()? as usize;
-			let left_sidedef_index = data.read_u16::<LE>()? as usize;
-
-			linedefs.push(Linedef {
-				vertex_indices: [start_vertex_index, end_vertex_index],
-				flags,
-				special_type,
-				sector_tag,
+		RawLinedefsFormat.import(name, source)?.into_iter().map(|raw| {
+			Ok(Linedef {
+				vertex_indices: [raw.vertex_indices[0] as usize, raw.vertex_indices[1] as usize],
+				flags: raw.flags,
+				special_type: raw.special_type,
+				sector_tag: raw.sector_tag,
 				sidedef_indices: [
-					if right_sidedef_index == 0xFFFF {
+					if raw.sidedef_indices[0] == 0xFFFF {
 						None
 					} else {
-						Some(right_sidedef_index)
+						Some(raw.sidedef_indices[0] as usize)
 					},
-					if left_sidedef_index == 0xFFFF {
+					if raw.sidedef_indices[1] == 0xFFFF {
 						None
 					} else {
-						Some(left_sidedef_index)
+						Some(raw.sidedef_indices[1] as usize)
 					},
 				],
-			});
+			})
+		}).collect()
+	}
+}
+
+#[derive(Deserialize)]
+pub struct RawLinedef {
+	pub vertex_indices: [u16; 2],
+	pub flags: u16,
+	pub special_type: u16,
+	pub sector_tag: u16,
+	pub sidedef_indices: [u16; 2],
+}
+
+pub struct RawLinedefsFormat;
+
+impl AssetFormat for RawLinedefsFormat {
+	type Asset = Vec<RawLinedef>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 2))?);
+		let mut ret = Vec::new();
+
+		while (data.position() as usize) < data.get_ref().len() {
+			ret.push(bincode::deserialize_from(&mut data)?);
 		}
 
-		Ok(linedefs)
+		Ok(ret)
 	}
 }
 
@@ -799,60 +683,57 @@ impl AssetFormat for SidedefsFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
+		RawSidedefsFormat.import(name, source)?.into_iter().map(|raw| {
+			Ok(Sidedef {
+				texture_offset: Vector2::new(raw.texture_offset[0] as f32, raw.texture_offset[1] as f32),
+				top_texture_name: if raw.top_texture_name == *b"-\0\0\0\0\0\0\0" {
+					None
+				} else {
+					Some(String::from(str::from_utf8(&raw.top_texture_name)?.trim_end_matches('\0')))
+				},
+				bottom_texture_name: if raw.bottom_texture_name == *b"-\0\0\0\0\0\0\0" {
+					None
+				} else {
+					Some(String::from(str::from_utf8(&raw.bottom_texture_name)?.trim_end_matches('\0')))
+				},
+				middle_texture_name: if raw.middle_texture_name == *b"-\0\0\0\0\0\0\0" {
+					None
+				} else {
+					Some(String::from(str::from_utf8(&raw.middle_texture_name)?.trim_end_matches('\0')))
+				},
+				sector_index: raw.sector_index as usize,
+			})
+		}).collect()
+	}
+}
+
+#[derive(Deserialize)]
+pub struct RawSidedef {
+	pub texture_offset: [i16; 2],
+	pub top_texture_name: [u8; 8],
+	pub bottom_texture_name: [u8; 8],
+	pub middle_texture_name: [u8; 8],
+	pub sector_index: u16,
+}
+
+pub struct RawSidedefsFormat;
+
+impl AssetFormat for RawSidedefsFormat {
+	type Asset = Vec<RawSidedef>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
 		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 3))?);
-		let mut sidedefs = Vec::new();
+		let mut ret = Vec::new();
 
-		loop {
-			let texture_offset_x = match data.read_i16::<LE>() {
-				Ok(val) => val,
-				Err(err) => {
-					if err.kind() == ErrorKind::UnexpectedEof {
-						break;
-					} else {
-						return Err(Box::from(err));
-					}
-				}
-			} as f32;
-			let texture_offset_y = data.read_i16::<LE>()? as f32;
-			let top_texture_name = {
-				let mut name = [0u8; 8];
-				data.read_exact(&mut name)?;
-				String::from(str::from_utf8(&name)?.trim_end_matches('\0'))
-			};
-			let bottom_texture_name = {
-				let mut name = [0u8; 8];
-				data.read_exact(&mut name)?;
-				String::from(str::from_utf8(&name)?.trim_end_matches('\0'))
-			};
-			let middle_texture_name = {
-				let mut name = [0u8; 8];
-				data.read_exact(&mut name)?;
-				String::from(str::from_utf8(&name)?.trim_end_matches('\0'))
-			};
-			let sector_index = data.read_u16::<LE>()? as usize;
-
-			sidedefs.push(Sidedef {
-				texture_offset: Vector2::new(texture_offset_x, texture_offset_y),
-				top_texture_name: if top_texture_name == "-" {
-					None
-				} else {
-					Some(top_texture_name)
-				},
-				bottom_texture_name: if bottom_texture_name == "-" {
-					None
-				} else {
-					Some(bottom_texture_name)
-				},
-				middle_texture_name: if middle_texture_name == "-" {
-					None
-				} else {
-					Some(middle_texture_name)
-				},
-				sector_index,
-			});
+		while (data.position() as usize) < data.get_ref().len() {
+			ret.push(bincode::deserialize_from(&mut data)?);
 		}
 
-		Ok(sidedefs)
+		Ok(ret)
 	}
 }
 
@@ -866,26 +747,30 @@ impl AssetFormat for VertexesFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
+		RawVertexesFormat.import(name, source)?.into_iter().map(|raw| {
+			Ok(Vector2::new(raw[0] as f32, raw[1] as f32))
+		}).collect()
+	}
+}
+
+pub struct RawVertexesFormat;
+
+impl AssetFormat for RawVertexesFormat {
+	type Asset = Vec<[i16; 2]>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
 		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 4))?);
-		let mut vertexes = Vec::new();
+		let mut ret = Vec::new();
 
-		loop {
-			let x = match data.read_i16::<LE>() {
-				Ok(val) => val,
-				Err(err) => {
-					if err.kind() == ErrorKind::UnexpectedEof {
-						break;
-					} else {
-						return Err(Box::from(err));
-					}
-				}
-			} as f32;
-			let y = data.read_i16::<LE>()? as f32;
-
-			vertexes.push(Vector2::new(x, y));
+		while (data.position() as usize) < data.get_ref().len() {
+			ret.push(bincode::deserialize_from(&mut data)?);
 		}
 
-		Ok(vertexes)
+		Ok(ret)
 	}
 }
 
@@ -910,47 +795,49 @@ impl AssetFormat for SectorsFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
+		RawSectorsFormat.import(name, source)?.into_iter().map(|raw| {
+			Ok(Sector {
+				floor_height: raw.floor_height as f32,
+				ceiling_height: raw.ceiling_height as f32,
+				floor_flat_name: String::from(str::from_utf8(&raw.floor_flat_name)?.trim_end_matches('\0')),
+				ceiling_flat_name: String::from(str::from_utf8(&raw.ceiling_flat_name)?.trim_end_matches('\0')),
+				light_level: raw.light_level,
+				special_type: raw.light_level,
+				sector_tag: raw.light_level,
+			})
+		}).collect()
+	}
+}
+
+#[derive(Deserialize)]
+pub struct RawSector {
+	pub floor_height: i16,
+	pub ceiling_height: i16,
+	pub floor_flat_name: [u8; 8],
+	pub ceiling_flat_name: [u8; 8],
+	pub light_level: u16,
+	pub special_type: u16,
+	pub sector_tag: u16,
+}
+
+pub struct RawSectorsFormat;
+
+impl AssetFormat for RawSectorsFormat {
+	type Asset = Vec<RawSector>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
 		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 8))?);
-		let mut sectors = Vec::new();
+		let mut ret = Vec::new();
 
-		loop {
-			let floor_height = match data.read_i16::<LE>() {
-				Ok(val) => val,
-				Err(err) => {
-					if err.kind() == ErrorKind::UnexpectedEof {
-						break;
-					} else {
-						return Err(Box::from(err));
-					}
-				}
-			} as f32;
-			let ceiling_height = data.read_i16::<LE>()? as f32;
-			let floor_flat_name = {
-				let mut name = [0u8; 8];
-				data.read_exact(&mut name)?;
-				String::from(str::from_utf8(&name)?.trim_end_matches('\0'))
-			};
-			let ceiling_flat_name = {
-				let mut name = [0u8; 8];
-				data.read_exact(&mut name)?;
-				String::from(str::from_utf8(&name)?.trim_end_matches('\0'))
-			};
-			let light_level = data.read_u16::<LE>()?;
-			let special_type = data.read_u16::<LE>()?;
-			let sector_tag = data.read_u16::<LE>()?;
-
-			sectors.push(Sector {
-				floor_height,
-				ceiling_height,
-				floor_flat_name,
-				ceiling_flat_name,
-				light_level,
-				special_type,
-				sector_tag,
-			});
+		while (data.position() as usize) < data.get_ref().len() {
+			ret.push(bincode::deserialize_from(&mut data)?);
 		}
 
-		Ok(sectors)
+		Ok(ret)
 	}
 }
 
@@ -964,33 +851,35 @@ impl AssetFormat for GLVertFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
+		RawGLVertFormat.import(name, source)?.into_iter().map(|raw| {
+			Ok(Vector2::new(raw[0] as f32 / 65536.0, raw[1] as f32 / 65536.0))
+		}).collect()
+	}
+}
+
+pub struct RawGLVertFormat;
+
+impl AssetFormat for RawGLVertFormat {
+	type Asset = Vec<[i32; 2]>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
 		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 1))?);
-		let mut gl_vert = Vec::new();
 
-		let mut signature = [0u8; 4];
-		data.read_exact(&mut signature)?;
-
-		if &signature != b"gNd2" {
+		if bincode::deserialize_from::<_, [u8; 4]>(&mut data)? != *b"gNd2" {
 			return Err(Box::from("No gNd2 signature found"));
 		}
 
-		loop {
-			let x = match data.read_i32::<LE>() {
-				Ok(val) => val,
-				Err(err) => {
-					if err.kind() == ErrorKind::UnexpectedEof {
-						break;
-					} else {
-						return Err(Box::from(err));
-					}
-				}
-			} as f32;
-			let y = data.read_i32::<LE>()? as f32;
+		let mut ret = Vec::new();
 
-			gl_vert.push(Vector2::new(x / 65536.0, y / 65536.0));
+		while (data.position() as usize) < data.get_ref().len() {
+			ret.push(bincode::deserialize_from(&mut data)?);
 		}
 
-		Ok(gl_vert)
+		Ok(ret)
 	}
 }
 
@@ -1036,58 +925,67 @@ impl AssetFormat for GLSegsFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
-		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 2))?);
-		let mut gl_segs = Vec::new();
-
-		loop {
-			let start_vertex_index = match data.read_u16::<LE>() {
-				Ok(val) => val,
-				Err(err) => {
-					if err.kind() == ErrorKind::UnexpectedEof {
-						break;
-					} else {
-						return Err(Box::from(err));
-					}
-				}
-			} as usize;
-			let end_vertex_index = data.read_u16::<LE>()? as usize;
-			let linedef_index = data.read_u16::<LE>()? as usize;
-			let side = data.read_u16::<LE>()?;
-			let partner_seg_index = data.read_u16::<LE>()? as usize;
-
-			gl_segs.push(GLSeg {
+		RawGLSegsFormat.import(name, source)?.into_iter().map(|raw| {
+			Ok(GLSeg {
 				vertex_indices: [
-					if (start_vertex_index & 0x8000) != 0 {
-						EitherVertex::GL(start_vertex_index & 0x7FFF)
+					if (raw.vertex_indices[0] & 0x8000) != 0 {
+						EitherVertex::GL(raw.vertex_indices[0] as usize & 0x7FFF)
 					} else {
-						EitherVertex::Normal(start_vertex_index)
+						EitherVertex::Normal(raw.vertex_indices[0] as usize)
 					},
-					if (end_vertex_index & 0x8000) != 0 {
-						EitherVertex::GL(end_vertex_index & 0x7FFF)
+					if (raw.vertex_indices[1] & 0x8000) != 0 {
+						EitherVertex::GL(raw.vertex_indices[1] as usize & 0x7FFF)
 					} else {
-						EitherVertex::Normal(end_vertex_index)
+						EitherVertex::Normal(raw.vertex_indices[1] as usize)
 					},
 				],
 				linedef_index: {
-					if linedef_index == 0xFFFF {
+					if raw.linedef_index == 0xFFFF {
 						None
 					} else {
-						Some(linedef_index)
+						Some(raw.linedef_index as usize)
 					}
 				},
 				sidedef_index: None,
-				side: if side != 0 { Side::Left } else { Side::Right },
+				side: if raw.side != 0 { Side::Left } else { Side::Right },
 				partner_seg_index: {
-					if partner_seg_index == 0xFFFF {
+					if raw.partner_seg_index == 0xFFFF {
 						None
 					} else {
-						Some(partner_seg_index)
+						Some(raw.partner_seg_index as usize)
 					}
 				},
-			});
+			})
+		}).collect()
+	}
+}
+
+#[derive(Deserialize)]
+pub struct RawGLSeg {
+	pub vertex_indices: [u16; 2],
+	pub linedef_index: u16,
+	pub side: u16,
+	pub partner_seg_index: u16,
+}
+
+pub struct RawGLSegsFormat;
+
+impl AssetFormat for RawGLSegsFormat {
+	type Asset = Vec<RawGLSeg>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 2))?);
+		let mut ret = Vec::new();
+
+		while (data.position() as usize) < data.get_ref().len() {
+			ret.push(bincode::deserialize_from(&mut data)?);
 		}
 
-		Ok(gl_segs)
+		Ok(ret)
 	}
 }
 
@@ -1108,30 +1006,40 @@ impl AssetFormat for GLSSectFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
-		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 3))?);
-		let mut gl_ssect = Vec::new();
-
-		loop {
-			let seg_count = match data.read_u16::<LE>() {
-				Ok(val) => val,
-				Err(err) => {
-					if err.kind() == ErrorKind::UnexpectedEof {
-						break;
-					} else {
-						return Err(Box::from(err));
-					}
-				}
-			} as usize;
-			let first_seg_index = data.read_u16::<LE>()? as usize;
-
-			gl_ssect.push(GLSSect {
-				seg_count,
-				first_seg_index,
+		RawGLSSectFormat.import(name, source)?.into_iter().map(|raw| {
+			Ok(GLSSect {
+				seg_count: raw.seg_count as usize,
+				first_seg_index: raw.first_seg_index as usize,
 				sector_index: 0,
-			});
+			})
+		}).collect()
+	}
+}
+
+#[derive(Deserialize)]
+pub struct RawGLSSect {
+	pub seg_count: u16,
+	pub first_seg_index: u16,
+}
+
+pub struct RawGLSSectFormat;
+
+impl AssetFormat for RawGLSSectFormat {
+	type Asset = Vec<RawGLSSect>;
+
+	fn import(
+		&self,
+		name: &str,
+		source: &mut impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error>> {
+		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 3))?);
+		let mut ret = Vec::new();
+
+		while (data.position() as usize) < data.get_ref().len() {
+			ret.push(bincode::deserialize_from(&mut data)?);
 		}
 
-		Ok(gl_ssect)
+		Ok(ret)
 	}
 }
 
@@ -1173,248 +1081,66 @@ impl AssetFormat for GLNodesFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
-		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 4))?);
-		let mut gl_nodes = Vec::new();
-
-		loop {
-			let partition_point_x = match data.read_i16::<LE>() {
-				Ok(val) => val,
-				Err(err) => {
-					if err.kind() == ErrorKind::UnexpectedEof {
-						break;
-					} else {
-						return Err(Box::from(err));
-					}
-				}
-			} as f32;
-			let partition_point_y = data.read_i16::<LE>()? as f32;
-			let partition_dir_x = data.read_i16::<LE>()? as f32;
-			let partition_dir_y = data.read_i16::<LE>()? as f32;
-			let right_bbox_top = data.read_i16::<LE>()? as f32;
-			let right_bbox_bottom = data.read_i16::<LE>()? as f32;
-			let right_bbox_left = data.read_i16::<LE>()? as f32;
-			let right_bbox_right = data.read_i16::<LE>()? as f32;
-			let left_bbox_top = data.read_i16::<LE>()? as f32;
-			let left_bbox_bottom = data.read_i16::<LE>()? as f32;
-			let left_bbox_left = data.read_i16::<LE>()? as f32;
-			let left_bbox_right = data.read_i16::<LE>()? as f32;
-			let right_child_index = data.read_u16::<LE>()? as usize;
-			let left_child_index = data.read_u16::<LE>()? as usize;
-
-			gl_nodes.push(GLNode {
-				partition_point: Vector2::new(partition_point_x, partition_point_y),
-				partition_dir: Vector2::new(partition_dir_x, partition_dir_y),
+		RawGLNodesFormat.import(name, source)?.into_iter().map(|raw| {
+			Ok(GLNode {
+				partition_point: Vector2::new(raw.partition_point[0] as f32, raw.partition_point[1] as f32),
+				partition_dir: Vector2::new(raw.partition_dir[0] as f32, raw.partition_dir[1] as f32),
 				bbox: [
 					BoundingBox2::from_extents(
-						right_bbox_top,
-						right_bbox_bottom,
-						right_bbox_left,
-						right_bbox_right,
+						raw.child_bboxes[0][0] as f32,
+						raw.child_bboxes[0][1] as f32,
+						raw.child_bboxes[0][2] as f32,
+						raw.child_bboxes[0][3] as f32,
 					),
 					BoundingBox2::from_extents(
-						left_bbox_top,
-						left_bbox_bottom,
-						left_bbox_left,
-						left_bbox_right,
+						raw.child_bboxes[1][0] as f32,
+						raw.child_bboxes[1][1] as f32,
+						raw.child_bboxes[1][2] as f32,
+						raw.child_bboxes[1][3] as f32,
 					),
 				],
 				child_indices: [
-					if (right_child_index & 0x8000) != 0 {
-						ChildNode::Leaf(right_child_index & 0x7FFF)
+					if (raw.child_indices[0] & 0x8000) != 0 {
+						ChildNode::Leaf(raw.child_indices[0] as usize & 0x7FFF)
 					} else {
-						ChildNode::Branch(right_child_index)
+						ChildNode::Branch(raw.child_indices[0] as usize)
 					},
-					if (left_child_index & 0x8000) != 0 {
-						ChildNode::Leaf(left_child_index & 0x7FFF)
+					if (raw.child_indices[1] & 0x8000) != 0 {
+						ChildNode::Leaf(raw.child_indices[1] as usize & 0x7FFF)
 					} else {
-						ChildNode::Branch(left_child_index)
+						ChildNode::Branch(raw.child_indices[1] as usize)
 					},
 				],
-			});
-		}
-
-		Ok(gl_nodes)
+			})
+		}).collect()
 	}
 }
 
-pub struct DoomFlatFormat;
+#[derive(Deserialize)]
+pub struct RawGLNode {
+	partition_point: [i16; 2],
+	partition_dir: [i16; 2],
+	child_bboxes: [[i16; 4]; 2],
+	child_indices: [u16; 2],
+}
 
-impl AssetFormat for DoomFlatFormat {
-	type Asset = Surface<'static>;
+pub struct RawGLNodesFormat;
+
+impl AssetFormat for RawGLNodesFormat {
+	type Asset = Vec<RawGLNode>;
 
 	fn import(
 		&self,
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
-		let palette = DoomPaletteFormat.import("PLAYPAL", source)?;
-		let mut data = Cursor::new(source.load(name)?);
-		let mut surface = Surface::new(64, 64, PixelFormatEnum::RGBA32)?;
+		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 4))?);
+		let mut ret = Vec::new();
 
-		{
-			let pixels = surface.without_lock_mut().unwrap();
-			let mut flat_pixels = [0u8; 64 * 64];
-
-			data.read_exact(&mut flat_pixels)?;
-
-			for i in 0..flat_pixels.len() {
-				let color = palette[flat_pixels[i] as usize];
-				pixels[4 * i + 0] = color.r;
-				pixels[4 * i + 1] = color.g;
-				pixels[4 * i + 2] = color.b;
-				pixels[4 * i + 3] = color.a;
-			}
+		while (data.position() as usize) < data.get_ref().len() {
+			ret.push(bincode::deserialize_from(&mut data)?);
 		}
 
-		Ok(surface)
-	}
-}
-
-pub struct DoomPNamesFormat;
-
-impl AssetFormat for DoomPNamesFormat {
-	type Asset = Vec<String>;
-
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
-		let mut data = Cursor::new(source.load(name)?);
-		let count = data.read_u32::<LE>()? as usize;
-		let mut pnames = Vec::with_capacity(count);
-
-		for _ in 0..count {
-			let mut name = [0u8; 8];
-			data.read_exact(&mut name)?;
-			let name = String::from(str::from_utf8(&name)?.trim_end_matches('\0'));
-			pnames.push(name);
-		}
-
-		Ok(pnames)
-	}
-}
-
-pub struct DoomTextureFormat;
-
-impl AssetFormat for DoomTextureFormat {
-	type Asset = Surface<'static>;
-
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
-		let pnames = DoomPNamesFormat.import("PNAMES", source)?;
-		let mut texture_info = DoomTexturesFormat.import("TEXTURE1", source)?;
-		texture_info.extend(DoomTexturesFormat.import("TEXTURE2", source)?);
-
-		let name = name.to_ascii_uppercase();
-		let texture_info = texture_info
-			.get(&name)
-			.ok_or(format!("Texture {} does not exist", name))?;
-
-		let mut surface = Surface::new(
-			texture_info.size[0] as u32,
-			texture_info.size[1] as u32,
-			PixelFormatEnum::RGBA32,
-		)?;
-
-		for patch_info in &texture_info.patches {
-			let name = &pnames[patch_info.index];
-
-			// Use to_surface because the offsets of patches are ignored anyway
-			let mut patch = DoomImageFormat.import(&name, source)?;
-			let surface2 = Surface::from_data(
-				&mut patch.data,
-				patch.size[0] as u32,
-				patch.size[1] as u32,
-				patch.size[0] as u32 * 4,
-				PixelFormatEnum::RGBA32,
-			)?;
-			surface2.blit(
-				None,
-				&mut surface,
-				Rect::new(
-					patch_info.offset[0] as i32,
-					patch_info.offset[1] as i32,
-					0,
-					0,
-				),
-			)?;
-		}
-
-		Ok(surface)
-	}
-}
-
-pub struct DoomPatchInfo {
-	pub offset: Vector2<i32>,
-	pub index: usize,
-}
-
-pub struct DoomTextureInfo {
-	pub size: Vector2<u32>,
-	pub patches: Vec<DoomPatchInfo>,
-}
-
-pub struct DoomTexturesFormat;
-
-impl AssetFormat for DoomTexturesFormat {
-	type Asset = HashMap<String, DoomTextureInfo>;
-
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
-		let mut data = Cursor::new(source.load(name)?);
-		let mut texture_info = HashMap::new();
-
-		let count = data.read_u32::<LE>()? as usize;
-		let mut offsets = vec![0u32; count];
-		data.read_u32_into::<LE>(&mut offsets)?;
-
-		for i in 0..count {
-			data.seek(SeekFrom::Start(offsets[i] as u64))?;
-
-			let mut name = [0u8; 8];
-			data.read_exact(&mut name)?;
-			let mut name = String::from(str::from_utf8(&name)?.trim_end_matches('\0'));
-			name.make_ascii_uppercase();
-
-			data.read_u32::<LE>()?; // unused bytes
-
-			let size_x = data.read_u16::<LE>()? as u32;
-			let size_y = data.read_u16::<LE>()? as u32;
-
-			data.read_u32::<LE>()?; // unused bytes
-
-			let patch_count = data.read_u16::<LE>()? as usize;
-			let mut patches = Vec::with_capacity(patch_count);
-
-			for _j in 0..patch_count {
-				let offset_x = data.read_i16::<LE>()? as i32;
-				let offset_y = data.read_i16::<LE>()? as i32;
-				let patch_index = data.read_u16::<LE>()? as usize;
-
-				data.read_u32::<LE>()?; // unused bytes
-
-				patches.push(DoomPatchInfo {
-					offset: Vector2::new(offset_x, offset_y),
-					index: patch_index,
-				});
-			}
-
-			texture_info.insert(
-				name,
-				DoomTextureInfo {
-					size: Vector2::new(size_x, size_y),
-					patches: patches,
-				},
-			);
-		}
-
-		Ok(texture_info)
+		Ok(ret)
 	}
 }

@@ -3,6 +3,7 @@ pub mod entities;
 pub mod image;
 pub mod input;
 pub mod map;
+pub mod map_textures;
 pub mod render;
 pub mod sound;
 pub mod sprite;

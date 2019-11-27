@@ -1,5 +1,5 @@
 use crate::assets::DataSource;
-use byteorder::{ReadBytesExt, LE};
+use serde::Deserialize;
 use std::{
 	collections::HashMap,
 	error::Error,
@@ -23,6 +23,20 @@ pub struct WadLoader {
 	lumps: Vec<Lump>,
 }
 
+#[derive(Deserialize)]
+struct Header {
+	signature: [u8; 4],
+	dir_length: u32,
+	dir_offset: u32,
+}
+
+#[derive(Deserialize)]
+struct DirEntry {
+	lump_offset: u32,
+	lump_size: u32,
+	lump_name: [u8; 8],
+}
+
 impl WadLoader {
 	pub fn new() -> WadLoader {
 		WadLoader {
@@ -35,35 +49,29 @@ impl WadLoader {
 		let file = File::open(filename)?;
 		let mut file = BufReader::new(file);
 
-		let mut signature = [0u8; 4];
-		file.read_exact(&mut signature)?;
+		let header: Header = bincode::deserialize_from(&mut file)?;
 
-		if !(&signature == b"IWAD" || &signature == b"PWAD") {
+		if !(header.signature == *b"IWAD" || header.signature == *b"PWAD") {
 			panic!("No IWAD or PWAD signature found.");
 		}
 
 		// Read WAD header, reserve space for new entries
-		let dir_length = file.read_u32::<LE>()?;
-		let dir_offset = file.read_u32::<LE>()?;
-		self.lumps.reserve(dir_length as usize);
+		self.lumps.reserve(header.dir_length as usize);
 
 		// Read lump directory
-		file.seek(SeekFrom::Start(dir_offset as u64))?;
+		file.seek(SeekFrom::Start(header.dir_offset as u64))?;
 
-		for _ in 0..dir_length {
-			let lump_offset = file.read_u32::<LE>()?;
-			let lump_size = file.read_u32::<LE>()?;
-			let mut lump_name = [0u8; 8];
-			file.read_exact(&mut lump_name)?;
+		for _ in 0..header.dir_length {
+			let dir_entry: DirEntry = bincode::deserialize_from(&mut file)?;
 
-			let mut lump_name = String::from(str::from_utf8(&lump_name)?.trim_end_matches('\0'));
+			let mut lump_name = String::from(str::from_utf8(&dir_entry.lump_name)?.trim_end_matches('\0'));
 			lump_name.make_ascii_uppercase();
 
 			self.lumps.push(Lump {
 				file: String::from(filename),
 				name: lump_name,
-				offset: lump_offset,
-				size: lump_size,
+				offset: dir_entry.lump_offset,
+				size: dir_entry.lump_size,
 			});
 		}
 

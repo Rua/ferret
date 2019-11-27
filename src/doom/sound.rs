@@ -1,5 +1,5 @@
 use crate::assets::{AssetFormat, DataSource};
-use byteorder::{ReadBytesExt, LE};
+use serde::Deserialize;
 use std::{
 	error::Error,
 	io::{Cursor, Read},
@@ -12,6 +12,13 @@ pub struct DoomSound {
 
 pub struct DoomSoundFormat;
 
+#[derive(Deserialize)]
+struct Header {
+	signature: u16,
+	sampling_rate: u16,
+	sample_count: u32,
+}
+
 impl AssetFormat for DoomSoundFormat {
 	type Asset = DoomSound;
 
@@ -21,21 +28,18 @@ impl AssetFormat for DoomSoundFormat {
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
 		let mut data = Cursor::new(source.load(name)?);
-		let signature = data.read_u16::<LE>()?;
+		let header: Header = bincode::deserialize_from(&mut data)?;
 
-		if signature != 3 {
+		if header.signature != 3 {
 			return Err(Box::from("No Doom sound file signature found"));
 		}
 
-		let sampling_rate = data.read_u16::<LE>()?;
-		let num_samples = data.read_u32::<LE>()? as usize;
-		let mut samples = vec![0u8; num_samples as usize];
-
+		let mut samples = vec![0u8; header.sample_count as usize];
 		data.read_exact(&mut samples)?;
 
 		// Remove padding bytes at start and end
-		if samples.ends_with(&[samples[num_samples - 17]; 16]) {
-			samples.drain(num_samples - 17..);
+		if samples.ends_with(&[samples[header.sample_count as usize - 17]; 16]) {
+			samples.drain(header.sample_count as usize - 17..);
 		}
 
 		if samples.starts_with(&[samples[16]; 16]) {
@@ -43,7 +47,7 @@ impl AssetFormat for DoomSoundFormat {
 		}
 
 		Ok(DoomSound {
-			sampling_rate: sampling_rate,
+			sampling_rate: header.sampling_rate,
 			samples: samples,
 		})
 	}
