@@ -31,12 +31,14 @@ use crate::{
 	renderer::{texture::Texture, video::Video},
 };
 use specs::{world::Builder, RunNow, World, WorldExt};
-use std::{error::Error, sync::mpsc, time::Instant};
+use std::{error::Error, sync::mpsc, time::{Duration, Instant}};
 use winit::{
 	event::{Event, MouseButton, VirtualKeyCode, WindowEvent},
 	event_loop::{ControlFlow, EventLoop},
 	platform::desktop::EventLoopExtDesktop,
 };
+
+const FRAME_TIME: Duration = Duration::from_nanos(28571429); // 1/35 sec
 
 fn main() -> Result<(), Box<dyn Error>> {
 	Logger::init().unwrap();
@@ -108,14 +110,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 		doom::input::Axis::Yaw,
 		Axis::Mouse {
 			axis: MouseAxis::X,
-			scale: 1.0,
+			scale: 0.5,
 		},
 	);
 	bindings.bind_axis(
 		doom::input::Axis::Pitch,
 		Axis::Mouse {
 			axis: MouseAxis::Y,
-			scale: 1.0,
+			scale: 0.5,
 		},
 	);
 	//println!("{}", serde_json::to_string(&bindings)?);
@@ -128,9 +130,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 	world.insert(audio);
 	world.insert(loader);
 	world.insert(InputState::new());
-	world.insert(None as Option<doom::input::UserCommand>);
 	world.insert(bindings);
 	world.insert(AssetStorage::<Texture>::new());
+	world.insert(FRAME_TIME);
 
 	let mut render_system = doom::render::RenderSystem::new(&world)?;
 
@@ -138,6 +140,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 	let mut should_quit = false;
 	let mut old_time = Instant::now();
+	let mut leftover_time = Duration::default();
 
 	while !should_quit {
 		let mut delta;
@@ -154,11 +157,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 		//println!("{} fps", 1.0/delta.as_secs_f32());
 
 		// Process events from the system
-		{
-			let mut input_state = world.fetch_mut::<InputState>();
-			input_state.reset();
-		}
-
 		event_loop.run_return(|event, _, control_flow| {
 			let mut input_state = world.fetch_mut::<InputState>();
 			input_state.process_event(&event);
@@ -211,6 +209,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 							doom::map::ThingsFormat.import(name, &mut *loader)?
 						};
 						doom::map::spawn_map_entities(things, &mut world, &map_data)?;
+						let entity = doom::map::spawn_player(&mut world)?;
+						world.insert(entity);
 					}
 					"quit" => should_quit = true,
 					_ => error!("Unknown command: {}", args[0]),
@@ -222,8 +222,20 @@ fn main() -> Result<(), Box<dyn Error>> {
 			return Ok(());
 		}
 
-		// Send user commands
-		doom::input::UserCommandSenderSystem.run_now(&world);
+		// Run game frames
+		leftover_time += delta;
+
+		if leftover_time >= FRAME_TIME {
+			leftover_time -= FRAME_TIME;
+
+			doom::update::UpdateSystem.run_now(&world);
+
+			// Reset input delta state
+			{
+				let mut input_state = world.fetch_mut::<InputState>();
+				input_state.reset();
+			}
+		}
 
 		// Draw frame
 		render_system.run_now(&world);

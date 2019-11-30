@@ -1,13 +1,13 @@
 use crate::{
 	assets::AssetStorage,
 	doom::{
-		components::{MapComponent, SpawnPointComponent, TransformComponent},
+		components::{MapComponent, TransformComponent},
 		map::VertexData,
 	},
 	renderer::{texture::Texture, video::Video},
 };
 use nalgebra::{Matrix4, Vector3};
-use specs::{join::Join, ReadExpect, ReadStorage, RunNow, SystemData, World};
+use specs::{Entity, Join, ReadExpect, ReadStorage, RunNow, SystemData, World};
 use std::{error::Error, sync::Arc};
 use vulkano::{
 	buffer::{BufferAccess, BufferUsage, CpuAccessibleBuffer},
@@ -191,20 +191,8 @@ impl MapRenderSystem {
 		dynamic_state: DynamicState,
 		sampler: Arc<Sampler>,
 	) -> Result<AutoCommandBufferBuilder, Box<dyn Error>> {
-		let (transform, spawn_point) = <(
-			ReadStorage<TransformComponent>,
-			ReadStorage<SpawnPointComponent>,
-		)>::fetch(world);
-		let (mut position, rotation) = (&transform, &spawn_point)
-			.join()
-			.find_map(|(t, s)| {
-				if s.player_num == 1 {
-					Some((t.position, t.rotation))
-				} else {
-					None
-				}
-			})
-			.unwrap();
+		let (entity, transform_storage) = <(ReadExpect<Entity>, ReadStorage<TransformComponent>)>::fetch(world);
+		let TransformComponent { mut position, rotation } = *transform_storage.get(*entity).unwrap();
 		position += Vector3::new(0.0, 0.0, 41.0);
 
 		let view = Matrix4::new_rotation(Vector3::new(-rotation[0].to_radians(), 0.0, 0.0))

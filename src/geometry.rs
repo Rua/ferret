@@ -58,3 +58,26 @@ pub struct Plane {
 	pub normal: Vector3<f32>,
 	pub distance: f32,
 }
+
+pub fn angles_to_axes(angles: Vector3<f32>) -> [Vector3<f32>; 3] {
+	let sin = angles.map(|x| x.to_radians().sin());
+	let cos = angles.map(|x| x.to_radians().cos());
+
+	[
+		Vector3::new(
+			cos[1] * cos[2],
+			cos[1] * sin[2],
+			-sin[1],
+		),
+		Vector3::new(
+			sin[0] * sin[1] * cos[2] + cos[0] * -sin[2],
+			sin[0] * sin[1] * sin[2] + cos[0] * cos[2],
+			sin[0] * cos[1],
+		),
+		Vector3::new(
+			cos[0] * sin[1] * cos[2] - sin[0] * -sin[2],
+			cos[0] * sin[1] * sin[2] - sin[0] * cos[2],
+			cos[2] * cos[1],
+		),
+	]
+}

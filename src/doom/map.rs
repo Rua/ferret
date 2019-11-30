@@ -1,7 +1,7 @@
 use crate::{
 	assets::{AssetFormat, AssetHandle, AssetStorage, DataSource},
 	doom::{
-		components::TransformComponent,
+		components::{SpawnPointComponent, TransformComponent},
 		entities::{DOOMEDNUMS, ENTITIES},
 	},
 	geometry::BoundingBox2,
@@ -11,9 +11,9 @@ use crate::{
 		video::Video,
 	},
 };
-use nalgebra::{Matrix, Vector2, Vector3};
+use nalgebra::{Vector2, Vector3};
 use serde::Deserialize;
-use specs::{world::Builder, ReadExpect, SystemData, World, WorldExt};
+use specs::{Entity, Join, ReadExpect, ReadStorage, SystemData, World, WorldExt, world::Builder};
 use std::{collections::HashMap, error::Error, io::Cursor, str};
 use vulkano::image::Dimensions;
 
@@ -48,6 +48,42 @@ pub fn spawn_map_entities(
 	}
 
 	Ok(())
+}
+
+pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error>> {
+	let (position, rotation) = {
+		let (transform, spawn_point) = <(
+			ReadStorage<TransformComponent>,
+			ReadStorage<SpawnPointComponent>,
+		)>::fetch(world);
+
+		(&transform, &spawn_point)
+			.join()
+			.find_map(|(t, s)| {
+				if s.player_num == 1 {
+					Some((t.position, t.rotation))
+				} else {
+					None
+				}
+			})
+			.unwrap()
+	};
+
+	let entity = world
+		.create_entity()
+		.with(TransformComponent {
+			position,
+			rotation,
+		})
+		.build();
+
+	let spawn_function = ENTITIES
+		.get("PLAYER")
+		.ok_or(Box::from(format!("Entity not found: {}", "PLAYER")) as Box<dyn Error>)?;
+
+	spawn_function(entity, world);
+
+	Ok(entity)
 }
 
 pub struct MapModel {
@@ -112,7 +148,7 @@ fn make_meshes(
 		light_level: f32,
 	) {
 		let diff = vert_h[1] - vert_h[0];
-		let width = Matrix::norm(&diff);
+		let width = diff.norm();
 		let height = vert_v[1] - vert_v[0];
 		indices.push(u32::max_value());
 
@@ -163,7 +199,7 @@ fn make_meshes(
 		let mut sector = None;
 
 		// Walls
-		for (seg_index, seg) in segs.iter().enumerate() {
+		for (_seg_index, seg) in segs.iter().enumerate() {
 			if let Some(linedef_index) = seg.linedef_index {
 				let linedef = &map.linedefs[linedef_index];
 
@@ -206,8 +242,7 @@ fn make_meshes(
 					};
 
 					// Calculate texture offset
-					let distance =
-						Matrix::norm(&(start_vertex - &map.vertexes[linedef.vertex_indices[0]]));
+					let distance = (start_vertex - &map.vertexes[linedef.vertex_indices[0]]).norm();
 					let texture_offset = front_sidedef.texture_offset + Vector2::new(distance, 0.0);
 
 					// Two-sided or one-sided sidedef?

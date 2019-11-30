@@ -7,4 +7,5 @@ pub mod map_textures;
 pub mod render;
 pub mod sound;
 pub mod sprite;
+pub mod update;
 pub mod wad;
