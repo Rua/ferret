@@ -1,4 +1,3 @@
-*.gwa
 *.wad
 /target/
 **/*.rs.bk
