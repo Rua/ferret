@@ -12,4 +12,8 @@ The engine requires the `doom.wad` file from the original game in order to run. 
 
 ## Contributing
 
-Since this is a learning project for myself, I'm not looking for contributions from others. Issues may be submitted, but keep in mind the early state of the project; a bug may actually be one of the many features that is yet to be implemented. If you have constructive suggestions to improve the code, those are also welcome, but try to explain why it's an improvement so I can learn from it as well.
+Since this is a learning project for myself, I'm not looking for contributions from others. Issues may be submitted, but keep in mind the early state of the project; a bug may actually be one of the many features that is yet to be implemented. If you have constructive suggestions to improve the code, those are also welcome, but try to explain how it works and why it's an improvement so I can learn from it as well.
+
+## Why "Ferret"?
+
+A few existing Doom engine names are puns on the original name, like "Boom" and "Vavoom". Thinking of similar options for a name, I came upon "dook", the name for the noise ferrets make when excited. From there, the name became just "Ferret".
