@@ -16,4 +16,4 @@ Since this is a learning project for myself, I'm not looking for contributions f
 
 ## Why "Ferret"?
 
-A few existing Doom engine names are puns on the original name, like "Boom" and "Vavoom". Thinking of similar options for a name, I came upon "dook", the name for the noise ferrets make when excited. From there, the name became just "Ferret".
+A few existing Doom engine names are puns on the original name, like "Boom" and "Vavoom". Thinking of similar options for a name, I came upon "dook", the name for the noise ferrets make when excited. From there, the name became just "Ferret", because ferrets are cute.
