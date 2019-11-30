@@ -1,6 +1,6 @@
 # Ferret
 
-Ferret is a game engine that aims to be compatible with the original Doom, and possibly Quake in the distant future. It's is mostly just a hobby project that I am trying out for myself. The goal is for me to learn and become more experienced in game programming, rather than to make something amazing. It's not intended to be 100% compatible down to the exact details, meaning it will not be capable of networking with other engines or playing demo files, but it should be close enough to give the same gameplay experience.
+Ferret is a game engine that aims to be compatible with the original Doom, and possibly Quake in the distant future. It's mostly just a hobby project that I am trying out for myself. The goal is for me to learn and become more experienced in game programming, rather than to make something amazing. It's not intended to be 100% compatible down to the exact details, meaning it will not be capable of networking with other engines or playing demo files, but it should be close enough to give the same gameplay experience.
 
 The project is still an early work in progress, so it won't do much useful yet.
 
