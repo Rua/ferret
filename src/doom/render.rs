@@ -4,7 +4,7 @@ use crate::{
 		components::{MapComponent, TransformComponent},
 		map::VertexData,
 	},
-	renderer::{texture::Texture, video::Video},
+	renderer::{texture::Texture, video::{RenderTarget, Video}, vulkan},
 };
 use nalgebra::{Matrix4, Vector3};
 use specs::{Entity, Join, ReadExpect, ReadStorage, RunNow, SystemData, World};
@@ -16,16 +16,21 @@ use vulkano::{
 	},
 	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
 	device::DeviceOwned,
-	framebuffer::Subpass,
+	framebuffer::{Framebuffer, FramebufferAbstract, RenderPassAbstract, Subpass},
+	image::ImageViewAccess,
 	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
 	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
-	swapchain,
+	swapchain::AcquireError,
 	sync::GpuFuture,
 };
 
 pub struct RenderSystem {
+	framebuffers: Vec<Arc<dyn FramebufferAbstract + Send + Sync>>,
 	map: MapRenderSystem,
+	matrix_buffer: Arc<CpuAccessibleBuffer<vs::ty::UniformBufferObject>>,
+	render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
 	sampler: Arc<Sampler>,
+	target: RenderTarget,
 }
 
 impl RenderSystem {
@@ -34,7 +39,7 @@ impl RenderSystem {
 
 		// Create texture sampler
 		let sampler = Sampler::new(
-			video.device(),
+			video.device().clone(),
 			Filter::Nearest,
 			Filter::Nearest,
 			MipmapMode::Nearest,
@@ -47,30 +52,111 @@ impl RenderSystem {
 			0.0,
 		)?;
 
+		// Create render target
+		let (width, height) = video.surface().window().inner_size().into();
+		let size = [width, height];
+		let target = RenderTarget::new(video.surface().clone(), video.device().clone(), video.queues().graphics.family().id(), size)?;
+
+		// Create depth buffer
+		let depth_buffer = vulkan::create_depth_buffer(&video.device(), size)?;
+
+		// Create render pass
+		let render_pass = Arc::new(single_pass_renderpass!(video.device().clone(),
+			attachments: {
+				color: {
+					load: Clear,
+					store: Store,
+					format: target.format(),
+					samples: 1,
+				},
+				depth: {
+					load: Clear,
+					store: DontCare,
+					format: ImageViewAccess::inner(&depth_buffer).format(),
+					samples: 1,
+				}
+			},
+			pass: {
+				color: [color],
+				depth_stencil: {depth}
+			}
+		)?);
+
+		// Create framebuffers
+		let images = target.images();
+		let mut framebuffers = Vec::with_capacity(images.len());
+
+		for image in images.iter() {
+			framebuffers.push(Arc::new(
+				Framebuffer::start(render_pass.clone())
+					.add(image.clone())?
+					.add(depth_buffer.clone())?
+					.build()?,
+			) as Arc<dyn FramebufferAbstract + Send + Sync>);
+		}
+
+		// Create uniform buffer for matrices
+		let matrix_buffer = unsafe {
+			CpuAccessibleBuffer::<vs::ty::UniformBufferObject>::uninitialized(
+				video.device().clone(),
+				BufferUsage::uniform_buffer(),
+			)?
+		};
+
 		Ok(RenderSystem {
-			map: MapRenderSystem::new(world)?,
+			framebuffers,
+			map: MapRenderSystem::new(render_pass.clone())?,
+			matrix_buffer,
+			render_pass,
 			sampler,
+			target,
 		})
+	}
+
+	pub fn recreate(&mut self) -> Result<(), Box<dyn Error>> {
+		let (width, height) = self.target.surface().window().inner_size().into();
+		let size = [width, height];
+		self.target = self.target.recreate(size)?;
+		let depth_buffer = vulkan::create_depth_buffer(self.target.device(), size)?;
+
+		let images = self.target.images();
+		let mut framebuffers = Vec::with_capacity(images.len());
+
+		for image in images.iter() {
+			framebuffers.push(Arc::new(
+				Framebuffer::start(self.render_pass.clone())
+					.add(image.clone())?
+					.add(depth_buffer.clone())?
+					.build()?,
+			) as Arc<dyn FramebufferAbstract + Send + Sync>);
+		}
+
+		self.framebuffers = framebuffers;
+
+		Ok(())
 	}
 
 	pub fn draw(&mut self, world: &World) -> Result<(), Box<dyn Error>> {
 		let video = world.fetch::<Video>();
-
-		let swapchain = video.swapchain();
 		let queues = video.queues();
 
 		// Prepare for drawing
-		let (image_num, future) = match swapchain::acquire_next_image(swapchain.clone(), None) {
-			Ok(r) => r,
-			Err(err) => panic!("{:?}", err),
+		let (image_num, future) = match self.target.acquire_next_image() {
+			Ok(x) => x,
+			Err(AcquireError::OutOfDate) => {
+				self.recreate()?;
+				return Ok(());
+			},
+			Err(x) => Err(x)?,
 		};
 
-		let framebuffer = video.framebuffer(image_num);
+		let framebuffer = self.framebuffers[image_num].clone();
 		let clear_value = vec![[0.0, 0.0, 1.0, 1.0].into(), 1.0.into()];
+		let dimensions = [framebuffer.width() as f32, framebuffer.height() as f32];
 
 		let viewport = Viewport {
 			origin: [0.0; 2],
-			dimensions: [framebuffer.width() as f32, framebuffer.height() as f32],
+			dimensions,
 			depth_range: 0.0..1.0,
 		};
 
@@ -81,10 +167,34 @@ impl RenderSystem {
 		};
 
 		let mut command_buffer_builder = AutoCommandBufferBuilder::primary_one_time_submit(
-			swapchain.device().clone(),
+			self.target.device().clone(),
 			queues.graphics.family(),
 		)?
-		.begin_render_pass(framebuffer.clone(), false, clear_value)?;
+		.begin_render_pass(framebuffer, false, clear_value)?;
+
+		// Set up matrices
+		let (entity, transform_storage) = <(ReadExpect<Entity>, ReadStorage<TransformComponent>)>::fetch(world);
+		let TransformComponent { mut position, rotation } = *transform_storage.get(*entity).unwrap();
+		position += Vector3::new(0.0, 0.0, 41.0);
+
+		let view = Matrix4::new_rotation(Vector3::new(-rotation[0].to_radians(), 0.0, 0.0))
+			* Matrix4::new_rotation(Vector3::new(0.0, -rotation[1].to_radians(), 0.0))
+			* Matrix4::new_rotation(Vector3::new(0.0, 0.0, -rotation[2].to_radians()))
+			* Matrix4::new_translation(&-position);
+
+		// Doom had non-square pixels, with a resolution of 320x200 (16:10) running on a 4:3
+		// screen. This caused everything to be stretched vertically by some degree, and the game
+		// art was made with that in mind.
+		// The 1.2 factor here applies the same stretching as in the original.
+		let aspect_ratio = (dimensions[0] / dimensions[1]) * 1.2;
+		let proj = projection_matrix(90.0, aspect_ratio, 0.1, 10000.0);
+
+		let data = vs::ty::UniformBufferObject {
+			view: view.into(),
+			proj: proj.into(),
+		};
+
+		*self.matrix_buffer.write()? = data;
 
 		// Draw the map
 		command_buffer_builder = self.map.draw(
@@ -92,6 +202,7 @@ impl RenderSystem {
 			command_buffer_builder,
 			dynamic_state,
 			self.sampler.clone(),
+			self.matrix_buffer.clone(),
 		)?;
 
 		// Finalise
@@ -99,7 +210,7 @@ impl RenderSystem {
 
 		future
 			.then_execute(queues.graphics.clone(), command_buffer)?
-			.then_swapchain_present(queues.present.clone(), swapchain.clone(), image_num)
+			.then_swapchain_present(queues.graphics.clone(), self.target.swapchain().clone(), image_num)
 			.then_signal_fence_and_flush()?
 			.wait(None)?;
 
@@ -135,14 +246,11 @@ pub struct MapRenderSystem {
 	matrix_pool: FixedSizeDescriptorSetsPool<Arc<dyn GraphicsPipelineAbstract + Send + Sync>>,
 	texture_pool: FixedSizeDescriptorSetsPool<Arc<dyn GraphicsPipelineAbstract + Send + Sync>>,
 	pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
-	uniform_buffer: Arc<CpuAccessibleBuffer<vs::ty::UniformBufferObject>>,
 }
 
 impl MapRenderSystem {
-	fn new(world: &World) -> Result<MapRenderSystem, Box<dyn Error>> {
-		let video = world.fetch::<Video>();
-		let device = video.device();
-		let render_pass = video.render_pass();
+	fn new(render_pass: Arc<dyn RenderPassAbstract + Send + Sync>) -> Result<MapRenderSystem, Box<dyn Error>> {
+		let device = render_pass.device();
 
 		// Create pipeline
 		let vs = vs::Shader::load(device.clone())?;
@@ -168,19 +276,10 @@ impl MapRenderSystem {
 		let matrix_pool = FixedSizeDescriptorSetsPool::new(pipeline.clone(), 0);
 		let texture_pool = FixedSizeDescriptorSetsPool::new(pipeline.clone(), 1);
 
-		// Create uniform buffer
-		let uniform_buffer = unsafe {
-			CpuAccessibleBuffer::<vs::ty::UniformBufferObject>::uninitialized(
-				device.clone(),
-				BufferUsage::uniform_buffer(),
-			)?
-		};
-
 		Ok(MapRenderSystem {
 			matrix_pool,
 			pipeline,
 			texture_pool,
-			uniform_buffer,
 		})
 	}
 
@@ -190,34 +289,17 @@ impl MapRenderSystem {
 		mut command_buffer_builder: AutoCommandBufferBuilder<StandardCommandPoolBuilder>,
 		dynamic_state: DynamicState,
 		sampler: Arc<Sampler>,
+		matrix_buffer: Arc<CpuAccessibleBuffer<vs::ty::UniformBufferObject>>,
 	) -> Result<AutoCommandBufferBuilder, Box<dyn Error>> {
-		let (entity, transform_storage) = <(ReadExpect<Entity>, ReadStorage<TransformComponent>)>::fetch(world);
-		let TransformComponent { mut position, rotation } = *transform_storage.get(*entity).unwrap();
-		position += Vector3::new(0.0, 0.0, 41.0);
-
-		let view = Matrix4::new_rotation(Vector3::new(-rotation[0].to_radians(), 0.0, 0.0))
-			* Matrix4::new_rotation(Vector3::new(0.0, -rotation[1].to_radians(), 0.0))
-			* Matrix4::new_rotation(Vector3::new(0.0, 0.0, -rotation[2].to_radians()))
-			* Matrix4::new_translation(&-position);
-
-		let proj = projection_matrix(90.0, 4.0 / 3.0, 0.1, 10000.0);
-
-		let data = vs::ty::UniformBufferObject {
-			view: view.into(),
-			proj: proj.into(),
-		};
-
-		*self.uniform_buffer.write()? = data;
+		let (texture_storage, map_component) =
+			<(ReadExpect<AssetStorage<Texture>>, ReadStorage<MapComponent>)>::fetch(world);
 
 		let matrix_set = Arc::new(
 			self.matrix_pool
 				.next()
-				.add_buffer(self.uniform_buffer.clone())?
+				.add_buffer(matrix_buffer)?
 				.build()?,
 		);
-
-		let (texture_storage, map_component) =
-			<(ReadExpect<AssetStorage<Texture>>, ReadStorage<MapComponent>)>::fetch(world);
 
 		// Draw the map
 		for component in map_component.join() {

@@ -2,11 +2,12 @@ use crate::renderer::vulkan;
 pub use crate::renderer::vulkan::Queues;
 use std::{error::Error, sync::Arc};
 use vulkano::{
-	device::Device,
-	framebuffer::{Framebuffer, FramebufferAbstract, RenderPassAbstract},
-	image::ImageViewAccess,
-	instance::debug::DebugCallback,
-	swapchain::{Surface, Swapchain},
+	device::{Device, DeviceOwned},
+	format::Format,
+	instance::{debug::DebugCallback},
+	image::{swapchain::SwapchainImage, ImageUsage},
+	swapchain::{AcquireError, Capabilities, ColorSpace, CompositeAlpha, PresentMode, Surface, Swapchain, SwapchainAcquireFuture},
+	sync::SharingMode,
 };
 use vulkano_win::VkSurfaceBuild;
 use winit::{
@@ -16,11 +17,8 @@ use winit::{
 
 pub struct Video {
 	device: Arc<Device>,
-	framebuffers: Vec<Arc<dyn FramebufferAbstract + Send + Sync>>,
 	queues: Queues,
-	render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
-	_surface: Arc<Surface<Window>>,
-	swapchain: Arc<Swapchain<Window>>,
+	surface: Arc<Surface<Window>>,
 }
 
 impl Video {
@@ -45,82 +43,157 @@ impl Video {
 		// Create Vulkan device
 		let (device, queues) = vulkan::create_device(&instance, &surface)?;
 
-		// Create swapchain
-		let (width, height) = surface.window().inner_size().into();
-		let (swapchain, swapchain_images) =
-			vulkan::create_swapchain(&surface, &device, &queues, [width, height])?;
-
-		// Create depth buffer
-		let depth_buffer = vulkan::create_depth_buffer(&device, swapchain.dimensions())?;
-
-		// Create render pass
-		let render_pass = Arc::new(single_pass_renderpass!(device.clone(),
-			attachments: {
-				color: {
-					load: Clear,
-					store: Store,
-					format: swapchain.format(),
-					samples: 1,
-				},
-				depth: {
-					load: Clear,
-					store: DontCare,
-					format: ImageViewAccess::inner(&depth_buffer).format(),
-					samples: 1,
-				}
-			},
-			pass: {
-				color: [color],
-				depth_stencil: {depth}
-			}
-		)?);
-
-		// Create framebuffers
-		let framebuffers = {
-			let mut framebuffers = Vec::with_capacity(swapchain_images.len());
-
-			for image in swapchain_images.iter() {
-				framebuffers.push(Arc::new(
-					Framebuffer::start(render_pass.clone())
-						.add(image.clone())?
-						.add(depth_buffer.clone())?
-						.build()?,
-				) as Arc<dyn FramebufferAbstract + Send + Sync>);
-			}
-
-			framebuffers
-		};
-
 		// All done!
 		let video = Video {
 			device,
-			framebuffers,
 			queues,
-			render_pass,
-			_surface: surface,
-			swapchain,
+			surface,
 		};
 
 		Ok((video, debug_callback))
 	}
 
-	pub fn device(&self) -> Arc<Device> {
-		self.device.clone()
-	}
-
-	pub fn framebuffer(&self, index: usize) -> Arc<dyn FramebufferAbstract + Send + Sync> {
-		self.framebuffers[index].clone()
+	pub fn device(&self) -> &Arc<Device> {
+		&self.device
 	}
 
 	pub fn queues(&self) -> &Queues {
 		&self.queues
 	}
 
-	pub fn render_pass(&self) -> Arc<dyn RenderPassAbstract + Send + Sync> {
-		self.render_pass.clone()
+	pub fn surface(&self) -> &Arc<Surface<Window>> {
+		&self.surface
+	}
+}
+
+pub struct RenderTarget {
+	images: Vec<Arc<SwapchainImage<Window>>>,
+	queue_family_id: u32,
+	surface: Arc<Surface<Window>>,
+	swapchain: Arc<Swapchain<Window>>,
+}
+
+impl RenderTarget{
+	pub fn new(
+		surface: Arc<Surface<Window>>,
+		device: Arc<Device>,
+		queue_family_id: u32,
+		dimensions: [u32; 2],
+	) -> Result<RenderTarget, Box<dyn Error>> {
+		let capabilities = surface.capabilities(device.physical_device())?;
+		let surface_format = choose_format(&capabilities).ok_or("No suitable swapchain format found.")?;
+		let present_mode = [PresentMode::Mailbox, PresentMode::Fifo].into_iter().copied().find(|mode|
+			capabilities.present_modes.supports(*mode)
+		).unwrap();
+
+		let image_count = u32::min(
+			capabilities.min_image_count + 1,
+			capabilities.max_image_count.unwrap_or(std::u32::MAX),
+		);
+
+		let image_usage = ImageUsage {	color_attachment: true,
+			transfer_source: true,
+			..ImageUsage::none()
+		};
+
+		let (swapchain, images) = Swapchain::new(
+			device,
+			surface.clone(),
+			image_count,
+			surface_format,
+			capabilities.current_extent.unwrap_or(dimensions),
+			1,
+			image_usage,
+			SharingMode::Exclusive(queue_family_id),
+			capabilities.current_transform,
+			CompositeAlpha::Opaque,
+			present_mode,
+			true,
+			None,
+		)?;
+
+		Ok(RenderTarget {
+			images,
+			queue_family_id,
+			surface,
+			swapchain,
+		})
 	}
 
-	pub fn swapchain(&self) -> Arc<Swapchain<Window>> {
-		self.swapchain.clone()
+	pub fn acquire_next_image(&self) -> Result<(usize, SwapchainAcquireFuture<Window>), AcquireError> {
+		vulkano::swapchain::acquire_next_image(self.swapchain.clone(), None)
 	}
+
+	pub fn device(&self) -> &Arc<Device> {
+		self.swapchain.device()
+	}
+
+	pub fn format(&self) -> Format {
+		self.swapchain.format()
+	}
+
+	pub fn recreate(&self, dimensions: [u32; 2]) -> Result<RenderTarget, Box<dyn Error>> {
+		let capabilities = self.surface.capabilities(self.swapchain.device().physical_device())?;
+		let surface_format = choose_format(&capabilities).ok_or("No suitable swapchain format found.")?;
+
+		let image_usage = ImageUsage {
+			color_attachment: true,
+			transfer_source: true,
+			..ImageUsage::none()
+		};
+
+		let (swapchain, images) = Swapchain::new(
+			self.swapchain.device().clone(),
+			self.surface.clone(),
+			self.swapchain.num_images(),
+			surface_format,
+			capabilities.current_extent.unwrap_or(dimensions),
+			1,
+			image_usage,
+			SharingMode::Exclusive(self.queue_family_id),
+			capabilities.current_transform,
+			CompositeAlpha::Opaque,
+			self.swapchain.present_mode(),
+			true,
+			Some(&self.swapchain),
+		)?;
+
+		Ok(RenderTarget {
+			images,
+			queue_family_id: self.queue_family_id,
+			surface: self.surface.clone(),
+			swapchain,
+		})
+	}
+
+	pub fn images(&self) -> &Vec<Arc<SwapchainImage<Window>>> {
+		&self.images
+	}
+
+	pub fn surface(&self) -> &Arc<Surface<Window>> {
+		&self.surface
+	}
+
+	pub fn swapchain(&self) -> &Arc<Swapchain<Window>> {
+		&self.swapchain
+	}
+}
+
+fn choose_format(capabilities: &Capabilities) -> Option<Format> {
+	let srgb_formats = capabilities
+		.supported_formats
+		.iter()
+		.filter_map(|f| if f.1 == ColorSpace::SrgbNonLinear { Some(f.0) } else { None })
+		.collect::<Vec<_>>();
+
+	let allowed_formats = [
+		Format::B8G8R8A8Unorm,
+		Format::R8G8B8A8Unorm,
+		Format::A8B8G8R8UnormPack32,
+	];
+
+	allowed_formats
+		.iter()
+		.cloned()
+		.find(|f| srgb_formats.iter().any(|g| g == f))
 }
