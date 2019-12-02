@@ -4,9 +4,12 @@ use std::{error::Error, sync::Arc};
 use vulkano::{
 	device::{Device, DeviceOwned},
 	format::Format,
-	instance::{debug::DebugCallback},
 	image::{swapchain::SwapchainImage, ImageUsage},
-	swapchain::{AcquireError, Capabilities, ColorSpace, CompositeAlpha, PresentMode, Surface, Swapchain, SwapchainAcquireFuture},
+	instance::debug::DebugCallback,
+	swapchain::{
+		AcquireError, Capabilities, ColorSpace, CompositeAlpha, PresentMode, Surface, Swapchain,
+		SwapchainAcquireFuture,
+	},
 	sync::SharingMode,
 };
 use vulkano_win::VkSurfaceBuild;
@@ -74,7 +77,7 @@ pub struct RenderTarget {
 	swapchain: Arc<Swapchain<Window>>,
 }
 
-impl RenderTarget{
+impl RenderTarget {
 	pub fn new(
 		surface: Arc<Surface<Window>>,
 		device: Arc<Device>,
@@ -82,17 +85,21 @@ impl RenderTarget{
 		dimensions: [u32; 2],
 	) -> Result<RenderTarget, Box<dyn Error>> {
 		let capabilities = surface.capabilities(device.physical_device())?;
-		let surface_format = choose_format(&capabilities).ok_or("No suitable swapchain format found.")?;
-		let present_mode = [PresentMode::Mailbox, PresentMode::Fifo].into_iter().copied().find(|mode|
-			capabilities.present_modes.supports(*mode)
-		).unwrap();
+		let surface_format =
+			choose_format(&capabilities).ok_or("No suitable swapchain format found.")?;
+		let present_mode = [PresentMode::Mailbox, PresentMode::Fifo]
+			.into_iter()
+			.copied()
+			.find(|mode| capabilities.present_modes.supports(*mode))
+			.unwrap();
 
 		let image_count = u32::min(
 			capabilities.min_image_count + 1,
 			capabilities.max_image_count.unwrap_or(std::u32::MAX),
 		);
 
-		let image_usage = ImageUsage {	color_attachment: true,
+		let image_usage = ImageUsage {
+			color_attachment: true,
 			transfer_source: true,
 			..ImageUsage::none()
 		};
@@ -121,7 +128,9 @@ impl RenderTarget{
 		})
 	}
 
-	pub fn acquire_next_image(&self) -> Result<(usize, SwapchainAcquireFuture<Window>), AcquireError> {
+	pub fn acquire_next_image(
+		&self,
+	) -> Result<(usize, SwapchainAcquireFuture<Window>), AcquireError> {
 		vulkano::swapchain::acquire_next_image(self.swapchain.clone(), None)
 	}
 
@@ -134,8 +143,11 @@ impl RenderTarget{
 	}
 
 	pub fn recreate(&self, dimensions: [u32; 2]) -> Result<RenderTarget, Box<dyn Error>> {
-		let capabilities = self.surface.capabilities(self.swapchain.device().physical_device())?;
-		let surface_format = choose_format(&capabilities).ok_or("No suitable swapchain format found.")?;
+		let capabilities = self
+			.surface
+			.capabilities(self.swapchain.device().physical_device())?;
+		let surface_format =
+			choose_format(&capabilities).ok_or("No suitable swapchain format found.")?;
 
 		let image_usage = ImageUsage {
 			color_attachment: true,
@@ -184,7 +196,13 @@ fn choose_format(capabilities: &Capabilities) -> Option<Format> {
 	let srgb_formats = capabilities
 		.supported_formats
 		.iter()
-		.filter_map(|f| if f.1 == ColorSpace::SrgbNonLinear { Some(f.0) } else { None })
+		.filter_map(|f| {
+			if f.1 == ColorSpace::SrgbNonLinear {
+				Some(f.0)
+			} else {
+				None
+			}
+		})
 		.collect::<Vec<_>>();
 
 	let allowed_formats = [

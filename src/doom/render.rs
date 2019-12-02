@@ -4,7 +4,11 @@ use crate::{
 		components::{MapComponent, TransformComponent},
 		map::VertexData,
 	},
-	renderer::{texture::Texture, video::{RenderTarget, Video}, vulkan},
+	renderer::{
+		texture::Texture,
+		video::{RenderTarget, Video},
+		vulkan,
+	},
 };
 use nalgebra::{Matrix4, Vector3};
 use specs::{Entity, Join, ReadExpect, ReadStorage, RunNow, SystemData, World};
@@ -55,7 +59,12 @@ impl RenderSystem {
 		// Create render target
 		let (width, height) = video.surface().window().inner_size().into();
 		let size = [width, height];
-		let target = RenderTarget::new(video.surface().clone(), video.device().clone(), video.queues().graphics.family().id(), size)?;
+		let target = RenderTarget::new(
+			video.surface().clone(),
+			video.device().clone(),
+			video.queues().graphics.family().id(),
+			size,
+		)?;
 
 		// Create depth buffer
 		let depth_buffer = vulkan::create_depth_buffer(&video.device(), size)?;
@@ -146,7 +155,7 @@ impl RenderSystem {
 			Err(AcquireError::OutOfDate) => {
 				self.recreate()?;
 				return Ok(());
-			},
+			}
 			Err(x) => Err(x)?,
 		};
 
@@ -173,13 +182,17 @@ impl RenderSystem {
 		.begin_render_pass(framebuffer, false, clear_value)?;
 
 		// Set up matrices
-		let (entity, transform_storage) = <(ReadExpect<Entity>, ReadStorage<TransformComponent>)>::fetch(world);
-		let TransformComponent { mut position, rotation } = *transform_storage.get(*entity).unwrap();
+		let (entity, transform_storage) =
+			<(ReadExpect<Entity>, ReadStorage<TransformComponent>)>::fetch(world);
+		let TransformComponent {
+			mut position,
+			rotation,
+		} = *transform_storage.get(*entity).unwrap();
 		position += Vector3::new(0.0, 0.0, 41.0);
 
-		let view = Matrix4::new_rotation(Vector3::new(-rotation[0].to_radians(), 0.0, 0.0))
-			* Matrix4::new_rotation(Vector3::new(0.0, -rotation[1].to_radians(), 0.0))
-			* Matrix4::new_rotation(Vector3::new(0.0, 0.0, -rotation[2].to_radians()))
+		let view = Matrix4::new_rotation(Vector3::new(-rotation[0].to_radians() as f32, 0.0, 0.0))
+			* Matrix4::new_rotation(Vector3::new(0.0, -rotation[1].to_radians() as f32, 0.0))
+			* Matrix4::new_rotation(Vector3::new(0.0, 0.0, -rotation[2].to_radians() as f32))
 			* Matrix4::new_translation(&-position);
 
 		// Doom had non-square pixels, with a resolution of 320x200 (16:10) running on a 4:3
@@ -210,7 +223,11 @@ impl RenderSystem {
 
 		future
 			.then_execute(queues.graphics.clone(), command_buffer)?
-			.then_swapchain_present(queues.graphics.clone(), self.target.swapchain().clone(), image_num)
+			.then_swapchain_present(
+				queues.graphics.clone(),
+				self.target.swapchain().clone(),
+				image_num,
+			)
 			.then_signal_fence_and_flush()?
 			.wait(None)?;
 
@@ -249,7 +266,9 @@ pub struct MapRenderSystem {
 }
 
 impl MapRenderSystem {
-	fn new(render_pass: Arc<dyn RenderPassAbstract + Send + Sync>) -> Result<MapRenderSystem, Box<dyn Error>> {
+	fn new(
+		render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
+	) -> Result<MapRenderSystem, Box<dyn Error>> {
 		let device = render_pass.device();
 
 		// Create pipeline
@@ -294,12 +313,7 @@ impl MapRenderSystem {
 		let (texture_storage, map_component) =
 			<(ReadExpect<AssetStorage<Texture>>, ReadStorage<MapComponent>)>::fetch(world);
 
-		let matrix_set = Arc::new(
-			self.matrix_pool
-				.next()
-				.add_buffer(matrix_buffer)?
-				.build()?,
-		);
+		let matrix_set = Arc::new(self.matrix_pool.next().add_buffer(matrix_buffer)?.build()?);
 
 		// Draw the map
 		for component in map_component.join() {

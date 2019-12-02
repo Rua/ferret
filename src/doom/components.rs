@@ -1,5 +1,5 @@
 //use crate::assets::AssetHandle;
-use crate::doom::map::MapModel;
+use crate::{doom::map::MapModel, geometry::Angle};
 use nalgebra::Vector3;
 use specs::{Component, HashMapStorage, VecStorage};
 
@@ -25,14 +25,14 @@ pub struct SpawnPointComponent {
 #[storage(VecStorage)]
 pub struct TransformComponent {
 	pub position: Vector3<f32>,
-	pub rotation: Vector3<f32>,
+	pub rotation: Vector3<Angle>,
 }
 
 impl Default for TransformComponent {
 	fn default() -> TransformComponent {
 		TransformComponent {
 			position: Vector3::new(0.0, 0.0, 0.0),
-			rotation: Vector3::new(0.0, 0.0, 0.0),
+			rotation: Vector3::new(0.into(), 0.into(), 0.into()),
 		}
 	}
 }

@@ -31,7 +31,11 @@ use crate::{
 	renderer::{texture::Texture, video::Video},
 };
 use specs::{world::Builder, ReadExpect, RunNow, SystemData, World, WorldExt, WriteExpect};
-use std::{error::Error, sync::mpsc, time::{Duration, Instant}};
+use std::{
+	error::Error,
+	sync::mpsc,
+	time::{Duration, Instant},
+};
 use winit::{
 	event::{ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent},
 	event_loop::{ControlFlow, EventLoop},
@@ -110,14 +114,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 		doom::input::Axis::Yaw,
 		Axis::Mouse {
 			axis: MouseAxis::X,
-			scale: 0.5,
+			scale: 3.0,
 		},
 	);
 	bindings.bind_axis(
 		doom::input::Axis::Pitch,
 		Axis::Mouse {
 			axis: MouseAxis::Y,
-			scale: 0.5,
+			scale: 3.0,
 		},
 	);
 	//println!("{}", serde_json::to_string(&bindings)?);
@@ -158,7 +162,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 		// Process events from the system
 		event_loop.run_return(|event, _, control_flow| {
-			let (mut input_state, video) = <(WriteExpect<InputState>, ReadExpect<Video>)>::fetch(&world);
+			let (mut input_state, video) =
+				<(WriteExpect<InputState>, ReadExpect<Video>)>::fetch(&world);
 			input_state.process_event(&event);
 
 			match event {

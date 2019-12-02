@@ -4,7 +4,7 @@ use crate::{
 		components::{SpawnPointComponent, TransformComponent},
 		entities::{DOOMEDNUMS, ENTITIES},
 	},
-	geometry::BoundingBox2,
+	geometry::{Angle, BoundingBox2},
 	renderer::{
 		mesh::{Mesh, MeshBuilder},
 		texture::Texture,
@@ -13,7 +13,7 @@ use crate::{
 };
 use nalgebra::{Vector2, Vector3};
 use serde::Deserialize;
-use specs::{Entity, Join, ReadExpect, ReadStorage, SystemData, World, WorldExt, world::Builder};
+use specs::{world::Builder, Entity, Join, ReadExpect, ReadStorage, SystemData, World, WorldExt};
 use std::{collections::HashMap, error::Error, io::Cursor, str};
 use vulkano::image::Dimensions;
 
@@ -31,7 +31,7 @@ pub fn spawn_map_entities(
 			.create_entity()
 			.with(TransformComponent {
 				position: Vector3::new(thing.position[0], thing.position[1], z),
-				rotation: Vector3::new(0.0, 0.0, thing.angle),
+				rotation: Vector3::new(0.into(), 0.into(), Angle::from_degrees(thing.angle as f64)),
 			})
 			.build();
 
@@ -71,10 +71,7 @@ pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error>> {
 
 	let entity = world
 		.create_entity()
-		.with(TransformComponent {
-			position,
-			rotation,
-		})
+		.with(TransformComponent { position, rotation })
 		.build();
 
 	let spawn_function = ENTITIES

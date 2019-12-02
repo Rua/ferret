@@ -53,31 +53,158 @@ impl From<&BoundingBox2> for BoundingBox3 {
 	}
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct Plane {
 	pub normal: Vector3<f32>,
 	pub distance: f32,
 }
 
-pub fn angles_to_axes(angles: Vector3<f32>) -> [Vector3<f32>; 3] {
+// Represented internally as BAM
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct Angle(pub i32);
+
+#[allow(dead_code)]
+impl Angle {
+	#[inline]
+	pub fn from_degrees(degrees: f64) -> Angle {
+		Angle((degrees / 180.0 * 0x80000000u32 as f64) as i32)
+	}
+
+	#[inline]
+	pub fn from_radians(radians: f64) -> Angle {
+		Angle((radians * std::f64::consts::FRAC_1_PI * 0x80000000u32 as f64) as i32)
+	}
+
+	#[inline]
+	pub fn to_degrees(&self) -> f64 {
+		self.0 as f64 / 0x80000000u32 as f64 * 180.0
+	}
+
+	#[inline]
+	pub fn to_radians(&self) -> f64 {
+		self.0 as f64 / 0x80000000u32 as f64 * std::f64::consts::PI
+	}
+
+	#[inline]
+	pub fn sin(self) -> f64 {
+		self.to_radians().sin()
+	}
+
+	#[inline]
+	pub fn cos(self) -> f64 {
+		self.to_radians().cos()
+	}
+
+	#[inline]
+	pub fn tan(self) -> f64 {
+		self.to_radians().tan()
+	}
+}
+
+impl std::fmt::Display for Angle {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "{}°", self.to_degrees())
+	}
+}
+
+impl From<i32> for Angle {
+	fn from(val: i32) -> Self {
+		Angle(val)
+	}
+}
+
+impl std::ops::Add for Angle {
+	type Output = Self;
+
+	#[inline]
+	fn add(self, other: Self) -> Self {
+		Self(self.0.wrapping_add(other.0))
+	}
+}
+
+impl std::ops::AddAssign for Angle {
+	#[inline]
+	fn add_assign(&mut self, other: Self) {
+		*self = *self + other
+	}
+}
+
+impl std::ops::Add<i32> for Angle {
+	type Output = Self;
+
+	#[inline]
+	fn add(self, other: i32) -> Self {
+		Self(self.0.wrapping_add(other))
+	}
+}
+
+impl std::ops::AddAssign<i32> for Angle {
+	#[inline]
+	fn add_assign(&mut self, other: i32) {
+		*self = *self + other
+	}
+}
+
+impl std::ops::Neg for Angle {
+	type Output = Self;
+
+	#[inline]
+	fn neg(self) -> Self {
+		Self(self.0.wrapping_neg())
+	}
+}
+
+impl std::ops::Sub for Angle {
+	type Output = Self;
+
+	#[inline]
+	fn sub(self, other: Self) -> Self {
+		Self(self.0.wrapping_sub(other.0))
+	}
+}
+
+impl std::ops::SubAssign for Angle {
+	#[inline]
+	fn sub_assign(&mut self, other: Self) {
+		*self = *self - other
+	}
+}
+
+impl std::ops::Sub<i32> for Angle {
+	type Output = Self;
+
+	#[inline]
+	fn sub(self, other: i32) -> Self {
+		Self(self.0.wrapping_sub(other))
+	}
+}
+
+impl std::ops::SubAssign<i32> for Angle {
+	#[inline]
+	fn sub_assign(&mut self, other: i32) {
+		*self = *self - other
+	}
+}
+
+pub fn angles_to_axes(angles: Vector3<Angle>) -> [Vector3<f32>; 3] {
 	let sin = angles.map(|x| x.to_radians().sin());
 	let cos = angles.map(|x| x.to_radians().cos());
 
 	[
 		Vector3::new(
-			cos[1] * cos[2],
-			cos[1] * sin[2],
-			-sin[1],
+			(cos[1] * cos[2]) as f32,
+			(cos[1] * sin[2]) as f32,
+			-sin[1] as f32,
 		),
 		Vector3::new(
-			sin[0] * sin[1] * cos[2] + cos[0] * -sin[2],
-			sin[0] * sin[1] * sin[2] + cos[0] * cos[2],
-			sin[0] * cos[1],
+			(sin[0] * sin[1] * cos[2] + cos[0] * -sin[2]) as f32,
+			(sin[0] * sin[1] * sin[2] + cos[0] * cos[2]) as f32,
+			(sin[0] * cos[1]) as f32,
 		),
 		Vector3::new(
-			cos[0] * sin[1] * cos[2] - sin[0] * -sin[2],
-			cos[0] * sin[1] * sin[2] - sin[0] * cos[2],
-			cos[2] * cos[1],
+			(cos[0] * sin[1] * cos[2] - sin[0] * -sin[2]) as f32,
+			(cos[0] * sin[1] * sin[2] - sin[0] * cos[2]) as f32,
+			(cos[2] * cos[1]) as f32,
 		),
 	]
 }

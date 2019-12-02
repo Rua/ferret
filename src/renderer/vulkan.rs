@@ -1,8 +1,4 @@
-use std::{
-	error::Error,
-	sync::Arc,
-	u32,
-};
+use std::{error::Error, sync::Arc, u32};
 use vulkano::{
 	device::{Device, DeviceExtensions, Features, Queue},
 	format::Format,
@@ -42,7 +38,7 @@ fn find_suitable_physical_device<'a>(
 					val = Some(family);
 					break;
 				}
-			};
+			}
 
 			val
 		};
@@ -65,10 +61,7 @@ fn find_suitable_physical_device<'a>(
 			continue;
 		}
 
-		return Ok(Some((
-			physical_device,
-			family.unwrap(),
-		)));
+		return Ok(Some((physical_device, family.unwrap())));
 	}
 
 	Ok(None)
@@ -83,17 +76,17 @@ pub(super) fn create_device(
 	surface: &Arc<Surface<Window>>,
 ) -> Result<(Arc<Device>, Queues), Box<dyn Error>> {
 	// Select physical device
-	let (physical_device, family) =
-		find_suitable_physical_device(&instance, &surface)?
-			.ok_or("No suitable physical device found")?;
+	let (physical_device, family) = find_suitable_physical_device(&instance, &surface)?
+		.ok_or("No suitable physical device found")?;
 
 	let features = Features::none();
 	let extensions = DeviceExtensions {
 		khr_swapchain: true,
-		.. DeviceExtensions::none()
+		..DeviceExtensions::none()
 	};
 
-	let (device, mut queues) = Device::new(physical_device, &features, &extensions, vec![(family, 1.0)])?;
+	let (device, mut queues) =
+		Device::new(physical_device, &features, &extensions, vec![(family, 1.0)])?;
 
 	Ok((
 		device,
