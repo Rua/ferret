@@ -37,9 +37,7 @@ use std::{
 	time::{Duration, Instant},
 };
 use winit::{
-	event::{ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent},
-	event_loop::{ControlFlow, EventLoop},
-	platform::desktop::EventLoopExtDesktop,
+	ElementState, Event, EventsLoop, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent,
 };
 
 const FRAME_TIME: Duration = Duration::from_nanos(28571429); // 1/35 sec
@@ -63,7 +61,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		}
 	};
 
-	let mut event_loop = EventLoop::new();
+	let mut event_loop = EventsLoop::new();
 
 	let (video, _debug_callback) = match Video::new(&event_loop) {
 		Ok(val) => val,
@@ -161,7 +159,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		//println!("{} fps", 1.0/delta.as_secs_f32());
 
 		// Process events from the system
-		event_loop.run_return(|event, _, control_flow| {
+		event_loop.poll_events(|event| {
 			let (mut input_state, video) =
 				<(WriteExpect<InputState>, ReadExpect<Video>)>::fetch(&world);
 			input_state.process_event(&event);
@@ -170,15 +168,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 				Event::WindowEvent { event, .. } => match event {
 					WindowEvent::CloseRequested => {
 						command_sender.send("quit".to_owned()).ok();
-						*control_flow = ControlFlow::Exit;
 					}
 					WindowEvent::MouseInput {
 						state: ElementState::Pressed,
 						..
 					} => {
 						let window = video.surface().window();
-						window.set_cursor_grab(true).ok();
-						window.set_cursor_visible(false);
+						window.grab_cursor(true).ok();
+						window.hide_cursor(true);
 						input_state.set_mouse_delta_enabled(true);
 					}
 					WindowEvent::KeyboardInput {
@@ -191,15 +188,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 						..
 					} => {
 						let window = video.surface().window();
-						window.set_cursor_grab(false).ok();
-						window.set_cursor_visible(true);
+						window.grab_cursor(false).ok();
+						window.hide_cursor(false);
 						input_state.set_mouse_delta_enabled(false);
 					}
 					_ => {}
 				},
-				Event::EventsCleared => {
-					*control_flow = ControlFlow::Exit;
-				}
 				_ => {}
 			}
 		});

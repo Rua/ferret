@@ -57,7 +57,7 @@ impl RenderSystem {
 		)?;
 
 		// Create render target
-		let (width, height) = video.surface().window().inner_size().into();
+		let (width, height) = video.surface().window().get_inner_size().unwrap().into();
 		let size = [width, height];
 		let target = RenderTarget::new(
 			video.surface().clone(),
@@ -123,7 +123,13 @@ impl RenderSystem {
 	}
 
 	pub fn recreate(&mut self) -> Result<(), Box<dyn Error>> {
-		let (width, height) = self.target.surface().window().inner_size().into();
+		let (width, height) = self
+			.target
+			.surface()
+			.window()
+			.get_inner_size()
+			.unwrap()
+			.into();
 		let size = [width, height];
 		self.target = self.target.recreate(size)?;
 		let depth_buffer = vulkan::create_depth_buffer(self.target.device(), size)?;
@@ -170,9 +176,8 @@ impl RenderSystem {
 		};
 
 		let dynamic_state = DynamicState {
-			line_width: None,
 			viewports: Some(vec![viewport]),
-			scissors: None,
+			..DynamicState::none()
 		};
 
 		let mut command_buffer_builder = AutoCommandBufferBuilder::primary_one_time_submit(

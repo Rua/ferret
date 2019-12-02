@@ -5,7 +5,7 @@ use std::{
 	fmt::Debug,
 	hash::Hash,
 };
-use winit::event::{
+use winit::{
 	DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent,
 };
 
@@ -83,7 +83,7 @@ impl InputState {
 		}
 	}
 
-	pub fn process_event(&mut self, event: &Event<()>) {
+	pub fn process_event(&mut self, event: &Event) {
 		match event {
 			Event::WindowEvent { event, .. } => match *event {
 				WindowEvent::KeyboardInput {

@@ -6,11 +6,11 @@ use vulkano::{
 	instance::{Instance, PhysicalDevice, QueueFamily},
 	swapchain::Surface,
 };
-use winit::window::Window;
+use winit::Window;
 
 pub(super) fn create_instance() -> Result<Arc<Instance>, Box<dyn Error>> {
 	let mut instance_extensions = vulkano_win::required_extensions();
-	instance_extensions.ext_debug_report = true;
+	instance_extensions.ext_debug_utils = true;
 
 	let mut layers = Vec::new();
 

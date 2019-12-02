@@ -13,10 +13,7 @@ use vulkano::{
 	sync::SharingMode,
 };
 use vulkano_win::VkSurfaceBuild;
-use winit::{
-	event_loop::EventLoop,
-	window::{Window, WindowBuilder},
-};
+use winit::{EventsLoop, Window, WindowBuilder};
 
 pub struct Video {
 	device: Arc<Device>,
@@ -25,19 +22,19 @@ pub struct Video {
 }
 
 impl Video {
-	pub fn new(event_loop: &EventLoop<()>) -> Result<(Video, DebugCallback), Box<dyn Error>> {
+	pub fn new(event_loop: &EventsLoop) -> Result<(Video, DebugCallback), Box<dyn Error>> {
 		// Create Vulkan instance
 		let instance = vulkan::create_instance()?;
 
 		let surface = WindowBuilder::new()
-			.with_min_inner_size((320, 240).into())
-			.with_inner_size((800, 600).into())
+			.with_min_dimensions((320, 240).into())
+			.with_dimensions((800, 600).into())
 			.with_title("Ferret")
 			.build_vk_surface(event_loop, instance.clone())?;
 
 		// Setup debug callback for validation layers
 		let debug_callback = DebugCallback::errors_and_warnings(&instance, |ref message| {
-			if message.ty.error {
+			if message.ty.validation {
 				error!("{}: {}", message.layer_prefix, message.description);
 			} else {
 				warn!("{}: {}", message.layer_prefix, message.description);

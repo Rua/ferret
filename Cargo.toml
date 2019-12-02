@@ -20,10 +20,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 specs = "0.15.1"
 specs-derive = "0.4.0"
-vulkano = "0.14.0"
-vulkano-shaders = "0.14.0"
-vulkano-win = "0.15.0"
-winit = {git = "https://github.com/rust-windowing/winit", features = ["serde"]}
-
-[patch.crates-io]
-winit = {git = "https://github.com/rust-windowing/winit", features = ["serde"]}
+vulkano = "0.16.0"
+vulkano-shaders = "0.16.0"
+vulkano-win = "0.16.0"
+winit = {version = "0.19.5", features = ["serde"]}
