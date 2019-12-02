@@ -14,11 +14,15 @@ use nalgebra::{Matrix4, Vector3};
 use specs::{Entity, Join, ReadExpect, ReadStorage, RunNow, SystemData, World};
 use std::{error::Error, sync::Arc};
 use vulkano::{
-	buffer::{BufferAccess, BufferUsage, CpuAccessibleBuffer},
+	buffer::{BufferAccess, CpuBufferPool},
 	command_buffer::{
 		pool::standard::StandardCommandPoolBuilder, AutoCommandBufferBuilder, DynamicState,
 	},
-	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
+	descriptor::{
+		descriptor::{DescriptorBufferDesc, DescriptorDesc, DescriptorDescTy, ShaderStages},
+		descriptor_set::{DescriptorSet, FixedSizeDescriptorSetsPool, UnsafeDescriptorSetLayout},
+		PipelineLayoutAbstract,
+	},
 	device::DeviceOwned,
 	framebuffer::{Framebuffer, FramebufferAbstract, RenderPassAbstract, Subpass},
 	image::ImageViewAccess,
@@ -31,7 +35,8 @@ use vulkano::{
 pub struct RenderSystem {
 	framebuffers: Vec<Arc<dyn FramebufferAbstract + Send + Sync>>,
 	map: MapRenderSystem,
-	matrix_buffer: Arc<CpuAccessibleBuffer<vs::ty::UniformBufferObject>>,
+	matrix_buffer_pool: CpuBufferPool<vs::ty::UniformBufferObject>,
+	matrix_set_pool: FixedSizeDescriptorSetsPool,
 	render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
 	sampler: Arc<Sampler>,
 	target: RenderTarget,
@@ -104,18 +109,34 @@ impl RenderSystem {
 			) as Arc<dyn FramebufferAbstract + Send + Sync>);
 		}
 
-		// Create uniform buffer for matrices
-		let matrix_buffer = unsafe {
-			CpuAccessibleBuffer::<vs::ty::UniformBufferObject>::uninitialized(
-				video.device().clone(),
-				BufferUsage::uniform_buffer(),
-			)?
-		};
+		// Create uniform buffer and descriptor sets pool for matrices
+		let matrix_buffer_pool =
+			CpuBufferPool::<vs::ty::UniformBufferObject>::uniform_buffer(video.device().clone());
+
+		let descriptors = [Some(DescriptorDesc {
+			ty: DescriptorDescTy::Buffer(DescriptorBufferDesc {
+				dynamic: Some(false),
+				storage: false,
+			}),
+			array_count: 1,
+			stages: ShaderStages {
+				vertex: true,
+				..ShaderStages::none()
+			},
+			readonly: true,
+		})];
+
+		let layout = Arc::new(UnsafeDescriptorSetLayout::new(
+			video.device().clone(),
+			descriptors.iter().cloned(),
+		)?);
+		let matrix_set_pool = FixedSizeDescriptorSetsPool::new(layout);
 
 		Ok(RenderSystem {
 			framebuffers,
 			map: MapRenderSystem::new(render_pass.clone())?,
-			matrix_buffer,
+			matrix_buffer_pool,
+			matrix_set_pool,
 			render_pass,
 			sampler,
 			target,
@@ -125,6 +146,7 @@ impl RenderSystem {
 	pub fn recreate(&mut self) -> Result<(), Box<dyn Error>> {
 		let (width, height) = self
 			.target
+			.swapchain()
 			.surface()
 			.window()
 			.get_inner_size()
@@ -212,7 +234,13 @@ impl RenderSystem {
 			proj: proj.into(),
 		};
 
-		*self.matrix_buffer.write()? = data;
+		let matrix_buffer = self.matrix_buffer_pool.next(data)?;
+		let matrix_set = Arc::new(
+			self.matrix_set_pool
+				.next()
+				.add_buffer(matrix_buffer)?
+				.build()?,
+		);
 
 		// Draw the map
 		command_buffer_builder = self.map.draw(
@@ -220,7 +248,7 @@ impl RenderSystem {
 			command_buffer_builder,
 			dynamic_state,
 			self.sampler.clone(),
-			self.matrix_buffer.clone(),
+			matrix_set,
 		)?;
 
 		// Finalise
@@ -265,8 +293,7 @@ mod fs {
 }
 
 pub struct MapRenderSystem {
-	matrix_pool: FixedSizeDescriptorSetsPool<Arc<dyn GraphicsPipelineAbstract + Send + Sync>>,
-	texture_pool: FixedSizeDescriptorSetsPool<Arc<dyn GraphicsPipelineAbstract + Send + Sync>>,
+	texture_pool: FixedSizeDescriptorSetsPool,
 	pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
 }
 
@@ -296,12 +323,10 @@ impl MapRenderSystem {
 				.build(device.clone())?,
 		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
-		// Create descriptor sets pool
-		let matrix_pool = FixedSizeDescriptorSetsPool::new(pipeline.clone(), 0);
-		let texture_pool = FixedSizeDescriptorSetsPool::new(pipeline.clone(), 1);
+		let layout = pipeline.descriptor_set_layout(1).unwrap();
+		let texture_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
 
 		Ok(MapRenderSystem {
-			matrix_pool,
 			pipeline,
 			texture_pool,
 		})
@@ -313,12 +338,10 @@ impl MapRenderSystem {
 		mut command_buffer_builder: AutoCommandBufferBuilder<StandardCommandPoolBuilder>,
 		dynamic_state: DynamicState,
 		sampler: Arc<Sampler>,
-		matrix_buffer: Arc<CpuAccessibleBuffer<vs::ty::UniformBufferObject>>,
+		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
 	) -> Result<AutoCommandBufferBuilder, Box<dyn Error>> {
 		let (texture_storage, map_component) =
 			<(ReadExpect<AssetStorage<Texture>>, ReadStorage<MapComponent>)>::fetch(world);
-
-		let matrix_set = Arc::new(self.matrix_pool.next().add_buffer(matrix_buffer)?.build()?);
 
 		// Draw the map
 		for component in map_component.join() {

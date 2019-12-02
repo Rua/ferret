@@ -70,7 +70,6 @@ impl Video {
 pub struct RenderTarget {
 	images: Vec<Arc<SwapchainImage<Window>>>,
 	queue_family_id: u32,
-	surface: Arc<Surface<Window>>,
 	swapchain: Arc<Swapchain<Window>>,
 }
 
@@ -114,13 +113,12 @@ impl RenderTarget {
 			CompositeAlpha::Opaque,
 			present_mode,
 			true,
-			None,
+			ColorSpace::SrgbNonLinear,
 		)?;
 
 		Ok(RenderTarget {
 			images,
 			queue_family_id,
-			surface,
 			swapchain,
 		})
 	}
@@ -139,9 +137,10 @@ impl RenderTarget {
 		self.swapchain.format()
 	}
 
-	pub fn recreate(&self, dimensions: [u32; 2]) -> Result<RenderTarget, Box<dyn Error>> {
+	pub fn recreate(&mut self, dimensions: [u32; 2]) -> Result<RenderTarget, Box<dyn Error>> {
 		let capabilities = self
-			.surface
+			.swapchain()
+			.surface()
 			.capabilities(self.swapchain.device().physical_device())?;
 		let surface_format =
 			choose_format(&capabilities).ok_or("No suitable swapchain format found.")?;
@@ -152,9 +151,9 @@ impl RenderTarget {
 			..ImageUsage::none()
 		};
 
-		let (swapchain, images) = Swapchain::new(
+		let (swapchain, images) = Swapchain::with_old_swapchain(
 			self.swapchain.device().clone(),
-			self.surface.clone(),
+			self.swapchain.surface().clone(),
 			self.swapchain.num_images(),
 			surface_format,
 			capabilities.current_extent.unwrap_or(dimensions),
@@ -165,23 +164,19 @@ impl RenderTarget {
 			CompositeAlpha::Opaque,
 			self.swapchain.present_mode(),
 			true,
-			Some(&self.swapchain),
+			ColorSpace::SrgbNonLinear,
+			self.swapchain.clone(),
 		)?;
 
 		Ok(RenderTarget {
 			images,
 			queue_family_id: self.queue_family_id,
-			surface: self.surface.clone(),
 			swapchain,
 		})
 	}
 
 	pub fn images(&self) -> &Vec<Arc<SwapchainImage<Window>>> {
 		&self.images
-	}
-
-	pub fn surface(&self) -> &Arc<Surface<Window>> {
-		&self.surface
 	}
 
 	pub fn swapchain(&self) -> &Arc<Swapchain<Window>> {
