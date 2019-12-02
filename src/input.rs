@@ -42,6 +42,7 @@ pub enum MouseAxis {
 #[derive(Debug, Default)]
 pub struct InputState {
 	mouse_delta: [f64; 2],
+	mouse_delta_enabled: bool,
 	pressed_keys: Vec<VirtualKeyCode>,
 	pressed_mouse_buttons: Vec<MouseButton>,
 }
@@ -50,6 +51,7 @@ impl InputState {
 	pub fn new() -> InputState {
 		InputState {
 			mouse_delta: [0.0, 0.0],
+			mouse_delta_enabled: false,
 			pressed_keys: Vec::new(),
 			pressed_mouse_buttons: Vec::new(),
 		}
@@ -71,6 +73,14 @@ impl InputState {
 
 	pub fn mouse_delta(&self, axis: MouseAxis) -> f64 {
 		self.mouse_delta[axis as usize]
+	}
+
+	pub fn set_mouse_delta_enabled(&mut self, enabled: bool) {
+		self.mouse_delta_enabled = enabled;
+
+		if !enabled {
+			self.mouse_delta = [0.0, 0.0];
+		}
 	}
 
 	pub fn process_event(&mut self, event: &Event<()>) {
@@ -128,8 +138,10 @@ impl InputState {
 			},
 			Event::DeviceEvent { event, .. } => match *event {
 				DeviceEvent::MouseMotion { delta } => {
-					self.mouse_delta[0] += delta.0;
-					self.mouse_delta[1] += delta.1;
+					if self.mouse_delta_enabled {
+						self.mouse_delta[0] += delta.0;
+						self.mouse_delta[1] += delta.1;
+					}
 				}
 				_ => {}
 			},

@@ -27,7 +27,8 @@ impl Video {
 		let instance = vulkan::create_instance()?;
 
 		let surface = WindowBuilder::new()
-			.with_inner_size((640, 480).into())
+			.with_min_inner_size((320, 240).into())
+			.with_inner_size((800, 600).into())
 			.with_title("Ferret")
 			.build_vk_surface(event_loop, instance.clone())?;
 

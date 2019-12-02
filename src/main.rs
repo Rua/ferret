@@ -30,10 +30,10 @@ use crate::{
 	logger::Logger,
 	renderer::{texture::Texture, video::Video},
 };
-use specs::{world::Builder, RunNow, World, WorldExt};
+use specs::{world::Builder, ReadExpect, RunNow, SystemData, World, WorldExt, WriteExpect};
 use std::{error::Error, sync::mpsc, time::{Duration, Instant}};
 use winit::{
-	event::{Event, MouseButton, VirtualKeyCode, WindowEvent},
+	event::{ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent},
 	event_loop::{ControlFlow, EventLoop},
 	platform::desktop::EventLoopExtDesktop,
 };
@@ -158,7 +158,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 		// Process events from the system
 		event_loop.run_return(|event, _, control_flow| {
-			let mut input_state = world.fetch_mut::<InputState>();
+			let (mut input_state, video) = <(WriteExpect<InputState>, ReadExpect<Video>)>::fetch(&world);
 			input_state.process_event(&event);
 
 			match event {
@@ -166,6 +166,29 @@ fn main() -> Result<(), Box<dyn Error>> {
 					WindowEvent::CloseRequested => {
 						command_sender.send("quit".to_owned()).ok();
 						*control_flow = ControlFlow::Exit;
+					}
+					WindowEvent::MouseInput {
+						state: ElementState::Pressed,
+						..
+					} => {
+						let window = video.surface().window();
+						window.set_cursor_grab(true).ok();
+						window.set_cursor_visible(false);
+						input_state.set_mouse_delta_enabled(true);
+					}
+					WindowEvent::KeyboardInput {
+						input:
+							KeyboardInput {
+								state: ElementState::Pressed,
+								virtual_keycode: Some(VirtualKeyCode::Escape),
+								..
+							},
+						..
+					} => {
+						let window = video.surface().window();
+						window.set_cursor_grab(false).ok();
+						window.set_cursor_visible(true);
+						input_state.set_mouse_delta_enabled(false);
 					}
 					_ => {}
 				},
