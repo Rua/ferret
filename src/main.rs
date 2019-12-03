@@ -192,6 +192,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 						window.hide_cursor(false);
 						input_state.set_mouse_delta_enabled(false);
 					}
+					WindowEvent::Focused(false) => {
+						let window = video.surface().window();
+						window.grab_cursor(false).ok();
+						window.hide_cursor(false);
+						input_state.set_mouse_delta_enabled(false);
+					}
 					_ => {}
 				},
 				_ => {}
