@@ -16,8 +16,7 @@ out gl_PerVertex {
 	vec4 gl_Position;
 };
 
-void main()
-{
+void main() {
 	frag_texture_coord = in_texture_coord;
 	frag_lightlevel = in_lightlevel;
 	gl_Position = ubo.proj * ubo.view * vec4(in_position, 1);

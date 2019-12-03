@@ -85,19 +85,24 @@ pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error>> {
 
 pub struct MapModel {
 	meshes: Vec<(AssetHandle<Texture>, Mesh)>,
+	sky_mesh: (AssetHandle<Texture>, Mesh),
 }
 
 impl MapModel {
-	pub fn new(meshes: Vec<(AssetHandle<Texture>, Mesh)>) -> MapModel {
-		MapModel { meshes }
+	pub fn new(meshes: Vec<(AssetHandle<Texture>, Mesh)>, sky_mesh: (AssetHandle<Texture>, Mesh)) -> MapModel {
+		MapModel { meshes, sky_mesh }
 	}
 
 	pub fn meshes(&self) -> &Vec<(AssetHandle<Texture>, Mesh)> {
 		&self.meshes
 	}
+
+	pub fn sky_mesh(&self) -> &(AssetHandle<Texture>, Mesh) {
+		&self.sky_mesh
+	}
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Clone, Debug, Default)]
 pub struct VertexData {
 	pub in_position: [f32; 3],
 	pub in_texture_coord: [f32; 3],
@@ -105,16 +110,23 @@ pub struct VertexData {
 }
 impl_vertex!(VertexData, in_position, in_texture_coord, in_lightlevel);
 
-pub fn make_model(map_data: &DoomMap, world: &World) -> Result<MapModel, Box<dyn Error>> {
+#[derive(Clone, Debug, Default)]
+pub struct SkyVertexData {
+	pub in_position: [f32; 3],
+}
+impl_vertex!(SkyVertexData, in_position);
+
+pub fn make_model(map_data: &DoomMap, sky: AssetHandle<Texture>, world: &World) -> Result<MapModel, Box<dyn Error>> {
 	// Load textures and flats
 	let [textures, flats] = super::map_textures::load_textures(map_data, world)?;
 
 	// Create meshes
-	let meshes = make_meshes(map_data, &textures, &flats, world)?;
+	let (meshes, sky_mesh) = make_meshes(map_data, &textures, &flats, world)?;
 	let mut ret = Vec::new();
 
 	let video = world.fetch::<Video>();
 
+	// Regular meshes
 	for (tex, (vertices, indices)) in meshes {
 		let (mesh, future) = MeshBuilder::new()
 			.with_vertices(vertices)
@@ -124,7 +136,14 @@ pub fn make_model(map_data: &DoomMap, world: &World) -> Result<MapModel, Box<dyn
 		ret.push((tex, mesh));
 	}
 
-	Ok(MapModel::new(ret))
+	// Sky mesh
+	let (vertices, indices) = sky_mesh;
+	let (mesh, future) = MeshBuilder::new()
+		.with_vertices(vertices)
+		.with_indices(indices)
+		.build(&video.queues().graphics)?;
+
+	Ok(MapModel::new(ret, (sky, mesh)))
 }
 
 fn make_meshes(
@@ -132,7 +151,7 @@ fn make_meshes(
 	textures: &HashMap<String, (AssetHandle<Texture>, usize)>,
 	flats: &HashMap<String, (AssetHandle<Texture>, usize)>,
 	world: &World,
-) -> Result<HashMap<AssetHandle<Texture>, (Vec<VertexData>, Vec<u32>)>, Box<dyn Error>> {
+) -> Result<(HashMap<AssetHandle<Texture>, (Vec<VertexData>, Vec<u32>)>, (Vec<SkyVertexData>, Vec<u32>)), Box<dyn Error>> {
 	fn push_wall(
 		vertices: &mut Vec<VertexData>,
 		indices: &mut Vec<u32>,
@@ -157,6 +176,22 @@ fn make_meshes(
 					texture_layer,
 				],
 				in_lightlevel: light_level,
+			});
+		}
+	}
+
+	fn push_sky_wall(
+		vertices: &mut Vec<SkyVertexData>,
+		indices: &mut Vec<u32>,
+		vert_h: [&Vector2<f32>; 2],
+		vert_v: [f32; 2],
+	) {
+		indices.push(u32::max_value());
+
+		for (h, v) in [(1, 0), (0, 0), (0, 1), (1, 1)].iter().copied() {
+			indices.push(vertices.len() as u32);
+			vertices.push(SkyVertexData {
+				in_position: [vert_h[h][0], vert_h[h][1], vert_v[v]],
 			});
 		}
 	}
@@ -186,7 +221,24 @@ fn make_meshes(
 		}
 	}
 
+	fn push_sky_flat<'a>(
+		vertices: &mut Vec<SkyVertexData>,
+		indices: &mut Vec<u32>,
+		iter: impl Iterator<Item = &'a Vector2<f32>>,
+		vert_z: f32,
+	) {
+		indices.push(u32::max_value());
+
+		for vert in iter {
+			indices.push(vertices.len() as u32);
+			vertices.push(SkyVertexData {
+				in_position: [vert[0], vert[1], vert_z],
+			});
+		}
+	}
+
 	let mut meshes: HashMap<AssetHandle<Texture>, (Vec<VertexData>, Vec<u32>)> = HashMap::new();
+	let mut sky_mesh: (Vec<SkyVertexData>, Vec<u32>) = (Vec::new(), Vec::new());
 	let texture_storage = <ReadExpect<AssetStorage<Texture>>>::fetch(world);
 
 	for ssect in &map.gl_ssect {
@@ -239,7 +291,14 @@ fn make_meshes(
 						];
 
 						// Top section
-						if let Some(texture_name) = &front_sidedef.top_texture_name {
+						if front_sector.ceiling_flat_name == "F_SKY1" && back_sector.ceiling_flat_name == "F_SKY1" {
+							push_sky_wall(
+								&mut sky_mesh.0,
+								&mut sky_mesh.1,
+								[start_vertex, end_vertex],
+								[spans[0], spans[1]],
+							);
+						} else if let Some(texture_name) = &front_sidedef.top_texture_name {
 							let texture = &textures[texture_name];
 							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
 							let (ref mut vertices, ref mut indices) =
@@ -349,7 +408,19 @@ fn make_meshes(
 		let sector = &sector.unwrap();
 
 		// Floor
-		{
+		let iter = segs.iter().rev().map(|seg| match seg.vertex_indices[0] {
+			EitherVertex::Normal(index) => &map.vertexes[index],
+			EitherVertex::GL(index) => &map.gl_vert[index],
+		});
+
+		if sector.floor_flat_name == "F_SKY1" {
+			push_sky_flat(
+				&mut sky_mesh.0,
+				&mut sky_mesh.1,
+				iter,
+				sector.floor_height,
+			);
+		} else {
 			let flat = &flats[&sector.floor_flat_name];
 			let dimensions = texture_storage.get(&flat.0).unwrap().dimensions();
 			let (ref mut vertices, ref mut indices) =
@@ -358,19 +429,28 @@ fn make_meshes(
 			push_flat(
 				vertices,
 				indices,
-				segs.iter().rev().map(|seg| match seg.vertex_indices[0] {
-					EitherVertex::Normal(index) => &map.vertexes[index],
-					EitherVertex::GL(index) => &map.gl_vert[index],
-				}),
+				iter,
 				sector.floor_height,
 				dimensions,
 				flat.1 as f32,
 				(sector.light_level as f32) / 255.0,
 			);
-		}
+		};
 
 		// Ceiling
-		{
+		let iter = segs.iter().map(|seg| match seg.vertex_indices[0] {
+			EitherVertex::Normal(index) => &map.vertexes[index],
+			EitherVertex::GL(index) => &map.gl_vert[index],
+		});
+
+		if sector.ceiling_flat_name == "F_SKY1" {
+			push_sky_flat(
+				&mut sky_mesh.0,
+				&mut sky_mesh.1,
+				iter,
+				sector.ceiling_height,
+			);
+		} else {
 			let flat = &flats[&sector.ceiling_flat_name];
 			let dimensions = texture_storage.get(&flat.0).unwrap().dimensions();
 			let (ref mut vertices, ref mut indices) =
@@ -379,10 +459,7 @@ fn make_meshes(
 			push_flat(
 				vertices,
 				indices,
-				segs.iter().map(|seg| match seg.vertex_indices[0] {
-					EitherVertex::Normal(index) => &map.vertexes[index],
-					EitherVertex::GL(index) => &map.gl_vert[index],
-				}),
+				iter,
 				sector.ceiling_height,
 				dimensions,
 				flat.1 as f32,
@@ -391,7 +468,7 @@ fn make_meshes(
 		}
 	}
 
-	Ok(meshes)
+	Ok((meshes, sky_mesh))
 }
 
 #[derive(Clone, Debug)]

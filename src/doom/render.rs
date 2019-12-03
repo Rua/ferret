@@ -2,8 +2,9 @@ use crate::{
 	assets::AssetStorage,
 	doom::{
 		components::{MapComponent, TransformComponent},
-		map::VertexData,
+		map::{SkyVertexData, VertexData},
 	},
+	geometry::Angle,
 	renderer::{
 		texture::Texture,
 		video::{RenderTarget, Video},
@@ -35,7 +36,7 @@ use vulkano::{
 pub struct RenderSystem {
 	framebuffers: Vec<Arc<dyn FramebufferAbstract + Send + Sync>>,
 	map: MapRenderSystem,
-	matrix_buffer_pool: CpuBufferPool<vs::ty::UniformBufferObject>,
+	matrix_buffer_pool: CpuBufferPool<map_normal_vert::ty::UniformBufferObject>,
 	matrix_set_pool: FixedSizeDescriptorSetsPool,
 	render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
 	sampler: Arc<Sampler>,
@@ -111,7 +112,7 @@ impl RenderSystem {
 
 		// Create uniform buffer and descriptor sets pool for matrices
 		let matrix_buffer_pool =
-			CpuBufferPool::<vs::ty::UniformBufferObject>::uniform_buffer(video.device().clone());
+			CpuBufferPool::<map_normal_vert::ty::UniformBufferObject>::uniform_buffer(video.device().clone());
 
 		let descriptors = [Some(DescriptorDesc {
 			ty: DescriptorDescTy::Buffer(DescriptorBufferDesc {
@@ -229,7 +230,7 @@ impl RenderSystem {
 		let aspect_ratio = (dimensions[0] / dimensions[1]) * 1.2;
 		let proj = projection_matrix(90.0, aspect_ratio, 0.1, 10000.0);
 
-		let data = vs::ty::UniformBufferObject {
+		let data = map_normal_vert::ty::UniformBufferObject {
 			view: view.into(),
 			proj: proj.into(),
 		};
@@ -249,6 +250,7 @@ impl RenderSystem {
 			dynamic_state,
 			self.sampler.clone(),
 			matrix_set,
+			rotation,
 		)?;
 
 		// Finalise
@@ -278,23 +280,40 @@ impl<'a> RunNow<'a> for RenderSystem {
 	}
 }
 
-mod vs {
+mod map_normal_vert {
 	vulkano_shaders::shader! {
 		ty: "vertex",
-		path: "shaders/world.vert",
+		path: "shaders/map_normal.vert",
 	}
 }
 
-mod fs {
+mod map_normal_frag {
 	vulkano_shaders::shader! {
 		ty: "fragment",
-		path: "shaders/world.frag",
+		path: "shaders/map_normal.frag",
+	}
+}
+
+mod map_sky_vert {
+	vulkano_shaders::shader! {
+		ty: "vertex",
+		path: "shaders/map_sky.vert",
+	}
+}
+
+mod map_sky_frag {
+	vulkano_shaders::shader! {
+		ty: "fragment",
+		path: "shaders/map_sky.frag",
 	}
 }
 
 pub struct MapRenderSystem {
-	texture_pool: FixedSizeDescriptorSetsPool,
-	pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
+	normal_pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
+	normal_texture_pool: FixedSizeDescriptorSetsPool,
+	sky_buffer_pool: CpuBufferPool<map_sky_frag::ty::FragParams>,
+	sky_pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
+	sky_texture_pool: FixedSizeDescriptorSetsPool,
 }
 
 impl MapRenderSystem {
@@ -303,18 +322,18 @@ impl MapRenderSystem {
 	) -> Result<MapRenderSystem, Box<dyn Error>> {
 		let device = render_pass.device();
 
-		// Create pipeline
-		let vs = vs::Shader::load(device.clone())?;
-		let fs = fs::Shader::load(device.clone())?;
+		// Create pipeline for normal parts of the map
+		let normal_vert = map_normal_vert::Shader::load(device.clone())?;
+		let normal_frag = map_normal_frag::Shader::load(device.clone())?;
 
-		let pipeline = Arc::new(
+		let normal_pipeline = Arc::new(
 			GraphicsPipeline::start()
 				.render_pass(
 					Subpass::from(render_pass.clone(), 0).ok_or("Subpass index out of range")?,
 				)
 				.vertex_input_single_buffer::<VertexData>()
-				.vertex_shader(vs.main_entry_point(), ())
-				.fragment_shader(fs.main_entry_point(), ())
+				.vertex_shader(normal_vert.main_entry_point(), ())
+				.fragment_shader(normal_frag.main_entry_point(), ())
 				.triangle_fan()
 				.primitive_restart(true)
 				.viewports_dynamic_scissors_irrelevant(1)
@@ -323,12 +342,40 @@ impl MapRenderSystem {
 				.build(device.clone())?,
 		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
-		let layout = pipeline.descriptor_set_layout(1).unwrap();
-		let texture_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
+		let layout = normal_pipeline.descriptor_set_layout(1).unwrap();
+		let normal_texture_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
+
+		// Create pipeline for sky
+		let sky_vert = map_sky_vert::Shader::load(device.clone())?;
+		let sky_frag = map_sky_frag::Shader::load(device.clone())?;
+
+		let sky_pipeline = Arc::new(
+			GraphicsPipeline::start()
+				.render_pass(
+					Subpass::from(render_pass.clone(), 0).ok_or("Subpass index out of range")?,
+				)
+				.vertex_input_single_buffer::<SkyVertexData>()
+				.vertex_shader(sky_vert.main_entry_point(), ())
+				.fragment_shader(sky_frag.main_entry_point(), ())
+				.triangle_fan()
+				.primitive_restart(true)
+				.viewports_dynamic_scissors_irrelevant(1)
+				.cull_mode_back()
+				.depth_stencil_simple_depth()
+				.build(device.clone())?,
+		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
+
+		let layout = sky_pipeline.descriptor_set_layout(1).unwrap();
+		let sky_texture_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
+		let sky_buffer_pool =
+			CpuBufferPool::<map_sky_frag::ty::FragParams>::uniform_buffer(device.clone());
 
 		Ok(MapRenderSystem {
-			pipeline,
-			texture_pool,
+			normal_pipeline,
+			normal_texture_pool,
+			sky_buffer_pool,
+			sky_pipeline,
+			sky_texture_pool,
 		})
 	}
 
@@ -339,24 +386,25 @@ impl MapRenderSystem {
 		dynamic_state: DynamicState,
 		sampler: Arc<Sampler>,
 		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
+		rotation: Vector3<Angle>,
 	) -> Result<AutoCommandBufferBuilder, Box<dyn Error>> {
 		let (texture_storage, map_component) =
 			<(ReadExpect<AssetStorage<Texture>>, ReadStorage<MapComponent>)>::fetch(world);
 
-		// Draw the map
 		for component in map_component.join() {
+			// Draw the normal parts of the map
 			for (texture, mesh) in component.map_model.meshes() {
 				let texture = texture_storage.get(&texture).unwrap();
 
 				let texture_set = Arc::new(
-					self.texture_pool
+					self.normal_texture_pool
 						.next()
 						.add_sampled_image(texture.inner(), sampler.clone())?
 						.build()?,
 				);
 
 				command_buffer_builder = command_buffer_builder.draw_indexed(
-					self.pipeline.clone(),
+					self.normal_pipeline.clone(),
 					&dynamic_state,
 					vec![Arc::new(mesh.vertex_buffer().into_buffer_slice())],
 					mesh.index_buffer().unwrap(),
@@ -364,6 +412,32 @@ impl MapRenderSystem {
 					(),
 				)?;
 			}
+
+			// Draw the sky
+			let (texture, mesh) = component.map_model.sky_mesh();
+			let texture = texture_storage.get(&texture).unwrap();
+			let sky_buffer = self.sky_buffer_pool.next(map_sky_frag::ty::FragParams {
+				screenSize: [800.0, 600.0],
+				pitch: rotation[1].to_degrees() as f32,
+				yaw: rotation[2].to_degrees() as f32,
+			})?;
+
+			let texture_params_set = Arc::new(
+				self.sky_texture_pool
+					.next()
+					.add_sampled_image(texture.inner(), sampler.clone())?
+					.add_buffer(sky_buffer)?
+					.build()?,
+			);
+
+			command_buffer_builder = command_buffer_builder.draw_indexed(
+				self.sky_pipeline.clone(),
+				&dynamic_state,
+				vec![Arc::new(mesh.vertex_buffer().into_buffer_slice())],
+				mesh.index_buffer().unwrap(),
+				(matrix_set.clone(), texture_params_set.clone()),
+				(),
+			)?;
 		}
 
 		Ok(command_buffer_builder)

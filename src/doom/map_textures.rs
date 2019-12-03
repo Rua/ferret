@@ -149,6 +149,43 @@ pub fn load_textures(
 	])
 }
 
+pub fn load_sky(name: &str, world: &World) -> Result<AssetHandle<Texture>, Box<dyn Error>> {
+	let (mut loader, mut texture_storage, video) = <(
+		Write<WadLoader>,
+		Write<AssetStorage<Texture>>,
+		ReadExpect<Video>,
+	)>::fetch(world);
+
+	let surface = TextureFormat.import(name, &mut *loader)?;
+
+	let size = Vector2::new(
+		surface.width(),
+		surface.height(),
+	);
+
+	// Find the corresponding Vulkan pixel format
+	let format = match surface.pixel_format_enum() {
+		PixelFormatEnum::RGB24 => Format::R8G8B8Unorm,
+		PixelFormatEnum::BGR24 => Format::B8G8R8Unorm,
+		PixelFormatEnum::RGBA32 => Format::R8G8B8A8Unorm,
+		PixelFormatEnum::BGRA32 => Format::B8G8R8A8Unorm,
+		_ => unimplemented!(),
+	};
+
+	let data = surface.without_lock().unwrap();
+
+	// Create the image
+	let (texture, future) = TextureBuilder::new()
+		.with_data(data.to_owned(), format)
+		.with_dimensions(Dimensions::Dim2d {
+			width: size[0],
+			height: size[1],
+		})
+		.build(&video.queues().graphics)?;
+
+	Ok(texture_storage.insert(texture))
+}
+
 pub struct FlatFormat;
 
 impl AssetFormat for FlatFormat {
