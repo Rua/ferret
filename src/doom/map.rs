@@ -138,24 +138,22 @@ fn make_meshes(
 		indices: &mut Vec<u32>,
 		vert_h: [&Vector2<f32>; 2],
 		vert_v: [f32; 2],
+		tex_v: [f32; 2],
 		offset: Vector2<f32>,
-		peg_factor: [f32; 2],
 		dimensions: Dimensions,
 		texture_layer: f32,
 		light_level: f32,
 	) {
-		let diff = vert_h[1] - vert_h[0];
-		let width = diff.norm();
-		let height = vert_v[1] - vert_v[0];
+		let width = (vert_h[1] - vert_h[0]).norm();
 		indices.push(u32::max_value());
 
-		for (h, v) in [(0, 0), (1, 0), (1, 1), (0, 1)].iter().copied() {
+		for (h, v) in [(1, 0), (0, 0), (0, 1), (1, 1)].iter().copied() {
 			indices.push(vertices.len() as u32);
 			vertices.push(VertexData {
 				in_position: [vert_h[h][0], vert_h[h][1], vert_v[v]],
 				in_texture_coord: [
 					(offset[0] + width * h as f32) / dimensions.width() as f32,
-					(offset[1] + height * peg_factor[v]) / dimensions.height() as f32,
+					(offset[1] + tex_v[v]) / dimensions.height() as f32,
 					texture_layer,
 				],
 				in_lightlevel: light_level,
@@ -225,19 +223,6 @@ fn make_meshes(
 						EitherVertex::GL(index) => &map.gl_vert[index],
 					};
 
-					// Set pegging parameters
-					let top_peg_factor = if linedef.flags & 8 != 0 {
-						[1.0, 0.0] // Align to top
-					} else {
-						[0.0, -1.0] // Align to bottom
-					};
-
-					let bottom_peg_factor = if linedef.flags & 16 != 0 {
-						[0.0, -1.0] // Align to bottom
-					} else {
-						[1.0, 0.0] // Align to top
-					};
-
 					// Calculate texture offset
 					let distance = (start_vertex - &map.vertexes[linedef.vertex_indices[0]]).norm();
 					let texture_offset = front_sidedef.texture_offset + Vector2::new(distance, 0.0);
@@ -247,10 +232,10 @@ fn make_meshes(
 						let back_sidedef = &map.sidedefs[back_sidedef_index];
 						let back_sector = &map.sectors[back_sidedef.sector_index];
 						let spans = [
-							front_sector.floor_height,
-							f32::max(back_sector.floor_height, front_sector.floor_height),
-							f32::min(front_sector.ceiling_height, back_sector.ceiling_height),
 							front_sector.ceiling_height,
+							f32::min(front_sector.ceiling_height, back_sector.ceiling_height),
+							f32::max(back_sector.floor_height, front_sector.floor_height),
+							front_sector.floor_height,
 						];
 
 						// Top section
@@ -260,13 +245,19 @@ fn make_meshes(
 							let (ref mut vertices, ref mut indices) =
 								meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
 
+							let tex_v = if linedef.flags & 8 != 0 {
+								[0.0, spans[0] - spans[1]]
+							} else {
+								[spans[1] - spans[0], 0.0]
+							};
+
 							push_wall(
 								vertices,
 								indices,
 								[start_vertex, end_vertex],
-								[spans[2], spans[3]],
+								[spans[0], spans[1]],
+								tex_v,
 								texture_offset,
-								top_peg_factor,
 								dimensions,
 								texture.1 as f32,
 								(front_sector.light_level as f32) / 255.0,
@@ -280,13 +271,20 @@ fn make_meshes(
 							let (ref mut vertices, ref mut indices) =
 								meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
 
+							let tex_v = if linedef.flags & 16 != 0 {[
+								front_sector.ceiling_height - spans[2],
+								front_sector.ceiling_height - spans[3],
+							]} else {
+								[0.0, spans[2] - spans[3]]
+							};
+
 							push_wall(
 								vertices,
 								indices,
 								[start_vertex, end_vertex],
-								[spans[0], spans[1]],
+								[spans[2], spans[3]],
+								tex_v,
 								texture_offset,
-								bottom_peg_factor,
 								dimensions,
 								texture.1 as f32,
 								(front_sector.light_level as f32) / 255.0,
@@ -300,13 +298,19 @@ fn make_meshes(
 							let (ref mut vertices, ref mut indices) =
 								meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
 
+							let tex_v = if linedef.flags & 16 != 0 {
+								[spans[2] - spans[1], 0.0]
+							} else {
+								[0.0, spans[1] - spans[2]]
+							};
+
 							push_wall(
 								vertices,
 								indices,
 								[start_vertex, end_vertex],
 								[spans[1], spans[2]],
+								tex_v,
 								texture_offset,
-								bottom_peg_factor,
 								dimensions,
 								texture.1 as f32,
 								(front_sector.light_level as f32) / 255.0,
@@ -319,13 +323,19 @@ fn make_meshes(
 							let (ref mut vertices, ref mut indices) =
 								meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
 
+							let tex_v = if linedef.flags & 16 != 0 {
+								[front_sector.floor_height - front_sector.ceiling_height, 0.0]
+							} else {
+								[0.0, front_sector.ceiling_height - front_sector.floor_height]
+							};
+
 							push_wall(
 								vertices,
 								indices,
 								[start_vertex, end_vertex],
-								[front_sector.floor_height, front_sector.ceiling_height],
+								[front_sector.ceiling_height, front_sector.floor_height],
+								tex_v,
 								texture_offset,
-								bottom_peg_factor,
 								dimensions,
 								texture.1 as f32,
 								(front_sector.light_level as f32) / 255.0,
