@@ -114,9 +114,7 @@ impl AssetFormat for ThingsFormat {
 pub struct DoomMap {
 	pub linedefs: Vec<Linedef>,
 	pub sidedefs: Vec<Sidedef>,
-	pub vertexes: Vec<Vector2<f32>>,
 	pub sectors: Vec<Sector>,
-	pub gl_vert: Vec<Vector2<f32>>,
 	pub gl_segs: Vec<GLSeg>,
 	pub gl_ssect: Vec<GLSSect>,
 	pub gl_nodes: Vec<GLNode>,
@@ -149,13 +147,13 @@ impl AssetFormat for DoomMapFormat {
 
 		let vertexes = raw_map
 			.vertexes
-			.into_iter()
+			.iter()
 			.map(|raw| Ok(Vector2::new(raw[0] as f32, raw[1] as f32)))
 			.collect::<Result<Vec<Vector2<f32>>, Box<dyn Error>>>()?;
 
 		let sectors = raw_map
 			.sectors
-			.into_iter()
+			.iter()
 			.map(|raw| {
 				Ok(Sector {
 					floor_height: raw.floor_height as f32,
@@ -175,7 +173,7 @@ impl AssetFormat for DoomMapFormat {
 
 		let sidedefs = raw_map
 			.sidedefs
-			.into_iter()
+			.iter()
 			.map(|raw| {
 				Ok(Sidedef {
 					texture_offset: Vector2::new(
@@ -216,12 +214,12 @@ impl AssetFormat for DoomMapFormat {
 
 		let linedefs = raw_map
 			.linedefs
-			.into_iter()
+			.iter()
 			.map(|raw| {
 				Ok(Linedef {
-					vertex_indices: [
-						raw.vertex_indices[0] as usize,
-						raw.vertex_indices[1] as usize,
+					vertices: [
+						vertexes[raw.vertex_indices[0] as usize],
+						vertexes[raw.vertex_indices[1] as usize],
 					],
 					flags: raw.flags,
 					special_type: raw.special_type,
@@ -244,7 +242,7 @@ impl AssetFormat for DoomMapFormat {
 
 		let gl_vert = raw_map
 			.gl_vert
-			.into_iter()
+			.iter()
 			.map(|raw| {
 				Ok(Vector2::new(
 					raw[0] as f32 / 65536.0,
@@ -255,19 +253,19 @@ impl AssetFormat for DoomMapFormat {
 
 		let gl_segs = raw_map
 			.gl_segs
-			.into_iter()
+			.iter()
 			.map(|raw| {
 				Ok(GLSeg {
-					vertex_indices: [
+					vertices: [
 						if (raw.vertex_indices[0] & 0x8000) != 0 {
-							EitherVertex::GL(raw.vertex_indices[0] as usize & 0x7FFF)
+							gl_vert[raw.vertex_indices[0] as usize & 0x7FFF]
 						} else {
-							EitherVertex::Normal(raw.vertex_indices[0] as usize)
+							vertexes[raw.vertex_indices[0] as usize]
 						},
 						if (raw.vertex_indices[1] & 0x8000) != 0 {
-							EitherVertex::GL(raw.vertex_indices[1] as usize & 0x7FFF)
+							gl_vert[raw.vertex_indices[1] as usize & 0x7FFF]
 						} else {
-							EitherVertex::Normal(raw.vertex_indices[1] as usize)
+							vertexes[raw.vertex_indices[1] as usize]
 						},
 					],
 					linedef_index: {
@@ -304,7 +302,7 @@ impl AssetFormat for DoomMapFormat {
 
 		let gl_ssect = raw_map
 			.gl_ssect
-			.into_iter()
+			.iter()
 			.enumerate()
 			.map(|(i, raw)| {
 				Ok(GLSSect {
@@ -328,7 +326,7 @@ impl AssetFormat for DoomMapFormat {
 
 		let gl_nodes = raw_map
 			.gl_nodes
-			.into_iter()
+			.iter()
 			.map(|raw| {
 				Ok(GLNode {
 					partition_point: Vector2::new(
@@ -372,9 +370,7 @@ impl AssetFormat for DoomMapFormat {
 		Ok(DoomMap {
 			linedefs,
 			sidedefs,
-			vertexes,
 			sectors,
-			gl_vert,
 			gl_segs,
 			gl_ssect,
 			gl_nodes,
@@ -384,7 +380,7 @@ impl AssetFormat for DoomMapFormat {
 
 #[derive(Clone, Debug)]
 pub struct Linedef {
-	pub vertex_indices: [usize; 2],
+	pub vertices: [Vector2<f32>; 2],
 	pub flags: u16,
 	pub special_type: u16,
 	pub sector_tag: u16,
@@ -413,17 +409,11 @@ pub struct Sector {
 
 #[derive(Clone, Debug)]
 pub struct GLSeg {
-	pub vertex_indices: [EitherVertex; 2],
+	pub vertices: [Vector2<f32>; 2],
 	pub linedef_index: Option<usize>,
 	pub sidedef_index: Option<usize>,
 	pub side: Side,
 	pub partner_seg_index: Option<usize>,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum EitherVertex {
-	Normal(usize),
-	GL(usize),
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

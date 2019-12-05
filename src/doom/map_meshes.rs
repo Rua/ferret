@@ -1,6 +1,6 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
-	doom::map::{DoomMap, EitherVertex},
+	doom::map::{DoomMap, Side},
 	renderer::{
 		mesh::{Mesh, MeshBuilder},
 		texture::Texture,
@@ -94,10 +94,11 @@ fn make_meshes(
 	),
 	Box<dyn Error>,
 > {
+	#[inline]
 	fn push_wall(
 		vertices: &mut Vec<VertexData>,
 		indices: &mut Vec<u32>,
-		vert_h: [&Vector2<f32>; 2],
+		vert_h: [Vector2<f32>; 2],
 		vert_v: [f32; 2],
 		tex_v: [f32; 2],
 		offset: Vector2<f32>,
@@ -122,10 +123,11 @@ fn make_meshes(
 		}
 	}
 
+	#[inline]
 	fn push_sky_wall(
 		vertices: &mut Vec<SkyVertexData>,
 		indices: &mut Vec<u32>,
-		vert_h: [&Vector2<f32>; 2],
+		vert_h: [Vector2<f32>; 2],
 		vert_v: [f32; 2],
 	) {
 		indices.push(u32::max_value());
@@ -138,10 +140,11 @@ fn make_meshes(
 		}
 	}
 
-	fn push_flat<'a>(
+	#[inline]
+	fn push_flat(
 		vertices: &mut Vec<VertexData>,
 		indices: &mut Vec<u32>,
-		iter: impl Iterator<Item = &'a Vector2<f32>>,
+		iter: impl Iterator<Item = Vector2<f32>>,
 		vert_z: f32,
 		dimensions: Dimensions,
 		texture_layer: f32,
@@ -163,10 +166,11 @@ fn make_meshes(
 		}
 	}
 
-	fn push_sky_flat<'a>(
+	#[inline]
+	fn push_sky_flat(
 		vertices: &mut Vec<SkyVertexData>,
 		indices: &mut Vec<u32>,
-		iter: impl Iterator<Item = &'a Vector2<f32>>,
+		iter: impl Iterator<Item = Vector2<f32>>,
 		vert_z: f32,
 	) {
 		indices.push(u32::max_value());
@@ -183,181 +187,157 @@ fn make_meshes(
 	let mut sky_mesh: (Vec<SkyVertexData>, Vec<u32>) = (Vec::new(), Vec::new());
 	let texture_storage = <ReadExpect<AssetStorage<Texture>>>::fetch(world);
 
-	for ssect in &map.gl_ssect {
-		let segs = &map.gl_segs[ssect.first_seg_index..ssect.first_seg_index + ssect.seg_count];
-		let mut sector = None;
+	// Walls
+	for linedef in &map.linedefs {
+		for side in [Side::Right, Side::Left].iter().copied() {
+			let front_sidedef = match linedef.sidedef_indices[side as usize] {
+				Some(front_sidedef_index) => &map.sidedefs[front_sidedef_index],
+				None => continue,
+			};
+			let front_sector = &map.sectors[front_sidedef.sector_index];
 
-		// Walls
-		for (_seg_index, seg) in segs.iter().enumerate() {
-			if let Some(linedef_index) = seg.linedef_index {
-				let linedef = &map.linedefs[linedef_index];
+			// Swap the vertices if we're on the left side of the linedef
+			let linedef_vertices = match side {
+				Side::Right => linedef.vertices,
+				Side::Left => [linedef.vertices[1], linedef.vertices[0]],
+			};
 
-				if let Some(front_sidedef_index) = linedef.sidedef_indices[seg.side as usize] {
-					let front_sidedef = &map.sidedefs[front_sidedef_index];
+			// Two-sided or one-sided sidedef?
+			if let Some(back_sidedef_index) = linedef.sidedef_indices[!side as usize] {
+				let back_sidedef = &map.sidedefs[back_sidedef_index];
+				let back_sector = &map.sectors[back_sidedef.sector_index];
+				let spans = [
+					front_sector.ceiling_height,
+					f32::min(front_sector.ceiling_height, back_sector.ceiling_height),
+					f32::max(back_sector.floor_height, front_sector.floor_height),
+					front_sector.floor_height,
+				];
 
-					// Assign sector
-					if let Some(s) = sector {
-						if s as *const _ != &map.sectors[front_sidedef.sector_index] as *const _ {
-							return Err(Box::from("Not all the segs belong to the same sector!"));
-						}
+				// Top section
+				if front_sector.ceiling_flat_name == "F_SKY1"
+					&& back_sector.ceiling_flat_name == "F_SKY1"
+				{
+					push_sky_wall(
+						&mut sky_mesh.0,
+						&mut sky_mesh.1,
+						linedef_vertices,
+						[spans[0], spans[1]],
+					);
+				} else if let Some(texture_name) = &front_sidedef.top_texture_name {
+					let texture = &textures[texture_name];
+					let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
+					let (ref mut vertices, ref mut indices) =
+						meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
+
+					let tex_v = if linedef.flags & 8 != 0 {
+						[0.0, spans[0] - spans[1]]
 					} else {
-						sector = Some(&map.sectors[front_sidedef.sector_index]);
-					}
-
-					let front_sector = sector.unwrap();
-
-					// Get vertices
-					let start_vertex = match seg.vertex_indices[0] {
-						EitherVertex::Normal(index) => &map.vertexes[index],
-						EitherVertex::GL(index) => &map.gl_vert[index],
+						[spans[1] - spans[0], 0.0]
 					};
 
-					let end_vertex = match seg.vertex_indices[1] {
-						EitherVertex::Normal(index) => &map.vertexes[index],
-						EitherVertex::GL(index) => &map.gl_vert[index],
+					push_wall(
+						vertices,
+						indices,
+						linedef_vertices,
+						[spans[0], spans[1]],
+						tex_v,
+						front_sidedef.texture_offset,
+						dimensions,
+						texture.1 as f32,
+						(front_sector.light_level as f32) / 255.0,
+					);
+				}
+
+				// Bottom section
+				if let Some(texture_name) = &front_sidedef.bottom_texture_name {
+					let texture = &textures[texture_name];
+					let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
+					let (ref mut vertices, ref mut indices) =
+						meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
+
+					let tex_v = if linedef.flags & 16 != 0 {
+						[
+							front_sector.ceiling_height - spans[2],
+							front_sector.ceiling_height - spans[3],
+						]
+					} else {
+						[0.0, spans[2] - spans[3]]
 					};
 
-					// Calculate texture offset
-					let distance = (start_vertex - &map.vertexes[linedef.vertex_indices[0]]).norm();
-					let texture_offset = front_sidedef.texture_offset + Vector2::new(distance, 0.0);
+					push_wall(
+						vertices,
+						indices,
+						linedef_vertices,
+						[spans[2], spans[3]],
+						tex_v,
+						front_sidedef.texture_offset,
+						dimensions,
+						texture.1 as f32,
+						(front_sector.light_level as f32) / 255.0,
+					);
+				}
 
-					// Two-sided or one-sided sidedef?
-					if let Some(back_sidedef_index) = linedef.sidedef_indices[!seg.side as usize] {
-						let back_sidedef = &map.sidedefs[back_sidedef_index];
-						let back_sector = &map.sectors[back_sidedef.sector_index];
-						let spans = [
-							front_sector.ceiling_height,
-							f32::min(front_sector.ceiling_height, back_sector.ceiling_height),
-							f32::max(back_sector.floor_height, front_sector.floor_height),
-							front_sector.floor_height,
-						];
+				// Middle section
+				if let Some(texture_name) = &front_sidedef.middle_texture_name {
+					let texture = &textures[texture_name];
+					let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
+					let (ref mut vertices, ref mut indices) =
+						meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
 
-						// Top section
-						if front_sector.ceiling_flat_name == "F_SKY1"
-							&& back_sector.ceiling_flat_name == "F_SKY1"
-						{
-							push_sky_wall(
-								&mut sky_mesh.0,
-								&mut sky_mesh.1,
-								[start_vertex, end_vertex],
-								[spans[0], spans[1]],
-							);
-						} else if let Some(texture_name) = &front_sidedef.top_texture_name {
-							let texture = &textures[texture_name];
-							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
-							let (ref mut vertices, ref mut indices) =
-								meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
-
-							let tex_v = if linedef.flags & 8 != 0 {
-								[0.0, spans[0] - spans[1]]
-							} else {
-								[spans[1] - spans[0], 0.0]
-							};
-
-							push_wall(
-								vertices,
-								indices,
-								[start_vertex, end_vertex],
-								[spans[0], spans[1]],
-								tex_v,
-								texture_offset,
-								dimensions,
-								texture.1 as f32,
-								(front_sector.light_level as f32) / 255.0,
-							);
-						}
-
-						// Bottom section
-						if let Some(texture_name) = &front_sidedef.bottom_texture_name {
-							let texture = &textures[texture_name];
-							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
-							let (ref mut vertices, ref mut indices) =
-								meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
-
-							let tex_v = if linedef.flags & 16 != 0 {
-								[
-									front_sector.ceiling_height - spans[2],
-									front_sector.ceiling_height - spans[3],
-								]
-							} else {
-								[0.0, spans[2] - spans[3]]
-							};
-
-							push_wall(
-								vertices,
-								indices,
-								[start_vertex, end_vertex],
-								[spans[2], spans[3]],
-								tex_v,
-								texture_offset,
-								dimensions,
-								texture.1 as f32,
-								(front_sector.light_level as f32) / 255.0,
-							);
-						}
-
-						// Middle section
-						if let Some(texture_name) = &front_sidedef.middle_texture_name {
-							let texture = &textures[texture_name];
-							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
-							let (ref mut vertices, ref mut indices) =
-								meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
-
-							let tex_v = if linedef.flags & 16 != 0 {
-								[spans[2] - spans[1], 0.0]
-							} else {
-								[0.0, spans[1] - spans[2]]
-							};
-
-							push_wall(
-								vertices,
-								indices,
-								[start_vertex, end_vertex],
-								[spans[1], spans[2]],
-								tex_v,
-								texture_offset,
-								dimensions,
-								texture.1 as f32,
-								(front_sector.light_level as f32) / 255.0,
-							);
-						}
+					let tex_v = if linedef.flags & 16 != 0 {
+						[spans[2] - spans[1], 0.0]
 					} else {
-						if let Some(texture_name) = &front_sidedef.middle_texture_name {
-							let texture = &textures[texture_name];
-							let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
-							let (ref mut vertices, ref mut indices) =
-								meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
+						[0.0, spans[1] - spans[2]]
+					};
 
-							let tex_v = if linedef.flags & 16 != 0 {
-								[front_sector.floor_height - front_sector.ceiling_height, 0.0]
-							} else {
-								[0.0, front_sector.ceiling_height - front_sector.floor_height]
-							};
+					push_wall(
+						vertices,
+						indices,
+						linedef_vertices,
+						[spans[1], spans[2]],
+						tex_v,
+						front_sidedef.texture_offset,
+						dimensions,
+						texture.1 as f32,
+						(front_sector.light_level as f32) / 255.0,
+					);
+				}
+			} else {
+				if let Some(texture_name) = &front_sidedef.middle_texture_name {
+					let texture = &textures[texture_name];
+					let dimensions = texture_storage.get(&texture.0).unwrap().dimensions();
+					let (ref mut vertices, ref mut indices) =
+						meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
 
-							push_wall(
-								vertices,
-								indices,
-								[start_vertex, end_vertex],
-								[front_sector.ceiling_height, front_sector.floor_height],
-								tex_v,
-								texture_offset,
-								dimensions,
-								texture.1 as f32,
-								(front_sector.light_level as f32) / 255.0,
-							);
-						}
-					}
+					let tex_v = if linedef.flags & 16 != 0 {
+						[front_sector.floor_height - front_sector.ceiling_height, 0.0]
+					} else {
+						[0.0, front_sector.ceiling_height - front_sector.floor_height]
+					};
+
+					push_wall(
+						vertices,
+						indices,
+						linedef_vertices,
+						[front_sector.ceiling_height, front_sector.floor_height],
+						tex_v,
+						front_sidedef.texture_offset,
+						dimensions,
+						texture.1 as f32,
+						(front_sector.light_level as f32) / 255.0,
+					);
 				}
 			}
 		}
+	}
 
-		let sector = &sector.unwrap();
+	// Flats
+	for ssect in &map.gl_ssect {
+		let sector = &map.sectors[ssect.sector_index];
+		let segs = &map.gl_segs[ssect.first_seg_index..ssect.first_seg_index + ssect.seg_count];
 
 		// Floor
-		let iter = segs.iter().rev().map(|seg| match seg.vertex_indices[0] {
-			EitherVertex::Normal(index) => &map.vertexes[index],
-			EitherVertex::GL(index) => &map.gl_vert[index],
-		});
+		let iter = segs.iter().rev().map(|seg| seg.vertices[0]);
 
 		if sector.floor_flat_name == "F_SKY1" {
 			push_sky_flat(&mut sky_mesh.0, &mut sky_mesh.1, iter, sector.floor_height);
@@ -379,10 +359,7 @@ fn make_meshes(
 		};
 
 		// Ceiling
-		let iter = segs.iter().map(|seg| match seg.vertex_indices[0] {
-			EitherVertex::Normal(index) => &map.vertexes[index],
-			EitherVertex::GL(index) => &map.gl_vert[index],
-		});
+		let iter = segs.iter().map(|seg| seg.vertices[0]);
 
 		if sector.ceiling_flat_name == "F_SKY1" {
 			push_sky_flat(
