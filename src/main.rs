@@ -227,7 +227,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 							doom::map::DoomMapFormat.import(name, &mut *loader)?
 						};
 						let sky = doom::map_textures::load_sky("SKY1", &world)?;
-						let map_model = doom::map::make_model(&map_data, sky, &world)?;
+						let map_model = doom::map_meshes::make_model(&map_data, sky, &world)?;
 						world
 							.create_entity()
 							.with(doom::components::MapComponent { map_model })

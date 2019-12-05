@@ -158,10 +158,7 @@ pub fn load_sky(name: &str, world: &World) -> Result<AssetHandle<Texture>, Box<d
 
 	let surface = TextureFormat.import(name, &mut *loader)?;
 
-	let size = Vector2::new(
-		surface.width(),
-		surface.height(),
-	);
+	let size = Vector2::new(surface.width(), surface.height());
 
 	// Find the corresponding Vulkan pixel format
 	let format = match surface.pixel_format_enum() {

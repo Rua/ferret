@@ -2,7 +2,7 @@ use crate::{
 	assets::AssetStorage,
 	doom::{
 		components::{MapComponent, TransformComponent},
-		map::{SkyVertexData, VertexData},
+		map_meshes::{SkyVertexData, VertexData},
 	},
 	geometry::Angle,
 	renderer::{
@@ -112,7 +112,9 @@ impl RenderSystem {
 
 		// Create uniform buffer and descriptor sets pool for matrices
 		let matrix_buffer_pool =
-			CpuBufferPool::<map_normal_vert::ty::UniformBufferObject>::uniform_buffer(video.device().clone());
+			CpuBufferPool::<map_normal_vert::ty::UniformBufferObject>::uniform_buffer(
+				video.device().clone(),
+			);
 
 		let descriptors = [Some(DescriptorDesc {
 			ty: DescriptorDescTy::Buffer(DescriptorBufferDesc {
