@@ -1,6 +1,6 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
-	doom::map::{DoomMap, Side},
+	doom::map::{DoomMap, LinedefFlags, Side},
 	renderer::{
 		mesh::{Mesh, MeshBuilder},
 		texture::Texture,
@@ -54,7 +54,7 @@ pub fn make_model(
 	world: &World,
 ) -> Result<MapModel, Box<dyn Error>> {
 	// Load textures and flats
-	let [textures, flats] = super::map_textures::load_textures(map_data, world)?;
+	let [textures, flats] = super::textures::load_textures(map_data, world)?;
 
 	// Create meshes
 	let (meshes, sky_mesh) = make_meshes(map_data, &textures, &flats, world)?;
@@ -229,7 +229,7 @@ fn make_meshes(
 					let (ref mut vertices, ref mut indices) =
 						meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
 
-					let tex_v = if linedef.flags & 8 != 0 {
+					let tex_v = if linedef.flags.contains(LinedefFlags::DONTPEGTOP) {
 						[0.0, spans[0] - spans[1]]
 					} else {
 						[spans[1] - spans[0], 0.0]
@@ -255,7 +255,7 @@ fn make_meshes(
 					let (ref mut vertices, ref mut indices) =
 						meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
 
-					let tex_v = if linedef.flags & 16 != 0 {
+					let tex_v = if linedef.flags.contains(LinedefFlags::DONTPEGBOTTOM) {
 						[
 							front_sector.ceiling_height - spans[2],
 							front_sector.ceiling_height - spans[3],
@@ -284,7 +284,7 @@ fn make_meshes(
 					let (ref mut vertices, ref mut indices) =
 						meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
 
-					let tex_v = if linedef.flags & 16 != 0 {
+					let tex_v = if linedef.flags.contains(LinedefFlags::DONTPEGBOTTOM) {
 						[spans[2] - spans[1], 0.0]
 					} else {
 						[0.0, spans[1] - spans[2]]
@@ -309,7 +309,7 @@ fn make_meshes(
 					let (ref mut vertices, ref mut indices) =
 						meshes.entry(texture.0.clone()).or_insert((vec![], vec![]));
 
-					let tex_v = if linedef.flags & 16 != 0 {
+					let tex_v = if linedef.flags.contains(LinedefFlags::DONTPEGBOTTOM) {
 						[front_sector.floor_height - front_sector.ceiling_height, 0.0]
 					} else {
 						[0.0, front_sector.ceiling_height - front_sector.floor_height]

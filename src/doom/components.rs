@@ -1,5 +1,5 @@
 //use crate::assets::AssetHandle;
-use crate::{doom::map_meshes::MapModel, geometry::Angle};
+use crate::{doom::map::meshes::MapModel, geometry::Angle};
 use nalgebra::Vector3;
 use specs::{Component, HashMapStorage, VecStorage};
 

@@ -1,15 +1,19 @@
+pub mod lumps;
+pub mod meshes;
+pub mod textures;
+
 use crate::{
 	assets::{AssetFormat, DataSource},
 	doom::{
 		components::{SpawnPointComponent, TransformComponent},
 		entities::{DOOMEDNUMS, ENTITIES},
+        map::lumps::{LinedefFlags, MapDataFormat, ThingFlags, ThingsFormat as RawThingsFormat},
 	},
 	geometry::{Angle, BoundingBox2},
 };
 use nalgebra::{Vector2, Vector3};
-use serde::Deserialize;
 use specs::{world::Builder, Entity, Join, ReadStorage, SystemData, World, WorldExt};
-use std::{error::Error, io::Cursor, str};
+use std::{error::Error, str};
 
 pub fn spawn_map_entities(
 	things: Vec<Thing>,
@@ -82,7 +86,7 @@ pub struct Thing {
 	pub position: Vector2<f32>,
 	pub angle: f32,
 	pub doomednum: u16,
-	pub flags: u16,
+	pub flags: ThingFlags,
 }
 
 pub struct ThingsFormat;
@@ -143,15 +147,15 @@ impl AssetFormat for DoomMapFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>> {
-		let raw_map = RawDoomMapFormat.import(name, source)?;
+		let map_data = MapDataFormat.import(name, source)?;
 
-		let vertexes = raw_map
+		let vertexes = map_data
 			.vertexes
 			.iter()
 			.map(|raw| Ok(Vector2::new(raw[0] as f32, raw[1] as f32)))
 			.collect::<Result<Vec<Vector2<f32>>, Box<dyn Error>>>()?;
 
-		let sectors = raw_map
+		let sectors = map_data
 			.sectors
 			.iter()
 			.map(|raw| {
@@ -171,7 +175,7 @@ impl AssetFormat for DoomMapFormat {
 			})
 			.collect::<Result<Vec<Sector>, Box<dyn Error>>>()?;
 
-		let sidedefs = raw_map
+		let sidedefs = map_data
 			.sidedefs
 			.iter()
 			.map(|raw| {
@@ -212,7 +216,7 @@ impl AssetFormat for DoomMapFormat {
 			})
 			.collect::<Result<Vec<Sidedef>, Box<dyn Error>>>()?;
 
-		let linedefs = raw_map
+		let linedefs = map_data
 			.linedefs
 			.iter()
 			.map(|raw| {
@@ -240,7 +244,7 @@ impl AssetFormat for DoomMapFormat {
 			})
 			.collect::<Result<Vec<Linedef>, Box<dyn Error>>>()?;
 
-		let gl_vert = raw_map
+		let gl_vert = map_data
 			.gl_vert
 			.iter()
 			.map(|raw| {
@@ -251,7 +255,7 @@ impl AssetFormat for DoomMapFormat {
 			})
 			.collect::<Result<Vec<Vector2<f32>>, Box<dyn Error>>>()?;
 
-		let gl_segs = raw_map
+		let gl_segs = map_data
 			.gl_segs
 			.iter()
 			.map(|raw| {
@@ -300,7 +304,7 @@ impl AssetFormat for DoomMapFormat {
 			})
 			.collect::<Result<Vec<GLSeg>, Box<dyn Error>>>()?;
 
-		let gl_ssect = raw_map
+		let gl_ssect = map_data
 			.gl_ssect
 			.iter()
 			.enumerate()
@@ -324,7 +328,7 @@ impl AssetFormat for DoomMapFormat {
 			})
 			.collect::<Result<Vec<GLSSect>, Box<dyn Error>>>()?;
 
-		let gl_nodes = raw_map
+		let gl_nodes = map_data
 			.gl_nodes
 			.iter()
 			.map(|raw| {
@@ -381,7 +385,7 @@ impl AssetFormat for DoomMapFormat {
 #[derive(Clone, Debug)]
 pub struct Linedef {
 	pub vertices: [Vector2<f32>; 2],
-	pub flags: u16,
+	pub flags: LinedefFlags,
 	pub special_type: u16,
 	pub sector_tag: u16,
 	pub sidedef_indices: [Option<usize>; 2],
@@ -466,406 +470,4 @@ impl GLNode {
 pub enum ChildNode {
 	Leaf(usize),
 	Branch(usize),
-}
-
-// Raw Doom lump format
-
-pub struct RawDoomMap {
-	pub linedefs: Vec<RawLinedef>,
-	pub sidedefs: Vec<RawSidedef>,
-	pub vertexes: Vec<[i16; 2]>,
-	pub sectors: Vec<RawSector>,
-	pub gl_vert: Vec<[i32; 2]>,
-	pub gl_segs: Vec<RawGLSeg>,
-	pub gl_ssect: Vec<RawGLSSect>,
-	pub gl_nodes: Vec<RawGLNode>,
-}
-
-struct RawDoomMapFormat;
-
-impl AssetFormat for RawDoomMapFormat {
-	type Asset = RawDoomMap;
-
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
-		let gl_name = format!("GL_{}", name);
-
-		let linedefs = RawLinedefsFormat.import(name, source)?;
-		let sidedefs = RawSidedefsFormat.import(name, source)?;
-		let vertexes = RawVertexesFormat.import(name, source)?;
-		let sectors = RawSectorsFormat.import(name, source)?;
-
-		let gl_vert = RawGLVertFormat.import(&gl_name, source)?;
-		let gl_segs = RawGLSegsFormat.import(&gl_name, source)?;
-		let gl_ssect = RawGLSSectFormat.import(&gl_name, source)?;
-		let gl_nodes = RawGLNodesFormat.import(&gl_name, source)?;
-
-		// Verify all the cross-references
-
-		for (i, sidedef) in sidedefs.iter().enumerate() {
-			let index = sidedef.sector_index;
-
-			if index as usize >= sectors.len() {
-				return Err(Box::from(format!(
-					"Sidedef {} has invalid sector index {}",
-					i, index
-				)));
-			}
-		}
-
-		for (i, linedef) in linedefs.iter().enumerate() {
-			for index in linedef.sidedef_indices.iter().copied() {
-				if index != 0xFFFF && index as usize >= sidedefs.len() {
-					return Err(Box::from(format!(
-						"Linedef {} has invalid sidedef index {}",
-						i, index
-					)));
-				}
-			}
-		}
-
-		for (i, seg) in gl_segs.iter().enumerate() {
-			let index = seg.linedef_index;
-			if index != 0xFFFF && index as usize >= linedefs.len() {
-				return Err(Box::from(format!(
-					"Seg {} has invalid linedef index {}",
-					i, seg.linedef_index
-				)));
-			}
-
-			for index in seg.vertex_indices.iter().copied() {
-				if (index & 0x8000) != 0 {
-					let index = index & 0x7FFF;
-
-					if index as usize >= gl_vert.len() {
-						return Err(Box::from(format!(
-							"Seg {} has invalid vertex index {}",
-							i, index
-						)));
-					}
-				} else {
-					if index as usize >= vertexes.len() {
-						return Err(Box::from(format!(
-							"Seg {} has invalid vertex index {}",
-							i, index
-						)));
-					}
-				};
-			}
-
-			let index = seg.partner_seg_index;
-			if index != 0xFFFF && index as usize >= gl_segs.len() {
-				return Err(Box::from(format!(
-					"Seg {} has invalid partner seg index {}",
-					i, index
-				)));
-			}
-		}
-
-		for (i, ssect) in gl_ssect.iter().enumerate() {
-			let index = ssect.first_seg_index;
-			if index as usize >= gl_segs.len() {
-				return Err(Box::from(format!(
-					"Subsector {} has invalid first seg index {}",
-					i, ssect.first_seg_index
-				)));
-			}
-
-			if ssect.first_seg_index as usize + ssect.seg_count as usize > gl_segs.len() {
-				return Err(Box::from(format!(
-					"Subsector {} has overflowing seg count {}",
-					i, ssect.seg_count,
-				)));
-			}
-		}
-
-		for (i, node) in gl_nodes.iter().enumerate() {
-			for child in node.child_indices.iter().copied() {
-				if (child & 0x8000) != 0 {
-					let index = child & 0x7FFF;
-					if index as usize >= gl_ssect.len() {
-						return Err(Box::from(format!(
-							"Node {} has invalid subsector index {}",
-							i, index
-						)));
-					}
-				} else {
-					let index = child;
-					if index as usize >= gl_nodes.len() {
-						return Err(Box::from(format!(
-							"Node {} has invalid child node index {}",
-							i, index
-						)));
-					}
-				}
-			}
-		}
-
-		Ok(RawDoomMap {
-			linedefs,
-			sidedefs,
-			vertexes,
-			sectors,
-			gl_vert,
-			gl_segs,
-			gl_ssect,
-			gl_nodes,
-		})
-	}
-}
-
-#[derive(Deserialize)]
-pub struct RawThing {
-	pub position: [i16; 2],
-	pub angle: i16,
-	pub doomednum: u16,
-	pub flags: u16,
-}
-
-pub struct RawThingsFormat;
-
-impl AssetFormat for RawThingsFormat {
-	type Asset = Vec<RawThing>;
-
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
-		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 1))?);
-		let mut ret = Vec::new();
-
-		while (data.position() as usize) < data.get_ref().len() {
-			ret.push(bincode::deserialize_from(&mut data)?);
-		}
-
-		Ok(ret)
-	}
-}
-
-#[derive(Deserialize)]
-pub struct RawLinedef {
-	pub vertex_indices: [u16; 2],
-	pub flags: u16,
-	pub special_type: u16,
-	pub sector_tag: u16,
-	pub sidedef_indices: [u16; 2],
-}
-
-pub struct RawLinedefsFormat;
-
-impl AssetFormat for RawLinedefsFormat {
-	type Asset = Vec<RawLinedef>;
-
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
-		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 2))?);
-		let mut ret = Vec::new();
-
-		while (data.position() as usize) < data.get_ref().len() {
-			ret.push(bincode::deserialize_from(&mut data)?);
-		}
-
-		Ok(ret)
-	}
-}
-
-#[derive(Deserialize)]
-pub struct RawSidedef {
-	pub texture_offset: [i16; 2],
-	pub top_texture_name: [u8; 8],
-	pub bottom_texture_name: [u8; 8],
-	pub middle_texture_name: [u8; 8],
-	pub sector_index: u16,
-}
-
-pub struct RawSidedefsFormat;
-
-impl AssetFormat for RawSidedefsFormat {
-	type Asset = Vec<RawSidedef>;
-
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
-		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 3))?);
-		let mut ret = Vec::new();
-
-		while (data.position() as usize) < data.get_ref().len() {
-			ret.push(bincode::deserialize_from(&mut data)?);
-		}
-
-		Ok(ret)
-	}
-}
-
-pub struct RawVertexesFormat;
-
-impl AssetFormat for RawVertexesFormat {
-	type Asset = Vec<[i16; 2]>;
-
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
-		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 4))?);
-		let mut ret = Vec::new();
-
-		while (data.position() as usize) < data.get_ref().len() {
-			ret.push(bincode::deserialize_from(&mut data)?);
-		}
-
-		Ok(ret)
-	}
-}
-
-#[derive(Deserialize)]
-pub struct RawSector {
-	pub floor_height: i16,
-	pub ceiling_height: i16,
-	pub floor_flat_name: [u8; 8],
-	pub ceiling_flat_name: [u8; 8],
-	pub light_level: u16,
-	pub special_type: u16,
-	pub sector_tag: u16,
-}
-
-pub struct RawSectorsFormat;
-
-impl AssetFormat for RawSectorsFormat {
-	type Asset = Vec<RawSector>;
-
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
-		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 8))?);
-		let mut ret = Vec::new();
-
-		while (data.position() as usize) < data.get_ref().len() {
-			ret.push(bincode::deserialize_from(&mut data)?);
-		}
-
-		Ok(ret)
-	}
-}
-
-pub struct RawGLVertFormat;
-
-impl AssetFormat for RawGLVertFormat {
-	type Asset = Vec<[i32; 2]>;
-
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
-		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 1))?);
-
-		if bincode::deserialize_from::<_, [u8; 4]>(&mut data)? != *b"gNd2" {
-			return Err(Box::from("No gNd2 signature found"));
-		}
-
-		let mut ret = Vec::new();
-
-		while (data.position() as usize) < data.get_ref().len() {
-			ret.push(bincode::deserialize_from(&mut data)?);
-		}
-
-		Ok(ret)
-	}
-}
-
-#[derive(Deserialize)]
-pub struct RawGLSeg {
-	pub vertex_indices: [u16; 2],
-	pub linedef_index: u16,
-	pub side: u16,
-	pub partner_seg_index: u16,
-}
-
-pub struct RawGLSegsFormat;
-
-impl AssetFormat for RawGLSegsFormat {
-	type Asset = Vec<RawGLSeg>;
-
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
-		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 2))?);
-		let mut ret = Vec::new();
-
-		while (data.position() as usize) < data.get_ref().len() {
-			ret.push(bincode::deserialize_from(&mut data)?);
-		}
-
-		Ok(ret)
-	}
-}
-
-#[derive(Deserialize)]
-pub struct RawGLSSect {
-	pub seg_count: u16,
-	pub first_seg_index: u16,
-}
-
-pub struct RawGLSSectFormat;
-
-impl AssetFormat for RawGLSSectFormat {
-	type Asset = Vec<RawGLSSect>;
-
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
-		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 3))?);
-		let mut ret = Vec::new();
-
-		while (data.position() as usize) < data.get_ref().len() {
-			ret.push(bincode::deserialize_from(&mut data)?);
-		}
-
-		Ok(ret)
-	}
-}
-
-#[derive(Deserialize)]
-pub struct RawGLNode {
-	partition_point: [i16; 2],
-	partition_dir: [i16; 2],
-	child_bboxes: [[i16; 4]; 2],
-	child_indices: [u16; 2],
-}
-
-pub struct RawGLNodesFormat;
-
-impl AssetFormat for RawGLNodesFormat {
-	type Asset = Vec<RawGLNode>;
-
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
-		let mut data = Cursor::new(source.load(&format!("{}/+{}", name, 4))?);
-		let mut ret = Vec::new();
-
-		while (data.position() as usize) < data.get_ref().len() {
-			ret.push(bincode::deserialize_from(&mut data)?);
-		}
-
-		Ok(ret)
-	}
 }

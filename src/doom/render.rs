@@ -2,7 +2,7 @@ use crate::{
 	assets::AssetStorage,
 	doom::{
 		components::{MapComponent, TransformComponent},
-		map_meshes::{SkyVertexData, VertexData},
+		map::meshes::{SkyVertexData, VertexData},
 	},
 	geometry::Angle,
 	renderer::{

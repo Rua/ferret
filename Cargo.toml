@@ -8,6 +8,7 @@ edition = "2018"
 [dependencies]
 alto = "3.0"
 bincode = "1.2"
+bitflags = "1.2"
 colored = "1.8"
 derivative = "1.0"
 lazy_static = "1.3"
