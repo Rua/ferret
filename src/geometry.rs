@@ -208,3 +208,20 @@ pub fn angles_to_axes(angles: Vector3<Angle>) -> [Vector3<f32>; 3] {
 		),
 	]
 }
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Side {
+	Right = 0,
+	Left = 1,
+}
+
+impl std::ops::Not for Side {
+	type Output = Side;
+
+	fn not(self) -> Self::Output {
+		match self {
+			Side::Right => Side::Left,
+			Side::Left => Side::Right,
+		}
+	}
+}

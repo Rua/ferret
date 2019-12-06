@@ -7,9 +7,9 @@ use crate::{
 	doom::{
 		components::{SpawnPointComponent, TransformComponent},
 		entities::{DOOMEDNUMS, ENTITIES},
-        map::lumps::{LinedefFlags, MapDataFormat, ThingFlags, ThingsFormat as RawThingsFormat},
+		map::lumps::{ChildNode, EitherVertex, LinedefFlags, MapDataFormat, Thing},
 	},
-	geometry::{Angle, BoundingBox2},
+	geometry::{BoundingBox2, Side},
 };
 use nalgebra::{Vector2, Vector3};
 use specs::{world::Builder, Entity, Join, ReadStorage, SystemData, World, WorldExt};
@@ -29,7 +29,7 @@ pub fn spawn_map_entities(
 			.create_entity()
 			.with(TransformComponent {
 				position: Vector3::new(thing.position[0], thing.position[1], z),
-				rotation: Vector3::new(0.into(), 0.into(), Angle::from_degrees(thing.angle as f64)),
+				rotation: Vector3::new(0.into(), 0.into(), thing.angle),
 			})
 			.build();
 
@@ -82,39 +82,6 @@ pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error>> {
 }
 
 #[derive(Clone, Debug)]
-pub struct Thing {
-	pub position: Vector2<f32>,
-	pub angle: f32,
-	pub doomednum: u16,
-	pub flags: ThingFlags,
-}
-
-pub struct ThingsFormat;
-
-impl AssetFormat for ThingsFormat {
-	type Asset = Vec<Thing>;
-
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
-		RawThingsFormat
-			.import(name, source)?
-			.into_iter()
-			.map(|raw| {
-				Ok(Thing {
-					position: Vector2::new(raw.position[0] as f32, raw.position[1] as f32),
-					angle: raw.angle as f32,
-					doomednum: raw.doomednum,
-					flags: raw.flags,
-				})
-			})
-			.collect()
-	}
-}
-
-#[derive(Clone, Debug)]
 pub struct DoomMap {
 	pub linedefs: Vec<Linedef>,
 	pub sidedefs: Vec<Sidedef>,
@@ -149,69 +116,34 @@ impl AssetFormat for DoomMapFormat {
 	) -> Result<Self::Asset, Box<dyn Error>> {
 		let map_data = MapDataFormat.import(name, source)?;
 
-		let vertexes = map_data
-			.vertexes
-			.iter()
-			.map(|raw| Ok(Vector2::new(raw[0] as f32, raw[1] as f32)))
-			.collect::<Result<Vec<Vector2<f32>>, Box<dyn Error>>>()?;
+		let vertexes = map_data.vertexes;
 
 		let sectors = map_data
 			.sectors
-			.iter()
+			.into_iter()
 			.map(|raw| {
 				Ok(Sector {
-					floor_height: raw.floor_height as f32,
-					ceiling_height: raw.ceiling_height as f32,
-					floor_flat_name: String::from(
-						str::from_utf8(&raw.floor_flat_name)?.trim_end_matches('\0'),
-					),
-					ceiling_flat_name: String::from(
-						str::from_utf8(&raw.ceiling_flat_name)?.trim_end_matches('\0'),
-					),
+					floor_height: raw.floor_height,
+					ceiling_height: raw.ceiling_height,
+					floor_flat_name: raw.floor_flat_name,
+					ceiling_flat_name: raw.ceiling_flat_name,
 					light_level: raw.light_level,
-					special_type: raw.light_level,
-					sector_tag: raw.light_level,
+					special_type: raw.special_type,
+					sector_tag: raw.special_type,
 				})
 			})
 			.collect::<Result<Vec<Sector>, Box<dyn Error>>>()?;
 
 		let sidedefs = map_data
 			.sidedefs
-			.iter()
+			.into_iter()
 			.map(|raw| {
 				Ok(Sidedef {
-					texture_offset: Vector2::new(
-						raw.texture_offset[0] as f32,
-						raw.texture_offset[1] as f32,
-					),
-					top_texture_name: {
-						if raw.top_texture_name == *b"-\0\0\0\0\0\0\0" {
-							None
-						} else {
-							Some(String::from(
-								str::from_utf8(&raw.top_texture_name)?.trim_end_matches('\0'),
-							))
-						}
-					},
-					bottom_texture_name: {
-						if raw.bottom_texture_name == *b"-\0\0\0\0\0\0\0" {
-							None
-						} else {
-							Some(String::from(
-								str::from_utf8(&raw.bottom_texture_name)?.trim_end_matches('\0'),
-							))
-						}
-					},
-					middle_texture_name: {
-						if raw.middle_texture_name == *b"-\0\0\0\0\0\0\0" {
-							None
-						} else {
-							Some(String::from(
-								str::from_utf8(&raw.middle_texture_name)?.trim_end_matches('\0'),
-							))
-						}
-					},
-					sector_index: raw.sector_index as usize,
+					texture_offset: raw.texture_offset,
+					top_texture_name: raw.top_texture_name,
+					bottom_texture_name: raw.bottom_texture_name,
+					middle_texture_name: raw.middle_texture_name,
+					sector_index: raw.sector_index,
 				})
 			})
 			.collect::<Result<Vec<Sidedef>, Box<dyn Error>>>()?;
@@ -222,38 +154,18 @@ impl AssetFormat for DoomMapFormat {
 			.map(|raw| {
 				Ok(Linedef {
 					vertices: [
-						vertexes[raw.vertex_indices[0] as usize],
-						vertexes[raw.vertex_indices[1] as usize],
+						vertexes[raw.vertex_indices[0]],
+						vertexes[raw.vertex_indices[1]],
 					],
 					flags: raw.flags,
 					special_type: raw.special_type,
 					sector_tag: raw.sector_tag,
-					sidedef_indices: [
-						if raw.sidedef_indices[0] == 0xFFFF {
-							None
-						} else {
-							Some(raw.sidedef_indices[0] as usize)
-						},
-						if raw.sidedef_indices[1] == 0xFFFF {
-							None
-						} else {
-							Some(raw.sidedef_indices[1] as usize)
-						},
-					],
+					sidedef_indices: raw.sidedef_indices,
 				})
 			})
 			.collect::<Result<Vec<Linedef>, Box<dyn Error>>>()?;
 
-		let gl_vert = map_data
-			.gl_vert
-			.iter()
-			.map(|raw| {
-				Ok(Vector2::new(
-					raw[0] as f32 / 65536.0,
-					raw[1] as f32 / 65536.0,
-				))
-			})
-			.collect::<Result<Vec<Vector2<f32>>, Box<dyn Error>>>()?;
+		let gl_vert = map_data.gl_vert;
 
 		let gl_segs = map_data
 			.gl_segs
@@ -261,45 +173,22 @@ impl AssetFormat for DoomMapFormat {
 			.map(|raw| {
 				Ok(GLSeg {
 					vertices: [
-						if (raw.vertex_indices[0] & 0x8000) != 0 {
-							gl_vert[raw.vertex_indices[0] as usize & 0x7FFF]
-						} else {
-							vertexes[raw.vertex_indices[0] as usize]
+						match raw.vertex_indices[0] {
+							EitherVertex::GL(index) => gl_vert[index],
+							EitherVertex::Normal(index) => vertexes[index],
 						},
-						if (raw.vertex_indices[1] & 0x8000) != 0 {
-							gl_vert[raw.vertex_indices[1] as usize & 0x7FFF]
-						} else {
-							vertexes[raw.vertex_indices[1] as usize]
+						match raw.vertex_indices[1] {
+							EitherVertex::GL(index) => gl_vert[index],
+							EitherVertex::Normal(index) => vertexes[index],
 						},
 					],
-					linedef_index: {
-						if raw.linedef_index == 0xFFFF {
-							None
-						} else {
-							Some(raw.linedef_index as usize)
-						}
+					linedef_index: raw.linedef_index,
+					sidedef_index: match raw.linedef_index {
+						None => None,
+						Some(index) => linedefs[index].sidedef_indices[raw.linedef_side as usize],
 					},
-					sidedef_index: {
-						if raw.linedef_index != 0xFFFF {
-							linedefs[raw.linedef_index as usize].sidedef_indices[raw.side as usize]
-						} else {
-							None
-						}
-					},
-					side: {
-						if raw.side != 0 {
-							Side::Left
-						} else {
-							Side::Right
-						}
-					},
-					partner_seg_index: {
-						if raw.partner_seg_index == 0xFFFF {
-							None
-						} else {
-							Some(raw.partner_seg_index as usize)
-						}
-					},
+					linedef_side: raw.linedef_side,
+					partner_seg_index: raw.partner_seg_index,
 				})
 			})
 			.collect::<Result<Vec<GLSeg>, Box<dyn Error>>>()?;
@@ -330,43 +219,13 @@ impl AssetFormat for DoomMapFormat {
 
 		let gl_nodes = map_data
 			.gl_nodes
-			.iter()
+			.into_iter()
 			.map(|raw| {
 				Ok(GLNode {
-					partition_point: Vector2::new(
-						raw.partition_point[0] as f32,
-						raw.partition_point[1] as f32,
-					),
-					partition_dir: Vector2::new(
-						raw.partition_dir[0] as f32,
-						raw.partition_dir[1] as f32,
-					),
-					bbox: [
-						BoundingBox2::from_extents(
-							raw.child_bboxes[0][0] as f32,
-							raw.child_bboxes[0][1] as f32,
-							raw.child_bboxes[0][2] as f32,
-							raw.child_bboxes[0][3] as f32,
-						),
-						BoundingBox2::from_extents(
-							raw.child_bboxes[1][0] as f32,
-							raw.child_bboxes[1][1] as f32,
-							raw.child_bboxes[1][2] as f32,
-							raw.child_bboxes[1][3] as f32,
-						),
-					],
-					child_indices: [
-						if (raw.child_indices[0] & 0x8000) != 0 {
-							ChildNode::Leaf(raw.child_indices[0] as usize & 0x7FFF)
-						} else {
-							ChildNode::Branch(raw.child_indices[0] as usize)
-						},
-						if (raw.child_indices[1] & 0x8000) != 0 {
-							ChildNode::Leaf(raw.child_indices[1] as usize & 0x7FFF)
-						} else {
-							ChildNode::Branch(raw.child_indices[1] as usize)
-						},
-					],
+					partition_point: raw.partition_point,
+					partition_dir: raw.partition_dir,
+					child_bboxes: raw.child_bboxes,
+					child_indices: raw.child_indices,
 				})
 			})
 			.collect::<Result<Vec<GLNode>, Box<dyn Error>>>()?;
@@ -406,7 +265,7 @@ pub struct Sector {
 	pub ceiling_height: f32,
 	pub floor_flat_name: String,
 	pub ceiling_flat_name: String,
-	pub light_level: u16,
+	pub light_level: f32,
 	pub special_type: u16,
 	pub sector_tag: u16,
 }
@@ -416,25 +275,8 @@ pub struct GLSeg {
 	pub vertices: [Vector2<f32>; 2],
 	pub linedef_index: Option<usize>,
 	pub sidedef_index: Option<usize>,
-	pub side: Side,
+	pub linedef_side: Side,
 	pub partner_seg_index: Option<usize>,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Side {
-	Right = 0,
-	Left = 1,
-}
-
-impl std::ops::Not for Side {
-	type Output = Side;
-
-	fn not(self) -> Self::Output {
-		match self {
-			Side::Right => Side::Left,
-			Side::Left => Side::Right,
-		}
-	}
 }
 
 #[derive(Clone, Debug)]
@@ -448,7 +290,7 @@ pub struct GLSSect {
 pub struct GLNode {
 	pub partition_point: Vector2<f32>,
 	pub partition_dir: Vector2<f32>,
-	pub bbox: [BoundingBox2; 2],
+	pub child_bboxes: [BoundingBox2; 2],
 	pub child_indices: [ChildNode; 2],
 }
 
@@ -464,10 +306,4 @@ impl GLNode {
 			Side::Left
 		}
 	}
-}
-
-#[derive(Copy, Clone, Debug)]
-pub enum ChildNode {
-	Leaf(usize),
-	Branch(usize),
 }

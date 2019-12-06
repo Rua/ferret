@@ -244,7 +244,7 @@ fn make_meshes(
 						front_sidedef.texture_offset,
 						dimensions,
 						texture.1 as f32,
-						(front_sector.light_level as f32) / 255.0,
+						front_sector.light_level,
 					);
 				}
 
@@ -273,7 +273,7 @@ fn make_meshes(
 						front_sidedef.texture_offset,
 						dimensions,
 						texture.1 as f32,
-						(front_sector.light_level as f32) / 255.0,
+						front_sector.light_level,
 					);
 				}
 
@@ -299,7 +299,7 @@ fn make_meshes(
 						front_sidedef.texture_offset,
 						dimensions,
 						texture.1 as f32,
-						(front_sector.light_level as f32) / 255.0,
+						front_sector.light_level,
 					);
 				}
 			} else {
@@ -324,7 +324,7 @@ fn make_meshes(
 						front_sidedef.texture_offset,
 						dimensions,
 						texture.1 as f32,
-						(front_sector.light_level as f32) / 255.0,
+						front_sector.light_level,
 					);
 				}
 			}
@@ -354,7 +354,7 @@ fn make_meshes(
 				sector.floor_height,
 				dimensions,
 				flat.1 as f32,
-				(sector.light_level as f32) / 255.0,
+				sector.light_level,
 			);
 		};
 
@@ -381,7 +381,7 @@ fn make_meshes(
 				sector.ceiling_height,
 				dimensions,
 				flat.1 as f32,
-				(sector.light_level as f32) / 255.0,
+				sector.light_level,
 			);
 		}
 	}

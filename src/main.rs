@@ -235,7 +235,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 						let things = {
 							let mut loader = world.fetch_mut::<doom::wad::WadLoader>();
-							doom::map::ThingsFormat.import(name, &mut *loader)?
+							doom::map::lumps::ThingsFormat.import(name, &mut *loader)?
 						};
 						doom::map::spawn_map_entities(things, &mut world, &map_data)?;
 						let entity = doom::map::spawn_player(&mut world)?;
