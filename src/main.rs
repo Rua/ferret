@@ -224,10 +224,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 						let map_data = {
 							let mut loader = world.fetch_mut::<doom::wad::WadLoader>();
-							doom::map::DoomMapFormat.import(name, &mut *loader)?
+							doom::map::lumps::MapDataFormat.import(name, &mut *loader)?
 						};
+
+						let map = doom::map::build_map(map_data, &world)?;
 						let sky = doom::map::textures::load_sky("SKY1", &world)?;
-						let map_model = doom::map::meshes::make_model(&map_data, sky, &world)?;
+						let map_model = doom::map::meshes::make_model(&map, sky, &world)?;
 						world
 							.create_entity()
 							.with(doom::components::MapComponent { map_model })
@@ -237,7 +239,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 							let mut loader = world.fetch_mut::<doom::wad::WadLoader>();
 							doom::map::lumps::ThingsFormat.import(name, &mut *loader)?
 						};
-						doom::map::spawn_map_entities(things, &mut world, &map_data)?;
+						doom::map::spawn_map_entities(things, &mut world, &map)?;
 						let entity = doom::map::spawn_player(&mut world)?;
 						world.insert(entity);
 					}

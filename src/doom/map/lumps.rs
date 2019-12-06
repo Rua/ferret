@@ -353,8 +353,8 @@ impl AssetFormat for VertexesFormat {
 pub struct Sector {
 	pub floor_height: f32,
 	pub ceiling_height: f32,
-	pub floor_flat_name: String,
-	pub ceiling_flat_name: String,
+	pub floor_flat_name: Option<String>,
+	pub ceiling_flat_name: Option<String>,
 	pub light_level: f32,
 	pub special_type: u16,
 	pub sector_tag: u16,
@@ -379,13 +379,19 @@ impl AssetFormat for SectorsFormat {
 			ret.push(Sector {
 				floor_height: reader.read_i16::<LE>()? as f32,
 				ceiling_height: reader.read_i16::<LE>()? as f32,
-				floor_flat_name: {
+				floor_flat_name: match {
 					reader.read_exact(&mut buf)?;
-					std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned()
+					&buf
+				} {
+					b"-\0\0\0\0\0\0\0" => None,
+					x => Some(std::str::from_utf8(x)?.trim_end_matches('\0').to_owned()),
 				},
-				ceiling_flat_name: {
+				ceiling_flat_name: match {
 					reader.read_exact(&mut buf)?;
-					std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned()
+					&buf
+				} {
+					b"-\0\0\0\0\0\0\0" => None,
+					x => Some(std::str::from_utf8(x)?.trim_end_matches('\0').to_owned()),
 				},
 				light_level: reader.read_u16::<LE>()? as f32 / 255.0,
 				special_type: reader.read_u16::<LE>()?,

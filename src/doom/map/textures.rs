@@ -2,7 +2,7 @@ use crate::{
 	assets::{AssetFormat, AssetHandle, AssetStorage, DataSource},
 	doom::{
 		image::{ImageFormat, PaletteFormat},
-		map::DoomMap,
+		map::lumps::MapData,
 		wad::WadLoader,
 	},
 	renderer::{
@@ -23,7 +23,7 @@ use std::{
 use vulkano::{format::Format, image::Dimensions};
 
 pub fn load_textures(
-	map: &DoomMap,
+	map_data: &MapData,
 	world: &World,
 ) -> Result<[HashMap<String, (AssetHandle<Texture>, usize)>; 2], Box<dyn Error>> {
 	let (mut loader, mut texture_storage, video) = <(
@@ -33,7 +33,7 @@ pub fn load_textures(
 	)>::fetch(world);
 
 	let mut texture_names: HashSet<&str> = HashSet::new();
-	for sidedef in &map.sidedefs {
+	for sidedef in map_data.sidedefs.iter() {
 		if let Some(name) = &sidedef.top_texture_name {
 			texture_names.insert(name.as_str());
 		}
@@ -48,9 +48,14 @@ pub fn load_textures(
 	}
 
 	let mut flat_names: HashSet<&str> = HashSet::new();
-	for sector in &map.sectors {
-		flat_names.insert(sector.floor_flat_name.as_str());
-		flat_names.insert(sector.ceiling_flat_name.as_str());
+	for sector in &map_data.sectors {
+		if let Some(name) = &sector.floor_flat_name {
+			flat_names.insert(name.as_str());
+		}
+
+		if let Some(name) = &sector.ceiling_flat_name {
+			flat_names.insert(name.as_str());
+		}
 	}
 
 	// Load all the surfaces, while storing name-index mapping
