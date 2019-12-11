@@ -3,9 +3,9 @@ pub mod meshes;
 pub mod textures;
 
 use crate::{
-	assets::AssetHandle,
+	assets::{AssetHandle, AssetStorage},
 	doom::{
-		components::{SpawnPointComponent, TransformComponent},
+		components::{SpawnPoint, Transform},
 		entities::{DOOMEDNUMS, ENTITIES},
 		map::lumps::{ChildNode, EitherVertex, LinedefFlags, MapData, Thing},
 	},
@@ -13,27 +13,15 @@ use crate::{
 	renderer::texture::Texture,
 };
 use nalgebra::{Vector2, Vector3};
-use specs::{world::Builder, Entity, Join, ReadStorage, SystemData, World, WorldExt};
+use specs::{world::Builder, Entity, Join, ReadExpect, ReadStorage, SystemData, World, WorldExt};
 use std::error::Error;
 
 pub fn spawn_map_entities(
 	things: Vec<Thing>,
 	world: &mut World,
-	map_data: &DoomMap,
+	map: &AssetHandle<Map>,
 ) -> Result<(), Box<dyn Error>> {
 	for thing in things {
-		let ssect = map_data.find_subsector(thing.position);
-		let sector = &map_data.sectors[ssect.sector_index];
-		let z = sector.floor_height;
-
-		let entity = world
-			.create_entity()
-			.with(TransformComponent {
-				position: Vector3::new(thing.position[0], thing.position[1], z),
-				rotation: Vector3::new(0.into(), 0.into(), thing.angle),
-			})
-			.build();
-
 		let name = DOOMEDNUMS
 			.get(&thing.doomednum)
 			.ok_or(
@@ -42,6 +30,22 @@ pub fn spawn_map_entities(
 		let spawn_function = ENTITIES
 			.get(name)
 			.ok_or(Box::from(format!("Entity not found: {}", name)) as Box<dyn Error>)?;
+
+		let z = {
+			let storage = world.system_data::<ReadExpect<AssetStorage<Map>>>();
+			let map = storage.get(&map).unwrap();
+			let ssect = map.find_subsector(thing.position);
+			let sector = &map.sectors[ssect.sector_index];
+			sector.floor_height
+		};
+
+		let entity = world
+			.create_entity()
+			.with(Transform {
+				position: Vector3::new(thing.position[0], thing.position[1], z),
+				rotation: Vector3::new(0.into(), 0.into(), thing.angle),
+			})
+			.build();
 
 		spawn_function(entity, world);
 	}
@@ -52,8 +56,8 @@ pub fn spawn_map_entities(
 pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error>> {
 	let (position, rotation) = {
 		let (transform, spawn_point) = <(
-			ReadStorage<TransformComponent>,
-			ReadStorage<SpawnPointComponent>,
+			ReadStorage<Transform>,
+			ReadStorage<SpawnPoint>,
 		)>::fetch(world);
 
 		(&transform, &spawn_point)
@@ -70,7 +74,7 @@ pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error>> {
 
 	let entity = world
 		.create_entity()
-		.with(TransformComponent { position, rotation })
+		.with(Transform { position, rotation })
 		.build();
 
 	let spawn_function = ENTITIES
@@ -83,13 +87,13 @@ pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error>> {
 }
 
 #[derive(Clone, Debug)]
-pub struct DoomMap {
+pub struct Map {
 	pub linedefs: Vec<Linedef>,
 	pub sectors: Vec<Sector>,
 	pub gl_nodes: Vec<GLNode>,
 }
 
-impl DoomMap {
+impl Map {
 	fn find_subsector(&self, point: Vector2<f32>) -> &LeafNode {
 		let mut node = 0;
 
@@ -102,7 +106,7 @@ impl DoomMap {
 	}
 }
 
-pub fn build_map(map_data: MapData, world: &World) -> Result<DoomMap, Box<dyn Error>> {
+pub fn build_map(map_data: MapData, world: &World) -> Result<Map, Box<dyn Error>> {
 	let [textures, flats] = textures::load_textures(&map_data, world)?;
 
 	let MapData {
@@ -269,7 +273,7 @@ pub fn build_map(map_data: MapData, world: &World) -> Result<DoomMap, Box<dyn Er
 		}))
 	}
 
-	Ok(DoomMap {
+	Ok(Map {
 		linedefs,
 		sectors,
 		gl_nodes,

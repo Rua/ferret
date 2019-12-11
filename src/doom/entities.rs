@@ -1,29 +1,29 @@
 #![allow(unused_variables)]
-use crate::doom::components::SpawnPointComponent;
-use specs::{Entity, SystemData, World, WriteStorage};
+use crate::doom::components::SpawnPoint;
+use specs::{Entity, World, WriteStorage};
 use std::collections::HashMap;
 
 lazy_static! {
 	pub(crate) static ref ENTITIES: HashMap<&'static str, (fn(Entity, &World))> = {
 		let mut m: HashMap<&'static str, (fn(Entity, &World))> = HashMap::new();
 		m.insert("SPAWN1", |entity, world| {
-			<WriteStorage<SpawnPointComponent>>::fetch(world)
-				.insert(entity, SpawnPointComponent { player_num: 1 })
+			world.system_data::<WriteStorage<SpawnPoint>>()
+				.insert(entity, SpawnPoint { player_num: 1 })
 				.unwrap();
 		});
 		m.insert("SPAWN2", |entity, world| {
-			<WriteStorage<SpawnPointComponent>>::fetch(world)
-				.insert(entity, SpawnPointComponent { player_num: 2 })
+			world.system_data::<WriteStorage<SpawnPoint>>()
+				.insert(entity, SpawnPoint { player_num: 2 })
 				.unwrap();
 		});
 		m.insert("SPAWN3", |entity, world| {
-			<WriteStorage<SpawnPointComponent>>::fetch(world)
-				.insert(entity, SpawnPointComponent { player_num: 3 })
+			world.system_data::<WriteStorage<SpawnPoint>>()
+				.insert(entity, SpawnPoint { player_num: 3 })
 				.unwrap();
 		});
 		m.insert("SPAWN4", |entity, world| {
-			<WriteStorage<SpawnPointComponent>>::fetch(world)
-				.insert(entity, SpawnPointComponent { player_num: 4 })
+			world.system_data::<WriteStorage<SpawnPoint>>()
+				.insert(entity, SpawnPoint { player_num: 4 })
 				.unwrap();
 		});
 		m.insert("DMSPAWN", |entity, world| {});

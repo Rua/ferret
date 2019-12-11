@@ -1,6 +1,6 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
-	doom::map::{DoomMap, LinedefFlags, Side, TextureType},
+	doom::map::{Map, LinedefFlags, Side, TextureType},
 	renderer::{
 		mesh::{Mesh, MeshBuilder},
 		texture::Texture,
@@ -49,12 +49,12 @@ pub struct SkyVertexData {
 impl_vertex!(SkyVertexData, in_position);
 
 pub fn make_model(
-	map_data: &DoomMap,
+	map: &Map,
 	sky: AssetHandle<Texture>,
 	world: &World,
 ) -> Result<MapModel, Box<dyn Error>> {
 	// Create meshes
-	let (meshes, sky_mesh) = make_meshes(map_data, world)?;
+	let (meshes, sky_mesh) = make_meshes(map, world)?;
 	let mut ret = Vec::new();
 
 	let video = world.fetch::<Video>();
@@ -80,7 +80,7 @@ pub fn make_model(
 }
 
 fn make_meshes(
-	map: &DoomMap,
+	map: &Map,
 	world: &World,
 ) -> Result<
 	(

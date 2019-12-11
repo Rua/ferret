@@ -1,5 +1,5 @@
 //use crate::assets::AssetHandle;
-use crate::{doom::map::meshes::MapModel, geometry::Angle};
+use crate::{assets::AssetHandle, doom::map::{Map, meshes::MapModel}, geometry::Angle};
 use nalgebra::Vector3;
 use specs::{Component, HashMapStorage, VecStorage};
 
@@ -11,26 +11,27 @@ pub struct SpriteRenderComponent {
 
 #[derive(Component)]
 #[storage(HashMapStorage)]
-pub struct MapComponent {
+pub struct MapDynamic {
 	pub map_model: MapModel,
+	pub map: AssetHandle<Map>,
 }
 
 #[derive(Component)]
 #[storage(HashMapStorage)]
-pub struct SpawnPointComponent {
+pub struct SpawnPoint {
 	pub player_num: usize,
 }
 
 #[derive(Clone, Component, Copy, Debug)]
 #[storage(VecStorage)]
-pub struct TransformComponent {
+pub struct Transform {
 	pub position: Vector3<f32>,
 	pub rotation: Vector3<Angle>,
 }
 
-impl Default for TransformComponent {
-	fn default() -> TransformComponent {
-		TransformComponent {
+impl Default for Transform {
+	fn default() -> Transform {
+		Transform {
 			position: Vector3::new(0.0, 0.0, 0.0),
 			rotation: Vector3::new(0.into(), 0.into(), 0.into()),
 		}

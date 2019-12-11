@@ -125,14 +125,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 	//println!("{}", serde_json::to_string(&bindings)?);
 
 	let mut world = World::new();
-	world.register::<doom::components::MapComponent>();
-	world.register::<doom::components::SpawnPointComponent>();
-	world.register::<doom::components::TransformComponent>();
+	world.register::<doom::components::MapDynamic>();
+	world.register::<doom::components::SpawnPoint>();
+	world.register::<doom::components::Transform>();
 	world.insert(video);
 	world.insert(audio);
 	world.insert(loader);
 	world.insert(InputState::new());
 	world.insert(bindings);
+	world.insert(AssetStorage::<doom::map::Map>::new());
 	world.insert(AssetStorage::<Texture>::new());
 	world.insert(FRAME_TIME);
 
@@ -223,23 +224,36 @@ fn main() -> Result<(), Box<dyn Error>> {
 						info!("Loading map {}...", name);
 
 						let map_data = {
-							let mut loader = world.fetch_mut::<doom::wad::WadLoader>();
+							let mut loader = world.system_data::<WriteExpect<doom::wad::WadLoader>>();
 							doom::map::lumps::MapDataFormat.import(name, &mut *loader)?
 						};
 
-						let map = doom::map::build_map(map_data, &world)?;
+						let handle = {
+							let map = doom::map::build_map(map_data, &world)?;
+							let mut storage = world.system_data::<WriteExpect<AssetStorage<doom::map::Map>>>();
+							storage.insert(map)
+						};
+
 						let sky = doom::map::textures::load_sky("SKY1", &world)?;
-						let map_model = doom::map::meshes::make_model(&map, sky, &world)?;
+						let map_model = {
+							let storage = world.system_data::<ReadExpect<AssetStorage<doom::map::Map>>>();
+							let map = storage.get(&handle).unwrap();
+							doom::map::meshes::make_model(&map, sky, &world)?
+						};
+
 						world
 							.create_entity()
-							.with(doom::components::MapComponent { map_model })
+							.with(doom::components::MapDynamic {
+								map: handle.clone(),
+								map_model,
+							})
 							.build();
 
 						let things = {
-							let mut loader = world.fetch_mut::<doom::wad::WadLoader>();
+							let mut loader = world.system_data::<WriteExpect<doom::wad::WadLoader>>();
 							doom::map::lumps::ThingsFormat.import(name, &mut *loader)?
 						};
-						doom::map::spawn_map_entities(things, &mut world, &map)?;
+						doom::map::spawn_map_entities(things, &mut world, &handle)?;
 						let entity = doom::map::spawn_player(&mut world)?;
 						world.insert(entity);
 					}

@@ -1,7 +1,7 @@
 use crate::{
 	assets::AssetStorage,
 	doom::{
-		components::{MapComponent, TransformComponent},
+		components::{MapDynamic, Transform},
 		map::meshes::{SkyVertexData, VertexData},
 	},
 	geometry::Angle,
@@ -213,8 +213,8 @@ impl RenderSystem {
 
 		// Set up matrices
 		let (entity, transform_storage) =
-			<(ReadExpect<Entity>, ReadStorage<TransformComponent>)>::fetch(world);
-		let TransformComponent {
+			<(ReadExpect<Entity>, ReadStorage<Transform>)>::fetch(world);
+		let Transform {
 			mut position,
 			rotation,
 		} = *transform_storage.get(*entity).unwrap();
@@ -391,7 +391,7 @@ impl MapRenderSystem {
 		rotation: Vector3<Angle>,
 	) -> Result<AutoCommandBufferBuilder, Box<dyn Error>> {
 		let (texture_storage, map_component) =
-			<(ReadExpect<AssetStorage<Texture>>, ReadStorage<MapComponent>)>::fetch(world);
+			world.system_data::<(ReadExpect<AssetStorage<Texture>>, ReadStorage<MapDynamic>)>();
 
 		for component in map_component.join() {
 			// Draw the normal parts of the map

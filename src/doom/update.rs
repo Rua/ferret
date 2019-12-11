@@ -1,6 +1,6 @@
 use crate::{
 	doom::{
-		components::TransformComponent,
+		components::Transform,
 		input::{Action, Axis},
 	},
 	input::{Bindings, InputState},
@@ -16,7 +16,7 @@ impl<'a> RunNow<'a> for UpdateSystem {
 	fn run_now(&mut self, world: &'a World) {
 		let (entity, mut transform_storage, input_state, bindings) = <(
 			ReadExpect<Entity>,
-			WriteStorage<TransformComponent>,
+			WriteStorage<Transform>,
 			ReadExpect<InputState>,
 			ReadExpect<Bindings<Action, Axis>>,
 		)>::fetch(world);
