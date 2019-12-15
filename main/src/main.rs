@@ -30,7 +30,9 @@ use crate::{
 	logger::Logger,
 	renderer::{texture::Texture, video::Video},
 };
-use specs::{world::Builder, DispatcherBuilder, ReadExpect, RunNow, SystemData, World, WorldExt, WriteExpect};
+use specs::{
+	world::Builder, DispatcherBuilder, ReadExpect, RunNow, SystemData, World, WorldExt, WriteExpect,
+};
 use std::{
 	error::Error,
 	sync::mpsc,
@@ -137,8 +139,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 	let mut asset_dispatcher = DispatcherBuilder::new()
 		.with(AssetMaintenanceSystem::<doom::map::Map>::new(), "", &[])
-	    .with(AssetMaintenanceSystem::<Texture>::new(), "", &[])
-	    .build();
+		.with(AssetMaintenanceSystem::<Texture>::new(), "", &[])
+		.build();
 
 	asset_dispatcher.setup(&mut world);
 
@@ -229,19 +231,22 @@ fn main() -> Result<(), Box<dyn Error>> {
 						info!("Loading map {}...", name);
 
 						let map_data = {
-							let mut loader = world.system_data::<WriteExpect<doom::wad::WadLoader>>();
+							let mut loader =
+								world.system_data::<WriteExpect<doom::wad::WadLoader>>();
 							doom::map::lumps::MapDataFormat.import(name, &mut *loader)?
 						};
 
 						let handle = {
 							let map = doom::map::build_map(map_data, &world)?;
-							let mut storage = world.system_data::<WriteExpect<AssetStorage<doom::map::Map>>>();
+							let mut storage =
+								world.system_data::<WriteExpect<AssetStorage<doom::map::Map>>>();
 							storage.insert(map)
 						};
 
 						let sky = doom::map::textures::load_sky("SKY1", &world)?;
 						let map_model = {
-							let storage = world.system_data::<ReadExpect<AssetStorage<doom::map::Map>>>();
+							let storage =
+								world.system_data::<ReadExpect<AssetStorage<doom::map::Map>>>();
 							let map = storage.get(&handle).unwrap();
 							doom::map::meshes::make_model(&map, sky, &world)?
 						};
@@ -255,7 +260,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 							.build();
 
 						let things = {
-							let mut loader = world.system_data::<WriteExpect<doom::wad::WadLoader>>();
+							let mut loader =
+								world.system_data::<WriteExpect<doom::wad::WadLoader>>();
 							doom::map::lumps::ThingsFormat.import(name, &mut *loader)?
 						};
 						doom::map::spawn_map_entities(things, &mut world, &handle)?;

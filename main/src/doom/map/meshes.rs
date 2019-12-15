@@ -1,6 +1,6 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
-	doom::map::{Map, LinedefFlags, Side, TextureType},
+	doom::map::{LinedefFlags, Map, Side, TextureType},
 	renderer::{
 		mesh::{Mesh, MeshBuilder},
 		texture::Texture,

@@ -1,3 +1,5 @@
+use crate::assets::Asset;
+use derive::Asset;
 use std::sync::Arc;
 use vulkano::{
 	buffer::{cpu_access::CpuAccessibleBuffer, BufferUsage},
@@ -7,6 +9,7 @@ use vulkano::{
 	sync::GpuFuture,
 };
 
+#[derive(Asset)]
 pub struct Texture {
 	inner: Arc<dyn ImageViewAccess + Send + Sync>,
 }

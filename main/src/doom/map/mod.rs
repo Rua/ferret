@@ -3,7 +3,7 @@ pub mod meshes;
 pub mod textures;
 
 use crate::{
-	assets::{AssetHandle, AssetStorage},
+	assets::{Asset, AssetHandle, AssetStorage},
 	doom::{
 		components::{SpawnPoint, Transform},
 		entities::{DOOMEDNUMS, ENTITIES},
@@ -12,6 +12,7 @@ use crate::{
 	geometry::{BoundingBox2, Side},
 	renderer::texture::Texture,
 };
+use derive::Asset;
 use nalgebra::{Vector2, Vector3};
 use specs::{world::Builder, Entity, Join, ReadExpect, ReadStorage, SystemData, World, WorldExt};
 use std::error::Error;
@@ -55,10 +56,8 @@ pub fn spawn_map_entities(
 
 pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error>> {
 	let (position, rotation) = {
-		let (transform, spawn_point) = <(
-			ReadStorage<Transform>,
-			ReadStorage<SpawnPoint>,
-		)>::fetch(world);
+		let (transform, spawn_point) =
+			<(ReadStorage<Transform>, ReadStorage<SpawnPoint>)>::fetch(world);
 
 		(&transform, &spawn_point)
 			.join()
@@ -86,7 +85,7 @@ pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error>> {
 	Ok(entity)
 }
 
-#[derive(Clone, Debug)]
+#[derive(Asset, Clone, Debug)]
 pub struct Map {
 	pub linedefs: Vec<Linedef>,
 	pub sectors: Vec<Sector>,

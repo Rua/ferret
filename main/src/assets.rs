@@ -1,4 +1,5 @@
 use derivative::Derivative;
+use specs::{System, Write};
 use std::{
 	clone::Clone,
 	collections::{HashMap, VecDeque},
@@ -6,7 +7,9 @@ use std::{
 	marker::PhantomData,
 	sync::Arc,
 };
-use specs::{System, Write};
+
+pub trait Asset: Send + Sync + 'static {
+}
 
 #[derive(Derivative)]
 #[derivative(
@@ -36,8 +39,8 @@ impl<A> AssetHandle<A> {
 	}
 
 	fn is_unique(&self) -> bool {
-        Arc::strong_count(&self.id) == 1
-    }
+		Arc::strong_count(&self.id) == 1
+	}
 }
 
 /*#[derive(Derivative)]
@@ -86,14 +89,14 @@ impl<A> AssetCache<A> {
 
 #[derive(Derivative)]
 #[derivative(Default(bound = ""))]
-pub struct AssetStorage<A> {
+pub struct AssetStorage<A: Asset> {
 	assets: HashMap<u32, A>,
 	handles: Vec<AssetHandle<A>>,
 	highest_id: u32,
 	unused_ids: VecDeque<u32>,
 }
 
-impl<A> AssetStorage<A> {
+impl<A: Asset> AssetStorage<A> {
 	pub fn get(&self, handle: &AssetHandle<A>) -> Option<&A> {
 		self.assets.get(&handle.id())
 	}
@@ -132,7 +135,11 @@ impl<A> AssetStorage<A> {
 		let count = old_len - self.handles.len();
 
 		if count > 0 {
-			trace!("Freed {} assets of type {}", count, std::any::type_name::<A>());
+			trace!(
+				"Freed {} assets of type {}",
+				count,
+				std::any::type_name::<A>()
+			);
 		}
 	}
 }
@@ -160,7 +167,7 @@ impl<A> AssetMaintenanceSystem<A> {
 	}
 }
 
-impl<'a, A:  Send + Sync + 'static> System<'a> for AssetMaintenanceSystem<A> {
+impl<'a, A: Asset> System<'a> for AssetMaintenanceSystem<A> {
 	type SystemData = Write<'a, AssetStorage<A>>;
 
 	fn run(&mut self, mut storage: Self::SystemData) {
