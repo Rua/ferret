@@ -24,13 +24,13 @@ mod renderer;
 mod stdin;
 
 use crate::{
-	assets::{AssetFormat, AssetStorage},
+	assets::{AssetFormat, AssetMaintenanceSystem, AssetStorage},
 	audio::Audio,
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
 	logger::Logger,
 	renderer::{texture::Texture, video::Video},
 };
-use specs::{world::Builder, ReadExpect, RunNow, SystemData, World, WorldExt, WriteExpect};
+use specs::{world::Builder, DispatcherBuilder, ReadExpect, RunNow, SystemData, World, WorldExt, WriteExpect};
 use std::{
 	error::Error,
 	sync::mpsc,
@@ -133,9 +133,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 	world.insert(loader);
 	world.insert(InputState::new());
 	world.insert(bindings);
-	world.insert(AssetStorage::<doom::map::Map>::new());
-	world.insert(AssetStorage::<Texture>::new());
 	world.insert(FRAME_TIME);
+
+	let mut asset_dispatcher = DispatcherBuilder::new()
+		.with(AssetMaintenanceSystem::<doom::map::Map>::new(), "", &[])
+	    .with(AssetMaintenanceSystem::<Texture>::new(), "", &[])
+	    .build();
+
+	asset_dispatcher.setup(&mut world);
 
 	let mut render_system = doom::render::RenderSystem::new(&world)?;
 
@@ -284,6 +289,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 		// Draw frame
 		render_system.run_now(&world);
+
+		// Maintain assets
+		asset_dispatcher.dispatch(&world);
 	}
 
 	Ok(())

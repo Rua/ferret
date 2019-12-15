@@ -1,13 +1,12 @@
 use derivative::Derivative;
 use std::{
-	borrow::Borrow,
 	clone::Clone,
 	collections::{HashMap, VecDeque},
 	error::Error,
-	hash::Hash,
 	marker::PhantomData,
-	sync::{Arc, Weak},
+	sync::Arc,
 };
+use specs::{System, Write};
 
 #[derive(Derivative)]
 #[derivative(
@@ -23,21 +22,25 @@ pub struct AssetHandle<A: ?Sized> {
 }
 
 impl<A> AssetHandle<A> {
-	pub fn downgrade(&self) -> WeakHandle<A> {
+	/*pub fn downgrade(&self) -> WeakHandle<A> {
 		let id = Arc::downgrade(&self.id);
 
 		WeakHandle {
 			id,
 			marker: PhantomData,
 		}
-	}
+	}*/
 
 	fn id(&self) -> u32 {
 		*self.id.as_ref()
 	}
+
+	fn is_unique(&self) -> bool {
+        Arc::strong_count(&self.id) == 1
+    }
 }
 
-#[derive(Derivative)]
+/*#[derive(Derivative)]
 #[derivative(Clone(bound = ""))]
 pub struct WeakHandle<A> {
 	id: Weak<u32>,
@@ -51,7 +54,7 @@ impl<A> WeakHandle<A> {
 			marker: PhantomData,
 		})
 	}
-}
+}*/
 
 /*#[derive(Derivative)]
 #[derivative(Default(bound = ""))]
@@ -91,10 +94,6 @@ pub struct AssetStorage<A> {
 }
 
 impl<A> AssetStorage<A> {
-	pub fn new() -> Self {
-		Default::default()
-	}
-
 	pub fn get(&self, handle: &AssetHandle<A>) -> Option<&A> {
 		self.assets.get(&handle.id())
 	}
@@ -114,6 +113,28 @@ impl<A> AssetStorage<A> {
 		self.handles.push(handle.clone());
 		handle
 	}
+
+	pub fn maintain(&mut self) {
+		let assets = &mut self.assets;
+		let unused_ids = &mut self.unused_ids;
+		let old_len = self.handles.len();
+
+		self.handles.retain(|handle| {
+			if handle.is_unique() {
+				assets.remove(&handle.id());
+				unused_ids.push_back(handle.id());
+				false
+			} else {
+				true
+			}
+		});
+
+		let count = old_len - self.handles.len();
+
+		if count > 0 {
+			trace!("Freed {} assets of type {}", count, std::any::type_name::<A>());
+		}
+	}
 }
 
 pub trait DataSource {
@@ -129,4 +150,20 @@ pub trait AssetFormat {
 		name: &str,
 		source: &mut impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error>>;
+}
+
+pub struct AssetMaintenanceSystem<A>(PhantomData<A>);
+
+impl<A> AssetMaintenanceSystem<A> {
+	pub fn new() -> AssetMaintenanceSystem<A> {
+		AssetMaintenanceSystem(PhantomData)
+	}
+}
+
+impl<'a, A:  Send + Sync + 'static> System<'a> for AssetMaintenanceSystem<A> {
+	type SystemData = Write<'a, AssetStorage<A>>;
+
+	fn run(&mut self, mut storage: Self::SystemData) {
+		storage.maintain();
+	}
 }
