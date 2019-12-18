@@ -230,19 +230,23 @@ fn main() -> Result<(), Box<dyn Error>> {
 						let name = &args[1];
 						info!("Loading map {}...", name);
 
-						let map_data = {
-							let mut loader =
-								world.system_data::<WriteExpect<doom::wad::WadLoader>>();
-							doom::map::lumps::MapDataFormat.import(name, &mut *loader)?
+						// Load map
+						let handle = {
+							let (mut loader, mut storage) = world.system_data::<(
+								WriteExpect<doom::wad::WadLoader>,
+								WriteExpect<AssetStorage<doom::map::Map>>,
+							)>();
+							storage.load(name, doom::map::lumps::MapDataFormat, &mut *loader)?
 						};
 
-						let handle = {
-							let map = doom::map::build_map(map_data, &world)?;
+						{
 							let mut storage =
 								world.system_data::<WriteExpect<AssetStorage<doom::map::Map>>>();
-							storage.insert(map)
-						};
 
+							storage.build_waiting(|data| doom::map::build_map(data, &world));
+						}
+
+						// Generate model
 						let sky = doom::map::textures::load_sky("SKY1", &world)?;
 						let map_model = {
 							let storage =
@@ -251,6 +255,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 							doom::map::meshes::make_model(&map, sky, &world)?
 						};
 
+						// Create world entity
 						world
 							.create_entity()
 							.with(doom::components::MapDynamic {
@@ -259,6 +264,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 							})
 							.build();
 
+						// Spawn things
 						let things = {
 							let mut loader =
 								world.system_data::<WriteExpect<doom::wad::WadLoader>>();

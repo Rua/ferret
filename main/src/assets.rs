@@ -9,6 +9,7 @@ use std::{
 };
 
 pub trait Asset: Send + Sync + 'static {
+	type Data: Send + Sync + 'static;
 }
 
 #[derive(Derivative)]
@@ -91,6 +92,7 @@ impl<A> AssetCache<A> {
 #[derivative(Default(bound = ""))]
 pub struct AssetStorage<A: Asset> {
 	assets: HashMap<u32, A>,
+	unbuilt: Vec<(AssetHandle<A>, A::Data)>,
 	handles: Vec<AssetHandle<A>>,
 	highest_id: u32,
 	unused_ids: VecDeque<u32>,
@@ -101,23 +103,38 @@ impl<A: Asset> AssetStorage<A> {
 		self.assets.get(&handle.id())
 	}
 
-	pub fn insert(&mut self, asset: A) -> AssetHandle<A> {
+	fn allocate_handle(&mut self) -> AssetHandle<A> {
 		let id = self.unused_ids.pop_front().unwrap_or_else(|| {
 			self.highest_id += 1;
 			self.highest_id
 		});
 
-		self.assets.insert(id, asset);
-		let handle = AssetHandle {
+		AssetHandle {
 			id: Arc::new(id),
 			marker: PhantomData,
-		};
+		}
+	}
 
+	pub fn insert(&mut self, asset: A) -> AssetHandle<A> {
+		let handle = self.allocate_handle();
+		self.assets.insert(handle.id(), asset);
 		self.handles.push(handle.clone());
 		handle
 	}
 
-	pub fn maintain(&mut self) {
+	pub fn load(
+		&mut self,
+		name: &str,
+		format: impl AssetFormat<Asset = A::Data>,
+		source: &mut impl DataSource,
+	) -> Result<AssetHandle<A>, Box<dyn Error>> {
+		let data = format.import(name, source)?;
+		let handle = self.allocate_handle();
+		self.unbuilt.push((handle.clone(), data));
+		Ok(handle)
+	}
+
+	pub fn clear_unused(&mut self) {
 		let assets = &mut self.assets;
 		let unused_ids = &mut self.unused_ids;
 		let old_len = self.handles.len();
@@ -140,6 +157,27 @@ impl<A: Asset> AssetStorage<A> {
 				count,
 				std::any::type_name::<A>()
 			);
+		}
+	}
+
+	pub fn build_waiting<F: FnMut(A::Data) -> Result<A, Box<dyn Error>>>(
+		&mut self,
+		mut build_func: F,
+	) {
+		for (handle, data) in self.unbuilt.drain(..) {
+			let asset = match build_func(data) {
+				Ok(asset) => {
+					trace!("Asset loaded successfully");
+					asset
+				}
+				Err(e) => {
+					error!("Asset could not be loaded: {}", e);
+					continue;
+				}
+			};
+
+			self.assets.insert(handle.id(), asset);
+			self.handles.push(handle);
 		}
 	}
 }
@@ -171,6 +209,6 @@ impl<'a, A: Asset> System<'a> for AssetMaintenanceSystem<A> {
 	type SystemData = Write<'a, AssetStorage<A>>;
 
 	fn run(&mut self, mut storage: Self::SystemData) {
-		storage.maintain();
+		storage.clear_unused();
 	}
 }

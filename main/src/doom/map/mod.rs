@@ -12,7 +12,6 @@ use crate::{
 	geometry::{BoundingBox2, Side},
 	renderer::texture::Texture,
 };
-use derive::Asset;
 use nalgebra::{Vector2, Vector3};
 use specs::{world::Builder, Entity, Join, ReadExpect, ReadStorage, SystemData, World, WorldExt};
 use std::error::Error;
@@ -85,11 +84,15 @@ pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error>> {
 	Ok(entity)
 }
 
-#[derive(Asset, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct Map {
 	pub linedefs: Vec<Linedef>,
 	pub sectors: Vec<Sector>,
 	pub gl_nodes: Vec<GLNode>,
+}
+
+impl Asset for Map {
+	type Data = MapData;
 }
 
 impl Map {
