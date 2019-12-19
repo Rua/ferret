@@ -4,8 +4,8 @@ use specs::{Entity, World, WriteStorage};
 use std::collections::HashMap;
 
 lazy_static! {
-	pub(crate) static ref ENTITIES: HashMap<&'static str, (fn(Entity, &World))> = {
-		let mut m: HashMap<&'static str, (fn(Entity, &World))> = HashMap::new();
+	pub(crate) static ref ENTITIES: HashMap<&'static str, fn(Entity, &World)> = {
+		let mut m: HashMap<&'static str, fn(Entity, &World)> = HashMap::new();
 		m.insert("SPAWN1", |entity, world| {
 			world
 				.system_data::<WriteStorage<SpawnPoint>>()

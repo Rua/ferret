@@ -133,7 +133,7 @@ pub fn build_map(map_data: MapData, world: &World) -> Result<Map, Box<dyn Error>
 					Some("F_SKY1") => TextureType::Sky,
 					Some(name) => {
 						let flat = flats[name].clone();
-						TextureType::Normal(flat.0, flat.1)
+						TextureType::Normal(flat)
 					}
 				},
 				ceiling_texture: match data.ceiling_flat_name.as_ref().map(String::as_str) {
@@ -141,7 +141,7 @@ pub fn build_map(map_data: MapData, world: &World) -> Result<Map, Box<dyn Error>
 					Some("F_SKY1") => TextureType::Sky,
 					Some(name) => {
 						let flat = flats[name].clone();
-						TextureType::Normal(flat.0, flat.1)
+						TextureType::Normal(flat)
 					}
 				},
 				light_level: data.light_level,
@@ -162,7 +162,7 @@ pub fn build_map(map_data: MapData, world: &World) -> Result<Map, Box<dyn Error>
 					Some("F_SKY1") => TextureType::Sky,
 					Some(name) => {
 						let flat = textures[name].clone();
-						TextureType::Normal(flat.0, flat.1)
+						TextureType::Normal(flat)
 					}
 				},
 				bottom_texture: data.bottom_texture_name.map(|name| textures[&name].clone()),
@@ -284,7 +284,7 @@ pub fn build_map(map_data: MapData, world: &World) -> Result<Map, Box<dyn Error>
 
 #[derive(Clone, Debug)]
 pub enum TextureType {
-	Normal(AssetHandle<Texture>, usize),
+	Normal(AssetHandle<Texture>),
 	Sky,
 	None,
 }
@@ -312,8 +312,8 @@ pub struct Linedef {
 pub struct Sidedef {
 	pub texture_offset: Vector2<f32>,
 	pub top_texture: TextureType,
-	pub bottom_texture: Option<(AssetHandle<Texture>, usize)>,
-	pub middle_texture: Option<(AssetHandle<Texture>, usize)>,
+	pub bottom_texture: Option<AssetHandle<Texture>>,
+	pub middle_texture: Option<AssetHandle<Texture>>,
 	pub sector_index: usize,
 }
 

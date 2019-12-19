@@ -10,28 +10,62 @@ use crate::{
 		video::Video,
 	},
 };
-use nalgebra::{Vector2, Vector3};
+use nalgebra::Vector2;
 use sdl2::{pixels::PixelFormatEnum, rect::Rect, surface::Surface};
 use serde::Deserialize;
 use specs::{ReadExpect, SystemData, World, Write};
 use std::{
-	collections::{hash_map::Entry, HashMap, HashSet},
+	collections::{HashMap, HashSet},
 	error::Error,
 	io::{Cursor, Read, Seek, SeekFrom},
 	str,
 };
 use vulkano::{format::Format, image::Dimensions};
 
-pub fn load_textures(
-	map_data: &MapData,
+pub fn load_textures_new<'a>(
+	names: impl IntoIterator<Item = &'a str>,
+	format: impl AssetFormat<Asset = Surface<'static>>,
 	world: &World,
-) -> Result<[HashMap<String, (AssetHandle<Texture>, usize)>; 2], Box<dyn Error>> {
+) -> Result<HashMap<String, AssetHandle<Texture>>, Box<dyn Error>> {
 	let (mut loader, mut texture_storage, video) = <(
 		Write<WadLoader>,
 		Write<AssetStorage<Texture>>,
 		ReadExpect<Video>,
 	)>::fetch(world);
 
+	names
+		.into_iter()
+		.map(|name| {
+			let surface = format.import(name, &mut *loader)?;
+
+			// Find the corresponding Vulkan pixel format
+			let format = match surface.pixel_format_enum() {
+				PixelFormatEnum::RGB24 => Format::R8G8B8Unorm,
+				PixelFormatEnum::BGR24 => Format::B8G8R8Unorm,
+				PixelFormatEnum::RGBA32 => Format::R8G8B8A8Unorm,
+				PixelFormatEnum::BGRA32 => Format::B8G8R8A8Unorm,
+				_ => unimplemented!(),
+			};
+
+			// Create the image
+			let (texture, future) = TextureBuilder::new()
+				.with_data(surface.without_lock().unwrap().to_owned(), format)
+				.with_dimensions(Dimensions::Dim2d {
+					width: surface.width(),
+					height: surface.height(),
+				})
+				.build(&video.queues().graphics)?;
+
+			let handle = texture_storage.insert(texture);
+			Ok((name.to_owned(), handle))
+		})
+		.collect()
+}
+
+pub fn load_textures(
+	map_data: &MapData,
+	world: &World,
+) -> Result<[HashMap<String, AssetHandle<Texture>>; 2], Box<dyn Error>> {
 	let mut texture_names: HashSet<&str> = HashSet::new();
 	for sidedef in map_data.sidedefs.iter() {
 		if let Some(name) = &sidedef.top_texture_name {
@@ -58,100 +92,14 @@ pub fn load_textures(
 		}
 	}
 
-	// Load all the surfaces, while storing name-index mapping
-	let mut surfaces: Vec<Surface> = Vec::with_capacity(texture_names.len() + flat_names.len());
-	let mut texture_names_indices: HashMap<&str, usize> =
-		HashMap::with_capacity(texture_names.len());
-	let mut flat_names_indices: HashMap<&str, usize> = HashMap::with_capacity(flat_names.len());
+	texture_names.remove("F_SKY1");
+	flat_names.remove("F_SKY1");
 
-	for name in texture_names {
-		let surface = TextureFormat.import(name, &mut *loader)?;
-		texture_names_indices.insert(name, surfaces.len());
-		surfaces.push(surface);
-	}
-
-	for name in flat_names {
-		let surface = FlatFormat.import(name, &mut *loader)?;
-		flat_names_indices.insert(name, surfaces.len());
-		surfaces.push(surface);
-	}
-
-	// Group surfaces by size in a HashMap, while keeping track of which goes where
-	let mut surfaces_by_size: HashMap<[u32; 2], Vec<Surface<'static>>> = HashMap::new();
-	let mut sizes_and_layers: Vec<([u32; 2], usize)> = Vec::with_capacity(surfaces.len());
-
-	for surface in surfaces {
-		let size = [surface.width(), surface.height()];
-		let entry = match surfaces_by_size.entry(size) {
-			Entry::Occupied(item) => item.into_mut(),
-			Entry::Vacant(item) => item.insert(Vec::new()),
-		};
-
-		sizes_and_layers.push((size, entry.len()));
-		entry.push(surface);
-	}
-
-	// Turn the grouped surfaces into textures
-	let textures_by_size = surfaces_by_size
-		.into_iter()
-		.map(|entry| {
-			let surfaces = entry.1;
-			let size = Vector3::new(
-				surfaces[0].width(),
-				surfaces[0].height(),
-				surfaces.len() as u32,
-			);
-
-			// Find the corresponding Vulkan pixel format
-			let format = match surfaces[0].pixel_format_enum() {
-				PixelFormatEnum::RGB24 => Format::R8G8B8Unorm,
-				PixelFormatEnum::BGR24 => Format::B8G8R8Unorm,
-				PixelFormatEnum::RGBA32 => Format::R8G8B8A8Unorm,
-				PixelFormatEnum::BGRA32 => Format::B8G8R8A8Unorm,
-				_ => unimplemented!(),
-			};
-
-			let layer_size = surfaces[0].without_lock().unwrap().len();
-			let mut data = vec![0u8; layer_size * surfaces.len()];
-
-			// Copy all the layers into the buffer
-			for (chunk, surface) in data.chunks_exact_mut(layer_size).zip(surfaces) {
-				chunk.copy_from_slice(surface.without_lock().unwrap());
-			}
-
-			// Create the image
-			let (texture, future) = TextureBuilder::new()
-				.with_data(data, format)
-				.with_dimensions(Dimensions::Dim2dArray {
-					width: size[0],
-					height: size[1],
-					array_layers: size[2],
-				})
-				.build(&video.queues().graphics)
-				.unwrap_or_else(|e| panic!("Error building texture: {}", e));
-
-			let handle = texture_storage.insert(texture);
-			(entry.0, handle)
-		})
-		.collect::<HashMap<[u32; 2], AssetHandle<Texture>>>();
-
-	// Now create the final Vec and return
-	let grouped_textures: Vec<(AssetHandle<Texture>, usize)> = sizes_and_layers
-		.into_iter()
-		.map(|entry| (textures_by_size[&entry.0].clone(), entry.1))
-		.collect();
+	let textures = load_textures_new(texture_names, TextureFormat, world)?;
+	let flats = load_textures_new(flat_names, FlatFormat, world)?;
 
 	// Recombine names with textures
-	Ok([
-		texture_names_indices
-			.into_iter()
-			.map(|entry| (entry.0.to_owned(), grouped_textures[entry.1].clone()))
-			.collect(),
-		flat_names_indices
-			.into_iter()
-			.map(|entry| (entry.0.to_owned(), grouped_textures[entry.1].clone()))
-			.collect(),
-	])
+	Ok([textures, flats])
 }
 
 pub fn load_sky(name: &str, world: &World) -> Result<AssetHandle<Texture>, Box<dyn Error>> {

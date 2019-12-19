@@ -37,7 +37,7 @@ impl MapModel {
 #[derive(Clone, Debug, Default)]
 pub struct VertexData {
 	pub in_position: [f32; 3],
-	pub in_texture_coord: [f32; 3],
+	pub in_texture_coord: [f32; 2],
 	pub in_lightlevel: f32,
 }
 impl_vertex!(VertexData, in_position, in_texture_coord, in_lightlevel);
@@ -98,7 +98,6 @@ fn make_meshes(
 		tex_v: [f32; 2],
 		offset: Vector2<f32>,
 		dimensions: Dimensions,
-		texture_layer: f32,
 		light_level: f32,
 	) {
 		let width = (vert_h[1] - vert_h[0]).norm();
@@ -111,7 +110,6 @@ fn make_meshes(
 				in_texture_coord: [
 					(offset[0] + width * h as f32) / dimensions.width() as f32,
 					(offset[1] + tex_v[v]) / dimensions.height() as f32,
-					texture_layer,
 				],
 				in_lightlevel: light_level,
 			});
@@ -142,7 +140,6 @@ fn make_meshes(
 		iter: impl Iterator<Item = &'a Vector2<f32>>,
 		vert_z: f32,
 		dimensions: Dimensions,
-		texture_layer: f32,
 		light_level: f32,
 	) {
 		indices.push(u32::max_value());
@@ -154,7 +151,6 @@ fn make_meshes(
 				in_texture_coord: [
 					vert[0] / dimensions.width() as f32,
 					vert[1] / dimensions.height() as f32,
-					texture_layer,
 				],
 				in_lightlevel: light_level,
 			});
@@ -218,7 +214,7 @@ fn make_meshes(
 							[spans[0], spans[1]],
 						);
 					}
-					TextureType::Normal(handle, layer) => {
+					TextureType::Normal(handle) => {
 						let dimensions = texture_storage.get(handle).unwrap().dimensions();
 						let (ref mut vertices, ref mut indices) =
 							meshes.entry(handle.clone()).or_insert((vec![], vec![]));
@@ -237,14 +233,13 @@ fn make_meshes(
 							tex_v,
 							front_sidedef.texture_offset,
 							dimensions,
-							*layer as f32,
 							front_sector.light_level,
 						);
 					}
 				}
 
 				// Bottom section
-				if let Some((handle, layer)) = &front_sidedef.bottom_texture {
+				if let Some(handle) = &front_sidedef.bottom_texture {
 					let dimensions = texture_storage.get(handle).unwrap().dimensions();
 					let (ref mut vertices, ref mut indices) =
 						meshes.entry(handle.clone()).or_insert((vec![], vec![]));
@@ -266,13 +261,12 @@ fn make_meshes(
 						tex_v,
 						front_sidedef.texture_offset,
 						dimensions,
-						*layer as f32,
 						front_sector.light_level,
 					);
 				}
 
 				// Middle section
-				if let Some((handle, layer)) = &front_sidedef.middle_texture {
+				if let Some(handle) = &front_sidedef.middle_texture {
 					let dimensions = texture_storage.get(handle).unwrap().dimensions();
 					let (ref mut vertices, ref mut indices) =
 						meshes.entry(handle.clone()).or_insert((vec![], vec![]));
@@ -291,12 +285,11 @@ fn make_meshes(
 						tex_v,
 						front_sidedef.texture_offset,
 						dimensions,
-						*layer as f32,
 						front_sector.light_level,
 					);
 				}
 			} else {
-				if let Some((handle, layer)) = &front_sidedef.middle_texture {
+				if let Some(handle) = &front_sidedef.middle_texture {
 					let dimensions = texture_storage.get(handle).unwrap().dimensions();
 					let (ref mut vertices, ref mut indices) =
 						meshes.entry(handle.clone()).or_insert((vec![], vec![]));
@@ -315,7 +308,6 @@ fn make_meshes(
 						tex_v,
 						front_sidedef.texture_offset,
 						dimensions,
-						*layer as f32,
 						front_sector.light_level,
 					);
 				}
@@ -334,7 +326,7 @@ fn make_meshes(
 				TextureType::Sky => {
 					push_sky_flat(&mut sky_mesh.0, &mut sky_mesh.1, iter, sector.floor_height)
 				}
-				TextureType::Normal(handle, layer) => {
+				TextureType::Normal(handle) => {
 					let dimensions = texture_storage.get(handle).unwrap().dimensions();
 					let (ref mut vertices, ref mut indices) =
 						meshes.entry(handle.clone()).or_insert((vec![], vec![]));
@@ -345,7 +337,6 @@ fn make_meshes(
 						iter,
 						sector.floor_height,
 						dimensions,
-						*layer as f32,
 						sector.light_level,
 					);
 				}
@@ -362,7 +353,7 @@ fn make_meshes(
 					iter,
 					sector.ceiling_height,
 				),
-				TextureType::Normal(handle, layer) => {
+				TextureType::Normal(handle) => {
 					let dimensions = texture_storage.get(handle).unwrap().dimensions();
 					let (ref mut vertices, ref mut indices) =
 						meshes.entry(handle.clone()).or_insert((vec![], vec![]));
@@ -373,7 +364,6 @@ fn make_meshes(
 						iter,
 						sector.ceiling_height,
 						dimensions,
-						*layer as f32,
 						sector.light_level,
 					);
 				}

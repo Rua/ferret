@@ -6,10 +6,10 @@ layout(set = 0, binding = 0) uniform UniformBufferObject {
 } ubo;
 
 layout(location = 0) in vec3 in_position;
-layout(location = 1) in vec3 in_texture_coord;
+layout(location = 1) in vec2 in_texture_coord;
 layout(location = 2) in float in_lightlevel;
 
-layout(location = 0) out vec3 frag_texture_coord;
+layout(location = 0) out vec2 frag_texture_coord;
 layout(location = 1) out float frag_lightlevel;
 
 out gl_PerVertex {
