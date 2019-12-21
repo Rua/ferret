@@ -213,7 +213,7 @@ impl RenderSystem {
 
 		// Set up matrices
 		let (entity, transform_storage) =
-			<(ReadExpect<Entity>, ReadStorage<Transform>)>::fetch(world);
+			world.system_data::<(ReadExpect<Entity>, ReadStorage<Transform>)>();
 		let Transform {
 			mut position,
 			rotation,

@@ -22,6 +22,7 @@ pub struct MapData {
 	pub gl_nodes: Vec<GLNode>,
 }
 
+#[derive(Clone, Copy)]
 pub struct MapDataFormat;
 
 impl AssetFormat for MapDataFormat {
@@ -178,6 +179,7 @@ bitflags! {
 	}
 }
 
+#[derive(Clone, Copy)]
 pub struct ThingsFormat;
 
 impl AssetFormat for ThingsFormat {
@@ -229,6 +231,7 @@ bitflags! {
 	}
 }
 
+#[derive(Clone, Copy)]
 pub struct LinedefsFormat;
 
 impl AssetFormat for LinedefsFormat {
@@ -276,6 +279,7 @@ pub struct Sidedef {
 	pub sector_index: usize,
 }
 
+#[derive(Clone, Copy)]
 pub struct SidedefsFormat;
 
 impl AssetFormat for SidedefsFormat {
@@ -326,6 +330,7 @@ impl AssetFormat for SidedefsFormat {
 	}
 }
 
+#[derive(Clone, Copy)]
 pub struct VertexesFormat;
 
 impl AssetFormat for VertexesFormat {
@@ -360,6 +365,7 @@ pub struct Sector {
 	pub sector_tag: u16,
 }
 
+#[derive(Clone, Copy)]
 pub struct SectorsFormat;
 
 impl AssetFormat for SectorsFormat {
@@ -403,6 +409,7 @@ impl AssetFormat for SectorsFormat {
 	}
 }
 
+#[derive(Clone, Copy)]
 pub struct GLVertFormat;
 
 impl AssetFormat for GLVertFormat {
@@ -447,6 +454,7 @@ pub enum EitherVertex {
 	GL(usize),
 }
 
+#[derive(Clone, Copy)]
 pub struct GLSegsFormat;
 
 impl AssetFormat for GLSegsFormat {
@@ -496,6 +504,7 @@ pub struct GLSSect {
 	pub first_seg_index: usize,
 }
 
+#[derive(Clone, Copy)]
 pub struct GLSSectFormat;
 
 impl AssetFormat for GLSSectFormat {
@@ -533,6 +542,7 @@ pub enum ChildNode {
 	Branch(usize),
 }
 
+#[derive(Clone, Copy)]
 pub struct GLNodesFormat;
 
 impl AssetFormat for GLNodesFormat {

@@ -187,7 +187,7 @@ pub trait DataSource {
 	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a>;
 }
 
-pub trait AssetFormat {
+pub trait AssetFormat: Clone {
 	type Asset;
 
 	fn import(

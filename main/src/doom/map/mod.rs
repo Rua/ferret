@@ -7,14 +7,21 @@ use crate::{
 	doom::{
 		components::{SpawnPoint, Transform},
 		entities::{DOOMEDNUMS, ENTITIES},
-		map::lumps::{ChildNode, EitherVertex, LinedefFlags, MapData, Thing},
+		map::{
+			lumps::{ChildNode, EitherVertex, LinedefFlags, MapData, Thing},
+			textures::{FlatFormat, TextureFormat},
+		},
+		wad::WadLoader,
 	},
 	geometry::{BoundingBox2, Side},
 	renderer::texture::Texture,
 };
 use nalgebra::{Vector2, Vector3};
 use specs::{world::Builder, Entity, Join, ReadExpect, ReadStorage, SystemData, World, WorldExt};
-use std::error::Error;
+use std::{
+	collections::{hash_map::Entry, HashMap},
+	error::Error,
+};
 
 pub fn spawn_map_entities(
 	things: Vec<Thing>,
@@ -56,7 +63,7 @@ pub fn spawn_map_entities(
 pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error>> {
 	let (position, rotation) = {
 		let (transform, spawn_point) =
-			<(ReadStorage<Transform>, ReadStorage<SpawnPoint>)>::fetch(world);
+			world.system_data::<(ReadStorage<Transform>, ReadStorage<SpawnPoint>)>();
 
 		(&transform, &spawn_point)
 			.join()
@@ -89,6 +96,7 @@ pub struct Map {
 	pub linedefs: Vec<Linedef>,
 	pub sectors: Vec<Sector>,
 	pub gl_nodes: Vec<GLNode>,
+	pub sky: AssetHandle<Texture>,
 }
 
 impl Asset for Map {
@@ -108,8 +116,15 @@ impl Map {
 	}
 }
 
-pub fn build_map(map_data: MapData, world: &World) -> Result<Map, Box<dyn Error>> {
-	let [textures, flats] = textures::load_textures(&map_data, world)?;
+pub fn build_map(
+	map_data: MapData,
+	sky_name: &str,
+	loader: &mut WadLoader,
+	texture_storage: &mut AssetStorage<Texture>,
+) -> Result<Map, Box<dyn Error>> {
+	let mut textures = HashMap::new();
+	let mut flats = HashMap::new();
+	let sky = texture_storage.load(sky_name, TextureFormat, loader)?;
 
 	let MapData {
 		linedefs: linedefs_data,
@@ -128,20 +143,34 @@ pub fn build_map(map_data: MapData, world: &World) -> Result<Map, Box<dyn Error>
 			Ok(Sector {
 				floor_height: data.floor_height,
 				ceiling_height: data.ceiling_height,
-				floor_texture: match data.floor_flat_name.as_ref().map(String::as_str) {
+				floor_texture: match data.floor_flat_name {
 					None => TextureType::None,
-					Some("F_SKY1") => TextureType::Sky,
+					Some(name) if name == "F_SKY1" => TextureType::Sky,
 					Some(name) => {
-						let flat = flats[name].clone();
-						TextureType::Normal(flat)
+						let handle = match flats.entry(name) {
+							Entry::Vacant(entry) => {
+								let handle =
+									texture_storage.load(entry.key(), FlatFormat, &mut *loader)?;
+								entry.insert(handle)
+							}
+							Entry::Occupied(entry) => entry.into_mut(),
+						};
+						TextureType::Normal(handle.clone())
 					}
 				},
-				ceiling_texture: match data.ceiling_flat_name.as_ref().map(String::as_str) {
+				ceiling_texture: match data.ceiling_flat_name {
 					None => TextureType::None,
-					Some("F_SKY1") => TextureType::Sky,
+					Some(name) if name == "F_SKY1" => TextureType::Sky,
 					Some(name) => {
-						let flat = flats[name].clone();
-						TextureType::Normal(flat)
+						let handle = match flats.entry(name) {
+							Entry::Vacant(entry) => {
+								let handle =
+									texture_storage.load(entry.key(), FlatFormat, &mut *loader)?;
+								entry.insert(handle)
+							}
+							Entry::Occupied(entry) => entry.into_mut(),
+						};
+						TextureType::Normal(handle.clone())
 					}
 				},
 				light_level: data.light_level,
@@ -157,16 +186,58 @@ pub fn build_map(map_data: MapData, world: &World) -> Result<Map, Box<dyn Error>
 		.map(|data| {
 			Ok(Some(Sidedef {
 				texture_offset: data.texture_offset,
-				top_texture: match data.top_texture_name.as_ref().map(String::as_str) {
+				top_texture: match data.top_texture_name {
 					None => TextureType::None,
-					Some("F_SKY1") => TextureType::Sky,
+					Some(name) if name == "F_SKY1" => TextureType::Sky,
 					Some(name) => {
-						let flat = textures[name].clone();
-						TextureType::Normal(flat)
+						let handle = match textures.entry(name) {
+							Entry::Vacant(entry) => {
+								let handle = texture_storage.load(
+									entry.key(),
+									TextureFormat,
+									&mut *loader,
+								)?;
+								entry.insert(handle)
+							}
+							Entry::Occupied(entry) => entry.into_mut(),
+						};
+						TextureType::Normal(handle.clone())
 					}
 				},
-				bottom_texture: data.bottom_texture_name.map(|name| textures[&name].clone()),
-				middle_texture: data.middle_texture_name.map(|name| textures[&name].clone()),
+				bottom_texture: match data.bottom_texture_name {
+					None => None,
+					Some(name) => {
+						let handle = match textures.entry(name.clone()) {
+							Entry::Vacant(entry) => {
+								let handle = texture_storage.load(
+									entry.key(),
+									TextureFormat,
+									&mut *loader,
+								)?;
+								entry.insert(handle)
+							}
+							Entry::Occupied(entry) => entry.into_mut(),
+						};
+						Some(handle.clone())
+					}
+				},
+				middle_texture: match data.middle_texture_name {
+					None => None,
+					Some(name) => {
+						let handle = match textures.entry(name) {
+							Entry::Vacant(entry) => {
+								let handle = texture_storage.load(
+									entry.key(),
+									TextureFormat,
+									&mut *loader,
+								)?;
+								entry.insert(handle)
+							}
+							Entry::Occupied(entry) => entry.into_mut(),
+						};
+						Some(handle.clone())
+					}
+				},
 				sector_index: data.sector_index,
 			}))
 		})
@@ -279,6 +350,7 @@ pub fn build_map(map_data: MapData, world: &World) -> Result<Map, Box<dyn Error>
 		linedefs,
 		sectors,
 		gl_nodes,
+		sky,
 	})
 }
 

@@ -10,6 +10,7 @@ pub struct DoomSound {
 	samples: Vec<u8>,
 }
 
+#[derive(Clone, Copy)]
 pub struct DoomSoundFormat;
 
 #[derive(Deserialize)]

@@ -34,11 +34,11 @@ impl<'a> RunNow<'a> for UserCommandSenderSystem {
 	fn setup(&mut self, _world: &mut World) {}
 
 	fn run_now(&mut self, world: &'a World) {
-		let (bindings, input_state, mut command) = <(
+		let (bindings, input_state, mut command) = world.system_data::<(
 			Read<Bindings<Action, Axis>>,
 			Read<InputState>,
 			Write<Option<UserCommand>>,
-		) as SystemData>::fetch(&world);
+		)>();
 
 		/*if command.is_some() {
 			debug!("Command was not handled!");

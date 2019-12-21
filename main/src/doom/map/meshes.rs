@@ -48,11 +48,7 @@ pub struct SkyVertexData {
 }
 impl_vertex!(SkyVertexData, in_position);
 
-pub fn make_model(
-	map: &Map,
-	sky: AssetHandle<Texture>,
-	world: &World,
-) -> Result<MapModel, Box<dyn Error>> {
+pub fn make_model(map: &Map, world: &World) -> Result<MapModel, Box<dyn Error>> {
 	// Create meshes
 	let (meshes, sky_mesh) = make_meshes(map, world)?;
 	let mut ret = Vec::new();
@@ -76,7 +72,7 @@ pub fn make_model(
 		.with_indices(indices)
 		.build(&video.queues().graphics)?;
 
-	Ok(MapModel::new(ret, (sky, mesh)))
+	Ok(MapModel::new(ret, (map.sky.clone(), mesh)))
 }
 
 fn make_meshes(
@@ -176,7 +172,7 @@ fn make_meshes(
 
 	let mut meshes: HashMap<AssetHandle<Texture>, (Vec<VertexData>, Vec<u32>)> = HashMap::new();
 	let mut sky_mesh: (Vec<SkyVertexData>, Vec<u32>) = (Vec::new(), Vec::new());
-	let texture_storage = <ReadExpect<AssetStorage<Texture>>>::fetch(world);
+	let texture_storage = world.system_data::<ReadExpect<AssetStorage<Texture>>>();
 
 	// Walls
 	for linedef in &map.linedefs {

@@ -1,145 +1,24 @@
 use crate::{
-	assets::{AssetFormat, AssetHandle, AssetStorage, DataSource},
-	doom::{
-		image::{ImageFormat, PaletteFormat},
-		map::lumps::MapData,
-		wad::WadLoader,
-	},
-	renderer::{
-		texture::{Texture, TextureBuilder},
-		video::Video,
-	},
+	assets::{AssetFormat, DataSource},
+	doom::image::{ImageFormat, PaletteFormat},
+	renderer::texture::TextureBuilder,
 };
 use nalgebra::Vector2;
 use sdl2::{pixels::PixelFormatEnum, rect::Rect, surface::Surface};
 use serde::Deserialize;
-use specs::{ReadExpect, SystemData, World, Write};
 use std::{
-	collections::{HashMap, HashSet},
+	collections::HashMap,
 	error::Error,
 	io::{Cursor, Read, Seek, SeekFrom},
 	str,
 };
 use vulkano::{format::Format, image::Dimensions};
 
-pub fn load_textures_new<'a>(
-	names: impl IntoIterator<Item = &'a str>,
-	format: impl AssetFormat<Asset = Surface<'static>>,
-	world: &World,
-) -> Result<HashMap<String, AssetHandle<Texture>>, Box<dyn Error>> {
-	let (mut loader, mut texture_storage, video) = <(
-		Write<WadLoader>,
-		Write<AssetStorage<Texture>>,
-		ReadExpect<Video>,
-	)>::fetch(world);
-
-	names
-		.into_iter()
-		.map(|name| {
-			let surface = format.import(name, &mut *loader)?;
-
-			// Find the corresponding Vulkan pixel format
-			let format = match surface.pixel_format_enum() {
-				PixelFormatEnum::RGB24 => Format::R8G8B8Unorm,
-				PixelFormatEnum::BGR24 => Format::B8G8R8Unorm,
-				PixelFormatEnum::RGBA32 => Format::R8G8B8A8Unorm,
-				PixelFormatEnum::BGRA32 => Format::B8G8R8A8Unorm,
-				_ => unimplemented!(),
-			};
-
-			// Create the image
-			let (texture, future) = TextureBuilder::new()
-				.with_data(surface.without_lock().unwrap().to_owned(), format)
-				.with_dimensions(Dimensions::Dim2d {
-					width: surface.width(),
-					height: surface.height(),
-				})
-				.build(&video.queues().graphics)?;
-
-			let handle = texture_storage.insert(texture);
-			Ok((name.to_owned(), handle))
-		})
-		.collect()
-}
-
-pub fn load_textures(
-	map_data: &MapData,
-	world: &World,
-) -> Result<[HashMap<String, AssetHandle<Texture>>; 2], Box<dyn Error>> {
-	let mut texture_names: HashSet<&str> = HashSet::new();
-	for sidedef in map_data.sidedefs.iter() {
-		if let Some(name) = &sidedef.top_texture_name {
-			texture_names.insert(name.as_str());
-		}
-
-		if let Some(name) = &sidedef.bottom_texture_name {
-			texture_names.insert(name.as_str());
-		}
-
-		if let Some(name) = &sidedef.middle_texture_name {
-			texture_names.insert(name.as_str());
-		}
-	}
-
-	let mut flat_names: HashSet<&str> = HashSet::new();
-	for sector in &map_data.sectors {
-		if let Some(name) = &sector.floor_flat_name {
-			flat_names.insert(name.as_str());
-		}
-
-		if let Some(name) = &sector.ceiling_flat_name {
-			flat_names.insert(name.as_str());
-		}
-	}
-
-	texture_names.remove("F_SKY1");
-	flat_names.remove("F_SKY1");
-
-	let textures = load_textures_new(texture_names, TextureFormat, world)?;
-	let flats = load_textures_new(flat_names, FlatFormat, world)?;
-
-	// Recombine names with textures
-	Ok([textures, flats])
-}
-
-pub fn load_sky(name: &str, world: &World) -> Result<AssetHandle<Texture>, Box<dyn Error>> {
-	let (mut loader, mut texture_storage, video) = <(
-		Write<WadLoader>,
-		Write<AssetStorage<Texture>>,
-		ReadExpect<Video>,
-	)>::fetch(world);
-
-	let surface = TextureFormat.import(name, &mut *loader)?;
-
-	let size = Vector2::new(surface.width(), surface.height());
-
-	// Find the corresponding Vulkan pixel format
-	let format = match surface.pixel_format_enum() {
-		PixelFormatEnum::RGB24 => Format::R8G8B8Unorm,
-		PixelFormatEnum::BGR24 => Format::B8G8R8Unorm,
-		PixelFormatEnum::RGBA32 => Format::R8G8B8A8Unorm,
-		PixelFormatEnum::BGRA32 => Format::B8G8R8A8Unorm,
-		_ => unimplemented!(),
-	};
-
-	let data = surface.without_lock().unwrap();
-
-	// Create the image
-	let (texture, future) = TextureBuilder::new()
-		.with_data(data.to_owned(), format)
-		.with_dimensions(Dimensions::Dim2d {
-			width: size[0],
-			height: size[1],
-		})
-		.build(&video.queues().graphics)?;
-
-	Ok(texture_storage.insert(texture))
-}
-
+#[derive(Clone, Copy)]
 pub struct FlatFormat;
 
 impl AssetFormat for FlatFormat {
-	type Asset = Surface<'static>;
+	type Asset = TextureBuilder;
 
 	fn import(
 		&self,
@@ -165,10 +44,22 @@ impl AssetFormat for FlatFormat {
 			}
 		}
 
-		Ok(surface)
+		// Create the image
+		let builder = TextureBuilder::new()
+			.with_data(
+				surface.without_lock().unwrap().to_owned(),
+				Format::R8G8B8A8Unorm,
+			)
+			.with_dimensions(Dimensions::Dim2d {
+				width: surface.width(),
+				height: surface.height(),
+			});
+
+		Ok(builder)
 	}
 }
 
+#[derive(Clone, Copy)]
 pub struct PNamesFormat;
 
 impl AssetFormat for PNamesFormat {
@@ -191,10 +82,11 @@ impl AssetFormat for PNamesFormat {
 	}
 }
 
+#[derive(Clone, Copy)]
 pub struct TextureFormat;
 
 impl AssetFormat for TextureFormat {
-	type Asset = Surface<'static>;
+	type Asset = TextureBuilder;
 
 	fn import(
 		&self,
@@ -244,7 +136,18 @@ impl AssetFormat for TextureFormat {
 				Ok(())
 			})?;
 
-		Ok(surface)
+		// Create the image
+		let builder = TextureBuilder::new()
+			.with_data(
+				surface.without_lock().unwrap().to_owned(),
+				Format::R8G8B8A8Unorm,
+			)
+			.with_dimensions(Dimensions::Dim2d {
+				width: surface.width(),
+				height: surface.height(),
+			});
+
+		Ok(builder)
 	}
 }
 
@@ -258,6 +161,7 @@ pub struct TextureInfo {
 	pub patches: Vec<PatchInfo>,
 }
 
+#[derive(Clone, Copy)]
 pub struct TexturesFormat;
 
 impl AssetFormat for TexturesFormat {
@@ -311,6 +215,7 @@ pub struct RawTextureInfo {
 	pub patch_count: u16,
 }
 
+#[derive(Clone, Copy)]
 pub struct RawTexturesFormat;
 
 impl AssetFormat for RawTexturesFormat {

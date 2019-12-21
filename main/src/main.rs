@@ -169,7 +169,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		// Process events from the system
 		event_loop.poll_events(|event| {
 			let (mut input_state, video) =
-				<(WriteExpect<InputState>, ReadExpect<Video>)>::fetch(&world);
+				world.system_data::<(WriteExpect<InputState>, ReadExpect<Video>)>();
 			input_state.process_event(&event);
 
 			match event {
@@ -231,35 +231,52 @@ fn main() -> Result<(), Box<dyn Error>> {
 						info!("Loading map {}...", name);
 
 						// Load map
-						let handle = {
-							let (mut loader, mut storage) = world.system_data::<(
-								WriteExpect<doom::wad::WadLoader>,
-								WriteExpect<AssetStorage<doom::map::Map>>,
-							)>();
-							storage.load(name, doom::map::lumps::MapDataFormat, &mut *loader)?
+						let map = {
+							let (mut loader, mut map_storage, mut texture_storage) = world
+								.system_data::<(
+									WriteExpect<doom::wad::WadLoader>,
+									WriteExpect<AssetStorage<doom::map::Map>>,
+									WriteExpect<AssetStorage<Texture>>,
+								)>();
+							let map = map_storage.load(
+								name,
+								doom::map::lumps::MapDataFormat,
+								&mut *loader,
+							)?;
+							map_storage.build_waiting(|data| {
+								doom::map::build_map(
+									data,
+									"SKY1",
+									&mut *loader,
+									&mut *texture_storage,
+								)
+							});
+
+							map
 						};
 
+						// Build textures
 						{
-							let mut storage =
-								world.system_data::<WriteExpect<AssetStorage<doom::map::Map>>>();
-
-							storage.build_waiting(|data| doom::map::build_map(data, &world));
+							let (mut texture_storage, video) = world
+								.system_data::<(WriteExpect<AssetStorage<Texture>>, ReadExpect<Video>)>(
+								);
+							texture_storage
+								.build_waiting(|data| Ok(data.build(&video.queues().graphics)?.0));
 						}
 
 						// Generate model
-						let sky = doom::map::textures::load_sky("SKY1", &world)?;
 						let map_model = {
-							let storage =
+							let map_storage =
 								world.system_data::<ReadExpect<AssetStorage<doom::map::Map>>>();
-							let map = storage.get(&handle).unwrap();
-							doom::map::meshes::make_model(&map, sky, &world)?
+							let map = map_storage.get(&map).unwrap();
+							doom::map::meshes::make_model(&map, &world)?
 						};
 
 						// Create world entity
 						world
 							.create_entity()
 							.with(doom::components::MapDynamic {
-								map: handle.clone(),
+								map: map.clone(),
 								map_model,
 							})
 							.build();
@@ -270,7 +287,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 								world.system_data::<WriteExpect<doom::wad::WadLoader>>();
 							doom::map::lumps::ThingsFormat.import(name, &mut *loader)?
 						};
-						doom::map::spawn_map_entities(things, &mut world, &handle)?;
+						doom::map::spawn_map_entities(things, &mut world, &map)?;
 						let entity = doom::map::spawn_player(&mut world)?;
 						world.insert(entity);
 					}

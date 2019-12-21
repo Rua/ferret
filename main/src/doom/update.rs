@@ -14,12 +14,12 @@ impl<'a> RunNow<'a> for UpdateSystem {
 	fn setup(&mut self, _world: &mut World) {}
 
 	fn run_now(&mut self, world: &'a World) {
-		let (entity, mut transform_storage, input_state, bindings) = <(
+		let (entity, mut transform_storage, input_state, bindings) = world.system_data::<(
 			ReadExpect<Entity>,
 			WriteStorage<Transform>,
 			ReadExpect<InputState>,
 			ReadExpect<Bindings<Action, Axis>>,
-		)>::fetch(world);
+		)>();
 		let transform = transform_storage.get_mut(*entity).unwrap();
 
 		transform.rotation[1] += (bindings.axis_value(&Axis::Pitch, &input_state) * 1e6) as i32;

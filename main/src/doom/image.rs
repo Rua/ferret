@@ -12,6 +12,7 @@ use std::{
 
 pub type Palette = [Color; 256];
 
+#[derive(Clone, Copy)]
 pub struct PaletteFormat;
 
 impl AssetFormat for PaletteFormat {
@@ -51,6 +52,7 @@ struct ImageHeader {
 	offset: [i16; 2],
 }
 
+#[derive(Clone, Copy)]
 pub struct ImageFormat;
 
 impl AssetFormat for ImageFormat {
