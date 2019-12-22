@@ -1,5 +1,4 @@
 use alto::{Alto, Context};
-use sdl2::mixer;
 use std::error::Error;
 
 pub struct Audio {
@@ -18,9 +17,6 @@ impl Audio {
 		al_context.set_velocity([0.0, 0.0, 0.0])?;
 		al_context.set_orientation(([1.0, 0.0, 0.0], [0.0, 0.0, 1.0]))?;
 
-		// Open SDL_Mixer
-		mixer::open_audio(44100, mixer::AUDIO_S16SYS, 2, 1024)?;
-
 		Ok(Audio {
 			_al_context: al_context,
 		})
@@ -28,7 +24,5 @@ impl Audio {
 }
 
 impl Drop for Audio {
-	fn drop(&mut self) {
-		mixer::close_audio();
-	}
+	fn drop(&mut self) {}
 }
