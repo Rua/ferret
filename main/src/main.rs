@@ -182,7 +182,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 						..
 					} => {
 						let window = video.surface().window();
-						window.grab_cursor(true).ok();
+						if let Err(msg) = window.grab_cursor(true) {
+							warn!("Couldn't grab cursor: {}", msg);
+						}
 						window.hide_cursor(true);
 						input_state.set_mouse_delta_enabled(true);
 					}
@@ -196,13 +198,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 						..
 					} => {
 						let window = video.surface().window();
-						window.grab_cursor(false).ok();
+						if let Err(msg) = window.grab_cursor(false) {
+							warn!("Couldn't release cursor: {}", msg);
+						}
 						window.hide_cursor(false);
 						input_state.set_mouse_delta_enabled(false);
 					}
 					WindowEvent::Focused(false) => {
 						let window = video.surface().window();
-						window.grab_cursor(false).ok();
+						if let Err(msg) = window.grab_cursor(false) {
+							warn!("Couldn't release cursor: {}", msg);
+						}
 						window.hide_cursor(false);
 						input_state.set_mouse_delta_enabled(false);
 					}
