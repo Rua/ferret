@@ -92,7 +92,7 @@ impl<A> AssetCache<A> {
 #[derivative(Default(bound = ""))]
 pub struct AssetStorage<A: Asset> {
 	assets: HashMap<u32, A>,
-	unbuilt: Vec<(AssetHandle<A>, A::Data)>,
+	unbuilt: Vec<(AssetHandle<A>, A::Data, String)>,
 	handles: Vec<AssetHandle<A>>,
 	highest_id: u32,
 	unused_ids: VecDeque<u32>,
@@ -130,7 +130,7 @@ impl<A: Asset> AssetStorage<A> {
 	) -> Result<AssetHandle<A>, Box<dyn Error>> {
 		let data = format.import(name, source)?;
 		let handle = self.allocate_handle();
-		self.unbuilt.push((handle.clone(), data));
+		self.unbuilt.push((handle.clone(), data, name.to_owned()));
 		Ok(handle)
 	}
 
@@ -164,14 +164,14 @@ impl<A: Asset> AssetStorage<A> {
 		&mut self,
 		mut build_func: F,
 	) {
-		for (handle, data) in self.unbuilt.drain(..) {
+		for (handle, data, name) in self.unbuilt.drain(..) {
 			let asset = match build_func(data) {
 				Ok(asset) => {
-					trace!("Asset loaded successfully");
+					trace!("Asset '{}' loaded successfully", name);
 					asset
 				}
 				Err(e) => {
-					error!("Asset could not be loaded: {}", e);
+					error!("Asset '{}' could not be loaded: {}", name, e);
 					continue;
 				}
 			};
