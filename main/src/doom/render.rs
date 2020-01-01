@@ -12,7 +12,7 @@ use crate::{
 	},
 };
 use nalgebra::{Matrix4, Vector3};
-use specs::{Entity, Join, ReadExpect, ReadStorage, RunNow, SystemData, World};
+use specs::{Entity, Join, ReadExpect, ReadStorage, RunNow, World};
 use std::{error::Error, sync::Arc};
 use vulkano::{
 	buffer::{BufferAccess, CpuBufferPool},

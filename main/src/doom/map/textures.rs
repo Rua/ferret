@@ -20,11 +20,7 @@ pub struct FlatFormat;
 impl AssetFormat for FlatFormat {
 	type Asset = TextureBuilder;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
 		let palette = PaletteFormat.import("PLAYPAL", source)?;
 		let mut data = Cursor::new(source.load(name)?);
 		let mut surface = Surface::new(64, 64, PixelFormatEnum::RGBA32)?;
@@ -46,14 +42,12 @@ impl AssetFormat for FlatFormat {
 
 		// Create the image
 		let builder = TextureBuilder::new()
-			.with_data(
-				surface.without_lock().unwrap().to_owned(),
-				Format::R8G8B8A8Unorm,
-			)
+			.with_data(surface.without_lock().unwrap().to_owned())
 			.with_dimensions(Dimensions::Dim2d {
 				width: surface.width(),
 				height: surface.height(),
-			});
+			})
+			.with_format(Format::R8G8B8A8Unorm);
 
 		Ok(builder)
 	}
@@ -65,11 +59,7 @@ pub struct PNamesFormat;
 impl AssetFormat for PNamesFormat {
 	type Asset = Vec<[u8; 8]>;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
 		let mut data = Cursor::new(source.load(name)?);
 		let count: u32 = bincode::deserialize_from(&mut data)?;
 		let mut ret = Vec::with_capacity(count as usize);
@@ -88,11 +78,7 @@ pub struct TextureFormat;
 impl AssetFormat for TextureFormat {
 	type Asset = TextureBuilder;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
 		let pnames = PNamesFormat.import("PNAMES", source)?;
 		let mut texture_info = TexturesFormat.import("TEXTURE1", source)?;
 		texture_info.extend(TexturesFormat.import("TEXTURE2", source)?);
@@ -138,14 +124,12 @@ impl AssetFormat for TextureFormat {
 
 		// Create the image
 		let builder = TextureBuilder::new()
-			.with_data(
-				surface.without_lock().unwrap().to_owned(),
-				Format::R8G8B8A8Unorm,
-			)
+			.with_data(surface.without_lock().unwrap().to_owned())
 			.with_dimensions(Dimensions::Dim2d {
 				width: surface.width(),
 				height: surface.height(),
-			});
+			})
+			.with_format(Format::R8G8B8A8Unorm);
 
 		Ok(builder)
 	}
@@ -167,11 +151,7 @@ pub struct TexturesFormat;
 impl AssetFormat for TexturesFormat {
 	type Asset = HashMap<String, TextureInfo>;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
 		RawTexturesFormat
 			.import(name, source)?
 			.into_iter()
@@ -221,11 +201,7 @@ pub struct RawTexturesFormat;
 impl AssetFormat for RawTexturesFormat {
 	type Asset = Vec<(RawTextureInfo, Vec<RawPatchInfo>)>;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
 		let mut data = Cursor::new(source.load(name)?);
 
 		let count: u32 = bincode::deserialize_from(&mut data)?;

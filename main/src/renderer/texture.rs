@@ -41,9 +41,8 @@ impl TextureBuilder {
 		}
 	}
 
-	pub fn with_data(mut self, data: Vec<u8>, format: Format) -> Self {
+	pub fn with_data(mut self, data: Vec<u8>) -> Self {
 		self.data = data;
-		self.format = format;
 		self
 	}
 
@@ -52,9 +51,14 @@ impl TextureBuilder {
 		self
 	}
 
+	pub fn with_format(mut self, format: Format) -> Self {
+		self.format = format;
+		self
+	}
+
 	pub fn build(
 		self,
-		queue: &Arc<Queue>,
+		queue: Arc<Queue>,
 	) -> Result<(Texture, Box<dyn GpuFuture>), ImageCreationError> {
 		// Create staging buffer
 		let buffer = CpuAccessibleBuffer::from_iter(
@@ -65,7 +69,7 @@ impl TextureBuilder {
 
 		// Create the image
 		let (image, future) =
-			ImmutableImage::from_buffer(buffer, self.dimensions, self.format, queue.clone())?;
+			ImmutableImage::from_buffer(buffer, self.dimensions, self.format, queue)?;
 
 		Ok((Texture { inner: image }, Box::from(future)))
 	}

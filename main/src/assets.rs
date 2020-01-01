@@ -182,19 +182,10 @@ impl<A: Asset> AssetStorage<A> {
 	}
 }
 
-pub trait DataSource {
-	fn load(&mut self, path: &str) -> Result<Vec<u8>, Box<dyn Error>>;
-	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a>;
-}
-
 pub trait AssetFormat: Clone {
 	type Asset;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>>;
+	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>>;
 }
 
 pub struct AssetMaintenanceSystem<A>(PhantomData<A>);
@@ -211,4 +202,9 @@ impl<'a, A: Asset> System<'a> for AssetMaintenanceSystem<A> {
 	fn run(&mut self, mut storage: Self::SystemData) {
 		storage.clear_unused();
 	}
+}
+
+pub trait DataSource {
+	fn load(&self, path: &str) -> Result<Vec<u8>, Box<dyn Error>>;
+	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a>;
 }

@@ -30,9 +30,7 @@ use crate::{
 	logger::Logger,
 	renderer::{texture::Texture, video::Video},
 };
-use specs::{
-	world::Builder, DispatcherBuilder, ReadExpect, RunNow, SystemData, World, WorldExt, WriteExpect,
-};
+use specs::{world::Builder, DispatcherBuilder, ReadExpect, RunNow, World, WorldExt, WriteExpect};
 use std::{
 	error::Error,
 	sync::mpsc,
@@ -188,7 +186,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 						window.hide_cursor(true);
 						input_state.set_mouse_delta_enabled(true);
 					}
-					WindowEvent::Focused(false) | WindowEvent::KeyboardInput {
+					WindowEvent::Focused(false)
+					| WindowEvent::KeyboardInput {
 						input:
 							KeyboardInput {
 								state: ElementState::Pressed,
@@ -258,8 +257,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 							let (mut texture_storage, video) = world
 								.system_data::<(WriteExpect<AssetStorage<Texture>>, ReadExpect<Video>)>(
 								);
-							texture_storage
-								.build_waiting(|data| Ok(data.build(&video.queues().graphics)?.0));
+							texture_storage.build_waiting(|data| {
+								Ok(data.build(video.queues().graphics.clone())?.0)
+							});
 						}
 
 						// Generate model

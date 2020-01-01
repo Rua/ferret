@@ -1,6 +1,6 @@
 use crate::input::{Bindings, InputState};
 use serde::{Deserialize, Serialize};
-use specs::{Read, RunNow, SystemData, World, Write};
+use specs::{Read, RunNow, World, Write};
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Action {

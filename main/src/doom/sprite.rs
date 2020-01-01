@@ -1,180 +1,191 @@
-use crate::renderer::texture::{Texture, TextureBuilder};
-use nalgebra::Vector2;
+use crate::{
+	assets::{AssetFormat, DataSource},
+	doom::image::ImageFormat,
+	renderer::{
+		mesh::{Mesh, MeshBuilder},
+		texture::{Texture, TextureBuilder},
+	},
+};
+use std::{error::Error, sync::Arc};
+use vulkano::{device::Queue, format::Format, image::Dimensions, sync::GpuFuture};
 
 pub struct Sprite {
-	frames: Vec<Vec<usize>>,
+	frames: Vec<Vec<(usize, usize)>>,
+	meshes: Vec<Mesh>,
 	textures: Vec<Texture>,
 }
 
 pub struct SpriteBuilder {
-	images: Vec<(TextureBuilder, Vector2<f32>, usize, usize, Option<usize>)>,
+	frames: Vec<Vec<(usize, usize)>>,
+	meshes: Vec<MeshBuilder>,
+	textures: Vec<TextureBuilder>,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct VertexData {
+	pub in_position: [f32; 2],
+	pub in_texture_coord: [f32; 2],
+}
+impl_vertex!(VertexData, in_position, in_texture_coord);
+
+#[derive(Clone, Copy)]
+pub struct SpriteFormat;
+
+impl AssetFormat for SpriteFormat {
+	type Asset = SpriteBuilder;
+
+	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+		fn make_mesh(size: [u16; 2], offset: [i16; 2], flip: bool) -> Vec<VertexData> {
+			let mut mesh = Vec::new();
+			for (h, v) in [(1, 0), (0, 0), (0, 1), (1, 1)].iter().copied() {
+				mesh.push(VertexData {
+					in_position: [
+						(offset[0] + h * size[0] as i16) as f32,
+						(offset[1] + v * size[1] as i16) as f32,
+					],
+					in_texture_coord: [h as f32, if flip { -v } else { v } as f32],
+				});
+			}
+			mesh
+		}
+
+		let mut textures = Vec::new();
+		let mut meshes = Vec::new();
+		let mut info = Vec::new();
+		let mut max_frame = 0;
+
+		for lumpname in source.names().filter(|n| n.starts_with(name)) {
+			// Load the sprite lump
+			let image = ImageFormat.import(lumpname, source)?;
+
+			// Regular frame
+			let frame = lumpname.chars().nth(4).unwrap() as isize - 'A' as isize;
+			assert!(frame >= 0 && frame < 29);
+			let rotation = lumpname.chars().nth(5).unwrap() as isize - '1' as isize;
+			assert!(rotation >= -1 && rotation < 8);
+			info.push((frame as usize, rotation, meshes.len(), textures.len()));
+			max_frame = usize::max(max_frame, frame as usize);
+
+			let mesh = make_mesh(image.size, image.offset, false);
+			meshes.push(MeshBuilder::new().with_vertices(mesh));
+
+			// Horizontally flipped frame, if any
+			if lumpname.len() == 8 {
+				let frame = lumpname.chars().nth(6).unwrap() as isize - 'A' as isize;
+				assert!(frame >= 0 && frame < 29);
+				let rotation = lumpname.chars().nth(7).unwrap() as isize - '1' as isize;
+				assert!(rotation >= -1 && rotation < 8);
+				info.push((frame as usize, rotation, meshes.len(), textures.len()));
+				max_frame = usize::max(max_frame, frame as usize);
+
+				let mesh = make_mesh(image.size, image.offset, true);
+				meshes.push(MeshBuilder::new().with_vertices(mesh));
+			}
+
+			// Add the texture
+			let builder = TextureBuilder::new()
+				.with_data(image.data)
+				.with_dimensions(Dimensions::Dim2d {
+					width: image.size[0] as u32,
+					height: image.size[1] as u32,
+				})
+				.with_format(Format::R8G8B8A8Unorm);
+			textures.push(builder);
+		}
+
+		info.sort_unstable();
+		let mut slice = info.as_slice();
+		let mut frames: Vec<Vec<(usize, usize)>> = vec![Vec::new(); max_frame];
+
+		while slice.len() > 0 {
+			let frame = slice[0].0;
+			let next_pos = slice
+				.iter()
+				.position(|x| x.0 != frame)
+				.unwrap_or(slice.len());
+			let current = &slice[..next_pos];
+			slice = &slice[next_pos..];
+
+			if current.len() == 1 {
+				let rotation = current[0].1;
+				assert_eq!(rotation, -1);
+				frames[frame] = current.iter().map(|r| (r.2, r.3)).collect();
+			} else if current.len() == 8 {
+				frames[frame] = current
+					.iter()
+					.enumerate()
+					.map(|(i, r)| {
+						assert_eq!(i as isize, r.1);
+						(r.2, r.3)
+					})
+					.collect();
+			} else {
+				return Err(Box::from(format!(
+					"Frame {} has an invalid number of rotations",
+					frame
+				)));
+			}
+		}
+
+		Ok(SpriteBuilder::new()
+			.with_frames(frames)
+			.with_meshes(meshes)
+			.with_textures(textures))
+	}
 }
 
 impl SpriteBuilder {
 	pub fn new() -> SpriteBuilder {
-		SpriteBuilder { images: Vec::new() }
+		SpriteBuilder {
+			frames: Vec::new(),
+			meshes: Vec::new(),
+			textures: Vec::new(),
+		}
 	}
 
-	pub fn add_image(
-		mut self,
-		texture: TextureBuilder,
-		offset: Vector2<f32>,
-		frame: usize,
-		rotation: usize,
-		rotation2: Option<usize>,
-	) -> Self {
-		self.images
-			.push((texture, offset, frame, rotation, rotation2));
+	pub fn with_frames(mut self, frames: Vec<Vec<(usize, usize)>>) -> Self {
+		self.frames = frames;
 		self
 	}
 
-	/*pub fn build(self) -> Sprite {
-	let mut images = Vec::with_capacity(lumpnames.len());
-	let mut name_indices = Vec::with_capacity(lumpnames.len());
-	let mut max_size = Vector2::new(0, 0);
-
-	for (i, lump) in lumpnames.iter().enumerate() {
-		assert!(lump.starts_with(name) && (lump.len() == 6 || lump.len() == 8));
-
-		let image = DoomImage.import(lump, source)?;
-		let size = image.surface().size();
-		max_size[0] = max(size.0, max_size[0]);
-		max_size[1] = max(size.1, max_size[1]);
-
-		images.push(image);
-		name_indices.push((&lump[4..], i));
+	pub fn with_meshes(mut self, meshes: Vec<MeshBuilder>) -> Self {
+		self.meshes = meshes;
+		self
 	}
 
-	let mut slice = name_indices.as_slice();
-	let mut frames = Vec::new();
-
-	while slice.len() > 0 {
-		if slice[0].0.chars().nth(1).unwrap() == '0' {
-			frames.push(SpriteFrame::new(vec![SpriteRotation::new(
-				slice[0].1, false,
-			)]));
-			slice = &slice[1..];
-		} else {
-			let next_frame = slice
-				.iter()
-				.position(|i| i.0.chars().nth(0).unwrap() != slice[0].0.chars().nth(0).unwrap())
-				.unwrap();
-			let mut rotations = vec![None; 8];
-
-			for info in &slice[..next_frame] {
-				let rot = info.0.chars().nth(1).unwrap() as usize - '1' as usize;
-				assert!(rotations[rot].is_none());
-				rotations[rot] = Some(SpriteRotation::new(info.1, false));
-
-				if info.0.len() == 4 {
-					assert_eq!(
-						info.0.chars().nth(2).unwrap(),
-						info.0.chars().nth(0).unwrap()
-					);
-					let rot = info.0.chars().nth(3).unwrap() as usize - '1' as usize;
-					assert!(rotations[rot].is_none());
-					rotations[rot] = Some(SpriteRotation::new(info.1, true));
-				}
-			}
-
-			assert!(rotations.iter().all(|r| r.is_some()));
-			frames.push(SpriteFrame::new(
-				rotations.drain(..).map(Option::unwrap).collect::<Vec<_>>(),
-			));
-			slice = &slice[next_frame..];
-		}
-	}
-	}*/
-}
-
-/*
-	pub fn new(
-		images: Vec<SpriteImage>,
-		frames: Vec<SpriteFrame>,
-		orientation: SpriteOrientation,
-		max_size: Vector2<u32>,
-	) -> Sprite {
-		for frame in &frames {
-			for rotation in &frame.rotations {
-				assert!(rotation.image_index < images.len());
-			}
-		}
-
-		Sprite {
-			images,
-			frames,
-			orientation,
-			max_size,
-		}
+	pub fn with_textures(mut self, textures: Vec<TextureBuilder>) -> Self {
+		self.textures = textures;
+		self
 	}
 
-	pub fn images(&self) -> &Vec<SpriteImage> {
-		&self.images
-	}
+	pub fn build(self, queue: Arc<Queue>) -> Result<(Sprite, Box<dyn GpuFuture>), Box<dyn Error>> {
+		let ret_future: Box<dyn GpuFuture> = Box::from(vulkano::sync::now(queue.device().clone()));
 
-	pub fn frames(&self) -> &Vec<SpriteFrame> {
-		&self.frames
-	}
-}
+		let meshes = self
+			.meshes
+			.into_iter()
+			.map(|builder| {
+				let (mesh, future) = builder.build(queue.clone())?;
+				Ok(mesh)
+			})
+			.collect::<Result<_, Box<dyn Error>>>()?;
 
-pub struct SpriteImage {
-	surface: Surface<'static>,
-	offset: Vector2<i32>,
-	has_transparency: bool,
-}
+		let textures = self
+			.textures
+			.into_iter()
+			.map(|builder| {
+				let (texture, future) = builder.build(queue.clone())?;
+				Ok(texture)
+			})
+			.collect::<Result<_, Box<dyn Error>>>()?;
 
-impl SpriteImage {
-	pub fn from_surface(surface: Surface<'static>, offset: Vector2<i32>) -> SpriteImage {
-		let mut has_transparency = false;
-
-		{
-			let pixels = surface.without_lock().unwrap();
-			let mut i = 3;
-
-			while i < pixels.len() {
-				if pixels[i] != 0xFF {
-					has_transparency = true;
-					break;
-				}
-
-				i += 4;
-			}
-		}
-
-		SpriteImage {
-			surface,
-			offset,
-			has_transparency,
-		}
-	}
-
-	pub fn surface(&self) -> &Surface<'static> {
-		&self.surface
-	}
-
-	pub fn to_surface(self) -> Surface<'static> {
-		self.surface
-	}
-}
-*/
-
-//pub struct DoomSpriteFormat;
-
-/*impl AssetFormat for DoomSpriteFormat {
-	type Asset = SpriteBuilder;
-
-	fn import(&self, name: &str, source: &mut impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
-		let mut lumpnames = source.names()
-			.filter(|n| n.starts_with(name))
-			.map(str::to_owned)
-			.collect::<Vec<_>>();
-		lumpnames.sort_unstable();
-
-		Ok(Sprite::new(
-			images,
-			frames,
-			SpriteOrientation::ViewPlaneParallelUpright,
-			max_size,
+		Ok((
+			Sprite {
+				frames: self.frames,
+				meshes,
+				textures,
+			},
+			ret_future,
 		))
 	}
-}*/
+}

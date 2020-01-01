@@ -1,7 +1,7 @@
 use crate::assets::DataSource;
 use serde::Deserialize;
 use std::{
-	collections::HashMap,
+	collections::HashSet,
 	error::Error,
 	fs::File,
 	io::{BufReader, Read, Seek, SeekFrom},
@@ -19,8 +19,8 @@ struct Lump {
 
 #[derive(Default)]
 pub struct WadLoader {
-	files: HashMap<String, BufReader<File>>,
 	lumps: Vec<Lump>,
+	names: HashSet<String>,
 }
 
 #[derive(Deserialize)]
@@ -40,8 +40,8 @@ struct DirEntry {
 impl WadLoader {
 	pub fn new() -> WadLoader {
 		WadLoader {
-			files: HashMap::new(),
 			lumps: Vec::new(),
+			names: HashSet::new(),
 		}
 	}
 
@@ -68,21 +68,21 @@ impl WadLoader {
 				String::from(str::from_utf8(&dir_entry.lump_name)?.trim_end_matches('\0'));
 			lump_name.make_ascii_uppercase();
 
+			self.names.insert(lump_name.to_owned());
 			self.lumps.push(Lump {
-				file: String::from(filename),
+				file: filename.to_owned(),
 				name: lump_name,
 				offset: dir_entry.lump_offset,
 				size: dir_entry.lump_size,
 			});
 		}
 
-		self.files.insert(String::from(filename), file);
 		Ok(())
 	}
 }
 
 impl DataSource for WadLoader {
-	fn load(&mut self, path: &str) -> Result<Vec<u8>, Box<dyn Error>> {
+	fn load(&self, path: &str) -> Result<Vec<u8>, Box<dyn Error>> {
 		let path = path.to_ascii_uppercase();
 
 		let (path, offset) = if let Some(index) = path.rfind("/+") {
@@ -103,12 +103,9 @@ impl DataSource for WadLoader {
 			.ok_or(Box::from(format!("Lump \"{}\" not found", path)) as Box<dyn Error>)?;
 
 		let lump = &self.lumps[index + offset];
-		let file = self
-			.files
-			.get_mut(&lump.file)
-			.expect("File referenced but not loaded");
 
 		// Read lump
+		let mut file = BufReader::new(File::open(&lump.file)?);
 		let mut data = vec![0; lump.size as usize];
 		file.seek(SeekFrom::Start(lump.offset as u64))?;
 		file.read_exact(&mut data)?;
@@ -117,6 +114,6 @@ impl DataSource for WadLoader {
 	}
 
 	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a> {
-		Box::from(self.files.keys().map(String::as_str))
+		Box::from(self.names.iter().map(String::as_str))
 	}
 }

@@ -48,7 +48,7 @@ impl MeshBuilder {
 
 	pub fn build(
 		self,
-		queue: &Arc<Queue>,
+		queue: Arc<Queue>,
 	) -> Result<(Mesh, Box<dyn GpuFuture>), DeviceMemoryAllocError> {
 		let (vertex_buffer, future) = ImmutableBuffer::from_iter(
 			self.vertices.as_bytes().iter().copied(),

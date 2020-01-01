@@ -8,7 +8,7 @@ use crate::{
 	},
 };
 use nalgebra::Vector2;
-use specs::{ReadExpect, SystemData, World};
+use specs::{ReadExpect, World};
 use std::{collections::HashMap, error::Error};
 use vulkano::image::Dimensions;
 
@@ -60,7 +60,7 @@ pub fn make_model(map: &Map, world: &World) -> Result<MapModel, Box<dyn Error>> 
 		let (mesh, future) = MeshBuilder::new()
 			.with_vertices(vertices)
 			.with_indices(indices)
-			.build(&video.queues().graphics)?;
+			.build(video.queues().graphics.clone())?;
 
 		ret.push((tex, mesh));
 	}
@@ -70,7 +70,7 @@ pub fn make_model(map: &Map, world: &World) -> Result<MapModel, Box<dyn Error>> 
 	let (mesh, future) = MeshBuilder::new()
 		.with_vertices(vertices)
 		.with_indices(indices)
-		.build(&video.queues().graphics)?;
+		.build(video.queues().graphics.clone())?;
 
 	Ok(MapModel::new(ret, (map.sky.clone(), mesh)))
 }

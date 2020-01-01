@@ -6,7 +6,7 @@ use crate::{
 	input::{Bindings, InputState},
 };
 use nalgebra::Vector2;
-use specs::{Entity, ReadExpect, RunNow, SystemData, World, WriteStorage};
+use specs::{Entity, ReadExpect, RunNow, World, WriteStorage};
 
 pub struct UpdateSystem;
 

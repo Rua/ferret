@@ -17,7 +17,7 @@ use crate::{
 	renderer::texture::Texture,
 };
 use nalgebra::{Vector2, Vector3};
-use specs::{world::Builder, Entity, Join, ReadExpect, ReadStorage, SystemData, World, WorldExt};
+use specs::{world::Builder, Entity, Join, ReadExpect, ReadStorage, World, WorldExt};
 use std::{
 	collections::{hash_map::Entry, HashMap},
 	error::Error,

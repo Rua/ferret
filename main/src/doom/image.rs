@@ -1,5 +1,4 @@
 use crate::assets::{AssetFormat, DataSource};
-use nalgebra::Vector2;
 use sdl2::{
 	pixels::{Color, PixelFormatEnum},
 	surface::Surface,
@@ -18,11 +17,7 @@ pub struct PaletteFormat;
 impl AssetFormat for PaletteFormat {
 	type Asset = Palette;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
 		let mut data = Cursor::new(source.load(name)?);
 		let mut palette = [Color {
 			r: 0,
@@ -42,8 +37,8 @@ impl AssetFormat for PaletteFormat {
 
 pub struct Image {
 	pub data: Vec<u8>,
-	pub size: Vector2<usize>,
-	pub offset: Vector2<f32>,
+	pub size: [u16; 2],
+	pub offset: [i16; 2],
 }
 
 #[derive(Deserialize)]
@@ -58,11 +53,7 @@ pub struct ImageFormat;
 impl AssetFormat for ImageFormat {
 	type Asset = Image;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &mut impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
 		let palette = PaletteFormat.import("PLAYPAL", source)?;
 		let mut data = Cursor::new(source.load(name)?);
 
@@ -111,8 +102,8 @@ impl AssetFormat for ImageFormat {
 
 		Ok(Image {
 			data: pixels.to_owned(),
-			size: Vector2::new(header.size[0] as usize, header.size[1] as usize),
-			offset: Vector2::new(header.offset[0] as f32, header.offset[1] as f32),
+			size: header.size,
+			offset: header.offset,
 		})
 	}
 }
