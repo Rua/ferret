@@ -44,7 +44,7 @@ pub struct RenderSystem {
 }
 
 impl RenderSystem {
-	pub fn new(world: &World) -> Result<RenderSystem, Box<dyn Error>> {
+	pub fn new(world: &World) -> Result<RenderSystem, Box<dyn Error + Send + Sync>> {
 		let video = world.fetch::<Video>();
 
 		// Create texture sampler
@@ -146,7 +146,7 @@ impl RenderSystem {
 		})
 	}
 
-	pub fn recreate(&mut self) -> Result<(), Box<dyn Error>> {
+	pub fn recreate(&mut self) -> Result<(), Box<dyn Error + Send + Sync>> {
 		let (width, height) = self
 			.target
 			.swapchain()
@@ -176,7 +176,7 @@ impl RenderSystem {
 		Ok(())
 	}
 
-	pub fn draw(&mut self, world: &World) -> Result<(), Box<dyn Error>> {
+	pub fn draw(&mut self, world: &World) -> Result<(), Box<dyn Error + Send + Sync>> {
 		let video = world.fetch::<Video>();
 		let queues = video.queues();
 
@@ -321,7 +321,7 @@ pub struct MapRenderSystem {
 impl MapRenderSystem {
 	fn new(
 		render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
-	) -> Result<MapRenderSystem, Box<dyn Error>> {
+	) -> Result<MapRenderSystem, Box<dyn Error + Send + Sync>> {
 		let device = render_pass.device();
 
 		// Create pipeline for normal parts of the map
@@ -389,7 +389,7 @@ impl MapRenderSystem {
 		sampler: Arc<Sampler>,
 		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
 		rotation: Vector3<Angle>,
-	) -> Result<AutoCommandBufferBuilder, Box<dyn Error>> {
+	) -> Result<AutoCommandBufferBuilder, Box<dyn Error + Send + Sync>> {
 		let (texture_storage, map_component) =
 			world.system_data::<(ReadExpect<AssetStorage<Texture>>, ReadStorage<MapDynamic>)>();
 

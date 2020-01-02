@@ -58,7 +58,7 @@ impl<T> Command<T> {
 	}
 }*/
 
-pub fn tokenize(mut text: &str) -> Result<Vec<String>, Box<dyn Error>> {
+pub fn tokenize(mut text: &str) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
 	lazy_static! {
 		// Whitespace, except newlines
 		static ref RE_SPACE    : Regex = Regex::new(r#"^[^\S\n]+"#).unwrap();

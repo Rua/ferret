@@ -28,7 +28,11 @@ pub struct MapDataFormat;
 impl AssetFormat for MapDataFormat {
 	type Asset = MapData;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(
+		&self,
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
 		let gl_name = format!("GL_{}", name);
 
 		let linedefs = LinedefsFormat.import(name, source)?;
@@ -181,7 +185,11 @@ pub struct ThingsFormat;
 impl AssetFormat for ThingsFormat {
 	type Asset = Vec<Thing>;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(
+		&self,
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 1))?);
 		let mut ret = Vec::new();
 
@@ -229,7 +237,11 @@ pub struct LinedefsFormat;
 impl AssetFormat for LinedefsFormat {
 	type Asset = Vec<Linedef>;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(
+		&self,
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 2))?);
 		let mut ret = Vec::new();
 
@@ -273,7 +285,11 @@ pub struct SidedefsFormat;
 impl AssetFormat for SidedefsFormat {
 	type Asset = Vec<Sidedef>;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(
+		&self,
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 3))?);
 		let mut ret = Vec::new();
 
@@ -320,7 +336,11 @@ pub struct VertexesFormat;
 impl AssetFormat for VertexesFormat {
 	type Asset = Vec<Vector2<f32>>;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(
+		&self,
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 4))?);
 		let mut ret = Vec::new();
 
@@ -351,7 +371,11 @@ pub struct SectorsFormat;
 impl AssetFormat for SectorsFormat {
 	type Asset = Vec<Sector>;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(
+		&self,
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 8))?);
 		let mut ret = Vec::new();
 
@@ -391,7 +415,11 @@ pub struct GLVertFormat;
 impl AssetFormat for GLVertFormat {
 	type Asset = Vec<Vector2<f32>>;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(
+		&self,
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 1))?);
 
 		let mut buf = [0u8; 4];
@@ -432,7 +460,11 @@ pub struct GLSegsFormat;
 impl AssetFormat for GLSegsFormat {
 	type Asset = Vec<GLSeg>;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(
+		&self,
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 2))?);
 		let mut ret = Vec::new();
 
@@ -478,7 +510,11 @@ pub struct GLSSectFormat;
 impl AssetFormat for GLSSectFormat {
 	type Asset = Vec<GLSSect>;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(
+		&self,
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 3))?);
 		let mut ret = Vec::new();
 
@@ -512,7 +548,11 @@ pub struct GLNodesFormat;
 impl AssetFormat for GLNodesFormat {
 	type Asset = Vec<GLNode>;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(
+		&self,
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 4))?);
 		let mut ret = Vec::new();
 

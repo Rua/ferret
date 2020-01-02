@@ -1,6 +1,6 @@
 #![allow(unused_variables)]
-use crate::doom::components::SpawnPoint;
-use specs::{Entity, World, WriteStorage};
+use crate::{assets::AssetStorage, doom::components::SpawnPoint};
+use specs::{Entity, ReadExpect, World, WriteExpect, WriteStorage};
 use std::collections::HashMap;
 
 lazy_static! {
@@ -32,7 +32,21 @@ lazy_static! {
 		});
 		m.insert("DMSPAWN", |entity, world| {});
 		m.insert("PLAYER", |entity, world| {});
-		m.insert("POSSESSED", |entity, world| {});
+		m.insert("POSSESSED", |entity, world| {
+			let sprite = {
+				let (mut loader, mut sprite_storage, video) = world.system_data::<(
+					WriteExpect<crate::doom::wad::WadLoader>,
+					WriteExpect<AssetStorage<crate::doom::sprite::Sprite>>,
+					ReadExpect<crate::renderer::video::Video>,
+				)>();
+				let sprite =
+					sprite_storage.load("POSS", crate::doom::sprite::SpriteFormat, &mut *loader);
+				sprite_storage
+					.build_waiting(|data| Ok(data.build(video.queues().graphics.clone())?.0));
+
+				sprite
+			};
+		});
 		m.insert("SHOTGUY", |entity, world| {});
 		m.insert("VILE", |entity, world| {});
 		m.insert("FIRE", |entity, world| {});

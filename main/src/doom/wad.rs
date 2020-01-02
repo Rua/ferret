@@ -45,7 +45,7 @@ impl WadLoader {
 		}
 	}
 
-	pub fn add(&mut self, filename: &str) -> Result<(), Box<dyn Error>> {
+	pub fn add(&mut self, filename: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
 		let file = File::open(filename)?;
 		let mut file = BufReader::new(file);
 
@@ -82,7 +82,7 @@ impl WadLoader {
 }
 
 impl DataSource for WadLoader {
-	fn load(&self, path: &str) -> Result<Vec<u8>, Box<dyn Error>> {
+	fn load(&self, path: &str) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
 		let path = path.to_ascii_uppercase();
 
 		let (path, offset) = if let Some(index) = path.rfind("/+") {
@@ -93,14 +93,15 @@ impl DataSource for WadLoader {
 		};
 
 		// Find the index of this lump in the list
-		let index = self
-			.lumps
-			.iter()
-			.enumerate()
-			.rev()
-			.filter_map(|(i, lump)| if lump.name == path { Some(i) } else { None })
-			.next()
-			.ok_or(Box::from(format!("Lump \"{}\" not found", path)) as Box<dyn Error>)?;
+		let index =
+			self.lumps
+				.iter()
+				.enumerate()
+				.rev()
+				.filter_map(|(i, lump)| if lump.name == path { Some(i) } else { None })
+				.next()
+				.ok_or(Box::from(format!("Lump \"{}\" not found", path))
+					as Box<dyn Error + Send + Sync>)?;
 
 		let lump = &self.lumps[index + offset];
 

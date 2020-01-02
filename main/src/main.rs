@@ -24,13 +24,13 @@ mod renderer;
 mod stdin;
 
 use crate::{
-	assets::{AssetFormat, AssetMaintenanceSystem, AssetStorage},
+	assets::{AssetFormat, AssetStorage},
 	audio::Audio,
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
 	logger::Logger,
 	renderer::{texture::Texture, video::Video},
 };
-use specs::{world::Builder, DispatcherBuilder, ReadExpect, RunNow, World, WorldExt, WriteExpect};
+use specs::{world::Builder, ReadExpect, RunNow, World, WorldExt, WriteExpect};
 use std::{
 	error::Error,
 	sync::mpsc,
@@ -42,7 +42,7 @@ use winit::{
 
 const FRAME_TIME: Duration = Duration::from_nanos(28571429); // 1/35 sec
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	Logger::init().unwrap();
 
 	let (command_sender, command_receiver) = mpsc::channel();
@@ -128,19 +128,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 	world.register::<doom::components::MapDynamic>();
 	world.register::<doom::components::SpawnPoint>();
 	world.register::<doom::components::Transform>();
+	world.insert(AssetStorage::<doom::map::Map>::default());
+	world.insert(AssetStorage::<doom::sprite::Sprite>::default());
+	world.insert(AssetStorage::<Texture>::default());
 	world.insert(video);
 	world.insert(audio);
 	world.insert(loader);
 	world.insert(InputState::new());
 	world.insert(bindings);
 	world.insert(FRAME_TIME);
-
-	let mut asset_dispatcher = DispatcherBuilder::new()
-		.with(AssetMaintenanceSystem::<doom::map::Map>::new(), "", &[])
-		.with(AssetMaintenanceSystem::<Texture>::new(), "", &[])
-		.build();
-
-	asset_dispatcher.setup(&mut world);
 
 	let mut render_system = doom::render::RenderSystem::new(&world)?;
 
@@ -239,7 +235,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 								name,
 								doom::map::lumps::MapDataFormat,
 								&mut *loader,
-							)?;
+							);
 							map_storage.build_waiting(|data| {
 								doom::map::build_map(
 									data,
@@ -316,9 +312,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 		// Draw frame
 		render_system.run_now(&world);
-
-		// Maintain assets
-		asset_dispatcher.dispatch(&world);
 	}
 
 	Ok(())

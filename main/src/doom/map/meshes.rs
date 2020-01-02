@@ -48,7 +48,7 @@ pub struct SkyVertexData {
 }
 impl_vertex!(SkyVertexData, in_position);
 
-pub fn make_model(map: &Map, world: &World) -> Result<MapModel, Box<dyn Error>> {
+pub fn make_model(map: &Map, world: &World) -> Result<MapModel, Box<dyn Error + Send + Sync>> {
 	// Create meshes
 	let (meshes, sky_mesh) = make_meshes(map, world)?;
 	let mut ret = Vec::new();
@@ -83,7 +83,7 @@ fn make_meshes(
 		HashMap<AssetHandle<Texture>, (Vec<VertexData>, Vec<u32>)>,
 		(Vec<SkyVertexData>, Vec<u32>),
 	),
-	Box<dyn Error>,
+	Box<dyn Error + Send + Sync>,
 > {
 	#[inline]
 	fn push_wall(

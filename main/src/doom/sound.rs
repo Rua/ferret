@@ -23,7 +23,11 @@ struct Header {
 impl AssetFormat for DoomSoundFormat {
 	type Asset = DoomSound;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(
+		&self,
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
 		let mut data = Cursor::new(source.load(name)?);
 		let header: Header = bincode::deserialize_from(&mut data)?;
 

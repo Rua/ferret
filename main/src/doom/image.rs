@@ -17,7 +17,11 @@ pub struct PaletteFormat;
 impl AssetFormat for PaletteFormat {
 	type Asset = Palette;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(
+		&self,
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
 		let mut data = Cursor::new(source.load(name)?);
 		let mut palette = [Color {
 			r: 0,
@@ -53,7 +57,11 @@ pub struct ImageFormat;
 impl AssetFormat for ImageFormat {
 	type Asset = Image;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(
+		&self,
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
 		let palette = PaletteFormat.import("PLAYPAL", source)?;
 		let mut data = Cursor::new(source.load(name)?);
 

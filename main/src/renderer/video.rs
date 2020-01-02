@@ -22,7 +22,9 @@ pub struct Video {
 }
 
 impl Video {
-	pub fn new(event_loop: &EventsLoop) -> Result<(Video, DebugCallback), Box<dyn Error>> {
+	pub fn new(
+		event_loop: &EventsLoop,
+	) -> Result<(Video, DebugCallback), Box<dyn Error + Send + Sync>> {
 		// Create Vulkan instance
 		let instance = vulkan::create_instance()?;
 
@@ -79,7 +81,7 @@ impl RenderTarget {
 		device: Arc<Device>,
 		queue_family_id: u32,
 		dimensions: [u32; 2],
-	) -> Result<RenderTarget, Box<dyn Error>> {
+	) -> Result<RenderTarget, Box<dyn Error + Send + Sync>> {
 		let capabilities = surface.capabilities(device.physical_device())?;
 		let surface_format =
 			choose_format(&capabilities).ok_or("No suitable swapchain format found.")?;
@@ -137,7 +139,10 @@ impl RenderTarget {
 		self.swapchain.format()
 	}
 
-	pub fn recreate(&mut self, dimensions: [u32; 2]) -> Result<RenderTarget, Box<dyn Error>> {
+	pub fn recreate(
+		&mut self,
+		dimensions: [u32; 2],
+	) -> Result<RenderTarget, Box<dyn Error + Send + Sync>> {
 		let capabilities = self
 			.swapchain()
 			.surface()

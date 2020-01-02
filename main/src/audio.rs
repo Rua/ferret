@@ -3,7 +3,7 @@ use std::error::Error;
 pub struct Audio {}
 
 impl Audio {
-	pub fn new() -> Result<Audio, Box<dyn Error>> {
+	pub fn new() -> Result<Audio, Box<dyn Error + Send + Sync>> {
 		Ok(Audio {})
 	}
 }

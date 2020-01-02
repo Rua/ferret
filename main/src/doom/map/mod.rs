@@ -27,16 +27,17 @@ pub fn spawn_map_entities(
 	things: Vec<Thing>,
 	world: &mut World,
 	map: &AssetHandle<Map>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), Box<dyn Error + Send + Sync>> {
 	for thing in things {
-		let name = DOOMEDNUMS
-			.get(&thing.doomednum)
-			.ok_or(
-				Box::from(format!("Doomednum not found: {}", thing.doomednum)) as Box<dyn Error>,
-			)?;
+		let name = DOOMEDNUMS.get(&thing.doomednum).ok_or(Box::from(format!(
+			"Doomednum not found: {}",
+			thing.doomednum
+		)) as Box<dyn Error + Send + Sync>)?;
 		let spawn_function = ENTITIES
 			.get(name)
-			.ok_or(Box::from(format!("Entity not found: {}", name)) as Box<dyn Error>)?;
+			.ok_or(
+				Box::from(format!("Entity not found: {}", name)) as Box<dyn Error + Send + Sync>
+			)?;
 
 		let z = {
 			let storage = world.system_data::<ReadExpect<AssetStorage<Map>>>();
@@ -60,7 +61,7 @@ pub fn spawn_map_entities(
 	Ok(())
 }
 
-pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error>> {
+pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error + Send + Sync>> {
 	let (position, rotation) = {
 		let (transform, spawn_point) =
 			world.system_data::<(ReadStorage<Transform>, ReadStorage<SpawnPoint>)>();
@@ -84,7 +85,9 @@ pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error>> {
 
 	let spawn_function = ENTITIES
 		.get("PLAYER")
-		.ok_or(Box::from(format!("Entity not found: {}", "PLAYER")) as Box<dyn Error>)?;
+		.ok_or(
+			Box::from(format!("Entity not found: {}", "PLAYER")) as Box<dyn Error + Send + Sync>
+		)?;
 
 	spawn_function(entity, world);
 
@@ -121,10 +124,10 @@ pub fn build_map(
 	sky_name: &str,
 	loader: &mut WadLoader,
 	texture_storage: &mut AssetStorage<Texture>,
-) -> Result<Map, Box<dyn Error>> {
+) -> Result<Map, Box<dyn Error + Send + Sync>> {
 	let mut textures = HashMap::new();
 	let mut flats = HashMap::new();
-	let sky = texture_storage.load(sky_name, TextureFormat, loader)?;
+	let sky = texture_storage.load(sky_name, TextureFormat, loader);
 
 	let MapData {
 		linedefs: linedefs_data,
@@ -150,7 +153,7 @@ pub fn build_map(
 						let handle = match flats.entry(name) {
 							Entry::Vacant(entry) => {
 								let handle =
-									texture_storage.load(entry.key(), FlatFormat, &mut *loader)?;
+									texture_storage.load(entry.key(), FlatFormat, &mut *loader);
 								entry.insert(handle)
 							}
 							Entry::Occupied(entry) => entry.into_mut(),
@@ -165,7 +168,7 @@ pub fn build_map(
 						let handle = match flats.entry(name) {
 							Entry::Vacant(entry) => {
 								let handle =
-									texture_storage.load(entry.key(), FlatFormat, &mut *loader)?;
+									texture_storage.load(entry.key(), FlatFormat, &mut *loader);
 								entry.insert(handle)
 							}
 							Entry::Occupied(entry) => entry.into_mut(),
@@ -179,7 +182,7 @@ pub fn build_map(
 				subsectors: Vec::new(),
 			})
 		})
-		.collect::<Result<Vec<Sector>, Box<dyn Error>>>()?;
+		.collect::<Result<Vec<Sector>, Box<dyn Error + Send + Sync>>>()?;
 
 	let mut sidedefs = sidedefs_data
 		.into_iter()
@@ -192,11 +195,8 @@ pub fn build_map(
 					Some(name) => {
 						let handle = match textures.entry(name) {
 							Entry::Vacant(entry) => {
-								let handle = texture_storage.load(
-									entry.key(),
-									TextureFormat,
-									&mut *loader,
-								)?;
+								let handle =
+									texture_storage.load(entry.key(), TextureFormat, &mut *loader);
 								entry.insert(handle)
 							}
 							Entry::Occupied(entry) => entry.into_mut(),
@@ -209,11 +209,8 @@ pub fn build_map(
 					Some(name) => {
 						let handle = match textures.entry(name.clone()) {
 							Entry::Vacant(entry) => {
-								let handle = texture_storage.load(
-									entry.key(),
-									TextureFormat,
-									&mut *loader,
-								)?;
+								let handle =
+									texture_storage.load(entry.key(), TextureFormat, &mut *loader);
 								entry.insert(handle)
 							}
 							Entry::Occupied(entry) => entry.into_mut(),
@@ -226,11 +223,8 @@ pub fn build_map(
 					Some(name) => {
 						let handle = match textures.entry(name) {
 							Entry::Vacant(entry) => {
-								let handle = texture_storage.load(
-									entry.key(),
-									TextureFormat,
-									&mut *loader,
-								)?;
+								let handle =
+									texture_storage.load(entry.key(), TextureFormat, &mut *loader);
 								entry.insert(handle)
 							}
 							Entry::Occupied(entry) => entry.into_mut(),
@@ -241,7 +235,7 @@ pub fn build_map(
 				sector_index: data.sector_index,
 			}))
 		})
-		.collect::<Result<Vec<Option<Sidedef>>, Box<dyn Error>>>()?;
+		.collect::<Result<Vec<Option<Sidedef>>, Box<dyn Error + Send + Sync>>>()?;
 
 	let linedefs = linedefs_data
 		.into_iter()
@@ -272,7 +266,7 @@ pub fn build_map(
 				sidedefs,
 			})
 		})
-		.collect::<Result<Vec<Linedef>, Box<dyn Error>>>()?;
+		.collect::<Result<Vec<Linedef>, Box<dyn Error + Send + Sync>>>()?;
 
 	let gl_nodes_len = gl_nodes_data.len();
 	let mut gl_nodes = gl_nodes_data
@@ -295,7 +289,7 @@ pub fn build_map(
 				],
 			}))
 		})
-		.collect::<Result<Vec<GLNode>, Box<dyn Error>>>()?;
+		.collect::<Result<Vec<GLNode>, Box<dyn Error + Send + Sync>>>()?;
 
 	gl_nodes.reserve(gl_ssect_data.len());
 
@@ -318,7 +312,7 @@ pub fn build_map(
 				partner_seg_index: data.partner_seg_index,
 			})
 		})
-		.collect::<Result<Vec<GLSeg>, Box<dyn Error>>>()?;
+		.collect::<Result<Vec<GLSeg>, Box<dyn Error + Send + Sync>>>()?;
 
 	for (i, ssect) in gl_ssect_data.into_iter().enumerate() {
 		let segs = &gl_segs[ssect.first_seg_index as usize

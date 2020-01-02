@@ -24,7 +24,7 @@ impl Mesh {
 }
 
 pub struct MeshBuilder {
-	vertices: Box<dyn AsBytes>,
+	vertices: Box<dyn AsBytes + Send + Sync>,
 	indices: Option<Vec<u32>>,
 }
 
@@ -36,7 +36,7 @@ impl MeshBuilder {
 		}
 	}
 
-	pub fn with_vertices<V: AsBytes + 'static>(mut self, vertices: V) -> MeshBuilder {
+	pub fn with_vertices<V: AsBytes + Send + Sync + 'static>(mut self, vertices: V) -> MeshBuilder {
 		self.vertices = Box::new(vertices);
 		self
 	}

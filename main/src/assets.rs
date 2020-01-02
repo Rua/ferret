@@ -1,5 +1,4 @@
 use derivative::Derivative;
-use specs::{System, Write};
 use std::{
 	clone::Clone,
 	collections::{HashMap, VecDeque},
@@ -92,7 +91,11 @@ impl<A> AssetCache<A> {
 #[derivative(Default(bound = ""))]
 pub struct AssetStorage<A: Asset> {
 	assets: HashMap<u32, A>,
-	unbuilt: Vec<(AssetHandle<A>, A::Data, String)>,
+	unbuilt: Vec<(
+		AssetHandle<A>,
+		Result<A::Data, Box<dyn Error + Send + Sync>>,
+		String,
+	)>,
 	handles: Vec<AssetHandle<A>>,
 	highest_id: u32,
 	unused_ids: VecDeque<u32>,
@@ -127,11 +130,11 @@ impl<A: Asset> AssetStorage<A> {
 		name: &str,
 		format: impl AssetFormat<Asset = A::Data>,
 		source: &mut impl DataSource,
-	) -> Result<AssetHandle<A>, Box<dyn Error>> {
-		let data = format.import(name, source)?;
+	) -> AssetHandle<A> {
+		let data = format.import(name, source);
 		let handle = self.allocate_handle();
 		self.unbuilt.push((handle.clone(), data, name.to_owned()));
-		Ok(handle)
+		handle
 	}
 
 	pub fn clear_unused(&mut self) {
@@ -160,12 +163,12 @@ impl<A: Asset> AssetStorage<A> {
 		}
 	}
 
-	pub fn build_waiting<F: FnMut(A::Data) -> Result<A, Box<dyn Error>>>(
+	pub fn build_waiting<F: FnMut(A::Data) -> Result<A, Box<dyn Error + Send + Sync>>>(
 		&mut self,
 		mut build_func: F,
 	) {
 		for (handle, data, name) in self.unbuilt.drain(..) {
-			let asset = match build_func(data) {
+			let asset = match data.and_then(|d| build_func(d)) {
 				Ok(asset) => {
 					trace!("Asset '{}' loaded successfully", name);
 					asset
@@ -185,26 +188,14 @@ impl<A: Asset> AssetStorage<A> {
 pub trait AssetFormat: Clone {
 	type Asset;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>>;
-}
-
-pub struct AssetMaintenanceSystem<A>(PhantomData<A>);
-
-impl<A> AssetMaintenanceSystem<A> {
-	pub fn new() -> AssetMaintenanceSystem<A> {
-		AssetMaintenanceSystem(PhantomData)
-	}
-}
-
-impl<'a, A: Asset> System<'a> for AssetMaintenanceSystem<A> {
-	type SystemData = Write<'a, AssetStorage<A>>;
-
-	fn run(&mut self, mut storage: Self::SystemData) {
-		storage.clear_unused();
-	}
+	fn import(
+		&self,
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>>;
 }
 
 pub trait DataSource {
-	fn load(&self, path: &str) -> Result<Vec<u8>, Box<dyn Error>>;
+	fn load(&self, path: &str) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>>;
 	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a>;
 }

@@ -8,7 +8,7 @@ use vulkano::{
 };
 use winit::Window;
 
-pub(super) fn create_instance() -> Result<Arc<Instance>, Box<dyn Error>> {
+pub(super) fn create_instance() -> Result<Arc<Instance>, Box<dyn Error + Send + Sync>> {
 	let mut instance_extensions = vulkano_win::required_extensions();
 	instance_extensions.ext_debug_utils = true;
 
@@ -28,7 +28,7 @@ pub(super) fn create_instance() -> Result<Arc<Instance>, Box<dyn Error>> {
 fn find_suitable_physical_device<'a>(
 	instance: &'a Arc<Instance>,
 	surface: &Surface<Window>,
-) -> Result<Option<(PhysicalDevice<'a>, QueueFamily<'a>)>, Box<dyn Error>> {
+) -> Result<Option<(PhysicalDevice<'a>, QueueFamily<'a>)>, Box<dyn Error + Send + Sync>> {
 	for physical_device in PhysicalDevice::enumerate(&instance) {
 		let family = {
 			let mut val = None;
@@ -74,7 +74,7 @@ pub struct Queues {
 pub(super) fn create_device(
 	instance: &Arc<Instance>,
 	surface: &Arc<Surface<Window>>,
-) -> Result<(Arc<Device>, Queues), Box<dyn Error>> {
+) -> Result<(Arc<Device>, Queues), Box<dyn Error + Send + Sync>> {
 	// Select physical device
 	let (physical_device, family) = find_suitable_physical_device(&instance, &surface)?
 		.ok_or("No suitable physical device found")?;
@@ -99,7 +99,7 @@ pub(super) fn create_device(
 pub fn create_depth_buffer(
 	device: &Arc<Device>,
 	extent: [u32; 2],
-) -> Result<Arc<AttachmentImage>, Box<dyn Error>> {
+) -> Result<Arc<AttachmentImage>, Box<dyn Error + Send + Sync>> {
 	let allowed_formats = [
 		Format::D32Sfloat,
 		Format::D32Sfloat_S8Uint,

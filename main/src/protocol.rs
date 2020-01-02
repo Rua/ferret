@@ -21,9 +21,9 @@ impl<T> From<SequencedPacket> for Packet<T> {
 }
 
 impl<T: TryRead<T>> TryFrom<Vec<u8>> for Packet<T> {
-	type Error = Box<dyn Error>;
+	type Error = Box<dyn Error + Send + Sync>;
 
-	fn try_from(data: Vec<u8>) -> Result<Packet<T>, Box<dyn Error>> {
+	fn try_from(data: Vec<u8>) -> Result<Packet<T>, Box<dyn Error + Send + Sync>> {
 		let mut reader = Cursor::new(data);
 		let sequence = reader.read_u32::<NE>()?;
 
@@ -66,9 +66,9 @@ pub struct SequencedPacket {
 }
 
 impl TryFrom<Vec<u8>> for SequencedPacket {
-	type Error = Box<dyn Error>;
+	type Error = Box<dyn Error + Send + Sync>;
 
-	fn try_from(buf: Vec<u8>) -> Result<SequencedPacket, Box<dyn Error>> {
+	fn try_from(buf: Vec<u8>) -> Result<SequencedPacket, Box<dyn Error + Send + Sync>> {
 		let mut reader = Cursor::new(buf);
 		let sequence = reader.read_u32::<NE>()?;
 
@@ -93,7 +93,7 @@ impl From<SequencedPacket> for Vec<u8> {
 }
 
 pub trait TryRead<T> {
-	fn try_read(reader: &mut Cursor<Vec<u8>>) -> Result<T, Box<dyn Error>>;
+	fn try_read(reader: &mut Cursor<Vec<u8>>) -> Result<T, Box<dyn Error + Send + Sync>>;
 }
 
 
@@ -108,7 +108,7 @@ pub enum ClientMessage {
 }
 
 impl TryRead<ClientMessage> for ClientMessage {
-	fn try_read(reader: &mut Cursor<Vec<u8>>) -> Result<ClientMessage, Box<dyn Error>> {
+	fn try_read(reader: &mut Cursor<Vec<u8>>) -> Result<ClientMessage, Box<dyn Error + Send + Sync>> {
 		let message_type = reader.read_u8()?;
 
 		Ok(match message_type {
@@ -163,7 +163,7 @@ pub enum ServerMessage {
 }
 
 impl TryRead<ServerMessage> for ServerMessage {
-	fn try_read(reader: &mut Cursor<Vec<u8>>) -> Result<ServerMessage, Box<dyn Error>> {
+	fn try_read(reader: &mut Cursor<Vec<u8>>) -> Result<ServerMessage, Box<dyn Error + Send + Sync>> {
 		let message_type = reader.read_u8()?;
 
 		Ok(match message_type {

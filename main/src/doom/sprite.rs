@@ -1,5 +1,5 @@
 use crate::{
-	assets::{AssetFormat, DataSource},
+	assets::{Asset, AssetFormat, DataSource},
 	doom::image::ImageFormat,
 	renderer::{
 		mesh::{Mesh, MeshBuilder},
@@ -13,6 +13,10 @@ pub struct Sprite {
 	frames: Vec<Vec<(usize, usize)>>,
 	meshes: Vec<Mesh>,
 	textures: Vec<Texture>,
+}
+
+impl Asset for Sprite {
+	type Data = SpriteBuilder;
 }
 
 pub struct SpriteBuilder {
@@ -34,7 +38,11 @@ pub struct SpriteFormat;
 impl AssetFormat for SpriteFormat {
 	type Asset = SpriteBuilder;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> Result<Self::Asset, Box<dyn Error>> {
+	fn import(
+		&self,
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
 		fn make_mesh(size: [u16; 2], offset: [i16; 2], flip: bool) -> Vec<VertexData> {
 			let mut mesh = Vec::new();
 			for (h, v) in [(1, 0), (0, 0), (0, 1), (1, 1)].iter().copied() {
@@ -95,7 +103,7 @@ impl AssetFormat for SpriteFormat {
 
 		info.sort_unstable();
 		let mut slice = info.as_slice();
-		let mut frames: Vec<Vec<(usize, usize)>> = vec![Vec::new(); max_frame];
+		let mut frames: Vec<Vec<(usize, usize)>> = vec![Vec::new(); max_frame + 1];
 
 		while slice.len() > 0 {
 			let frame = slice[0].0;
@@ -158,7 +166,10 @@ impl SpriteBuilder {
 		self
 	}
 
-	pub fn build(self, queue: Arc<Queue>) -> Result<(Sprite, Box<dyn GpuFuture>), Box<dyn Error>> {
+	pub fn build(
+		self,
+		queue: Arc<Queue>,
+	) -> Result<(Sprite, Box<dyn GpuFuture>), Box<dyn Error + Send + Sync>> {
 		let ret_future: Box<dyn GpuFuture> = Box::from(vulkano::sync::now(queue.device().clone()));
 
 		let meshes = self
@@ -168,7 +179,7 @@ impl SpriteBuilder {
 				let (mesh, future) = builder.build(queue.clone())?;
 				Ok(mesh)
 			})
-			.collect::<Result<_, Box<dyn Error>>>()?;
+			.collect::<Result<_, Box<dyn Error + Send + Sync>>>()?;
 
 		let textures = self
 			.textures
@@ -177,7 +188,7 @@ impl SpriteBuilder {
 				let (texture, future) = builder.build(queue.clone())?;
 				Ok(texture)
 			})
-			.collect::<Result<_, Box<dyn Error>>>()?;
+			.collect::<Result<_, Box<dyn Error + Send + Sync>>>()?;
 
 		Ok((
 			Sprite {
