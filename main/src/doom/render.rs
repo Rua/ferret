@@ -1,8 +1,8 @@
 use crate::{
 	assets::AssetStorage,
 	doom::{
-		components::{MapDynamic, Transform},
-		map::meshes::{SkyVertexData, VertexData},
+		components::{MapDynamic, SpriteRender, Transform},
+		sprite::Sprite,
 	},
 	geometry::Angle,
 	renderer::{
@@ -40,6 +40,7 @@ pub struct RenderSystem {
 	matrix_set_pool: FixedSizeDescriptorSetsPool,
 	render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
 	sampler: Arc<Sampler>,
+	sprites: SpriteRenderSystem,
 	target: RenderTarget,
 }
 
@@ -140,8 +141,9 @@ impl RenderSystem {
 			map: MapRenderSystem::new(render_pass.clone())?,
 			matrix_buffer_pool,
 			matrix_set_pool,
-			render_pass,
+			render_pass: render_pass.clone(),
 			sampler,
+			sprites: SpriteRenderSystem::new(render_pass.clone())?,
 			target,
 		})
 	}
@@ -211,7 +213,15 @@ impl RenderSystem {
 		)?
 		.begin_render_pass(framebuffer, false, clear_value)?;
 
-		// Set up matrices
+		// Projection matrix
+		// Doom had non-square pixels, with a resolution of 320x200 (16:10) running on a 4:3
+		// screen. This caused everything to be stretched vertically by some degree, and the game
+		// art was made with that in mind.
+		// The 1.2 factor here applies the same stretching as in the original.
+		let aspect_ratio = (dimensions[0] / dimensions[1]) * 1.2;
+		let proj = projection_matrix(90.0, aspect_ratio, 0.1, 10000.0);
+
+		// View matrix
 		let (entity, transform_storage) =
 			world.system_data::<(ReadExpect<Entity>, ReadStorage<Transform>)>();
 		let Transform {
@@ -225,13 +235,7 @@ impl RenderSystem {
 			* Matrix4::new_rotation(Vector3::new(0.0, 0.0, -rotation[2].to_radians() as f32))
 			* Matrix4::new_translation(&-position);
 
-		// Doom had non-square pixels, with a resolution of 320x200 (16:10) running on a 4:3
-		// screen. This caused everything to be stretched vertically by some degree, and the game
-		// art was made with that in mind.
-		// The 1.2 factor here applies the same stretching as in the original.
-		let aspect_ratio = (dimensions[0] / dimensions[1]) * 1.2;
-		let proj = projection_matrix(90.0, aspect_ratio, 0.1, 10000.0);
-
+		// Create UBO
 		let data = map_normal_vert::ty::UniformBufferObject {
 			view: view.into(),
 			proj: proj.into(),
@@ -249,10 +253,21 @@ impl RenderSystem {
 		command_buffer_builder = self.map.draw(
 			world,
 			command_buffer_builder,
+			dynamic_state.clone(),
+			self.sampler.clone(),
+			matrix_set.clone(),
+			rotation,
+		)?;
+
+		// Draw sprites
+		let camera_axes = crate::geometry::angles_to_axes(rotation);
+		command_buffer_builder = self.sprites.draw(
+			world,
+			command_buffer_builder,
 			dynamic_state,
 			self.sampler.clone(),
 			matrix_set,
-			rotation,
+			camera_axes,
 		)?;
 
 		// Finalise
@@ -333,7 +348,7 @@ impl MapRenderSystem {
 				.render_pass(
 					Subpass::from(render_pass.clone(), 0).ok_or("Subpass index out of range")?,
 				)
-				.vertex_input_single_buffer::<VertexData>()
+				.vertex_input_single_buffer::<super::map::meshes::VertexData>()
 				.vertex_shader(normal_vert.main_entry_point(), ())
 				.fragment_shader(normal_frag.main_entry_point(), ())
 				.triangle_fan()
@@ -356,7 +371,7 @@ impl MapRenderSystem {
 				.render_pass(
 					Subpass::from(render_pass.clone(), 0).ok_or("Subpass index out of range")?,
 				)
-				.vertex_input_single_buffer::<SkyVertexData>()
+				.vertex_input_single_buffer::<super::map::meshes::SkyVertexData>()
 				.vertex_shader(sky_vert.main_entry_point(), ())
 				.fragment_shader(sky_frag.main_entry_point(), ())
 				.triangle_fan()
@@ -438,6 +453,125 @@ impl MapRenderSystem {
 				vec![Arc::new(mesh.vertex_buffer().into_buffer_slice())],
 				mesh.index_buffer().unwrap(),
 				(matrix_set.clone(), texture_params_set.clone()),
+				(),
+			)?;
+		}
+
+		Ok(command_buffer_builder)
+	}
+}
+
+mod sprite_vert {
+	vulkano_shaders::shader! {
+		ty: "vertex",
+		path: "shaders/sprite.vert",
+	}
+}
+
+mod sprite_frag {
+	vulkano_shaders::shader! {
+		ty: "fragment",
+		path: "shaders/sprite.frag",
+	}
+}
+
+pub struct SpriteRenderSystem {
+	instance_buffer_pool: CpuBufferPool<sprite_vert::ty::Instance>,
+	instance_set_pool: FixedSizeDescriptorSetsPool,
+	pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
+	texture_pool: FixedSizeDescriptorSetsPool,
+}
+
+impl SpriteRenderSystem {
+	fn new(
+		render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
+	) -> Result<SpriteRenderSystem, Box<dyn Error + Send + Sync>> {
+		let device = render_pass.device();
+
+		// Create pipeline for normal parts of the map
+		let vert = sprite_vert::Shader::load(device.clone())?;
+		let frag = sprite_frag::Shader::load(device.clone())?;
+
+		let pipeline = Arc::new(
+			GraphicsPipeline::start()
+				.render_pass(
+					Subpass::from(render_pass.clone(), 0).ok_or("Subpass index out of range")?,
+				)
+				.vertex_input_single_buffer::<super::sprite::VertexData>()
+				.vertex_shader(vert.main_entry_point(), ())
+				.fragment_shader(frag.main_entry_point(), ())
+				.triangle_fan()
+				.primitive_restart(true)
+				.viewports_dynamic_scissors_irrelevant(1)
+				.cull_mode_disabled()
+				.depth_stencil_simple_depth()
+				.build(device.clone())?,
+		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
+
+		let layout = pipeline.descriptor_set_layout(1).unwrap();
+		let texture_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
+
+		let layout = pipeline.descriptor_set_layout(2).unwrap();
+		let instance_set_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
+		let instance_buffer_pool =
+			CpuBufferPool::<sprite_vert::ty::Instance>::uniform_buffer(device.clone());
+
+		Ok(SpriteRenderSystem {
+			instance_buffer_pool,
+			instance_set_pool,
+			pipeline,
+			texture_pool,
+		})
+	}
+
+	fn draw(
+		&mut self,
+		world: &World,
+		mut command_buffer_builder: AutoCommandBufferBuilder<StandardCommandPoolBuilder>,
+		dynamic_state: DynamicState,
+		sampler: Arc<Sampler>,
+		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
+		camera_axes: [Vector3<f32>; 3],
+	) -> Result<AutoCommandBufferBuilder, Box<dyn Error + Send + Sync>> {
+		/*let billboard_matrix = Matrix4::new(
+			-camera_axes[1][0], 0.0, camera_axes[2][0], 0.0,
+			-camera_axes[1][1], 0.0, camera_axes[2][1], 0.0,
+			-camera_axes[1][2], 0.0, camera_axes[2][2], 0.0,
+			0.0               , 0.0, 0.0, 1.0,
+		);*/
+
+		let (sprite_storage, sprite_component, transform_component) =
+			world.system_data::<(ReadExpect<AssetStorage<Sprite>>, ReadStorage<SpriteRender>, ReadStorage<Transform>)>();
+
+		for (sprite_render, transform) in (&sprite_component, &transform_component).join() {
+			let sprite = sprite_storage.get(&sprite_render.sprite).unwrap();
+			let frame = &sprite.frames()[sprite_render.frame];
+			let mesh = &sprite.meshes()[frame[0].mesh_index];
+			let texture = &sprite.textures()[frame[0].texture_index];
+
+			let texture_set = Arc::new(
+				self.texture_pool
+					.next()
+					.add_sampled_image(texture.inner(), sampler.clone())?
+					.build()?,
+			);
+
+			let instance_buffer = self.instance_buffer_pool.next(sprite_vert::ty::Instance {
+				position: transform.position.into(),
+			})?;
+
+			let instance_set = Arc::new(
+				self.instance_set_pool
+					.next()
+					.add_buffer(instance_buffer)?
+					.build()?,
+			);
+
+			command_buffer_builder = command_buffer_builder.draw(
+				self.pipeline.clone(),
+				&dynamic_state,
+				vec![Arc::new(mesh.vertex_buffer().into_buffer_slice())],
+				(matrix_set.clone(), texture_set.clone(), instance_set),
 				(),
 			)?;
 		}

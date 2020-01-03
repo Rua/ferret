@@ -127,6 +127,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	let mut world = World::new();
 	world.register::<doom::components::MapDynamic>();
 	world.register::<doom::components::SpawnPoint>();
+	world.register::<doom::components::SpriteRender>();
 	world.register::<doom::components::Transform>();
 	world.insert(AssetStorage::<doom::map::Map>::default());
 	world.insert(AssetStorage::<doom::sprite::Sprite>::default());

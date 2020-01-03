@@ -1,5 +1,5 @@
 #![allow(unused_variables)]
-use crate::{assets::AssetStorage, doom::components::SpawnPoint};
+use crate::{assets::AssetStorage, doom::components::{SpawnPoint, SpriteRender}};
 use specs::{Entity, ReadExpect, World, WriteExpect, WriteStorage};
 use std::collections::HashMap;
 
@@ -46,6 +46,10 @@ lazy_static! {
 
 				sprite
 			};
+			world
+				.system_data::<WriteStorage<SpriteRender>>()
+				.insert(entity, SpriteRender { sprite, frame: 0 })
+				.unwrap();
 		});
 		m.insert("SHOTGUY", |entity, world| {});
 		m.insert("VILE", |entity, world| {});

@@ -1,11 +1,11 @@
 //use crate::assets::AssetHandle;
 use crate::{
 	assets::AssetHandle,
-	doom::map::{meshes::MapModel, Map},
+	doom::{map::{meshes::MapModel, Map}, sprite::Sprite},
 	geometry::Angle,
 };
 use nalgebra::Vector3;
-use specs::{Component, HashMapStorage, VecStorage};
+use specs::{Component, DenseVecStorage, HashMapStorage};
 
 /*#[derive(Clone, Component, Debug)]
 #[storage(VecStorage)]
@@ -26,8 +26,13 @@ pub struct SpawnPoint {
 	pub player_num: usize,
 }
 
+#[derive(Component)]
+pub struct SpriteRender {
+	pub sprite: AssetHandle<Sprite>,
+	pub frame: usize,
+}
+
 #[derive(Clone, Component, Copy, Debug)]
-#[storage(VecStorage)]
 pub struct Transform {
 	pub position: Vector3<f32>,
 	pub rotation: Vector3<Angle>,

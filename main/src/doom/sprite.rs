@@ -10,7 +10,7 @@ use std::{error::Error, sync::Arc};
 use vulkano::{device::Queue, format::Format, image::Dimensions, sync::GpuFuture};
 
 pub struct Sprite {
-	frames: Vec<Vec<(usize, usize)>>,
+	frames: Vec<Vec<SpriteInfo>>,
 	meshes: Vec<Mesh>,
 	textures: Vec<Texture>,
 }
@@ -19,8 +19,28 @@ impl Asset for Sprite {
 	type Data = SpriteBuilder;
 }
 
+impl Sprite {
+	pub fn frames(&self) -> &Vec<Vec<SpriteInfo>> {
+		&self.frames
+	}
+
+	pub fn meshes(&self) -> &Vec<Mesh> {
+		&self.meshes
+	}
+
+	pub fn textures(&self) -> &Vec<Texture> {
+		&self.textures
+	}
+}
+
+#[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
+pub struct SpriteInfo {
+	pub mesh_index: usize,
+	pub texture_index: usize,
+}
+
 pub struct SpriteBuilder {
-	frames: Vec<Vec<(usize, usize)>>,
+	frames: Vec<Vec<SpriteInfo>>,
 	meshes: Vec<MeshBuilder>,
 	textures: Vec<TextureBuilder>,
 }
@@ -48,8 +68,10 @@ impl AssetFormat for SpriteFormat {
 			for (h, v) in [(1, 0), (0, 0), (0, 1), (1, 1)].iter().copied() {
 				mesh.push(VertexData {
 					in_position: [
-						(offset[0] + h * size[0] as i16) as f32,
-						(offset[1] + v * size[1] as i16) as f32,
+						// Opposite signs because y increases downwards in image space, but
+						// upwards in world space
+						(-offset[0] + h * size[0] as i16) as f32,
+						(offset[1] + v * -(size[1] as i16)) as f32,
 					],
 					in_texture_coord: [h as f32, if flip { -v } else { v } as f32],
 				});
@@ -71,7 +93,7 @@ impl AssetFormat for SpriteFormat {
 			assert!(frame >= 0 && frame < 29);
 			let rotation = lumpname.chars().nth(5).unwrap() as isize - '1' as isize;
 			assert!(rotation >= -1 && rotation < 8);
-			info.push((frame as usize, rotation, meshes.len(), textures.len()));
+			info.push((frame as usize, rotation, SpriteInfo { mesh_index: meshes.len(), texture_index: textures.len()}));
 			max_frame = usize::max(max_frame, frame as usize);
 
 			let mesh = make_mesh(image.size, image.offset, false);
@@ -83,7 +105,7 @@ impl AssetFormat for SpriteFormat {
 				assert!(frame >= 0 && frame < 29);
 				let rotation = lumpname.chars().nth(7).unwrap() as isize - '1' as isize;
 				assert!(rotation >= -1 && rotation < 8);
-				info.push((frame as usize, rotation, meshes.len(), textures.len()));
+				info.push((frame as usize, rotation, SpriteInfo { mesh_index: meshes.len(), texture_index: textures.len()}));
 				max_frame = usize::max(max_frame, frame as usize);
 
 				let mesh = make_mesh(image.size, image.offset, true);
@@ -103,7 +125,7 @@ impl AssetFormat for SpriteFormat {
 
 		info.sort_unstable();
 		let mut slice = info.as_slice();
-		let mut frames: Vec<Vec<(usize, usize)>> = vec![Vec::new(); max_frame + 1];
+		let mut frames: Vec<Vec<SpriteInfo>> = vec![Vec::new(); max_frame + 1];
 
 		while slice.len() > 0 {
 			let frame = slice[0].0;
@@ -117,14 +139,14 @@ impl AssetFormat for SpriteFormat {
 			if current.len() == 1 {
 				let rotation = current[0].1;
 				assert_eq!(rotation, -1);
-				frames[frame] = current.iter().map(|r| (r.2, r.3)).collect();
+				frames[frame] = current.iter().map(|r| r.2).collect();
 			} else if current.len() == 8 {
 				frames[frame] = current
 					.iter()
 					.enumerate()
 					.map(|(i, r)| {
 						assert_eq!(i as isize, r.1);
-						(r.2, r.3)
+						r.2
 					})
 					.collect();
 			} else {
@@ -151,7 +173,7 @@ impl SpriteBuilder {
 		}
 	}
 
-	pub fn with_frames(mut self, frames: Vec<Vec<(usize, usize)>>) -> Self {
+	pub fn with_frames(mut self, frames: Vec<Vec<SpriteInfo>>) -> Self {
 		self.frames = frames;
 		self
 	}
