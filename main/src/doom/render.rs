@@ -260,14 +260,13 @@ impl RenderSystem {
 		)?;
 
 		// Draw sprites
-		let camera_axes = crate::geometry::angles_to_axes(rotation);
 		command_buffer_builder = self.sprites.draw(
 			world,
 			command_buffer_builder,
 			dynamic_state,
 			self.sampler.clone(),
 			matrix_set,
-			camera_axes,
+			rotation[2],
 		)?;
 
 		// Finalise
@@ -531,7 +530,7 @@ impl SpriteRenderSystem {
 		dynamic_state: DynamicState,
 		sampler: Arc<Sampler>,
 		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
-		camera_axes: [Vector3<f32>; 3],
+		yaw: Angle,
 	) -> Result<AutoCommandBufferBuilder, Box<dyn Error + Send + Sync>> {
 		/*let billboard_matrix = Matrix4::new(
 			-camera_axes[1][0], 0.0, camera_axes[2][0], 0.0,
@@ -556,8 +555,10 @@ impl SpriteRenderSystem {
 					.build()?,
 			);
 
+			let instance_matrix = Matrix4::new_translation(&transform.position)
+				* Matrix4::new_rotation(Vector3::new(0.0, 0.0, yaw.to_radians() as f32));
 			let instance_buffer = self.instance_buffer_pool.next(sprite_vert::ty::Instance {
-				position: transform.position.into(),
+				matrix: instance_matrix.into(),
 			})?;
 
 			let instance_set = Arc::new(
