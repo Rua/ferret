@@ -65,7 +65,6 @@ pub struct Angle(pub i32);
 
 const MAX_AS_F64: f64 = 0x1_0000_0000u64 as f64;
 
-#[allow(dead_code)]
 impl Angle {
 	#[inline]
 	pub fn from_units(units: f64) -> Angle {
@@ -112,6 +111,7 @@ impl Angle {
 		self.to_radians().cos()
 	}
 
+	#[allow(dead_code)]
 	#[inline]
 	pub fn tan(self) -> f64 {
 		self.to_radians().tan()
@@ -204,8 +204,8 @@ impl std::ops::SubAssign<i32> for Angle {
 }
 
 pub fn angles_to_axes(angles: Vector3<Angle>) -> [Vector3<f32>; 3] {
-	let sin = angles.map(|x| x.to_radians().sin());
-	let cos = angles.map(|x| x.to_radians().cos());
+	let sin = angles.map(Angle::sin);
+	let cos = angles.map(Angle::cos);
 
 	[
 		Vector3::new(

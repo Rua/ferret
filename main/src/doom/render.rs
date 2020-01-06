@@ -551,16 +551,26 @@ impl SpriteRenderSystem {
 			let sprite = sprite_storage.get(&sprite_render.sprite).unwrap();
 			let frame = &sprite.frames()[sprite_render.frame];
 
-			// Figure out which rotation sprite to use
-			let to_view_vec = view_pos - transform.position;
-			let to_view_angle =
-				Angle::from_radians(f64::atan2(to_view_vec[1] as f64, to_view_vec[0] as f64));
-			let angle =
-				to_view_angle - transform.rotation[2] + Angle::from_units(0.5 / frame.len() as f64);
-			let rotation = (angle.to_units_unsigned() * frame.len() as f64) as usize % frame.len();
+			// This frame has no images, nothing to render
+			if frame.len() == 0 {
+				continue;
+			}
 
-			let mesh = &sprite.meshes()[frame[rotation].mesh_index];
-			let texture = &sprite.textures()[frame[rotation].texture_index];
+			// Figure out which rotation image to use
+			// Treat non-rotating frames specially for efficiency
+			let image_info = if frame.len() == 1 {
+				frame[0]
+			} else {
+				let to_view_vec = view_pos - transform.position;
+				let to_view_angle =
+					Angle::from_radians(f64::atan2(to_view_vec[1] as f64, to_view_vec[0] as f64));
+				let delta = to_view_angle - transform.rotation[2]
+					+ Angle::from_units(0.5 / frame.len() as f64);
+				frame[(delta.to_units_unsigned() * frame.len() as f64) as usize % frame.len()]
+			};
+
+			let mesh = &sprite.meshes()[image_info.mesh_index];
+			let texture = &sprite.textures()[image_info.texture_index];
 
 			let texture_set = Arc::new(
 				self.texture_pool
