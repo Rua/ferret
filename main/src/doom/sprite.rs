@@ -73,7 +73,7 @@ impl AssetFormat for SpriteFormat {
 						(-offset[0] + h * size[0] as i16) as f32,
 						(offset[1] + v * -(size[1] as i16)) as f32,
 					],
-					in_texture_coord: [h as f32, if flip { -v } else { v } as f32],
+					in_texture_coord: [if flip { -h } else { h } as f32, v as f32],
 				});
 			}
 			mesh
@@ -93,7 +93,14 @@ impl AssetFormat for SpriteFormat {
 			assert!(frame >= 0 && frame < 29);
 			let rotation = lumpname.chars().nth(5).unwrap() as isize - '1' as isize;
 			assert!(rotation >= -1 && rotation < 8);
-			info.push((frame as usize, rotation, SpriteInfo { mesh_index: meshes.len(), texture_index: textures.len()}));
+			info.push((
+				frame as usize,
+				rotation,
+				SpriteInfo {
+					mesh_index: meshes.len(),
+					texture_index: textures.len(),
+				},
+			));
 			max_frame = usize::max(max_frame, frame as usize);
 
 			let mesh = make_mesh(image.size, image.offset, false);
@@ -105,7 +112,14 @@ impl AssetFormat for SpriteFormat {
 				assert!(frame >= 0 && frame < 29);
 				let rotation = lumpname.chars().nth(7).unwrap() as isize - '1' as isize;
 				assert!(rotation >= -1 && rotation < 8);
-				info.push((frame as usize, rotation, SpriteInfo { mesh_index: meshes.len(), texture_index: textures.len()}));
+				info.push((
+					frame as usize,
+					rotation,
+					SpriteInfo {
+						mesh_index: meshes.len(),
+						texture_index: textures.len(),
+					},
+				));
 				max_frame = usize::max(max_frame, frame as usize);
 
 				let mesh = make_mesh(image.size, image.offset, true);

@@ -1,5 +1,8 @@
 #![allow(unused_variables)]
-use crate::{assets::AssetStorage, doom::components::{SpawnPoint, SpriteRender}};
+use crate::{
+	assets::AssetStorage,
+	doom::components::{SpawnPoint, SpriteRender},
+};
 use specs::{Entity, ReadExpect, World, WriteExpect, WriteStorage};
 use std::collections::HashMap;
 

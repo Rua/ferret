@@ -1,7 +1,10 @@
 //use crate::assets::AssetHandle;
 use crate::{
 	assets::AssetHandle,
-	doom::{map::{meshes::MapModel, Map}, sprite::Sprite},
+	doom::{
+		map::{meshes::MapModel, Map},
+		sprite::Sprite,
+	},
 	geometry::Angle,
 };
 use nalgebra::Vector3;

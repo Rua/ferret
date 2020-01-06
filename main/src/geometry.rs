@@ -63,26 +63,43 @@ pub struct Plane {
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct Angle(pub i32);
 
+const MAX_AS_F64: f64 = 0x1_0000_0000u64 as f64;
+
 #[allow(dead_code)]
 impl Angle {
 	#[inline]
+	pub fn from_units(units: f64) -> Angle {
+		Angle((units.rem_euclid(1.0) * MAX_AS_F64) as u32 as i32)
+	}
+
+	#[inline]
 	pub fn from_degrees(degrees: f64) -> Angle {
-		Angle((degrees / 180.0 * 0x80000000u32 as f64) as i32)
+		Angle::from_units(degrees * (1.0 / 360.0))
 	}
 
 	#[inline]
 	pub fn from_radians(radians: f64) -> Angle {
-		Angle((radians * std::f64::consts::FRAC_1_PI * 0x80000000u32 as f64) as i32)
+		Angle::from_units(radians * 0.5 * std::f64::consts::FRAC_1_PI)
+	}
+
+	#[inline]
+	pub fn to_units(&self) -> f64 {
+		self.0 as f64 / MAX_AS_F64
 	}
 
 	#[inline]
 	pub fn to_degrees(&self) -> f64 {
-		self.0 as f64 / 0x80000000u32 as f64 * 180.0
+		self.to_units() * 360.0
 	}
 
 	#[inline]
 	pub fn to_radians(&self) -> f64 {
-		self.0 as f64 / 0x80000000u32 as f64 * std::f64::consts::PI
+		self.to_units() * 2.0 * std::f64::consts::PI
+	}
+
+	#[inline]
+	pub fn to_units_unsigned(&self) -> f64 {
+		self.0 as u32 as f64 / MAX_AS_F64
 	}
 
 	#[inline]

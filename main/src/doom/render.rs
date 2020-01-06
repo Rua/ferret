@@ -267,6 +267,7 @@ impl RenderSystem {
 			self.sampler.clone(),
 			matrix_set,
 			rotation[2],
+			position,
 		)?;
 
 		// Finalise
@@ -531,6 +532,7 @@ impl SpriteRenderSystem {
 		sampler: Arc<Sampler>,
 		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
 		yaw: Angle,
+		view_pos: Vector3<f32>,
 	) -> Result<AutoCommandBufferBuilder, Box<dyn Error + Send + Sync>> {
 		/*let billboard_matrix = Matrix4::new(
 			-camera_axes[1][0], 0.0, camera_axes[2][0], 0.0,
@@ -539,14 +541,26 @@ impl SpriteRenderSystem {
 			0.0               , 0.0, 0.0, 1.0,
 		);*/
 
-		let (sprite_storage, sprite_component, transform_component) =
-			world.system_data::<(ReadExpect<AssetStorage<Sprite>>, ReadStorage<SpriteRender>, ReadStorage<Transform>)>();
+		let (sprite_storage, sprite_component, transform_component) = world.system_data::<(
+			ReadExpect<AssetStorage<Sprite>>,
+			ReadStorage<SpriteRender>,
+			ReadStorage<Transform>,
+		)>();
 
 		for (sprite_render, transform) in (&sprite_component, &transform_component).join() {
 			let sprite = sprite_storage.get(&sprite_render.sprite).unwrap();
 			let frame = &sprite.frames()[sprite_render.frame];
-			let mesh = &sprite.meshes()[frame[0].mesh_index];
-			let texture = &sprite.textures()[frame[0].texture_index];
+
+			// Figure out which rotation sprite to use
+			let to_view_vec = view_pos - transform.position;
+			let to_view_angle =
+				Angle::from_radians(f64::atan2(to_view_vec[1] as f64, to_view_vec[0] as f64));
+			let angle =
+				to_view_angle - transform.rotation[2] + Angle::from_units(0.5 / frame.len() as f64);
+			let rotation = (angle.to_units_unsigned() * frame.len() as f64) as usize % frame.len();
+
+			let mesh = &sprite.meshes()[frame[rotation].mesh_index];
+			let texture = &sprite.textures()[frame[rotation].texture_index];
 
 			let texture_set = Arc::new(
 				self.texture_pool
@@ -585,27 +599,16 @@ impl SpriteRenderSystem {
 // x = forward
 // y = left
 // z = up
+#[rustfmt::skip]
 fn projection_matrix(fovx: f32, aspect: f32, near: f32, far: f32) -> Matrix4<f32> {
 	let fovx = fovx.to_radians();
 	let nmf = near - far;
 	let f = 1.0 / (fovx * 0.5).tan();
 
 	Matrix4::new(
-		0.0,
-		-f,
-		0.0,
-		0.0,
-		0.0,
-		0.0,
-		-f * aspect,
-		0.0,
-		-far / nmf,
-		0.0,
-		0.0,
-		(near * far) / nmf,
-		1.0,
-		0.0,
-		0.0,
-		0.0,
+		0.0       , -f , 0.0        , 0.0               ,
+		0.0       , 0.0, -f * aspect, 0.0               ,
+		-far / nmf, 0.0, 0.0        , (near * far) / nmf,
+		1.0       , 0.0, 0.0        , 0.0               ,
 	)
 }
