@@ -155,7 +155,7 @@ impl<A: Asset> AssetStorage<A> {
 		let count = old_len - self.handles.len();
 
 		if count > 0 {
-			trace!(
+			log::trace!(
 				"Freed {} assets of type {}",
 				count,
 				std::any::type_name::<A>()
@@ -170,11 +170,11 @@ impl<A: Asset> AssetStorage<A> {
 		for (handle, data, name) in self.unbuilt.drain(..) {
 			let asset = match data.and_then(|d| build_func(d)) {
 				Ok(asset) => {
-					trace!("Asset '{}' loaded successfully", name);
+					log::trace!("Asset '{}' loaded successfully", name);
 					asset
 				}
 				Err(e) => {
-					error!("Asset '{}' could not be loaded: {}", name, e);
+					log::error!("Asset '{}' could not be loaded: {}", name, e);
 					continue;
 				}
 			};

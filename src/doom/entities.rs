@@ -3,6 +3,7 @@ use crate::{
 	assets::AssetStorage,
 	doom::components::{SpawnPoint, SpriteRender},
 };
+use lazy_static::lazy_static;
 use specs::{Entity, ReadExpect, World, WriteExpect, WriteStorage};
 use std::collections::HashMap;
 

@@ -1,15 +1,3 @@
-//#![allow(unused)]
-//#![warn(unused_must_use)]
-
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
-extern crate log;
-#[macro_use]
-extern crate specs_derive;
-#[macro_use]
-extern crate vulkano;
-
 mod assets;
 mod audio;
 mod commands;
@@ -19,8 +7,6 @@ mod geometry;
 mod input;
 mod logger;
 mod renderer;
-//mod net;
-//mod protocol;
 mod stdin;
 
 use crate::{
@@ -171,7 +157,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 					} => {
 						let window = video.surface().window();
 						if let Err(msg) = window.grab_cursor(true) {
-							warn!("Couldn't grab cursor: {}", msg);
+							log::warn!("Couldn't grab cursor: {}", msg);
 						}
 						window.hide_cursor(true);
 						input_state.set_mouse_delta_enabled(true);
@@ -188,7 +174,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 					} => {
 						let window = video.surface().window();
 						if let Err(msg) = window.grab_cursor(false) {
-							warn!("Couldn't release cursor: {}", msg);
+							log::warn!("Couldn't release cursor: {}", msg);
 						}
 						window.hide_cursor(false);
 						input_state.set_mouse_delta_enabled(false);
@@ -205,7 +191,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 			let tokens = match commands::tokenize(&command) {
 				Ok(tokens) => tokens,
 				Err(e) => {
-					error!("Invalid syntax: {}", e);
+					log::error!("Invalid syntax: {}", e);
 					continue;
 				}
 			};
@@ -215,7 +201,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 				match args[0].as_str() {
 					"map" => {
 						let name = &args[1];
-						info!("Loading map {}...", name);
+						log::info!("Loading map {}...", name);
 
 						// Load map
 						let map = {
@@ -280,7 +266,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						world.insert(entity);
 					}
 					"quit" => should_quit = true,
-					_ => error!("Unknown command: {}", args[0]),
+					_ => log::error!("Unknown command: {}", args[0]),
 				}
 			}
 		}

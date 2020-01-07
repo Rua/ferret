@@ -1,5 +1,6 @@
 use std::{error::Error, sync::Arc, u32};
 use vulkano::{
+	app_info_from_cargo_toml,
 	device::{Device, DeviceExtensions, Features, Queue},
 	format::Format,
 	image::{AttachmentImage, ImageCreationError},

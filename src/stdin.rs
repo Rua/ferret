@@ -16,7 +16,7 @@ pub fn spawn(stdin_sender: Sender<String>) -> Result<(), io::Error> {
 					stdin_sender.send(line).ok();
 				}
 				Err(e) => {
-					error!("Error: {}", e);
+					log::error!("Error: {}", e);
 					break;
 				}
 			};

@@ -37,9 +37,9 @@ impl Video {
 		// Setup debug callback for validation layers
 		let debug_callback = DebugCallback::errors_and_warnings(&instance, |ref message| {
 			if message.ty.validation {
-				error!("{}: {}", message.layer_prefix, message.description);
+				log::error!("{}: {}", message.layer_prefix, message.description);
 			} else {
-				warn!("{}: {}", message.layer_prefix, message.description);
+				log::warn!("{}: {}", message.layer_prefix, message.description);
 			}
 		})?;
 

@@ -9,6 +9,7 @@ use crate::{
 };
 use nalgebra::Vector3;
 use specs::{Component, DenseVecStorage, HashMapStorage};
+use specs_derive::Component;
 
 /*#[derive(Clone, Component, Debug)]
 #[storage(VecStorage)]

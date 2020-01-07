@@ -10,7 +10,7 @@ use crate::{
 use nalgebra::Vector2;
 use specs::{ReadExpect, World};
 use std::{collections::HashMap, error::Error};
-use vulkano::image::Dimensions;
+use vulkano::{image::Dimensions, impl_vertex};
 
 pub struct MapModel {
 	meshes: Vec<(AssetHandle<Texture>, Mesh)>,

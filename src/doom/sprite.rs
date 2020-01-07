@@ -7,7 +7,7 @@ use crate::{
 	},
 };
 use std::{error::Error, sync::Arc};
-use vulkano::{device::Queue, format::Format, image::Dimensions, sync::GpuFuture};
+use vulkano::{device::Queue, format::Format, image::Dimensions, impl_vertex, sync::GpuFuture};
 
 pub struct Sprite {
 	frames: Vec<Vec<SpriteInfo>>,

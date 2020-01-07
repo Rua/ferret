@@ -30,6 +30,7 @@ use vulkano::{
 	image::ImageViewAccess,
 	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
 	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
+	single_pass_renderpass,
 	swapchain::AcquireError,
 	sync::GpuFuture,
 };
