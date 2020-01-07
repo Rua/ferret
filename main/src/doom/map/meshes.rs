@@ -38,9 +38,9 @@ impl MapModel {
 pub struct VertexData {
 	pub in_position: [f32; 3],
 	pub in_texture_coord: [f32; 2],
-	pub in_lightlevel: f32,
+	pub in_light_level: f32,
 }
-impl_vertex!(VertexData, in_position, in_texture_coord, in_lightlevel);
+impl_vertex!(VertexData, in_position, in_texture_coord, in_light_level);
 
 #[derive(Clone, Debug, Default)]
 pub struct SkyVertexData {
@@ -107,7 +107,7 @@ fn make_meshes(
 					(offset[0] + width * h as f32) / dimensions.width() as f32,
 					(offset[1] + tex_v[v]) / dimensions.height() as f32,
 				],
-				in_lightlevel: light_level,
+				in_light_level: light_level,
 			});
 		}
 	}
@@ -148,7 +148,7 @@ fn make_meshes(
 					vert[0] / dimensions.width() as f32,
 					vert[1] / dimensions.height() as f32,
 				],
-				in_lightlevel: light_level,
+				in_light_level: light_level,
 			});
 		}
 	}

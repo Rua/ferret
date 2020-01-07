@@ -107,7 +107,7 @@ impl Asset for Map {
 }
 
 impl Map {
-	fn find_subsector(&self, point: Vector2<f32>) -> &LeafNode {
+	pub fn find_subsector(&self, point: Vector2<f32>) -> &LeafNode {
 		let mut node = 0;
 
 		loop {

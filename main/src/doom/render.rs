@@ -2,6 +2,7 @@ use crate::{
 	assets::AssetStorage,
 	doom::{
 		components::{MapDynamic, SpriteRender, Transform},
+		map::Map,
 		sprite::Sprite,
 	},
 	geometry::Angle,
@@ -11,7 +12,7 @@ use crate::{
 		vulkan,
 	},
 };
-use nalgebra::{Matrix4, Vector3};
+use nalgebra::{Matrix4, Vector2, Vector3};
 use specs::{Entity, Join, ReadExpect, ReadStorage, RunNow, World};
 use std::{error::Error, sync::Arc};
 use vulkano::{
@@ -304,10 +305,10 @@ mod map_normal_vert {
 	}
 }
 
-mod map_normal_frag {
+mod normal_frag {
 	vulkano_shaders::shader! {
 		ty: "fragment",
-		path: "shaders/map_normal.frag",
+		path: "shaders/normal.frag",
 	}
 }
 
@@ -318,17 +319,17 @@ mod map_sky_vert {
 	}
 }
 
-mod map_sky_frag {
+mod sky_frag {
 	vulkano_shaders::shader! {
 		ty: "fragment",
-		path: "shaders/map_sky.frag",
+		path: "shaders/sky.frag",
 	}
 }
 
 pub struct MapRenderSystem {
 	normal_pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
 	normal_texture_pool: FixedSizeDescriptorSetsPool,
-	sky_buffer_pool: CpuBufferPool<map_sky_frag::ty::FragParams>,
+	sky_buffer_pool: CpuBufferPool<sky_frag::ty::FragParams>,
 	sky_pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
 	sky_texture_pool: FixedSizeDescriptorSetsPool,
 }
@@ -341,7 +342,7 @@ impl MapRenderSystem {
 
 		// Create pipeline for normal parts of the map
 		let normal_vert = map_normal_vert::Shader::load(device.clone())?;
-		let normal_frag = map_normal_frag::Shader::load(device.clone())?;
+		let normal_frag = normal_frag::Shader::load(device.clone())?;
 
 		let normal_pipeline = Arc::new(
 			GraphicsPipeline::start()
@@ -364,7 +365,7 @@ impl MapRenderSystem {
 
 		// Create pipeline for sky
 		let sky_vert = map_sky_vert::Shader::load(device.clone())?;
-		let sky_frag = map_sky_frag::Shader::load(device.clone())?;
+		let sky_frag = sky_frag::Shader::load(device.clone())?;
 
 		let sky_pipeline = Arc::new(
 			GraphicsPipeline::start()
@@ -385,7 +386,7 @@ impl MapRenderSystem {
 		let layout = sky_pipeline.descriptor_set_layout(1).unwrap();
 		let sky_texture_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
 		let sky_buffer_pool =
-			CpuBufferPool::<map_sky_frag::ty::FragParams>::uniform_buffer(device.clone());
+			CpuBufferPool::<sky_frag::ty::FragParams>::uniform_buffer(device.clone());
 
 		Ok(MapRenderSystem {
 			normal_pipeline,
@@ -433,7 +434,7 @@ impl MapRenderSystem {
 			// Draw the sky
 			let (texture, mesh) = component.map_model.sky_mesh();
 			let texture = texture_storage.get(&texture).unwrap();
-			let sky_buffer = self.sky_buffer_pool.next(map_sky_frag::ty::FragParams {
+			let sky_buffer = self.sky_buffer_pool.next(sky_frag::ty::FragParams {
 				screenSize: [800.0, 600.0],
 				pitch: rotation[1].to_degrees() as f32,
 				yaw: rotation[2].to_degrees() as f32,
@@ -468,13 +469,6 @@ mod sprite_vert {
 	}
 }
 
-mod sprite_frag {
-	vulkano_shaders::shader! {
-		ty: "fragment",
-		path: "shaders/sprite.frag",
-	}
-}
-
 pub struct SpriteRenderSystem {
 	instance_buffer_pool: CpuBufferPool<sprite_vert::ty::Instance>,
 	instance_set_pool: FixedSizeDescriptorSetsPool,
@@ -490,7 +484,7 @@ impl SpriteRenderSystem {
 
 		// Create pipeline for normal parts of the map
 		let vert = sprite_vert::Shader::load(device.clone())?;
-		let frag = sprite_frag::Shader::load(device.clone())?;
+		let frag = normal_frag::Shader::load(device.clone())?;
 
 		let pipeline = Arc::new(
 			GraphicsPipeline::start()
@@ -541,11 +535,17 @@ impl SpriteRenderSystem {
 			0.0               , 0.0, 0.0, 1.0,
 		);*/
 
-		let (sprite_storage, sprite_component, transform_component) = world.system_data::<(
-			ReadExpect<AssetStorage<Sprite>>,
-			ReadStorage<SpriteRender>,
-			ReadStorage<Transform>,
-		)>();
+		let (map_storage, sprite_storage, map_component, sprite_component, transform_component) =
+			world.system_data::<(
+				ReadExpect<AssetStorage<Map>>,
+				ReadExpect<AssetStorage<Sprite>>,
+				ReadStorage<MapDynamic>,
+				ReadStorage<SpriteRender>,
+				ReadStorage<Transform>,
+			)>();
+
+		let handle = &map_component.join().next().unwrap().map;
+		let map = map_storage.get(handle).unwrap();
 
 		for (sprite_render, transform) in (&sprite_component, &transform_component).join() {
 			let sprite = sprite_storage.get(&sprite_render.sprite).unwrap();
@@ -580,9 +580,18 @@ impl SpriteRenderSystem {
 					.build()?,
 			);
 
+			// Determine light level
+			let ssect =
+				map.find_subsector(Vector2::new(transform.position[0], transform.position[1]));
+			let sector = &map.sectors[ssect.sector_index];
+			let light_level = sector.light_level;
+
+			// Set up instance uniform data
 			let instance_matrix = Matrix4::new_translation(&transform.position)
 				* Matrix4::new_rotation(Vector3::new(0.0, 0.0, yaw.to_radians() as f32));
 			let instance_buffer = self.instance_buffer_pool.next(sprite_vert::ty::Instance {
+				light_level,
+				_dummy0: [0; 12],
 				matrix: instance_matrix.into(),
 			})?;
 
