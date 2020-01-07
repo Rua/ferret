@@ -6,9 +6,18 @@ The project is still an early work in progress, so it won't do much useful yet. 
 
 ## Requirements
 
-Ferret is made in [Rust](https://www.rust-lang.org/), so you'll need to install that, then run `cargo run` to build and run.
+Ferret is made in [Rust](https://www.rust-lang.org/), so you'll need to install that. Some of the dependencies also require support for other languages. On Linux Mint, I needed the following packages:
 
-The engine requires the `doom.wad` file from the original game in order to run. It should be placed in the root directory of the project, next to `doom.gwa` which is already present.
+```
+cmake
+libc6-dev
+g++
+python3-distutils
+```
+
+Ferret uses Vulkan for rendering, so you need to have a Vulkan-capable graphics card and the appropriate drivers installed. The package `mesa-vulkan-drivers` is needed on Linux Mint.
+
+Finally, the engine requires the `doom.wad` file from the original game in order to run. It should be placed in the root directory of the project, next to `doom.gwa` which is already present.
 
 ## Contributing
 
