@@ -54,13 +54,6 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 		}
 	};
 
-	let _sdl = match sdl2::init() {
-		Ok(val) => val,
-		Err(err) => {
-			return Err(Box::from(format!("Could not initialise SDL: {}", err)));
-		}
-	};
-
 	let mut event_loop = EventsLoop::new();
 
 	let (video, _debug_callback) = match Video::new(&event_loop) {

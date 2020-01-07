@@ -528,13 +528,6 @@ impl SpriteRenderSystem {
 		yaw: Angle,
 		view_pos: Vector3<f32>,
 	) -> Result<AutoCommandBufferBuilder, Box<dyn Error + Send + Sync>> {
-		/*let billboard_matrix = Matrix4::new(
-			-camera_axes[1][0], 0.0, camera_axes[2][0], 0.0,
-			-camera_axes[1][1], 0.0, camera_axes[2][1], 0.0,
-			-camera_axes[1][2], 0.0, camera_axes[2][2], 0.0,
-			0.0               , 0.0, 0.0, 1.0,
-		);*/
-
 		let (map_storage, sprite_storage, map_component, sprite_component, transform_component) =
 			world.system_data::<(
 				ReadExpect<AssetStorage<Map>>,

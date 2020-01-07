@@ -1,5 +1,5 @@
 use crate::assets::DataSource;
-use serde::Deserialize;
+use byteorder::{ReadBytesExt, LE};
 use std::{
 	collections::HashSet,
 	error::Error,
@@ -13,28 +13,14 @@ use std::{
 struct Lump {
 	file: String,
 	name: String,
-	offset: u32,
-	size: u32,
+	offset: u64,
+	size: usize,
 }
 
 #[derive(Default)]
 pub struct WadLoader {
 	lumps: Vec<Lump>,
 	names: HashSet<String>,
-}
-
-#[derive(Deserialize)]
-struct Header {
-	signature: [u8; 4],
-	dir_length: u32,
-	dir_offset: u32,
-}
-
-#[derive(Deserialize)]
-struct DirEntry {
-	lump_offset: u32,
-	lump_size: u32,
-	lump_name: [u8; 8],
 }
 
 impl WadLoader {
@@ -47,33 +33,39 @@ impl WadLoader {
 
 	pub fn add(&mut self, filename: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
 		let file = File::open(filename)?;
-		let mut file = BufReader::new(file);
+		let mut reader = BufReader::new(file);
 
-		let header: Header = bincode::deserialize_from(&mut file)?;
+		let mut signature = [0u8; 4];
+		reader.read_exact(&mut signature)?;
 
-		if !(header.signature == *b"IWAD" || header.signature == *b"PWAD") {
+		if !(signature == *b"IWAD" || signature == *b"PWAD") {
 			panic!("No IWAD or PWAD signature found.");
 		}
 
+		let dir_length = reader.read_u32::<LE>()? as usize;
+		let dir_offset = reader.read_u32::<LE>()? as u64;
+
 		// Read WAD header, reserve space for new entries
-		self.lumps.reserve(header.dir_length as usize);
+		self.lumps.reserve(dir_length);
 
 		// Read lump directory
-		file.seek(SeekFrom::Start(header.dir_offset as u64))?;
+		reader.seek(SeekFrom::Start(dir_offset))?;
 
-		for _ in 0..header.dir_length {
-			let dir_entry: DirEntry = bincode::deserialize_from(&mut file)?;
+		for _ in 0..dir_length {
+			let offset = reader.read_u32::<LE>()? as u64;
+			let size = reader.read_u32::<LE>()? as usize;
+			let mut lump_name = [0u8; 8];
+			reader.read_exact(&mut lump_name)?;
 
-			let mut lump_name =
-				String::from(str::from_utf8(&dir_entry.lump_name)?.trim_end_matches('\0'));
-			lump_name.make_ascii_uppercase();
+			let mut name = String::from(str::from_utf8(&lump_name)?.trim_end_matches('\0'));
+			name.make_ascii_uppercase();
 
-			self.names.insert(lump_name.to_owned());
+			self.names.insert(name.clone());
 			self.lumps.push(Lump {
 				file: filename.to_owned(),
-				name: lump_name,
-				offset: dir_entry.lump_offset,
-				size: dir_entry.lump_size,
+				name,
+				offset,
+				size,
 			});
 		}
 
@@ -107,8 +99,8 @@ impl DataSource for WadLoader {
 
 		// Read lump
 		let mut file = BufReader::new(File::open(&lump.file)?);
-		let mut data = vec![0; lump.size as usize];
-		file.seek(SeekFrom::Start(lump.offset as u64))?;
+		let mut data = vec![0; lump.size];
+		file.seek(SeekFrom::Start(lump.offset))?;
 		file.read_exact(&mut data)?;
 
 		Ok(data)

@@ -63,15 +63,15 @@ impl AssetFormat for SpriteFormat {
 		name: &str,
 		source: &impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
-		fn make_mesh(size: [u16; 2], offset: [i16; 2], flip: bool) -> Vec<VertexData> {
+		fn make_mesh(size: [usize; 2], offset: [isize; 2], flip: bool) -> Vec<VertexData> {
 			let mut mesh = Vec::new();
 			for (h, v) in [(1, 0), (0, 0), (0, 1), (1, 1)].iter().copied() {
 				mesh.push(VertexData {
 					in_position: [
 						// Opposite signs because y increases downwards in image space, but
 						// upwards in world space
-						(-offset[0] + h * size[0] as i16) as f32,
-						(offset[1] + v * -(size[1] as i16)) as f32,
+						(-offset[0] + h * size[0] as isize) as f32,
+						(offset[1] + v * -(size[1] as isize)) as f32,
 					],
 					in_texture_coord: [if flip { -h } else { h } as f32, v as f32],
 				});
