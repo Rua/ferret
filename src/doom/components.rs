@@ -24,13 +24,13 @@ pub struct MapDynamic {
 	pub map: AssetHandle<Map>,
 }
 
-#[derive(Component)]
+#[derive(Clone, Component, Copy, Debug)]
 #[storage(HashMapStorage)]
 pub struct SpawnPoint {
 	pub player_num: usize,
 }
 
-#[derive(Component)]
+#[derive(Clone, Component, Debug)]
 pub struct SpriteRender {
 	pub sprite: AssetHandle<Sprite>,
 	pub frame: usize,

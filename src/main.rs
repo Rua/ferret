@@ -1,6 +1,7 @@
 mod assets;
 mod audio;
 mod commands;
+mod component;
 mod configvars;
 mod doom;
 mod geometry;
@@ -202,6 +203,10 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 					"map" => {
 						let name = &args[1];
 						log::info!("Loading map {}...", name);
+
+						// Load entity type data
+						let entity_types = doom::entities::EntityTypes::new(&world);
+						world.insert(entity_types);
 
 						// Load map
 						let map = {

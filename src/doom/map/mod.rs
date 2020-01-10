@@ -6,7 +6,7 @@ use crate::{
 	assets::{Asset, AssetHandle, AssetStorage},
 	doom::{
 		components::{SpawnPoint, Transform},
-		entities::{DOOMEDNUMS, ENTITIES},
+		entities::EntityTypes,
 		map::{
 			lumps::{ChildNode, EitherVertex, LinedefFlags, MapData, Thing},
 			textures::{FlatFormat, TextureFormat},
@@ -16,8 +16,8 @@ use crate::{
 	geometry::{BoundingBox2, Side},
 	renderer::texture::Texture,
 };
-use nalgebra::{Vector2, Vector3};
-use specs::{world::Builder, Entity, Join, ReadExpect, ReadStorage, World, WorldExt};
+use nalgebra::Vector2;
+use specs::{Entity, Join, ReadExpect, ReadStorage, World, WorldExt, WriteStorage};
 use std::{
 	collections::{hash_map::Entry, HashMap},
 	error::Error,
@@ -29,16 +29,19 @@ pub fn spawn_map_entities(
 	map: &AssetHandle<Map>,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
 	for thing in things {
-		let name = DOOMEDNUMS.get(&thing.doomednum).ok_or(Box::from(format!(
-			"Doomednum not found: {}",
-			thing.doomednum
-		)) as Box<dyn Error + Send + Sync>)?;
-		let spawn_function = ENTITIES
-			.get(name)
-			.ok_or(
-				Box::from(format!("Entity not found: {}", name)) as Box<dyn Error + Send + Sync>
-			)?;
+		// Fetch entity type data
+		let entity_types = world.system_data::<ReadExpect<EntityTypes>>();
+		let name = entity_types.doomednums.get(&thing.doomednum).ok_or(Box::from(format!("Doomednum not found: {}",	thing.doomednum)) as Box<dyn Error + Send + Sync>)?;
+		let components = entity_types.names.get(name).ok_or(Box::from(format!("Entity type not found: {}", name)) as Box<dyn Error + Send + Sync>)?;
 
+		// Create entity and add components
+		let entity = world.entities().create();
+
+		for dyn_component in components {
+			dyn_component.add_to_entity(entity, world)?;
+		}
+
+		// Set entity transform
 		let z = {
 			let storage = world.system_data::<ReadExpect<AssetStorage<Map>>>();
 			let map = storage.get(&map).unwrap();
@@ -47,22 +50,20 @@ pub fn spawn_map_entities(
 			sector.floor_height
 		};
 
-		let entity = world
-			.create_entity()
-			.with(Transform {
-				position: Vector3::new(thing.position[0], thing.position[1], z),
-				rotation: Vector3::new(0.into(), 0.into(), thing.angle),
-			})
-			.build();
-
-		spawn_function(entity, world);
+		let mut transform_storage = world.system_data::<WriteStorage<Transform>>();
+		let transform = transform_storage.get_mut(entity).unwrap();
+		transform.position[0] = thing.position[0];
+		transform.position[1] = thing.position[1];
+		transform.position[2] = z;
+		transform.rotation[2] = thing.angle;
 	}
 
 	Ok(())
 }
 
 pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error + Send + Sync>> {
-	let (position, rotation) = {
+	// Get spawn point transform
+	let transform = {
 		let (transform, spawn_point) =
 			world.system_data::<(ReadStorage<Transform>, ReadStorage<SpawnPoint>)>();
 
@@ -70,7 +71,7 @@ pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error + Send + 
 			.join()
 			.find_map(|(t, s)| {
 				if s.player_num == 1 {
-					Some((t.position, t.rotation))
+					Some(t.clone())
 				} else {
 					None
 				}
@@ -78,18 +79,20 @@ pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error + Send + 
 			.unwrap()
 	};
 
-	let entity = world
-		.create_entity()
-		.with(Transform { position, rotation })
-		.build();
+	// Fetch entity type data
+	let entity_types = world.system_data::<ReadExpect<EntityTypes>>();
+	let components = entity_types.names.get("PLAYER").ok_or(Box::from(format!("Entity type not found: {}", "PLAYER")) as Box<dyn Error + Send + Sync>)?;
 
-	let spawn_function = ENTITIES
-		.get("PLAYER")
-		.ok_or(
-			Box::from(format!("Entity not found: {}", "PLAYER")) as Box<dyn Error + Send + Sync>
-		)?;
+	// Create entity and add components
+	let entity = world.entities().create();
 
-	spawn_function(entity, world);
+	for dyn_component in components {
+		dyn_component.add_to_entity(entity, world)?;
+	}
+
+	// Set entity transform
+	let mut transform_storage = world.system_data::<WriteStorage<Transform>>();
+	*transform_storage.get_mut(entity).unwrap() = transform;
 
 	Ok(entity)
 }
