@@ -13,6 +13,7 @@ mod stdin;
 use crate::{
 	assets::{AssetFormat, AssetStorage},
 	audio::Audio,
+	component::EntityTemplate,
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
 	logger::Logger,
 	renderer::{texture::Texture, video::Video},
@@ -109,6 +110,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	world.register::<doom::components::SpawnPoint>();
 	world.register::<doom::components::SpriteRender>();
 	world.register::<doom::components::Transform>();
+	world.insert(AssetStorage::<EntityTemplate>::default());
 	world.insert(AssetStorage::<doom::map::Map>::default());
 	world.insert(AssetStorage::<doom::sprite::Sprite>::default());
 	world.insert(AssetStorage::<Texture>::default());

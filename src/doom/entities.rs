@@ -1,6 +1,6 @@
 #![allow(unused_variables)]
 use crate::{
-	assets::AssetStorage,
+	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
 	doom::components::{SpawnPoint, SpriteRender, Transform},
 };
@@ -8,49 +8,63 @@ use specs::{ReadExpect, World, WriteExpect};
 use std::collections::HashMap;
 
 pub struct EntityTypes {
-	pub names: HashMap<&'static str, EntityTemplate>,
-	pub doomednums: HashMap<u16, &'static str>,
+	pub names: HashMap<&'static str, AssetHandle<EntityTemplate>>,
+	pub doomednums: HashMap<u16, AssetHandle<EntityTemplate>>,
 }
 
 impl EntityTypes {
 	pub fn new(world: &World) -> EntityTypes {
-		let mut names: HashMap<&'static str, EntityTemplate> = HashMap::new();
-		names.insert("SPAWN1", {
+		let mut template_storage = world.system_data::<WriteExpect<AssetStorage<EntityTemplate>>>();
+		let mut names = HashMap::new();
+		let mut doomednums = HashMap::new();
+
+		let handle = template_storage.insert({
 			let mut template = EntityTemplate::new();
 			template.add_component(SpawnPoint { player_num: 1 });
 			template.add_component(Transform::default());
 			template
 		});
+		doomednums.insert(1, handle.clone());
 
-		names.insert("SPAWN2", {
+		let handle = template_storage.insert({
 			let mut template = EntityTemplate::new();
 			template.add_component(SpawnPoint { player_num: 2 });
 			template.add_component(Transform::default());
 			template
 		});
-		names.insert("SPAWN3", {
+		doomednums.insert(2, handle.clone());
+
+		let handle = template_storage.insert({
 			let mut template = EntityTemplate::new();
 			template.add_component(SpawnPoint { player_num: 3 });
 			template.add_component(Transform::default());
 			template
 		});
-		names.insert("SPAWN4", {
+		doomednums.insert(3, handle.clone());
+
+		let handle = template_storage.insert({
 			let mut template = EntityTemplate::new();
 			template.add_component(SpawnPoint { player_num: 4 });
 			template.add_component(Transform::default());
 			template
 		});
-		names.insert("DMSPAWN", {
+		doomednums.insert(4, handle.clone());
+
+		let handle = template_storage.insert({
 			let mut template = EntityTemplate::new();
 			template.add_component(Transform::default());
 			template
 		});
-		names.insert("PLAYER", {
+		doomednums.insert(11, handle.clone());
+
+		let handle = template_storage.insert({
 			let mut template = EntityTemplate::new();
 			template.add_component(Transform::default());
 			template
 		});
-		names.insert("POSSESSED", {
+		names.insert("PLAYER", handle.clone());
+
+		let handle = template_storage.insert({
 			let mut template = EntityTemplate::new();
 			template.add_component({
 				let sprite = {
@@ -74,806 +88,1070 @@ impl EntityTypes {
 			template.add_component(Transform::default());
 			template
 		});
-		names.insert("SHOTGUY", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("VILE", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("FIRE", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("UNDEAD", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("TRACER", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("SMOKE", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("FATSO", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("FATSHOT", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("CHAINGUY", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("TROOP", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("SERGEANT", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("SHADOWS", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("HEAD", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("BRUISER", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("BRUISERSHOT", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("KNIGHT", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("SKULL", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("SPIDER", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("BABY", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("CYBORG", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("PAIN", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("WOLFSS", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("KEEN", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("BOSSBRAIN", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("BOSSSPIT", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("BOSSTARGET", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("SPAWNSHOT", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("SPAWNFIRE", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("BARREL", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("TROOPSHOT", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("HEADSHOT", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("ROCKET", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("PLASMA", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("BFG", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("ARACHPLAZ", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("PUFF", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("BLOOD", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("TFOG", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("IFOG", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("TELEPORTMAN", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("EXTRABFG", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC0", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC1", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC2", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC3", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC4", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC5", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC6", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC7", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC8", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC9", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC10", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC11", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC12", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("INV", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC13", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("INS", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC14", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC15", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC16", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MEGA", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("CLIP", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC17", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC18", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC19", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC20", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC21", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC22", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC23", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC24", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC25", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("CHAINGUN", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC26", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC27", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC28", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("SHOTGUN", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("SUPERSHOTGUN", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC29", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC30", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC31", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC32", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC33", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC34", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC35", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC36", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC37", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC38", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC39", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC40", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC41", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC42", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC43", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC44", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC45", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC46", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC47", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC48", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC49", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC50", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC51", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC52", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC53", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC54", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC55", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC56", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC57", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC58", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC59", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC60", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC61", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC62", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC63", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC64", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC65", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC66", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC67", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC68", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC69", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC70", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC71", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC72", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC73", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC74", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC75", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC76", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC77", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC78", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC79", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC80", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC81", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC82", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC83", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC84", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC85", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
-		names.insert("MISC86", {
-			let mut template = EntityTemplate::new();
-			template.add_component(Transform::default());
-			template
-		});
+		names.insert("POSSESSED", handle.clone());
+		doomednums.insert(3004, handle.clone());
 
-		let mut doomednums = HashMap::new();
-		doomednums.insert(1, "SPAWN1");
-		doomednums.insert(2, "SPAWN2");
-		doomednums.insert(3, "SPAWN3");
-		doomednums.insert(4, "SPAWN4");
-		doomednums.insert(11, "DMSPAWN");
-		doomednums.insert(3004, "POSSESSED");
-		doomednums.insert(9, "SHOTGUY");
-		doomednums.insert(64, "VILE");
-		doomednums.insert(66, "UNDEAD");
-		doomednums.insert(67, "FATSO");
-		doomednums.insert(65, "CHAINGUY");
-		doomednums.insert(3001, "TROOP");
-		doomednums.insert(3002, "SERGEANT");
-		doomednums.insert(58, "SHADOWS");
-		doomednums.insert(3005, "HEAD");
-		doomednums.insert(3003, "BRUISER");
-		doomednums.insert(69, "KNIGHT");
-		doomednums.insert(3006, "SKULL");
-		doomednums.insert(7, "SPIDER");
-		doomednums.insert(68, "BABY");
-		doomednums.insert(16, "CYBORG");
-		doomednums.insert(71, "PAIN");
-		doomednums.insert(84, "WOLFSS");
-		doomednums.insert(72, "KEEN");
-		doomednums.insert(88, "BOSSBRAIN");
-		doomednums.insert(89, "BOSSSPIT");
-		doomednums.insert(87, "BOSSTARGET");
-		doomednums.insert(2035, "BARREL");
-		doomednums.insert(14, "TELEPORTMAN");
-		doomednums.insert(2018, "MISC0");
-		doomednums.insert(2019, "MISC1");
-		doomednums.insert(2014, "MISC2");
-		doomednums.insert(2015, "MISC3");
-		doomednums.insert(5, "MISC4");
-		doomednums.insert(13, "MISC5");
-		doomednums.insert(6, "MISC6");
-		doomednums.insert(39, "MISC7");
-		doomednums.insert(38, "MISC8");
-		doomednums.insert(40, "MISC9");
-		doomednums.insert(2011, "MISC10");
-		doomednums.insert(2012, "MISC11");
-		doomednums.insert(2013, "MISC12");
-		doomednums.insert(2022, "INV");
-		doomednums.insert(2023, "MISC13");
-		doomednums.insert(2024, "INS");
-		doomednums.insert(2025, "MISC14");
-		doomednums.insert(2026, "MISC15");
-		doomednums.insert(2045, "MISC16");
-		doomednums.insert(83, "MEGA");
-		doomednums.insert(2007, "CLIP");
-		doomednums.insert(2048, "MISC17");
-		doomednums.insert(2010, "MISC18");
-		doomednums.insert(2046, "MISC19");
-		doomednums.insert(2047, "MISC20");
-		doomednums.insert(17, "MISC21");
-		doomednums.insert(2008, "MISC22");
-		doomednums.insert(2049, "MISC23");
-		doomednums.insert(8, "MISC24");
-		doomednums.insert(2006, "MISC25");
-		doomednums.insert(2002, "CHAINGUN");
-		doomednums.insert(2005, "MISC26");
-		doomednums.insert(2003, "MISC27");
-		doomednums.insert(2004, "MISC28");
-		doomednums.insert(2001, "SHOTGUN");
-		doomednums.insert(82, "SUPERSHOTGUN");
-		doomednums.insert(85, "MISC29");
-		doomednums.insert(86, "MISC30");
-		doomednums.insert(2028, "MISC31");
-		doomednums.insert(30, "MISC32");
-		doomednums.insert(31, "MISC33");
-		doomednums.insert(32, "MISC34");
-		doomednums.insert(33, "MISC35");
-		doomednums.insert(37, "MISC36");
-		doomednums.insert(36, "MISC37");
-		doomednums.insert(41, "MISC38");
-		doomednums.insert(42, "MISC39");
-		doomednums.insert(43, "MISC40");
-		doomednums.insert(44, "MISC41");
-		doomednums.insert(45, "MISC42");
-		doomednums.insert(46, "MISC43");
-		doomednums.insert(55, "MISC44");
-		doomednums.insert(56, "MISC45");
-		doomednums.insert(57, "MISC46");
-		doomednums.insert(47, "MISC47");
-		doomednums.insert(48, "MISC48");
-		doomednums.insert(34, "MISC49");
-		doomednums.insert(35, "MISC50");
-		doomednums.insert(49, "MISC51");
-		doomednums.insert(50, "MISC52");
-		doomednums.insert(51, "MISC53");
-		doomednums.insert(52, "MISC54");
-		doomednums.insert(53, "MISC55");
-		doomednums.insert(59, "MISC56");
-		doomednums.insert(60, "MISC57");
-		doomednums.insert(61, "MISC58");
-		doomednums.insert(62, "MISC59");
-		doomednums.insert(63, "MISC60");
-		doomednums.insert(22, "MISC61");
-		doomednums.insert(15, "MISC62");
-		doomednums.insert(18, "MISC63");
-		doomednums.insert(21, "MISC64");
-		doomednums.insert(23, "MISC65");
-		doomednums.insert(20, "MISC66");
-		doomednums.insert(19, "MISC67");
-		doomednums.insert(10, "MISC68");
-		doomednums.insert(12, "MISC69");
-		doomednums.insert(28, "MISC70");
-		doomednums.insert(24, "MISC71");
-		doomednums.insert(27, "MISC72");
-		doomednums.insert(29, "MISC73");
-		doomednums.insert(25, "MISC74");
-		doomednums.insert(26, "MISC75");
-		doomednums.insert(54, "MISC76");
-		doomednums.insert(70, "MISC77");
-		doomednums.insert(73, "MISC78");
-		doomednums.insert(74, "MISC79");
-		doomednums.insert(75, "MISC80");
-		doomednums.insert(76, "MISC81");
-		doomednums.insert(77, "MISC82");
-		doomednums.insert(78, "MISC83");
-		doomednums.insert(79, "MISC84");
-		doomednums.insert(80, "MISC85");
-		doomednums.insert(81, "MISC86");
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SHOTGUY", handle.clone());
+		doomednums.insert(9, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("VILE", handle.clone());
+		doomednums.insert(64, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("FIRE", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("UNDEAD", handle.clone());
+		doomednums.insert(66, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("TRACER", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SMOKE", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("FATSO", handle.clone());
+		doomednums.insert(67, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("FATSHOT", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("CHAINGUY", handle.clone());
+		doomednums.insert(65, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("TROOP", handle.clone());
+		doomednums.insert(3001, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SERGEANT", handle.clone());
+		doomednums.insert(3002, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SHADOWS", handle.clone());
+		doomednums.insert(58, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("HEAD", handle.clone());
+		doomednums.insert(3005, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BRUISER", handle.clone());
+		doomednums.insert(3003, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BRUISERSHOT", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("KNIGHT", handle.clone());
+		doomednums.insert(69, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SKULL", handle.clone());
+		doomednums.insert(3006, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SPIDER", handle.clone());
+		doomednums.insert(7, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BABY", handle.clone());
+		doomednums.insert(68, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("CYBORG", handle.clone());
+		doomednums.insert(16, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("PAIN", handle.clone());
+		doomednums.insert(71, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("WOLFSS", handle.clone());
+		doomednums.insert(84, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("KEEN", handle.clone());
+		doomednums.insert(72, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BOSSBRAIN", handle.clone());
+		doomednums.insert(88, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BOSSSPIT", handle.clone());
+		doomednums.insert(89, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BOSSTARGET", handle.clone());
+		doomednums.insert(87, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SPAWNSHOT", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SPAWNFIRE", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BARREL", handle.clone());
+		doomednums.insert(2035, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("TROOPSHOT", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("HEADSHOT", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("ROCKET", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("PLASMA", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BFG", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("ARACHPLAZ", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("PUFF", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BLOOD", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("TFOG", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("IFOG", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("TELEPORTMAN", handle.clone());
+		doomednums.insert(14, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("EXTRABFG", handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC0", handle.clone());
+		doomednums.insert(2018, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC1", handle.clone());
+		doomednums.insert(2019, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC2", handle.clone());
+		doomednums.insert(2014, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC3", handle.clone());
+		doomednums.insert(2015, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC4", handle.clone());
+		doomednums.insert(5, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC5", handle.clone());
+		doomednums.insert(13, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC6", handle.clone());
+		doomednums.insert(6, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC7", handle.clone());
+		doomednums.insert(39, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC8", handle.clone());
+		doomednums.insert(38, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC9", handle.clone());
+		doomednums.insert(40, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC10", handle.clone());
+		doomednums.insert(2011, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC11", handle.clone());
+		doomednums.insert(2012, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC12", handle.clone());
+		doomednums.insert(2013, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("INV", handle.clone());
+		doomednums.insert(2022, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC13", handle.clone());
+		doomednums.insert(2023, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("INS", handle.clone());
+		doomednums.insert(2024, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC14", handle.clone());
+		doomednums.insert(2025, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC15", handle.clone());
+		doomednums.insert(2026, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC16", handle.clone());
+		doomednums.insert(2045, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MEGA", handle.clone());
+		doomednums.insert(83, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("CLIP", handle.clone());
+		doomednums.insert(2007, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC17", handle.clone());
+		doomednums.insert(2048, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC18", handle.clone());
+		doomednums.insert(2010, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC19", handle.clone());
+		doomednums.insert(2046, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC20", handle.clone());
+		doomednums.insert(2047, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC21", handle.clone());
+		doomednums.insert(17, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC22", handle.clone());
+		doomednums.insert(2008, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC23", handle.clone());
+		doomednums.insert(2049, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC24", handle.clone());
+		doomednums.insert(8, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC25", handle.clone());
+		doomednums.insert(2006, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("CHAINGUN", handle.clone());
+		doomednums.insert(2002, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC26", handle.clone());
+		doomednums.insert(2005, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC27", handle.clone());
+		doomednums.insert(2003, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC28", handle.clone());
+		doomednums.insert(2004, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SHOTGUN", handle.clone());
+		doomednums.insert(2001, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SUPERSHOTGUN", handle.clone());
+		doomednums.insert(82, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC29", handle.clone());
+		doomednums.insert(85, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC30", handle.clone());
+		doomednums.insert(86, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC31", handle.clone());
+		doomednums.insert(2028, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC32", handle.clone());
+		doomednums.insert(30, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC33", handle.clone());
+		doomednums.insert(31, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC34", handle.clone());
+		doomednums.insert(32, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC35", handle.clone());
+		doomednums.insert(33, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC36", handle.clone());
+		doomednums.insert(37, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC37", handle.clone());
+		doomednums.insert(36, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC38", handle.clone());
+		doomednums.insert(41, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC39", handle.clone());
+		doomednums.insert(42, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC40", handle.clone());
+		doomednums.insert(43, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC41", handle.clone());
+		doomednums.insert(44, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC42", handle.clone());
+		doomednums.insert(45, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC43", handle.clone());
+		doomednums.insert(46, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC44", handle.clone());
+		doomednums.insert(55, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC45", handle.clone());
+		doomednums.insert(56, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC46", handle.clone());
+		doomednums.insert(57, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC47", handle.clone());
+		doomednums.insert(47, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC48", handle.clone());
+		doomednums.insert(48, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC49", handle.clone());
+		doomednums.insert(34, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC50", handle.clone());
+		doomednums.insert(35, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC51", handle.clone());
+		doomednums.insert(49, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC52", handle.clone());
+		doomednums.insert(50, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC53", handle.clone());
+		doomednums.insert(51, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC54", handle.clone());
+		doomednums.insert(52, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC55", handle.clone());
+		doomednums.insert(53, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC56", handle.clone());
+		doomednums.insert(59, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC57", handle.clone());
+		doomednums.insert(60, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC58", handle.clone());
+		doomednums.insert(61, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC59", handle.clone());
+		doomednums.insert(62, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC60", handle.clone());
+		doomednums.insert(63, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC61", handle.clone());
+		doomednums.insert(22, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC62", handle.clone());
+		doomednums.insert(15, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC63", handle.clone());
+		doomednums.insert(18, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC64", handle.clone());
+		doomednums.insert(21, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC65", handle.clone());
+		doomednums.insert(23, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC66", handle.clone());
+		doomednums.insert(20, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC67", handle.clone());
+		doomednums.insert(19, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC68", handle.clone());
+		doomednums.insert(10, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC69", handle.clone());
+		doomednums.insert(12, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC70", handle.clone());
+		doomednums.insert(28, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC71", handle.clone());
+		doomednums.insert(24, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC72", handle.clone());
+		doomednums.insert(27, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC73", handle.clone());
+		doomednums.insert(29, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC74", handle.clone());
+		doomednums.insert(25, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC75", handle.clone());
+		doomednums.insert(26, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC76", handle.clone());
+		doomednums.insert(54, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC77", handle.clone());
+		doomednums.insert(70, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC78", handle.clone());
+		doomednums.insert(73, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC79", handle.clone());
+		doomednums.insert(74, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC80", handle.clone());
+		doomednums.insert(75, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC81", handle.clone());
+		doomednums.insert(76, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC82", handle.clone());
+		doomednums.insert(77, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC83", handle.clone());
+		doomednums.insert(78, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC84", handle.clone());
+		doomednums.insert(79, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC85", handle.clone());
+		doomednums.insert(80, handle.clone());
+
+		let handle = template_storage.insert({
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC86", handle.clone());
+		doomednums.insert(81, handle.clone());
 
 		EntityTypes { names, doomednums }
 	}

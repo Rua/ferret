@@ -1,3 +1,4 @@
+use crate::assets::Asset;
 use specs::{Component, Entity, World, WorldExt};
 use std::{any::TypeId, collections::HashMap};
 
@@ -35,4 +36,8 @@ impl EntityTemplate {
 
 		Ok(())
 	}
+}
+
+impl Asset for EntityTemplate {
+	type Data = Self;
 }

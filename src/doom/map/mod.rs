@@ -4,6 +4,7 @@ pub mod textures;
 
 use crate::{
 	assets::{Asset, AssetHandle, AssetStorage},
+	component::EntityTemplate,
 	doom::{
 		components::{SpawnPoint, Transform},
 		entities::EntityTypes,
@@ -30,19 +31,15 @@ pub fn spawn_map_entities(
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
 	for thing in things {
 		// Fetch entity template
-		let entity_types = world.system_data::<ReadExpect<EntityTypes>>();
-		let name = entity_types
+		let (entity_types, template_storage) = world.system_data::<(ReadExpect<EntityTypes>, ReadExpect<AssetStorage<EntityTemplate>>)>();
+		let handle = entity_types
 			.doomednums
 			.get(&thing.doomednum)
 			.ok_or(
 				Box::from(format!("Doomednum not found: {}", thing.doomednum))
 					as Box<dyn Error + Send + Sync>,
 			)?;
-		let template = entity_types
-			.names
-			.get(name)
-			.ok_or(Box::from(format!("Entity type not found: {}", name))
-				as Box<dyn Error + Send + Sync>)?;
+		let template = template_storage.get(handle).unwrap();
 
 		// Create entity and add components
 		let entity = world.entities().create();
@@ -87,12 +84,13 @@ pub fn spawn_player(world: &World) -> Result<Entity, Box<dyn Error + Send + Sync
 	};
 
 	// Fetch entity template
-	let entity_types = world.system_data::<ReadExpect<EntityTypes>>();
-	let template = entity_types
+	let (entity_types, template_storage) = world.system_data::<(ReadExpect<EntityTypes>, ReadExpect<AssetStorage<EntityTemplate>>)>();
+	let handle = entity_types
 		.names
 		.get("PLAYER")
 		.ok_or(Box::from(format!("Entity type not found: {}", "PLAYER"))
 			as Box<dyn Error + Send + Sync>)?;
+	let template = template_storage.get(handle).unwrap();
 
 	// Create entity and add components
 	let entity = world.entities().create();
