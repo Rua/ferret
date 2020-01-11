@@ -266,8 +266,8 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 								world.system_data::<WriteExpect<doom::wad::WadLoader>>();
 							doom::map::lumps::ThingsFormat.import(name, &mut *loader)?
 						};
-						doom::map::spawn_map_entities(things, &mut world, &map)?;
-						let entity = doom::map::spawn_player(&mut world)?;
+						doom::map::spawn_map_entities(things, &world, &map)?;
+						let entity = doom::map::spawn_player(&world)?;
 						world.insert(entity);
 					}
 					"quit" => should_quit = true,

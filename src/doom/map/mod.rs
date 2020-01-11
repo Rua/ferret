@@ -25,21 +25,28 @@ use std::{
 
 pub fn spawn_map_entities(
 	things: Vec<Thing>,
-	world: &mut World,
+	world: &World,
 	map: &AssetHandle<Map>,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
 	for thing in things {
-		// Fetch entity type data
+		// Fetch entity template
 		let entity_types = world.system_data::<ReadExpect<EntityTypes>>();
-		let name = entity_types.doomednums.get(&thing.doomednum).ok_or(Box::from(format!("Doomednum not found: {}",	thing.doomednum)) as Box<dyn Error + Send + Sync>)?;
-		let components = entity_types.names.get(name).ok_or(Box::from(format!("Entity type not found: {}", name)) as Box<dyn Error + Send + Sync>)?;
+		let name = entity_types
+			.doomednums
+			.get(&thing.doomednum)
+			.ok_or(
+				Box::from(format!("Doomednum not found: {}", thing.doomednum))
+					as Box<dyn Error + Send + Sync>,
+			)?;
+		let template = entity_types
+			.names
+			.get(name)
+			.ok_or(Box::from(format!("Entity type not found: {}", name))
+				as Box<dyn Error + Send + Sync>)?;
 
 		// Create entity and add components
 		let entity = world.entities().create();
-
-		for dyn_component in components {
-			dyn_component.add_to_entity(entity, world)?;
-		}
+		template.add_to_entity(entity, world)?;
 
 		// Set entity transform
 		let z = {
@@ -61,7 +68,7 @@ pub fn spawn_map_entities(
 	Ok(())
 }
 
-pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error + Send + Sync>> {
+pub fn spawn_player(world: &World) -> Result<Entity, Box<dyn Error + Send + Sync>> {
 	// Get spawn point transform
 	let transform = {
 		let (transform, spawn_point) =
@@ -79,16 +86,17 @@ pub fn spawn_player(world: &mut World) -> Result<Entity, Box<dyn Error + Send + 
 			.unwrap()
 	};
 
-	// Fetch entity type data
+	// Fetch entity template
 	let entity_types = world.system_data::<ReadExpect<EntityTypes>>();
-	let components = entity_types.names.get("PLAYER").ok_or(Box::from(format!("Entity type not found: {}", "PLAYER")) as Box<dyn Error + Send + Sync>)?;
+	let template = entity_types
+		.names
+		.get("PLAYER")
+		.ok_or(Box::from(format!("Entity type not found: {}", "PLAYER"))
+			as Box<dyn Error + Send + Sync>)?;
 
 	// Create entity and add components
 	let entity = world.entities().create();
-
-	for dyn_component in components {
-		dyn_component.add_to_entity(entity, world)?;
-	}
+	template.add_to_entity(entity, world)?;
 
 	// Set entity transform
 	let mut transform_storage = world.system_data::<WriteStorage<Transform>>();

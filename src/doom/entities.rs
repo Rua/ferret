@@ -1,466 +1,754 @@
 #![allow(unused_variables)]
 use crate::{
 	assets::AssetStorage,
-	component::DynComponent,
+	component::EntityTemplate,
 	doom::components::{SpawnPoint, SpriteRender, Transform},
 };
 use specs::{ReadExpect, World, WriteExpect};
 use std::collections::HashMap;
 
 pub struct EntityTypes {
-	pub names: HashMap<&'static str, Vec<Box<dyn DynComponent>>>,
+	pub names: HashMap<&'static str, EntityTemplate>,
 	pub doomednums: HashMap<u16, &'static str>,
 }
 
 impl EntityTypes {
 	pub fn new(world: &World) -> EntityTypes {
-		let mut names: HashMap<&'static str, Vec<Box<dyn DynComponent>>> = HashMap::new();
-		names.insert("SPAWN1", vec![
-			Box::from(SpawnPoint { player_num: 1 }),
-			Box::from(Transform::default()),
-		]);
-		names.insert("SPAWN2", vec![
-			Box::from(SpawnPoint { player_num: 2 }),
-			Box::from(Transform::default()),
-		]);
-		names.insert("SPAWN3", vec![
-			Box::from(SpawnPoint { player_num: 3 }),
-			Box::from(Transform::default()),
-		]);
-		names.insert("SPAWN4", vec![
-			Box::from(SpawnPoint { player_num: 4 }),
-			Box::from(Transform::default()),
-		]);
-		names.insert("DMSPAWN", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("PLAYER", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("POSSESSED", vec![
-			Box::from({
+		let mut names: HashMap<&'static str, EntityTemplate> = HashMap::new();
+		names.insert("SPAWN1", {
+			let mut template = EntityTemplate::new();
+			template.add_component(SpawnPoint { player_num: 1 });
+			template.add_component(Transform::default());
+			template
+		});
+
+		names.insert("SPAWN2", {
+			let mut template = EntityTemplate::new();
+			template.add_component(SpawnPoint { player_num: 2 });
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SPAWN3", {
+			let mut template = EntityTemplate::new();
+			template.add_component(SpawnPoint { player_num: 3 });
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SPAWN4", {
+			let mut template = EntityTemplate::new();
+			template.add_component(SpawnPoint { player_num: 4 });
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("DMSPAWN", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("PLAYER", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("POSSESSED", {
+			let mut template = EntityTemplate::new();
+			template.add_component({
 				let sprite = {
 					let (mut loader, mut sprite_storage, video) = world.system_data::<(
 						WriteExpect<crate::doom::wad::WadLoader>,
 						WriteExpect<AssetStorage<crate::doom::sprite::Sprite>>,
 						ReadExpect<crate::renderer::video::Video>,
 					)>();
-					let sprite =
-						sprite_storage.load("POSS", crate::doom::sprite::SpriteFormat, &mut *loader);
+					let sprite = sprite_storage.load(
+						"POSS",
+						crate::doom::sprite::SpriteFormat,
+						&mut *loader,
+					);
 					sprite_storage
 						.build_waiting(|data| Ok(data.build(video.queues().graphics.clone())?.0));
 
 					sprite
 				};
 				SpriteRender { sprite, frame: 0 }
-			}),
-			Box::from(Transform::default()),
-		]);
-		names.insert("SHOTGUY", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("VILE", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("FIRE", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("UNDEAD", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("TRACER", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("SMOKE", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("FATSO", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("FATSHOT", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("CHAINGUY", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("TROOP", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("SERGEANT", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("SHADOWS", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("HEAD", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("BRUISER", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("BRUISERSHOT", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("KNIGHT", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("SKULL", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("SPIDER", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("BABY", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("CYBORG", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("PAIN", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("WOLFSS", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("KEEN", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("BOSSBRAIN", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("BOSSSPIT", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("BOSSTARGET", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("SPAWNSHOT", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("SPAWNFIRE", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("BARREL", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("TROOPSHOT", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("HEADSHOT", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("ROCKET", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("PLASMA", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("BFG", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("ARACHPLAZ", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("PUFF", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("BLOOD", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("TFOG", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("IFOG", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("TELEPORTMAN", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("EXTRABFG", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC0", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC1", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC2", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC3", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC4", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC5", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC6", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC7", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC8", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC9", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC10", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC11", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC12", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("INV", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC13", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("INS", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC14", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC15", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC16", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MEGA", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("CLIP", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC17", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC18", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC19", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC20", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC21", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC22", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC23", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC24", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC25", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("CHAINGUN", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC26", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC27", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC28", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("SHOTGUN", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("SUPERSHOTGUN", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC29", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC30", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC31", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC32", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC33", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC34", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC35", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC36", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC37", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC38", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC39", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC40", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC41", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC42", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC43", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC44", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC45", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC46", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC47", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC48", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC49", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC50", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC51", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC52", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC53", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC54", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC55", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC56", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC57", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC58", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC59", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC60", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC61", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC62", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC63", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC64", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC65", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC66", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC67", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC68", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC69", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC70", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC71", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC72", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC73", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC74", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC75", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC76", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC77", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC78", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC79", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC80", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC81", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC82", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC83", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC84", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC85", vec![
-			Box::from(Transform::default()),
-		]);
-		names.insert("MISC86", vec![
-			Box::from(Transform::default()),
-		]);
+			});
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SHOTGUY", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("VILE", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("FIRE", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("UNDEAD", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("TRACER", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SMOKE", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("FATSO", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("FATSHOT", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("CHAINGUY", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("TROOP", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SERGEANT", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SHADOWS", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("HEAD", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BRUISER", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BRUISERSHOT", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("KNIGHT", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SKULL", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SPIDER", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BABY", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("CYBORG", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("PAIN", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("WOLFSS", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("KEEN", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BOSSBRAIN", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BOSSSPIT", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BOSSTARGET", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SPAWNSHOT", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SPAWNFIRE", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BARREL", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("TROOPSHOT", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("HEADSHOT", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("ROCKET", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("PLASMA", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BFG", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("ARACHPLAZ", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("PUFF", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("BLOOD", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("TFOG", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("IFOG", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("TELEPORTMAN", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("EXTRABFG", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC0", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC1", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC2", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC3", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC4", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC5", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC6", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC7", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC8", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC9", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC10", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC11", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC12", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("INV", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC13", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("INS", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC14", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC15", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC16", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MEGA", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("CLIP", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC17", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC18", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC19", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC20", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC21", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC22", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC23", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC24", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC25", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("CHAINGUN", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC26", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC27", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC28", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SHOTGUN", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("SUPERSHOTGUN", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC29", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC30", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC31", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC32", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC33", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC34", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC35", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC36", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC37", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC38", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC39", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC40", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC41", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC42", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC43", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC44", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC45", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC46", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC47", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC48", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC49", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC50", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC51", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC52", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC53", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC54", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC55", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC56", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC57", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC58", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC59", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC60", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC61", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC62", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC63", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC64", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC65", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC66", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC67", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC68", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC69", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC70", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC71", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC72", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC73", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC74", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC75", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC76", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC77", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC78", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC79", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC80", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC81", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC82", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC83", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC84", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC85", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
+		names.insert("MISC86", {
+			let mut template = EntityTemplate::new();
+			template.add_component(Transform::default());
+			template
+		});
 
 		let mut doomednums = HashMap::new();
 		doomednums.insert(1, "SPAWN1");
@@ -587,9 +875,6 @@ impl EntityTypes {
 		doomednums.insert(80, "MISC85");
 		doomednums.insert(81, "MISC86");
 
-		EntityTypes {
-			names,
-			doomednums,
-		}
+		EntityTypes { names, doomednums }
 	}
 }
