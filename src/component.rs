@@ -29,6 +29,11 @@ impl EntityTemplate {
 			.insert(TypeId::of::<T>(), Box::from(component));
 	}
 
+	pub fn with_component<T: Component + Clone + Send + Sync>(mut self, component: T) -> Self {
+		self.add_component(component);
+		self
+	}
+
 	pub fn add_to_entity(&self, entity: Entity, world: &World) -> Result<(), specs::error::Error> {
 		for dyn_component in self.components.values() {
 			dyn_component.add_to_entity(entity, world)?;

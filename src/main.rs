@@ -210,6 +210,16 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						let entity_types = doom::entities::EntityTypes::new(&world);
 						world.insert(entity_types);
 
+						{
+							let (mut sprite_storage, video) = world.system_data::<(
+								WriteExpect<AssetStorage<crate::doom::sprite::Sprite>>,
+								ReadExpect<crate::renderer::video::Video>,
+							)>();
+							sprite_storage.build_waiting(|data| {
+								Ok(data.build(video.queues().graphics.clone())?.0)
+							});
+						}
+
 						// Load map
 						let map = {
 							let (mut loader, mut map_storage, mut texture_storage) = world
