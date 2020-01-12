@@ -146,7 +146,7 @@ fn make_meshes(
 				in_position: [vert[0], vert[1], vert_z],
 				in_texture_coord: [
 					vert[0] / dimensions.width() as f32,
-					vert[1] / dimensions.height() as f32,
+					-vert[1] / dimensions.height() as f32,
 				],
 				in_light_level: light_level,
 			});

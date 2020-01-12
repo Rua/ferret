@@ -123,7 +123,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
 	let mut render_system = doom::render::RenderSystem::new(&world)?;
 
-	command_sender.send("map E1M1".to_owned()).ok();
+	command_sender.send("map E2M1".to_owned()).ok();
 
 	let mut should_quit = false;
 	let mut old_time = Instant::now();

@@ -13,7 +13,7 @@ use crate::{
 	},
 };
 use nalgebra::{Matrix4, Vector2, Vector3};
-use specs::{Entity, Join, ReadExpect, ReadStorage, RunNow, World};
+use specs::{Entity, Entities, Join, ReadExpect, ReadStorage, RunNow, World};
 use std::{error::Error, sync::Arc};
 use vulkano::{
 	buffer::{BufferAccess, CpuBufferPool},
@@ -224,12 +224,12 @@ impl RenderSystem {
 		let proj = projection_matrix(90.0, aspect_ratio, 0.1, 10000.0);
 
 		// View matrix
-		let (entity, transform_storage) =
+		let (view_entity, transform_storage) =
 			world.system_data::<(ReadExpect<Entity>, ReadStorage<Transform>)>();
 		let Transform {
 			mut position,
 			rotation,
-		} = *transform_storage.get(*entity).unwrap();
+		} = *transform_storage.get(*view_entity).unwrap();
 		position += Vector3::new(0.0, 0.0, 41.0);
 
 		let view = Matrix4::new_rotation(Vector3::new(-rotation[0].to_radians() as f32, 0.0, 0.0))
@@ -529,8 +529,10 @@ impl SpriteRenderSystem {
 		yaw: Angle,
 		view_pos: Vector3<f32>,
 	) -> Result<AutoCommandBufferBuilder, Box<dyn Error + Send + Sync>> {
-		let (map_storage, sprite_storage, map_component, sprite_component, transform_component) =
+		let (entities, view_entity, map_storage, sprite_storage, map_component, sprite_component, transform_component) =
 			world.system_data::<(
+				Entities,
+				ReadExpect<Entity>,
 				ReadExpect<AssetStorage<Map>>,
 				ReadExpect<AssetStorage<Sprite>>,
 				ReadStorage<MapDynamic>,
@@ -541,7 +543,12 @@ impl SpriteRenderSystem {
 		let handle = &map_component.join().next().unwrap().map;
 		let map = map_storage.get(handle).unwrap();
 
-		for (sprite_render, transform) in (&sprite_component, &transform_component).join() {
+		for (entity, sprite_render, transform) in (&entities, &sprite_component, &transform_component).join() {
+			// Don't render the player's own sprite
+			if entity == *view_entity {
+				continue;
+			}
+
 			let sprite = sprite_storage.get(&sprite_render.sprite).unwrap();
 			let frame = &sprite.frames()[sprite_render.frame];
 
