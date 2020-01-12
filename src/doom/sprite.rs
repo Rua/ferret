@@ -6,6 +6,8 @@ use crate::{
 		texture::{Texture, TextureBuilder},
 	},
 };
+use lazy_static::lazy_static;
+use regex::Regex;
 use std::{error::Error, sync::Arc};
 use vulkano::{device::Queue, format::Format, image::Dimensions, impl_vertex, sync::GpuFuture};
 
@@ -79,12 +81,20 @@ impl AssetFormat for SpriteFormat {
 			mesh
 		}
 
+		lazy_static! {
+			static ref SPRITENAME: Regex =
+				Regex::new(r#"^....[A-Z][0-9](?:[A-Z][0-9])?$"#).unwrap();
+		}
+
 		let mut textures = Vec::new();
 		let mut meshes = Vec::new();
 		let mut info = Vec::new();
 		let mut max_frame = 0;
 
-		for lumpname in source.names().filter(|n| n.starts_with(name)) {
+		for lumpname in source
+			.names()
+			.filter(|n| n.starts_with(name) && SPRITENAME.is_match(n))
+		{
 			// Load the sprite lump
 			let image = ImageFormat.import(lumpname, source)?;
 

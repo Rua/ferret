@@ -34,6 +34,7 @@ pub struct SpawnPoint {
 pub struct SpriteRender {
 	pub sprite: AssetHandle<Sprite>,
 	pub frame: usize,
+	pub full_bright: bool,
 }
 
 #[derive(Clone, Component, Copy, Debug)]

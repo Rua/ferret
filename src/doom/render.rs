@@ -575,10 +575,14 @@ impl SpriteRenderSystem {
 			);
 
 			// Determine light level
-			let ssect =
-				map.find_subsector(Vector2::new(transform.position[0], transform.position[1]));
-			let sector = &map.sectors[ssect.sector_index];
-			let light_level = sector.light_level;
+			let light_level = if sprite_render.full_bright {
+				1.0
+			} else {
+				let ssect =
+					map.find_subsector(Vector2::new(transform.position[0], transform.position[1]));
+				let sector = &map.sectors[ssect.sector_index];
+				sector.light_level
+			};
 
 			// Set up instance uniform data
 			let instance_matrix = Matrix4::new_translation(&transform.position)
