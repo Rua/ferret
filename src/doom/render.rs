@@ -572,6 +572,7 @@ impl SpriteRenderSystem {
 			view_entity,
 			map_storage,
 			sprite_storage,
+			texture_storage,
 			map_component,
 			sprite_component,
 			transform_component,
@@ -580,13 +581,14 @@ impl SpriteRenderSystem {
 			ReadExpect<Entity>,
 			ReadExpect<AssetStorage<Map>>,
 			ReadExpect<AssetStorage<Sprite>>,
+			ReadExpect<AssetStorage<Texture>>,
 			ReadStorage<MapDynamic>,
 			ReadStorage<SpriteRender>,
 			ReadStorage<Transform>,
 		)>();
 
-		let handle = &map_component.join().next().unwrap().map;
-		let map = map_storage.get(handle).unwrap();
+		let map_handle = &map_component.join().next().unwrap().map;
+		let map = map_storage.get(map_handle).unwrap();
 
 		let start = std::time::Instant::now();
 
@@ -620,12 +622,13 @@ impl SpriteRenderSystem {
 			};
 
 			let image_info = frame[index];
-			let texture = &sprite.textures()[image_info.texture_index];
+			let texture_info = &sprite.textures()[image_info.texture_index];
+			let texture = texture_storage.get(&texture_info.handle).unwrap();
 
 			let texture_set = Arc::new(
 				self.texture_pool
 					.next()
-					.add_sampled_image(texture.texture.inner(), sampler.clone())?
+					.add_sampled_image(texture.inner(), sampler.clone())?
 					.build()?,
 			);
 
@@ -641,7 +644,7 @@ impl SpriteRenderSystem {
 
 			// Set up instance uniform data
 			let instance_matrix = Matrix4::new_translation(&transform.position)
-				* Matrix4::new_rotation(Vector3::new(0.0, 0.0, yaw.to_radians() as f32)) * texture.matrix;
+				* Matrix4::new_rotation(Vector3::new(0.0, 0.0, yaw.to_radians() as f32)) * texture_info.matrix;
 			let instance_buffer = self.instance_buffer_pool.chunk(vec![InstanceData {
 				in_flip: image_info.flip,
 				in_light_level: light_level,

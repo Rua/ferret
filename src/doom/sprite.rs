@@ -1,5 +1,5 @@
 use crate::{
-	assets::{Asset, AssetFormat, DataSource},
+	assets::{Asset, AssetFormat, AssetHandle, AssetStorage, DataSource},
 	doom::image::ImageFormat,
 	renderer::{
 		texture::{Texture, TextureBuilder},
@@ -36,8 +36,9 @@ pub struct ImageInfo {
 	pub texture_index: usize,
 }
 
+#[derive(Clone)]
 pub struct TextureInfo {
-	pub texture: Texture,
+	pub handle: AssetHandle<Texture>,
 	pub matrix: Matrix4<f32>,
 }
 
@@ -67,6 +68,7 @@ impl SpriteBuilder {
 	pub fn build(
 		self,
 		queue: Arc<Queue>,
+		texture_storage: &mut AssetStorage<Texture>,
 	) -> Result<(Sprite, Box<dyn GpuFuture>), Box<dyn Error + Send + Sync>> {
 		let ret_future: Box<dyn GpuFuture> = Box::from(vulkano::sync::now(queue.device().clone()));
 
@@ -75,7 +77,8 @@ impl SpriteBuilder {
 			.into_iter()
 			.map(|(builder, matrix)| {
 				let (texture, future) = builder.build(queue.clone())?;
-				Ok(TextureInfo {texture, matrix})
+				let handle = texture_storage.insert(texture);
+				Ok(TextureInfo {handle, matrix})
 			})
 			.collect::<Result<_, Box<dyn Error + Send + Sync>>>()?;
 

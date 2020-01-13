@@ -15,7 +15,18 @@ pub(super) fn create_instance() -> Result<Arc<Instance>, Box<dyn Error + Send + 
 
 	let mut layers = Vec::new();
 
-	layers.push("VK_LAYER_LUNARG_standard_validation");
+	#[cfg(debug_assertions)]
+	{
+		let available_layers: Vec<_> = vulkano::instance::layers_list()?.collect();
+
+		for to_enable in ["VK_LAYER_LUNARG_standard_validation", "VK_LAYER_LUNARG_monitor"].iter() {
+			if let Some(_) = available_layers.iter().find(|l| l.name() == *to_enable) {
+				layers.push(*to_enable);
+			}
+		}
+
+		log::debug!("Enabled Vulkan layers: {}", layers.join(", "));
+	}
 
 	let instance = Instance::new(
 		Some(&app_info_from_cargo_toml!()),
