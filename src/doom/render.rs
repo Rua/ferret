@@ -30,7 +30,7 @@ use vulkano::{
 	framebuffer::{Framebuffer, FramebufferAbstract, RenderPassAbstract, Subpass},
 	image::ImageViewAccess,
 	impl_vertex,
-	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
+	pipeline::{vertex::OneVertexOneInstanceDefinition, viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
 	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
 	single_pass_renderpass,
 	swapchain::AcquireError,
@@ -479,9 +479,16 @@ pub struct VertexData {
 }
 impl_vertex!(VertexData, in_position, in_texture_coord);
 
+#[derive(Clone, Debug, Default)]
+pub struct InstanceData {
+	pub in_flip: f32,
+	pub in_light_level: f32,
+	pub in_matrix: [[f32; 4]; 4],
+}
+impl_vertex!(InstanceData, in_flip, in_light_level, in_matrix);
+
 pub struct SpriteRenderSystem {
-	instance_buffer_pool: CpuBufferPool<sprite_vert::ty::Instance>,
-	instance_set_pool: FixedSizeDescriptorSetsPool,
+	instance_buffer_pool: CpuBufferPool<InstanceData>,
 	mesh: Mesh,
 	pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
 	texture_pool: FixedSizeDescriptorSetsPool,
@@ -503,7 +510,7 @@ impl SpriteRenderSystem {
 				.render_pass(
 					Subpass::from(render_pass.clone(), 0).ok_or("Subpass index out of range")?,
 				)
-				.vertex_input_single_buffer::<VertexData>()
+				.vertex_input(OneVertexOneInstanceDefinition::<VertexData, InstanceData>::new())
 				.vertex_shader(vert.main_entry_point(), ())
 				.fragment_shader(frag.main_entry_point(), ())
 				.triangle_fan()
@@ -514,14 +521,11 @@ impl SpriteRenderSystem {
 				.build(device.clone())?,
 		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
-		// Create descriptor set pools
+		// Create descriptor set pools and buffer pools
 		let layout = pipeline.descriptor_set_layout(1).unwrap();
 		let texture_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
 
-		let layout = pipeline.descriptor_set_layout(2).unwrap();
-		let instance_set_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
-		let instance_buffer_pool =
-			CpuBufferPool::<sprite_vert::ty::Instance>::uniform_buffer(device.clone());
+		let instance_buffer_pool = CpuBufferPool::<InstanceData>::vertex_buffer(device.clone());
 
 		// Create mesh
 		let (mesh, future) = MeshBuilder::new()
@@ -547,7 +551,6 @@ impl SpriteRenderSystem {
 
 		Ok(SpriteRenderSystem {
 			instance_buffer_pool,
-			instance_set_pool,
 			mesh,
 			pipeline,
 			texture_pool,
@@ -639,25 +642,17 @@ impl SpriteRenderSystem {
 			// Set up instance uniform data
 			let instance_matrix = Matrix4::new_translation(&transform.position)
 				* Matrix4::new_rotation(Vector3::new(0.0, 0.0, yaw.to_radians() as f32)) * texture.matrix;
-			let instance_buffer = self.instance_buffer_pool.next(sprite_vert::ty::Instance {
-				light_level,
-				flip: image_info.flip,
-				_dummy0: [0; 8],
-				matrix: instance_matrix.into(),
-			})?;
-
-			let instance_set = Arc::new(
-				self.instance_set_pool
-					.next()
-					.add_buffer(instance_buffer)?
-					.build()?,
-			);
+			let instance_buffer = self.instance_buffer_pool.chunk(vec![InstanceData {
+				in_flip: image_info.flip,
+				in_light_level: light_level,
+				in_matrix: instance_matrix.into(),
+			}])?;
 
 			command_buffer_builder = command_buffer_builder.draw(
 				self.pipeline.clone(),
 				&dynamic_state,
-				vec![Arc::new(self.mesh.vertex_buffer().into_buffer_slice())],
-				(matrix_set.clone(), texture_set.clone(), instance_set),
+				vec![Arc::new(self.mesh.vertex_buffer().into_buffer_slice()), Arc::new(instance_buffer)],
+				(matrix_set.clone(), texture_set.clone()),
 				(),
 			)?;
 		}
