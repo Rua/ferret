@@ -7,13 +7,14 @@ use crate::{
 	},
 	geometry::Angle,
 	renderer::{
+		mesh::{Mesh, MeshBuilder},
 		texture::Texture,
 		video::{RenderTarget, Video},
 		vulkan,
 	},
 };
 use nalgebra::{Matrix4, Vector2, Vector3};
-use specs::{Entity, Entities, Join, ReadExpect, ReadStorage, RunNow, World};
+use specs::{Entities, Entity, Join, ReadExpect, ReadStorage, RunNow, World};
 use std::{error::Error, sync::Arc};
 use vulkano::{
 	buffer::{BufferAccess, CpuBufferPool},
@@ -28,6 +29,7 @@ use vulkano::{
 	device::DeviceOwned,
 	framebuffer::{Framebuffer, FramebufferAbstract, RenderPassAbstract, Subpass},
 	image::ImageViewAccess,
+	impl_vertex,
 	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
 	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
 	single_pass_renderpass,
@@ -145,7 +147,7 @@ impl RenderSystem {
 			matrix_set_pool,
 			render_pass: render_pass.clone(),
 			sampler,
-			sprites: SpriteRenderSystem::new(render_pass.clone())?,
+			sprites: SpriteRenderSystem::new(render_pass.clone(), &*video)?,
 			target,
 		})
 	}
@@ -470,9 +472,17 @@ mod sprite_vert {
 	}
 }
 
+#[derive(Clone, Debug, Default)]
+pub struct VertexData {
+	pub in_position: [f32; 3],
+	pub in_texture_coord: [f32; 2],
+}
+impl_vertex!(VertexData, in_position, in_texture_coord);
+
 pub struct SpriteRenderSystem {
 	instance_buffer_pool: CpuBufferPool<sprite_vert::ty::Instance>,
 	instance_set_pool: FixedSizeDescriptorSetsPool,
+	mesh: Mesh,
 	pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
 	texture_pool: FixedSizeDescriptorSetsPool,
 }
@@ -480,10 +490,11 @@ pub struct SpriteRenderSystem {
 impl SpriteRenderSystem {
 	fn new(
 		render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
+		video: &Video,
 	) -> Result<SpriteRenderSystem, Box<dyn Error + Send + Sync>> {
 		let device = render_pass.device();
 
-		// Create pipeline for normal parts of the map
+		// Create pipeline
 		let vert = sprite_vert::Shader::load(device.clone())?;
 		let frag = normal_frag::Shader::load(device.clone())?;
 
@@ -492,7 +503,7 @@ impl SpriteRenderSystem {
 				.render_pass(
 					Subpass::from(render_pass.clone(), 0).ok_or("Subpass index out of range")?,
 				)
-				.vertex_input_single_buffer::<super::sprite::VertexData>()
+				.vertex_input_single_buffer::<VertexData>()
 				.vertex_shader(vert.main_entry_point(), ())
 				.fragment_shader(frag.main_entry_point(), ())
 				.triangle_fan()
@@ -503,6 +514,7 @@ impl SpriteRenderSystem {
 				.build(device.clone())?,
 		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
+		// Create descriptor set pools
 		let layout = pipeline.descriptor_set_layout(1).unwrap();
 		let texture_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
 
@@ -511,9 +523,32 @@ impl SpriteRenderSystem {
 		let instance_buffer_pool =
 			CpuBufferPool::<sprite_vert::ty::Instance>::uniform_buffer(device.clone());
 
+		// Create mesh
+		let (mesh, future) = MeshBuilder::new()
+			.with_vertices(vec![
+				VertexData {
+					in_position: [0.0, -1.0, 0.0],
+					in_texture_coord: [1.0, 0.0],
+				},
+				VertexData {
+					in_position: [0.0, 0.0, 0.0],
+					in_texture_coord: [0.0, 0.0],
+				},
+				VertexData {
+					in_position: [0.0, 0.0, -1.0],
+					in_texture_coord: [0.0, 1.0],
+				},
+				VertexData {
+					in_position: [0.0, -1.0, -1.0],
+					in_texture_coord: [1.0, 1.0],
+				},
+			])
+			.build(video.queues().graphics.clone())?;
+
 		Ok(SpriteRenderSystem {
 			instance_buffer_pool,
 			instance_set_pool,
+			mesh,
 			pipeline,
 			texture_pool,
 		})
@@ -529,21 +564,32 @@ impl SpriteRenderSystem {
 		yaw: Angle,
 		view_pos: Vector3<f32>,
 	) -> Result<AutoCommandBufferBuilder, Box<dyn Error + Send + Sync>> {
-		let (entities, view_entity, map_storage, sprite_storage, map_component, sprite_component, transform_component) =
-			world.system_data::<(
-				Entities,
-				ReadExpect<Entity>,
-				ReadExpect<AssetStorage<Map>>,
-				ReadExpect<AssetStorage<Sprite>>,
-				ReadStorage<MapDynamic>,
-				ReadStorage<SpriteRender>,
-				ReadStorage<Transform>,
-			)>();
+		let (
+			entities,
+			view_entity,
+			map_storage,
+			sprite_storage,
+			map_component,
+			sprite_component,
+			transform_component,
+		) = world.system_data::<(
+			Entities,
+			ReadExpect<Entity>,
+			ReadExpect<AssetStorage<Map>>,
+			ReadExpect<AssetStorage<Sprite>>,
+			ReadStorage<MapDynamic>,
+			ReadStorage<SpriteRender>,
+			ReadStorage<Transform>,
+		)>();
 
 		let handle = &map_component.join().next().unwrap().map;
 		let map = map_storage.get(handle).unwrap();
 
-		for (entity, sprite_render, transform) in (&entities, &sprite_component, &transform_component).join() {
+		let start = std::time::Instant::now();
+
+		for (entity, sprite_render, transform) in
+			(&entities, &sprite_component, &transform_component).join()
+		{
 			// Don't render the player's own sprite
 			if entity == *view_entity {
 				continue;
@@ -571,13 +617,12 @@ impl SpriteRenderSystem {
 			};
 
 			let image_info = frame[index];
-			let mesh = &sprite.meshes()[image_info.mesh_index];
 			let texture = &sprite.textures()[image_info.texture_index];
 
 			let texture_set = Arc::new(
 				self.texture_pool
 					.next()
-					.add_sampled_image(texture.inner(), sampler.clone())?
+					.add_sampled_image(texture.texture.inner(), sampler.clone())?
 					.build()?,
 			);
 
@@ -593,10 +638,11 @@ impl SpriteRenderSystem {
 
 			// Set up instance uniform data
 			let instance_matrix = Matrix4::new_translation(&transform.position)
-				* Matrix4::new_rotation(Vector3::new(0.0, 0.0, yaw.to_radians() as f32));
+				* Matrix4::new_rotation(Vector3::new(0.0, 0.0, yaw.to_radians() as f32)) * texture.matrix;
 			let instance_buffer = self.instance_buffer_pool.next(sprite_vert::ty::Instance {
 				light_level,
-				_dummy0: [0; 12],
+				flip: image_info.flip,
+				_dummy0: [0; 8],
 				matrix: instance_matrix.into(),
 			})?;
 
@@ -610,11 +656,14 @@ impl SpriteRenderSystem {
 			command_buffer_builder = command_buffer_builder.draw(
 				self.pipeline.clone(),
 				&dynamic_state,
-				vec![Arc::new(mesh.vertex_buffer().into_buffer_slice())],
+				vec![Arc::new(self.mesh.vertex_buffer().into_buffer_slice())],
 				(matrix_set.clone(), texture_set.clone(), instance_set),
 				(),
 			)?;
 		}
+
+		let delta = std::time::Instant::now() - start;
+		println!("{} fps", 1.0 / delta.as_secs_f64());
 
 		Ok(command_buffer_builder)
 	}
