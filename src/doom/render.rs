@@ -1,5 +1,5 @@
 use crate::{
-	assets::AssetStorage,
+	assets::{AssetHandle, AssetStorage},
 	doom::{
 		components::{MapDynamic, SpriteRender, Transform},
 		map::Map,
@@ -15,7 +15,7 @@ use crate::{
 };
 use nalgebra::{Matrix4, Vector2, Vector3};
 use specs::{Entities, Entity, Join, ReadExpect, ReadStorage, RunNow, World};
-use std::{error::Error, sync::Arc};
+use std::{error::Error, collections::{HashMap, hash_map::Entry}, sync::Arc};
 use vulkano::{
 	buffer::{BufferAccess, CpuBufferPool},
 	command_buffer::{
@@ -590,7 +590,8 @@ impl SpriteRenderSystem {
 		let map_handle = &map_component.join().next().unwrap().map;
 		let map = map_storage.get(map_handle).unwrap();
 
-		let start = std::time::Instant::now();
+		// Group draws into batches by texture
+		let mut batches: HashMap<AssetHandle<Texture>, Vec<InstanceData>> = HashMap::new();
 
 		for (entity, sprite_render, transform) in
 			(&entities, &sprite_component, &transform_component).join()
@@ -623,14 +624,6 @@ impl SpriteRenderSystem {
 
 			let image_info = frame[index];
 			let texture_info = &sprite.textures()[image_info.texture_index];
-			let texture = texture_storage.get(&texture_info.handle).unwrap();
-
-			let texture_set = Arc::new(
-				self.texture_pool
-					.next()
-					.add_sampled_image(texture.inner(), sampler.clone())?
-					.build()?,
-			);
 
 			// Determine light level
 			let light_level = if sprite_render.full_bright {
@@ -642,14 +635,37 @@ impl SpriteRenderSystem {
 				sector.light_level
 			};
 
-			// Set up instance uniform data
+			// Set up instance data
 			let instance_matrix = Matrix4::new_translation(&transform.position)
 				* Matrix4::new_rotation(Vector3::new(0.0, 0.0, yaw.to_radians() as f32)) * texture_info.matrix;
-			let instance_buffer = self.instance_buffer_pool.chunk(vec![InstanceData {
+			let instance_data = InstanceData {
 				in_flip: image_info.flip,
 				in_light_level: light_level,
 				in_matrix: instance_matrix.into(),
-			}])?;
+			};
+
+			// Add to batches
+			match batches.entry(texture_info.handle.clone()) {
+				Entry::Occupied(mut entry) => {
+					entry.get_mut().push(instance_data);
+				}
+				Entry::Vacant(entry) => {
+					entry.insert(vec![instance_data]);
+				}
+			}
+		}
+
+		// Draw the batches
+		for (texture_handle, instance_data) in batches {
+			let texture = texture_storage.get(&texture_handle).unwrap();
+			let texture_set = Arc::new(
+				self.texture_pool
+					.next()
+					.add_sampled_image(texture.inner(), sampler.clone())?
+					.build()?,
+			);
+
+			let instance_buffer = self.instance_buffer_pool.chunk(instance_data)?;
 
 			command_buffer_builder = command_buffer_builder.draw(
 				self.pipeline.clone(),
@@ -659,9 +675,6 @@ impl SpriteRenderSystem {
 				(),
 			)?;
 		}
-
-		let delta = std::time::Instant::now() - start;
-		println!("{} fps", 1.0 / delta.as_secs_f64());
 
 		Ok(command_buffer_builder)
 	}
