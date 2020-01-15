@@ -27,19 +27,11 @@ impl Asset for Palette {
 	type Data = Self;
 	type Intermediate = Self;
 	const NAME: &'static str = "Palette";
-}
-
-#[derive(Clone, Copy)]
-pub struct PaletteFormat;
-
-impl AssetFormat for PaletteFormat {
-	type Asset = Palette;
 
 	fn import(
-		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
+	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>> {
 		let mut reader = Cursor::new(source.load(name)?);
 		let mut palette = [RGBAColor {
 			r: 0,

@@ -1,5 +1,8 @@
-use crate::{assets::Asset, renderer::AsBytes};
-use std::sync::Arc;
+use crate::{
+	assets::{Asset, DataSource},
+	renderer::AsBytes,
+};
+use std::{error::Error, sync::Arc};
 use vulkano::{
 	buffer::{cpu_access::CpuAccessibleBuffer, BufferUsage},
 	device::Queue,
@@ -16,6 +19,13 @@ impl Asset for Texture {
 	type Intermediate = TextureBuilder;
 	type Data = Self;
 	const NAME: &'static str = "Texture";
+
+	fn import(
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>> {
+		unimplemented!();
+	}
 }
 
 impl Texture {

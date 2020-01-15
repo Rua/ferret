@@ -18,6 +18,101 @@ impl Asset for Sprite {
 	type Data = Self;
 	type Intermediate = SpriteBuilder;
 	const NAME: &'static str = "Sprite";
+
+	fn import(
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>> {
+		lazy_static! {
+			static ref SPRITENAME: Regex =
+				Regex::new(r#"^....[A-Z][0-9](?:[A-Z][0-9])?$"#).unwrap();
+		}
+
+		let mut textures = Vec::new();
+		let mut info = Vec::new();
+		let mut max_frame = 0;
+
+		for lumpname in source
+			.names()
+			.filter(|n| n.starts_with(name) && SPRITENAME.is_match(n))
+		{
+			// Load the sprite lump
+			let image = ImageFormat.import(lumpname, source)?;
+
+			// Regular frame
+			let frame = lumpname.chars().nth(4).unwrap() as isize - 'A' as isize;
+			assert!(frame >= 0 && frame < 29);
+			let rotation = lumpname.chars().nth(5).unwrap() as isize - '1' as isize;
+			assert!(rotation >= -1 && rotation < 8);
+			info.push((
+				frame as usize,
+				rotation,
+				ImageInfo {
+					flip: 1.0,
+					texture_index: textures.len(),
+				},
+			));
+			max_frame = usize::max(max_frame, frame as usize);
+
+			// Horizontally flipped frame, if any
+			if lumpname.len() == 8 {
+				let frame = lumpname.chars().nth(6).unwrap() as isize - 'A' as isize;
+				assert!(frame >= 0 && frame < 29);
+				let rotation = lumpname.chars().nth(7).unwrap() as isize - '1' as isize;
+				assert!(rotation >= -1 && rotation < 8);
+				info.push((
+					frame as usize,
+					rotation,
+					ImageInfo {
+						flip: -1.0,
+						texture_index: textures.len(),
+					},
+				));
+				max_frame = usize::max(max_frame, frame as usize);
+			}
+
+			// Add the texture
+			textures.push(image);
+		}
+
+		info.sort_unstable_by(|a, b| Ord::cmp(&a.0, &b.0).then(Ord::cmp(&a.1, &b.1)));
+		let mut slice = info.as_slice();
+		let mut frames: Vec<Vec<ImageInfo>> = vec![Vec::new(); max_frame + 1];
+
+		while slice.len() > 0 {
+			let frame = slice[0].0;
+			let next_pos = slice
+				.iter()
+				.position(|x| x.0 != frame)
+				.unwrap_or(slice.len());
+			let current = &slice[..next_pos];
+			slice = &slice[next_pos..];
+
+			if current.len() == 1 {
+				let rotation = current[0].1;
+				assert_eq!(rotation, -1);
+				frames[frame] = current.iter().map(|r| r.2).collect();
+			} else if current.len() == 8 {
+				frames[frame] = current
+					.iter()
+					.enumerate()
+					.map(|(i, r)| {
+						assert_eq!(i as isize, r.1);
+						r.2
+					})
+					.collect();
+			} else {
+				return Err(Box::from(format!(
+					"Frame {} has an invalid number of rotations",
+					frame
+				)));
+			}
+		}
+
+		Ok(SpriteBuilder::new()
+			.with_frames(frames)
+			.with_textures(textures))
+	}
 }
 
 impl Sprite {
@@ -127,106 +222,3 @@ pub struct VertexData {
 	pub in_texture_coord: [f32; 2],
 }
 impl_vertex!(VertexData, in_position, in_texture_coord);
-
-#[derive(Clone, Copy)]
-pub struct SpriteFormat;
-
-impl AssetFormat for SpriteFormat {
-	type Asset = SpriteBuilder;
-
-	fn import(
-		&self,
-		name: &str,
-		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
-		lazy_static! {
-			static ref SPRITENAME: Regex =
-				Regex::new(r#"^....[A-Z][0-9](?:[A-Z][0-9])?$"#).unwrap();
-		}
-
-		let mut textures = Vec::new();
-		let mut info = Vec::new();
-		let mut max_frame = 0;
-
-		for lumpname in source
-			.names()
-			.filter(|n| n.starts_with(name) && SPRITENAME.is_match(n))
-		{
-			// Load the sprite lump
-			let image = ImageFormat.import(lumpname, source)?;
-
-			// Regular frame
-			let frame = lumpname.chars().nth(4).unwrap() as isize - 'A' as isize;
-			assert!(frame >= 0 && frame < 29);
-			let rotation = lumpname.chars().nth(5).unwrap() as isize - '1' as isize;
-			assert!(rotation >= -1 && rotation < 8);
-			info.push((
-				frame as usize,
-				rotation,
-				ImageInfo {
-					flip: 1.0,
-					texture_index: textures.len(),
-				},
-			));
-			max_frame = usize::max(max_frame, frame as usize);
-
-			// Horizontally flipped frame, if any
-			if lumpname.len() == 8 {
-				let frame = lumpname.chars().nth(6).unwrap() as isize - 'A' as isize;
-				assert!(frame >= 0 && frame < 29);
-				let rotation = lumpname.chars().nth(7).unwrap() as isize - '1' as isize;
-				assert!(rotation >= -1 && rotation < 8);
-				info.push((
-					frame as usize,
-					rotation,
-					ImageInfo {
-						flip: -1.0,
-						texture_index: textures.len(),
-					},
-				));
-				max_frame = usize::max(max_frame, frame as usize);
-			}
-
-			// Add the texture
-			textures.push(image);
-		}
-
-		info.sort_unstable_by(|a, b| Ord::cmp(&a.0, &b.0).then(Ord::cmp(&a.1, &b.1)));
-		let mut slice = info.as_slice();
-		let mut frames: Vec<Vec<ImageInfo>> = vec![Vec::new(); max_frame + 1];
-
-		while slice.len() > 0 {
-			let frame = slice[0].0;
-			let next_pos = slice
-				.iter()
-				.position(|x| x.0 != frame)
-				.unwrap_or(slice.len());
-			let current = &slice[..next_pos];
-			slice = &slice[next_pos..];
-
-			if current.len() == 1 {
-				let rotation = current[0].1;
-				assert_eq!(rotation, -1);
-				frames[frame] = current.iter().map(|r| r.2).collect();
-			} else if current.len() == 8 {
-				frames[frame] = current
-					.iter()
-					.enumerate()
-					.map(|(i, r)| {
-						assert_eq!(i as isize, r.1);
-						r.2
-					})
-					.collect();
-			} else {
-				return Err(Box::from(format!(
-					"Frame {} has an invalid number of rotations",
-					frame
-				)));
-			}
-		}
-
-		Ok(SpriteBuilder::new()
-			.with_frames(frames)
-			.with_textures(textures))
-	}
-}

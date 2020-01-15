@@ -4,13 +4,18 @@ use std::{
 	collections::{HashMap, VecDeque},
 	error::Error,
 	marker::PhantomData,
-	sync::Arc,
+	sync::{Arc, Weak},
 };
 
 pub trait Asset: Send + Sync + 'static {
 	type Data: Send + Sync + 'static;
 	type Intermediate: Send + Sync + 'static;
 	const NAME: &'static str;
+
+	fn import(
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>>;
 }
 
 #[derive(Derivative)]
@@ -45,7 +50,7 @@ impl<A> AssetHandle<A> {
 	}
 }
 
-/*#[derive(Derivative)]
+#[derive(Derivative)]
 #[derivative(Clone(bound = ""))]
 pub struct WeakHandle<A> {
 	id: Weak<u32>,
@@ -59,7 +64,7 @@ impl<A> WeakHandle<A> {
 			marker: PhantomData,
 		})
 	}
-}*/
+}
 
 /*#[derive(Derivative)]
 #[derivative(Default(bound = ""))]
@@ -93,13 +98,14 @@ impl<A> AssetCache<A> {
 #[derivative(Default(bound = ""))]
 pub struct AssetStorage<A: Asset> {
 	assets: HashMap<u32, A::Data>,
+	handles: Vec<AssetHandle<A>>,
+	highest_id: u32,
+	names: HashMap<String, WeakHandle<A>>,
 	unbuilt: Vec<(
 		AssetHandle<A>,
 		Result<A::Intermediate, Box<dyn Error + Send + Sync>>,
 		String,
 	)>,
-	handles: Vec<AssetHandle<A>>,
-	highest_id: u32,
 	unused_ids: VecDeque<u32>,
 }
 
@@ -127,18 +133,17 @@ impl<A: Asset> AssetStorage<A> {
 		handle
 	}
 
-	pub fn load(
-		&mut self,
-		name: &str,
-		format: impl AssetFormat<Asset = A::Intermediate>,
-		source: &mut impl DataSource,
-	) -> AssetHandle<A> {
-		let intermediate = format.import(name, source);
-		let handle = self.allocate_handle();
-		self.unbuilt
-			.push((handle.clone(), intermediate, name.to_owned()));
+	pub fn load(&mut self, name: &str, source: &mut impl DataSource) -> AssetHandle<A> {
+		if let Some(handle) = self.names.get(name).and_then(WeakHandle::upgrade) {
+			handle
+		} else {
+			let intermediate = A::import(name, source);
+			let handle = self.allocate_handle();
+			self.unbuilt
+				.push((handle.clone(), intermediate, name.to_owned()));
 
-		handle
+			handle
+		}
 	}
 
 	pub fn clear_unused(&mut self) {

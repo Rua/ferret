@@ -219,11 +219,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 								WriteExpect<doom::wad::WadLoader>,
 								WriteExpect<AssetStorage<crate::doom::image::Palette>>,
 							)>();
-							let handle = palette_storage.load(
-								"PLAYPAL",
-								crate::doom::image::PaletteFormat,
-								&mut *loader,
-							);
+							let handle = palette_storage.load("PLAYPAL", &mut *loader);
 							palette_storage.build_waiting(|intermediate| Ok(intermediate));
 							handle
 						};
@@ -265,11 +261,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 								WriteExpect<AssetStorage<doom::map::textures::Flat>>,
 								WriteExpect<AssetStorage<doom::map::textures::WallTexture>>,
 							)>();
-							let map = map_storage.load(
-								name,
-								doom::map::lumps::MapDataFormat,
-								&mut *loader,
-							);
+							let map = map_storage.load(name, &mut *loader);
 							map_storage.build_waiting(|data| {
 								doom::map::build_map(
 									data,

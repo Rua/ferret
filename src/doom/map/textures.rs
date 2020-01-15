@@ -17,19 +17,11 @@ impl Asset for Flat {
 	type Data = Texture;
 	type Intermediate = Image;
 	const NAME: &'static str = "Flat";
-}
-
-#[derive(Clone, Copy)]
-pub struct FlatFormat;
-
-impl AssetFormat for FlatFormat {
-	type Asset = Image;
 
 	fn import(
-		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
+	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>> {
 		let mut reader = Cursor::new(source.load(name)?);
 		let mut pixels = [0u8; 64 * 64];
 		reader.read_exact(&mut pixels)?;
@@ -73,19 +65,11 @@ impl Asset for WallTexture {
 	type Data = Texture;
 	type Intermediate = Image;
 	const NAME: &'static str = "WallTexture";
-}
-
-#[derive(Clone, Copy)]
-pub struct WallTextureFormat;
-
-impl AssetFormat for WallTextureFormat {
-	type Asset = Image;
 
 	fn import(
-		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
+	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>> {
 		let pnames = PNamesFormat.import("PNAMES", source)?;
 		let mut texture_info = TexturesFormat.import("TEXTURE1", source)?;
 		texture_info.extend(TexturesFormat.import("TEXTURE2", source)?);

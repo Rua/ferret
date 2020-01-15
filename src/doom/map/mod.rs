@@ -3,14 +3,18 @@ pub mod meshes;
 pub mod textures;
 
 use crate::{
-	assets::{Asset, AssetHandle, AssetStorage},
+	assets::{Asset, AssetFormat, AssetHandle, AssetStorage, DataSource},
 	component::EntityTemplate,
 	doom::{
 		components::{SpawnPoint, Transform},
 		entities::EntityTypes,
 		map::{
-			lumps::{ChildNode, EitherVertex, LinedefFlags, MapData, Thing},
-			textures::{Flat, FlatFormat, WallTexture, WallTextureFormat},
+			lumps::{
+				ChildNode, EitherVertex, GLNodesFormat, GLSSectFormat, GLSegsFormat, GLVertFormat,
+				LinedefFlags, LinedefsFormat, MapData, SectorsFormat, SidedefsFormat, Thing,
+				VertexesFormat,
+			},
+			textures::{Flat, WallTexture},
 		},
 		wad::WadLoader,
 	},
@@ -122,6 +126,138 @@ impl Asset for Map {
 	type Data = Self;
 	type Intermediate = MapData;
 	const NAME: &'static str = "Map";
+
+	fn import(
+		name: &str,
+		source: &impl DataSource,
+	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>> {
+		let gl_name = format!("GL_{}", name);
+
+		let linedefs = LinedefsFormat.import(name, source)?;
+		let sidedefs = SidedefsFormat.import(name, source)?;
+		let vertexes = VertexesFormat.import(name, source)?;
+		let sectors = SectorsFormat.import(name, source)?;
+
+		let gl_vert = GLVertFormat.import(&gl_name, source)?;
+		let gl_segs = GLSegsFormat.import(&gl_name, source)?;
+		let gl_ssect = GLSSectFormat.import(&gl_name, source)?;
+		let gl_nodes = GLNodesFormat.import(&gl_name, source)?;
+
+		// Verify all the cross-references
+
+		for (i, sidedef) in sidedefs.iter().enumerate() {
+			let index = sidedef.sector_index;
+			if index >= sectors.len() {
+				return Err(Box::from(format!(
+					"Sidedef {} has invalid sector index {}",
+					i, index
+				)));
+			}
+		}
+
+		for (i, linedef) in linedefs.iter().enumerate() {
+			for index in linedef.sidedef_indices.iter().flatten() {
+				if *index >= sidedefs.len() {
+					return Err(Box::from(format!(
+						"Linedef {} has invalid sidedef index {}",
+						i, index
+					)));
+				}
+			}
+		}
+
+		for (i, seg) in gl_segs.iter().enumerate() {
+			if let Some(index) = seg.linedef_index {
+				if index >= linedefs.len() {
+					return Err(Box::from(format!(
+						"Seg {} has invalid linedef index {}",
+						i, index
+					)));
+				}
+			}
+
+			for index in seg.vertex_indices.iter() {
+				match *index {
+					EitherVertex::GL(index) => {
+						if index >= gl_vert.len() {
+							return Err(Box::from(format!(
+								"Seg {} has invalid vertex index {}",
+								i, index
+							)));
+						}
+					}
+					EitherVertex::Normal(index) => {
+						if index >= vertexes.len() {
+							return Err(Box::from(format!(
+								"Seg {} has invalid vertex index {}",
+								i, index
+							)));
+						}
+					}
+				}
+			}
+
+			if let Some(index) = seg.partner_seg_index {
+				if index >= gl_segs.len() {
+					return Err(Box::from(format!(
+						"Seg {} has invalid partner seg index {}",
+						i, index
+					)));
+				}
+			}
+		}
+
+		for (i, ssect) in gl_ssect.iter().enumerate() {
+			let index = ssect.first_seg_index;
+			if index >= gl_segs.len() {
+				return Err(Box::from(format!(
+					"Subsector {} has invalid first seg index {}",
+					i, ssect.first_seg_index
+				)));
+			}
+
+			if ssect.first_seg_index + ssect.seg_count > gl_segs.len() {
+				return Err(Box::from(format!(
+					"Subsector {} has overflowing seg count {}",
+					i, ssect.seg_count,
+				)));
+			}
+		}
+
+		for (i, node) in gl_nodes.iter().enumerate() {
+			for child in node.child_indices.iter().copied() {
+				match child {
+					ChildNode::Leaf(index) => {
+						if index as usize >= gl_ssect.len() {
+							return Err(Box::from(format!(
+								"Node {} has invalid subsector index {}",
+								i, index
+							)));
+						}
+					}
+					ChildNode::Branch(index) => {
+						if index as usize >= gl_nodes.len() {
+							return Err(Box::from(format!(
+								"Node {} has invalid child node index {}",
+								i, index
+							)));
+						}
+					}
+				}
+			}
+		}
+
+		Ok(MapData {
+			linedefs,
+			sidedefs,
+			vertexes,
+			sectors,
+			gl_vert,
+			gl_segs,
+			gl_ssect,
+			gl_nodes,
+		})
+	}
 }
 
 impl Map {
@@ -146,7 +282,7 @@ pub fn build_map(
 ) -> Result<Map, Box<dyn Error + Send + Sync>> {
 	let mut textures = HashMap::new();
 	let mut flats = HashMap::new();
-	let sky = wall_texture_storage.load(sky_name, WallTextureFormat, loader);
+	let sky = wall_texture_storage.load(sky_name, loader);
 
 	let MapData {
 		linedefs: linedefs_data,
@@ -171,8 +307,7 @@ pub fn build_map(
 					Some(name) => {
 						let handle = match flats.entry(name) {
 							Entry::Vacant(entry) => {
-								let handle =
-									flat_storage.load(entry.key(), FlatFormat, &mut *loader);
+								let handle = flat_storage.load(entry.key(), &mut *loader);
 								entry.insert(handle)
 							}
 							Entry::Occupied(entry) => entry.into_mut(),
@@ -186,8 +321,7 @@ pub fn build_map(
 					Some(name) => {
 						let handle = match flats.entry(name) {
 							Entry::Vacant(entry) => {
-								let handle =
-									flat_storage.load(entry.key(), FlatFormat, &mut *loader);
+								let handle = flat_storage.load(entry.key(), &mut *loader);
 								entry.insert(handle)
 							}
 							Entry::Occupied(entry) => entry.into_mut(),
@@ -214,11 +348,7 @@ pub fn build_map(
 					Some(name) => {
 						let handle = match textures.entry(name) {
 							Entry::Vacant(entry) => {
-								let handle = wall_texture_storage.load(
-									entry.key(),
-									WallTextureFormat,
-									&mut *loader,
-								);
+								let handle = wall_texture_storage.load(entry.key(), &mut *loader);
 								entry.insert(handle)
 							}
 							Entry::Occupied(entry) => entry.into_mut(),
@@ -231,11 +361,7 @@ pub fn build_map(
 					Some(name) => {
 						let handle = match textures.entry(name.clone()) {
 							Entry::Vacant(entry) => {
-								let handle = wall_texture_storage.load(
-									entry.key(),
-									WallTextureFormat,
-									&mut *loader,
-								);
+								let handle = wall_texture_storage.load(entry.key(), &mut *loader);
 								entry.insert(handle)
 							}
 							Entry::Occupied(entry) => entry.into_mut(),
@@ -248,11 +374,7 @@ pub fn build_map(
 					Some(name) => {
 						let handle = match textures.entry(name) {
 							Entry::Vacant(entry) => {
-								let handle = wall_texture_storage.load(
-									entry.key(),
-									WallTextureFormat,
-									&mut *loader,
-								);
+								let handle = wall_texture_storage.load(entry.key(), &mut *loader);
 								entry.insert(handle)
 							}
 							Entry::Occupied(entry) => entry.into_mut(),
