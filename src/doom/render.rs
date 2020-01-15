@@ -6,12 +6,11 @@ use crate::{
 			textures::{Flat, WallTexture},
 			Map,
 		},
-		sprite::Sprite,
+		sprite::{Sprite, SpriteImage},
 	},
 	geometry::Angle,
 	renderer::{
 		mesh::{Mesh, MeshBuilder},
-		texture::Texture,
 		video::{RenderTarget, Video},
 		vulkan,
 	},
@@ -606,7 +605,7 @@ impl SpriteRenderSystem {
 			view_entity,
 			map_storage,
 			sprite_storage,
-			texture_storage,
+			sprite_image_storage,
 			map_component,
 			sprite_component,
 			transform_component,
@@ -615,7 +614,7 @@ impl SpriteRenderSystem {
 			ReadExpect<Entity>,
 			ReadExpect<AssetStorage<Map>>,
 			ReadExpect<AssetStorage<Sprite>>,
-			ReadExpect<AssetStorage<Texture>>,
+			ReadExpect<AssetStorage<SpriteImage>>,
 			ReadStorage<MapDynamic>,
 			ReadStorage<SpriteRender>,
 			ReadStorage<Transform>,
@@ -625,7 +624,7 @@ impl SpriteRenderSystem {
 		let map = map_storage.get(map_handle).unwrap();
 
 		// Group draws into batches by texture
-		let mut batches: HashMap<AssetHandle<Texture>, Vec<InstanceData>> = HashMap::new();
+		let mut batches: HashMap<AssetHandle<SpriteImage>, Vec<InstanceData>> = HashMap::new();
 
 		for (entity, sprite_render, transform) in
 			(&entities, &sprite_component, &transform_component).join()
@@ -656,8 +655,8 @@ impl SpriteRenderSystem {
 				(delta.to_units_unsigned() * frame.len() as f64) as usize % frame.len()
 			};
 
-			let image_info = frame[index];
-			let texture_info = &sprite.textures()[image_info.texture_index];
+			let image_info = &frame[index];
+			let sprite_image = sprite_image_storage.get(&image_info.handle).unwrap();
 
 			// Determine light level
 			let light_level = if sprite_render.full_bright {
@@ -672,7 +671,7 @@ impl SpriteRenderSystem {
 			// Set up instance data
 			let instance_matrix = Matrix4::new_translation(&transform.position)
 				* Matrix4::new_rotation(Vector3::new(0.0, 0.0, yaw.to_radians() as f32))
-				* texture_info.matrix;
+				* sprite_image.matrix;
 			let instance_data = InstanceData {
 				in_flip: image_info.flip,
 				in_light_level: light_level,
@@ -680,7 +679,7 @@ impl SpriteRenderSystem {
 			};
 
 			// Add to batches
-			match batches.entry(texture_info.handle.clone()) {
+			match batches.entry(image_info.handle.clone()) {
 				Entry::Occupied(mut entry) => {
 					entry.get_mut().push(instance_data);
 				}
@@ -691,12 +690,12 @@ impl SpriteRenderSystem {
 		}
 
 		// Draw the batches
-		for (texture_handle, instance_data) in batches {
-			let texture = texture_storage.get(&texture_handle).unwrap();
+		for (sprite_image_handle, instance_data) in batches {
+			let sprite_image = sprite_image_storage.get(&sprite_image_handle).unwrap();
 			let texture_set = Arc::new(
 				self.texture_pool
 					.next()
-					.add_sampled_image(texture.inner(), sampler.clone())?
+					.add_sampled_image(sprite_image.texture.inner(), sampler.clone())?
 					.build()?,
 			);
 

@@ -49,8 +49,8 @@ impl Asset for EntityTemplate {
 	const NAME: &'static str = "EntityTemplate";
 
 	fn import(
-		name: &str,
-		source: &impl DataSource,
+		_name: &str,
+		_source: &impl DataSource,
 	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>> {
 		unimplemented!();
 	}
