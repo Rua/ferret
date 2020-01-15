@@ -1,19 +1,33 @@
-use crate::assets::{AssetFormat, DataSource};
+use crate::assets::{Asset, AssetFormat, DataSource};
 use byteorder::{ReadBytesExt, LE};
 use std::{
 	error::Error,
 	io::{Cursor, Read, Seek, SeekFrom},
 };
 
-#[derive(Copy, Clone)]
-pub struct Color {
+#[derive(Copy, Clone, Default)]
+#[repr(C)]
+pub struct RGBAColor {
 	pub r: u8,
 	pub g: u8,
 	pub b: u8,
 	pub a: u8,
 }
 
-pub type Palette = [Color; 256];
+#[derive(Copy, Clone, Default)]
+#[repr(C)]
+pub struct IAColor {
+	pub i: u8,
+	pub a: u8,
+}
+
+pub type Palette = [RGBAColor; 256];
+
+impl Asset for Palette {
+	type Data = Self;
+	type Intermediate = Self;
+	const NAME: &'static str = "Palette";
+}
 
 #[derive(Clone, Copy)]
 pub struct PaletteFormat;
@@ -27,7 +41,7 @@ impl AssetFormat for PaletteFormat {
 		source: &impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
 		let mut reader = Cursor::new(source.load(name)?);
-		let mut palette = [Color {
+		let mut palette = [RGBAColor {
 			r: 0,
 			g: 0,
 			b: 0,
@@ -38,7 +52,7 @@ impl AssetFormat for PaletteFormat {
 			let r = reader.read_u8()?;
 			let g = reader.read_u8()?;
 			let b = reader.read_u8()?;
-			palette[i] = Color { r, g, b, a: 0xFF };
+			palette[i] = RGBAColor { r, g, b, a: 0xFF };
 		}
 
 		Ok(palette)
@@ -46,7 +60,7 @@ impl AssetFormat for PaletteFormat {
 }
 
 pub struct Image {
-	pub data: Vec<u8>,
+	pub data: Vec<IAColor>,
 	pub size: [usize; 2],
 	pub offset: [isize; 2],
 }
@@ -62,7 +76,6 @@ impl AssetFormat for ImageFormat {
 		name: &str,
 		source: &impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
-		let palette = PaletteFormat.import("PLAYPAL", source)?;
 		let mut reader = Cursor::new(source.load(name)?);
 
 		let size = [
@@ -79,8 +92,7 @@ impl AssetFormat for ImageFormat {
 			column_offsets.push(reader.read_u32::<LE>()? as u64);
 		}
 
-		let pitch = size[0] * 4;
-		let mut data = vec![0u8; size[0] * size[1] * 4];
+		let mut data = vec![IAColor::default(); size[0] * size[1]];
 
 		for col in 0..size[0] {
 			reader.seek(SeekFrom::Start(column_offsets[col]))?;
@@ -97,11 +109,8 @@ impl AssetFormat for ImageFormat {
 				// Paint the pixels onto the main image
 				for i in 0..post_pixels.len() {
 					assert!(start_row + i < size[1]);
-					let color = palette[post_pixels[i] as usize];
-					data[pitch * (start_row as usize + i) + 4 * col + 0] = color.r;
-					data[pitch * (start_row as usize + i) + 4 * col + 1] = color.g;
-					data[pitch * (start_row as usize + i) + 4 * col + 2] = color.b;
-					data[pitch * (start_row as usize + i) + 4 * col + 3] = color.a;
+					data[size[0] * (start_row as usize + i) + col].i = post_pixels[i];
+					data[size[0] * (start_row as usize + i) + col].a = 0xFF;
 				}
 
 				start_row = reader.read_u8()? as usize;

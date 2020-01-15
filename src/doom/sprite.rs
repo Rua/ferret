@@ -1,6 +1,6 @@
 use crate::{
 	assets::{Asset, AssetFormat, AssetHandle, AssetStorage, DataSource},
-	doom::image::ImageFormat,
+	doom::image::{Image, ImageFormat, Palette, RGBAColor},
 	renderer::texture::{Texture, TextureBuilder},
 };
 use lazy_static::lazy_static;
@@ -44,7 +44,7 @@ pub struct TextureInfo {
 
 pub struct SpriteBuilder {
 	frames: Vec<Vec<ImageInfo>>,
-	textures: Vec<(TextureBuilder, Matrix4<f32>)>,
+	textures: Vec<Image>,
 }
 
 impl SpriteBuilder {
@@ -60,7 +60,7 @@ impl SpriteBuilder {
 		self
 	}
 
-	pub fn with_textures(mut self, textures: Vec<(TextureBuilder, Matrix4<f32>)>) -> Self {
+	pub fn with_textures(mut self, textures: Vec<Image>) -> Self {
 		self.textures = textures;
 		self
 	}
@@ -68,6 +68,7 @@ impl SpriteBuilder {
 	pub fn build(
 		self,
 		queue: Arc<Queue>,
+		palette: &Palette,
 		texture_storage: &mut AssetStorage<Texture>,
 	) -> Result<(Sprite, Box<dyn GpuFuture>), Box<dyn Error + Send + Sync>> {
 		let ret_future: Box<dyn GpuFuture> = Box::from(vulkano::sync::now(queue.device().clone()));
@@ -75,7 +76,35 @@ impl SpriteBuilder {
 		let textures = self
 			.textures
 			.into_iter()
-			.map(|(builder, matrix)| {
+			.map(|image| {
+				let mut data = vec![RGBAColor::default(); image.data.len()];
+
+				for i in 0..image.size[0] * image.size[1] {
+					let index = image.data[i].i;
+					let alpha = image.data[i].a;
+
+					if alpha == 0xFF {
+						data[i] = palette[index as usize];
+					}
+				}
+
+				let builder = TextureBuilder::new()
+					.with_data(data)
+					.with_dimensions(Dimensions::Dim2d {
+						width: image.size[0] as u32,
+						height: image.size[1] as u32,
+					})
+					.with_format(Format::R8G8B8A8Unorm);
+				let matrix = Matrix4::new_translation(&Vector3::new(
+					0.0,
+					image.offset[0] as f32,
+					image.offset[1] as f32,
+				)) * Matrix4::new_nonuniform_scaling(&Vector3::new(
+					0.0,
+					image.size[0] as f32,
+					image.size[1] as f32,
+				));
+
 				let (texture, future) = builder.build(queue.clone())?;
 				let handle = texture_storage.insert(texture);
 				Ok(TextureInfo { handle, matrix })
@@ -159,23 +188,7 @@ impl AssetFormat for SpriteFormat {
 			}
 
 			// Add the texture
-			let builder = TextureBuilder::new()
-				.with_data(image.data)
-				.with_dimensions(Dimensions::Dim2d {
-					width: image.size[0] as u32,
-					height: image.size[1] as u32,
-				})
-				.with_format(Format::R8G8B8A8Unorm);
-			let matrix = Matrix4::new_translation(&Vector3::new(
-				0.0,
-				image.offset[0] as f32,
-				image.offset[1] as f32,
-			)) * Matrix4::new_nonuniform_scaling(&Vector3::new(
-				0.0,
-				image.size[0] as f32,
-				image.size[1] as f32,
-			));
-			textures.push((builder, matrix));
+			textures.push(image);
 		}
 
 		info.sort_unstable_by(|a, b| Ord::cmp(&a.0, &b.0).then(Ord::cmp(&a.1, &b.1)));

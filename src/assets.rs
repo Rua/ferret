@@ -137,6 +137,7 @@ impl<A: Asset> AssetStorage<A> {
 		let handle = self.allocate_handle();
 		self.unbuilt
 			.push((handle.clone(), intermediate, name.to_owned()));
+
 		handle
 	}
 

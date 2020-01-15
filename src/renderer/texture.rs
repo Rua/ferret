@@ -1,4 +1,4 @@
-use crate::assets::Asset;
+use crate::{assets::Asset, renderer::AsBytes};
 use std::sync::Arc;
 use vulkano::{
 	buffer::{cpu_access::CpuAccessibleBuffer, BufferUsage},
@@ -29,7 +29,7 @@ impl Texture {
 }
 
 pub struct TextureBuilder {
-	data: Vec<u8>,
+	data: Box<dyn AsBytes + Send + Sync>,
 	dimensions: Dimensions,
 	format: Format,
 }
@@ -37,14 +37,14 @@ pub struct TextureBuilder {
 impl TextureBuilder {
 	pub fn new() -> TextureBuilder {
 		TextureBuilder {
-			data: Vec::new(),
+			data: Box::new(Vec::<u8>::new()),
 			dimensions: Dimensions::Dim1d { width: 0 },
 			format: Format::R8G8B8A8Unorm,
 		}
 	}
 
-	pub fn with_data(mut self, data: Vec<u8>) -> Self {
-		self.data = data;
+	pub fn with_data<V: AsBytes + Send + Sync + 'static>(mut self, data: V) -> Self {
+		self.data = Box::new(data);
 		self
 	}
 
@@ -66,7 +66,7 @@ impl TextureBuilder {
 		let buffer = CpuAccessibleBuffer::from_iter(
 			queue.device().clone(),
 			BufferUsage::transfer_source(),
-			self.data.into_iter(),
+			self.data.as_bytes().iter().copied(),
 		)?;
 
 		// Create the image

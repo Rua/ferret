@@ -1,7 +1,7 @@
 use crate::{
 	assets::{Asset, AssetFormat, DataSource},
-	doom::image::{ImageFormat, PaletteFormat},
-	renderer::texture::{Texture, TextureBuilder},
+	doom::image::{IAColor, Image, ImageFormat},
+	renderer::texture::Texture,
 };
 use byteorder::{ReadBytesExt, LE};
 use std::{
@@ -10,13 +10,12 @@ use std::{
 	io::{Cursor, Read, Seek, SeekFrom},
 	str,
 };
-use vulkano::{format::Format, image::Dimensions};
 
 pub struct Flat;
 
 impl Asset for Flat {
 	type Data = Texture;
-	type Intermediate = TextureBuilder;
+	type Intermediate = Image;
 	const NAME: &'static str = "Flat";
 }
 
@@ -24,38 +23,22 @@ impl Asset for Flat {
 pub struct FlatFormat;
 
 impl AssetFormat for FlatFormat {
-	type Asset = TextureBuilder;
+	type Asset = Image;
 
 	fn import(
 		&self,
 		name: &str,
 		source: &impl DataSource,
 	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
-		let palette = PaletteFormat.import("PLAYPAL", source)?;
 		let mut reader = Cursor::new(source.load(name)?);
 		let mut pixels = [0u8; 64 * 64];
 		reader.read_exact(&mut pixels)?;
 
-		let mut data = vec![0u8; 64 * 64 * 4];
-
-		for i in 0..pixels.len() {
-			let color = palette[pixels[i] as usize];
-			data[4 * i + 0] = color.r;
-			data[4 * i + 1] = color.g;
-			data[4 * i + 2] = color.b;
-			data[4 * i + 3] = color.a;
-		}
-
-		// Create the image
-		let builder = TextureBuilder::new()
-			.with_data(data)
-			.with_dimensions(Dimensions::Dim2d {
-				width: 64,
-				height: 64,
-			})
-			.with_format(Format::R8G8B8A8Unorm);
-
-		Ok(builder)
+		Ok(Image {
+			data: pixels.iter().map(|&i| IAColor { i, a: 0xFF }).collect(),
+			size: [64, 64],
+			offset: [0, 0],
+		})
 	}
 }
 
@@ -88,7 +71,7 @@ pub struct WallTexture;
 
 impl Asset for WallTexture {
 	type Data = Texture;
-	type Intermediate = TextureBuilder;
+	type Intermediate = Image;
 	const NAME: &'static str = "WallTexture";
 }
 
@@ -96,7 +79,7 @@ impl Asset for WallTexture {
 pub struct WallTextureFormat;
 
 impl AssetFormat for WallTextureFormat {
-	type Asset = TextureBuilder;
+	type Asset = Image;
 
 	fn import(
 		&self,
@@ -112,7 +95,7 @@ impl AssetFormat for WallTextureFormat {
 			.get(&name)
 			.ok_or(format!("Texture {} does not exist", name))?;
 
-		let mut data = vec![0u8; texture_info.size[0] * texture_info.size[1] * 4];
+		let mut data = vec![IAColor::default(); texture_info.size[0] * texture_info.size[1]];
 
 		texture_info.patches.iter().try_for_each(
 			|patch_info| -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -145,15 +128,10 @@ impl AssetFormat for WallTextureFormat {
 					for dest_x in dest_start[0]..dest_end[0] {
 						let src_x = dest_x - patch_info.offset[0];
 
-						let src_index = (src_x + src_y_index) as usize * 4;
-						let dest_index = (dest_x + dest_y_index) as usize * 4;
+						let src_index = (src_x + src_y_index) as usize;
+						let dest_index = (dest_x + dest_y_index) as usize;
 
-						if patch.data[src_index + 3] == 0xFF {
-							data[dest_index + 0] = patch.data[src_index + 0];
-							data[dest_index + 1] = patch.data[src_index + 1];
-							data[dest_index + 2] = patch.data[src_index + 2];
-							data[dest_index + 3] = patch.data[src_index + 3];
-						}
+						data[dest_index] = patch.data[src_index];
 					}
 				}
 
@@ -161,16 +139,11 @@ impl AssetFormat for WallTextureFormat {
 			},
 		)?;
 
-		// Create the image
-		let builder = TextureBuilder::new()
-			.with_data(data)
-			.with_dimensions(Dimensions::Dim2d {
-				width: texture_info.size[0] as u32,
-				height: texture_info.size[1] as u32,
-			})
-			.with_format(Format::R8G8B8A8Unorm);
-
-		Ok(builder)
+		Ok(Image {
+			data,
+			size: texture_info.size,
+			offset: [0, 0],
+		})
 	}
 }
 

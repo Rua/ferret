@@ -16,7 +16,10 @@ use crate::{
 	component::EntityTemplate,
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
 	logger::Logger,
-	renderer::{texture::Texture, video::Video},
+	renderer::{
+		texture::{Texture, TextureBuilder},
+		video::Video,
+	},
 };
 use specs::{world::Builder, ReadExpect, RunNow, World, WorldExt, WriteExpect};
 use std::{
@@ -24,6 +27,7 @@ use std::{
 	sync::mpsc,
 	time::{Duration, Instant},
 };
+use vulkano::{format::Format, image::Dimensions};
 use winit::{
 	ElementState, Event, EventsLoop, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent,
 };
@@ -114,6 +118,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	world.insert(AssetStorage::<doom::map::Map>::default());
 	world.insert(AssetStorage::<doom::map::textures::Flat>::default());
 	world.insert(AssetStorage::<doom::map::textures::WallTexture>::default());
+	world.insert(AssetStorage::<doom::image::Palette>::default());
 	world.insert(AssetStorage::<doom::sprite::Sprite>::default());
 	world.insert(AssetStorage::<Texture>::default());
 	world.insert(video);
@@ -208,20 +213,41 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						let name = &args[1];
 						log::info!("Loading map {}...", name);
 
+						// Load palette
+						let palette_handle = {
+							let (mut loader, mut palette_storage) = world.system_data::<(
+								WriteExpect<doom::wad::WadLoader>,
+								WriteExpect<AssetStorage<crate::doom::image::Palette>>,
+							)>();
+							let handle = palette_storage.load(
+								"PLAYPAL",
+								crate::doom::image::PaletteFormat,
+								&mut *loader,
+							);
+							palette_storage.build_waiting(|intermediate| Ok(intermediate));
+							handle
+						};
+
 						// Load entity type data
 						let entity_types = doom::entities::EntityTypes::new(&world);
 						world.insert(entity_types);
 
 						{
-							let (mut sprite_storage, mut texture_storage, video) = world
-								.system_data::<(
+							let (palette_storage, mut sprite_storage, mut texture_storage, video) =
+								world.system_data::<(
+									ReadExpect<AssetStorage<crate::doom::image::Palette>>,
 									WriteExpect<AssetStorage<crate::doom::sprite::Sprite>>,
 									WriteExpect<AssetStorage<Texture>>,
 									ReadExpect<crate::renderer::video::Video>,
 								)>();
-							sprite_storage.build_waiting(|data| {
-								Ok(data
-									.build(video.queues().graphics.clone(), &mut texture_storage)?
+							let palette = palette_storage.get(&palette_handle).unwrap();
+							sprite_storage.build_waiting(|intermediate| {
+								Ok(intermediate
+									.build(
+										video.queues().graphics.clone(),
+										palette,
+										&mut texture_storage,
+									)?
 									.0)
 							});
 						}
@@ -268,22 +294,68 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						}
 
 						{
-							let (mut flat_storage, video) = world.system_data::<(
+							let (palette_storage, mut flat_storage, video) = world.system_data::<(
+								ReadExpect<AssetStorage<doom::image::Palette>>,
 								WriteExpect<AssetStorage<doom::map::textures::Flat>>,
 								ReadExpect<Video>,
 							)>();
-							flat_storage.build_waiting(|data| {
-								Ok(data.build(video.queues().graphics.clone())?.0)
+							let palette = palette_storage.get(&palette_handle).unwrap();
+							flat_storage.build_waiting(|image| {
+								let data: Vec<_> = image
+									.data
+									.into_iter()
+									.map(|pixel| {
+										if pixel.a == 0xFF {
+											palette[pixel.i as usize]
+										} else {
+											crate::doom::image::RGBAColor::default()
+										}
+									})
+									.collect();
+
+								// Create the image
+								let builder = TextureBuilder::new()
+									.with_data(data)
+									.with_dimensions(Dimensions::Dim2d {
+										width: image.size[0] as u32,
+										height: image.size[1] as u32,
+									})
+									.with_format(Format::R8G8B8A8Unorm);
+
+								Ok(builder.build(video.queues().graphics.clone())?.0)
 							});
 						}
 
 						{
-							let (mut wall_texture_storage, video) = world.system_data::<(
-								WriteExpect<AssetStorage<doom::map::textures::WallTexture>>,
-								ReadExpect<Video>,
-							)>();
-							wall_texture_storage.build_waiting(|data| {
-								Ok(data.build(video.queues().graphics.clone())?.0)
+							let (palette_storage, mut wall_texture_storage, video) = world
+								.system_data::<(
+									ReadExpect<AssetStorage<doom::image::Palette>>,
+									WriteExpect<AssetStorage<doom::map::textures::WallTexture>>,
+									ReadExpect<Video>,
+								)>();
+							let palette = palette_storage.get(&palette_handle).unwrap();
+							wall_texture_storage.build_waiting(|image| {
+								let data: Vec<_> = image
+									.data
+									.into_iter()
+									.map(|pixel| {
+										if pixel.a == 0xFF {
+											palette[pixel.i as usize]
+										} else {
+											crate::doom::image::RGBAColor::default()
+										}
+									})
+									.collect();
+
+								let builder = TextureBuilder::new()
+									.with_data(data)
+									.with_dimensions(Dimensions::Dim2d {
+										width: image.size[0] as u32,
+										height: image.size[1] as u32,
+									})
+									.with_format(Format::R8G8B8A8Unorm);
+
+								Ok(builder.build(video.queues().graphics.clone())?.0)
 							});
 						}
 
