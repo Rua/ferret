@@ -45,4 +45,6 @@ impl EntityTemplate {
 
 impl Asset for EntityTemplate {
 	type Data = Self;
+	type Intermediate = Self;
+	const NAME: &'static str = "EntityTemplate";
 }

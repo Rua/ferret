@@ -1,7 +1,7 @@
 use crate::{
-	assets::{AssetFormat, DataSource},
+	assets::{Asset, AssetFormat, DataSource},
 	doom::image::{ImageFormat, PaletteFormat},
-	renderer::texture::TextureBuilder,
+	renderer::texture::{Texture, TextureBuilder},
 };
 use byteorder::{ReadBytesExt, LE};
 use std::{
@@ -11,6 +11,14 @@ use std::{
 	str,
 };
 use vulkano::{format::Format, image::Dimensions};
+
+pub struct Flat;
+
+impl Asset for Flat {
+	type Data = Texture;
+	type Intermediate = TextureBuilder;
+	const NAME: &'static str = "Flat";
+}
 
 #[derive(Clone, Copy)]
 pub struct FlatFormat;
@@ -76,10 +84,18 @@ impl AssetFormat for PNamesFormat {
 	}
 }
 
-#[derive(Clone, Copy)]
-pub struct TextureFormat;
+pub struct WallTexture;
 
-impl AssetFormat for TextureFormat {
+impl Asset for WallTexture {
+	type Data = Texture;
+	type Intermediate = TextureBuilder;
+	const NAME: &'static str = "WallTexture";
+}
+
+#[derive(Clone, Copy)]
+pub struct WallTextureFormat;
+
+impl AssetFormat for WallTextureFormat {
 	type Asset = TextureBuilder;
 
 	fn import(

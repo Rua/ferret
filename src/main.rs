@@ -112,6 +112,8 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	world.register::<doom::components::Transform>();
 	world.insert(AssetStorage::<EntityTemplate>::default());
 	world.insert(AssetStorage::<doom::map::Map>::default());
+	world.insert(AssetStorage::<doom::map::textures::Flat>::default());
+	world.insert(AssetStorage::<doom::map::textures::WallTexture>::default());
 	world.insert(AssetStorage::<doom::sprite::Sprite>::default());
 	world.insert(AssetStorage::<Texture>::default());
 	world.insert(video);
@@ -211,24 +213,32 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						world.insert(entity_types);
 
 						{
-							let (mut sprite_storage, mut texture_storage, video) = world.system_data::<(
-								WriteExpect<AssetStorage<crate::doom::sprite::Sprite>>,
-								WriteExpect<AssetStorage<Texture>>,
-								ReadExpect<crate::renderer::video::Video>,
-							)>();
+							let (mut sprite_storage, mut texture_storage, video) = world
+								.system_data::<(
+									WriteExpect<AssetStorage<crate::doom::sprite::Sprite>>,
+									WriteExpect<AssetStorage<Texture>>,
+									ReadExpect<crate::renderer::video::Video>,
+								)>();
 							sprite_storage.build_waiting(|data| {
-								Ok(data.build(video.queues().graphics.clone(), &mut texture_storage)?.0)
+								Ok(data
+									.build(video.queues().graphics.clone(), &mut texture_storage)?
+									.0)
 							});
 						}
 
 						// Load map
 						let map = {
-							let (mut loader, mut map_storage, mut texture_storage) = world
-								.system_data::<(
-									WriteExpect<doom::wad::WadLoader>,
-									WriteExpect<AssetStorage<doom::map::Map>>,
-									WriteExpect<AssetStorage<Texture>>,
-								)>();
+							let (
+								mut loader,
+								mut map_storage,
+								mut flat_storage,
+								mut wall_texture_storage,
+							) = world.system_data::<(
+								WriteExpect<doom::wad::WadLoader>,
+								WriteExpect<AssetStorage<doom::map::Map>>,
+								WriteExpect<AssetStorage<doom::map::textures::Flat>>,
+								WriteExpect<AssetStorage<doom::map::textures::WallTexture>>,
+							)>();
 							let map = map_storage.load(
 								name,
 								doom::map::lumps::MapDataFormat,
@@ -239,7 +249,8 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 									data,
 									"SKY1",
 									&mut *loader,
-									&mut *texture_storage,
+									&mut *flat_storage,
+									&mut *wall_texture_storage,
 								)
 							});
 
@@ -252,6 +263,26 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 								.system_data::<(WriteExpect<AssetStorage<Texture>>, ReadExpect<Video>)>(
 								);
 							texture_storage.build_waiting(|data| {
+								Ok(data.build(video.queues().graphics.clone())?.0)
+							});
+						}
+
+						{
+							let (mut flat_storage, video) = world.system_data::<(
+								WriteExpect<AssetStorage<doom::map::textures::Flat>>,
+								ReadExpect<Video>,
+							)>();
+							flat_storage.build_waiting(|data| {
+								Ok(data.build(video.queues().graphics.clone())?.0)
+							});
+						}
+
+						{
+							let (mut wall_texture_storage, video) = world.system_data::<(
+								WriteExpect<AssetStorage<doom::map::textures::WallTexture>>,
+								ReadExpect<Video>,
+							)>();
+							wall_texture_storage.build_waiting(|data| {
 								Ok(data.build(video.queues().graphics.clone())?.0)
 							});
 						}

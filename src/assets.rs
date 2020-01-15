@@ -9,6 +9,8 @@ use std::{
 
 pub trait Asset: Send + Sync + 'static {
 	type Data: Send + Sync + 'static;
+	type Intermediate: Send + Sync + 'static;
+	const NAME: &'static str;
 }
 
 #[derive(Derivative)]
@@ -90,10 +92,10 @@ impl<A> AssetCache<A> {
 #[derive(Derivative)]
 #[derivative(Default(bound = ""))]
 pub struct AssetStorage<A: Asset> {
-	assets: HashMap<u32, A>,
+	assets: HashMap<u32, A::Data>,
 	unbuilt: Vec<(
 		AssetHandle<A>,
-		Result<A::Data, Box<dyn Error + Send + Sync>>,
+		Result<A::Intermediate, Box<dyn Error + Send + Sync>>,
 		String,
 	)>,
 	handles: Vec<AssetHandle<A>>,
@@ -102,7 +104,7 @@ pub struct AssetStorage<A: Asset> {
 }
 
 impl<A: Asset> AssetStorage<A> {
-	pub fn get(&self, handle: &AssetHandle<A>) -> Option<&A> {
+	pub fn get(&self, handle: &AssetHandle<A>) -> Option<&A::Data> {
 		self.assets.get(&handle.id())
 	}
 
@@ -118,9 +120,9 @@ impl<A: Asset> AssetStorage<A> {
 		}
 	}
 
-	pub fn insert(&mut self, asset: A) -> AssetHandle<A> {
+	pub fn insert(&mut self, data: A::Data) -> AssetHandle<A> {
 		let handle = self.allocate_handle();
-		self.assets.insert(handle.id(), asset);
+		self.assets.insert(handle.id(), data);
 		self.handles.push(handle.clone());
 		handle
 	}
@@ -128,12 +130,13 @@ impl<A: Asset> AssetStorage<A> {
 	pub fn load(
 		&mut self,
 		name: &str,
-		format: impl AssetFormat<Asset = A::Data>,
+		format: impl AssetFormat<Asset = A::Intermediate>,
 		source: &mut impl DataSource,
 	) -> AssetHandle<A> {
-		let data = format.import(name, source);
+		let intermediate = format.import(name, source);
 		let handle = self.allocate_handle();
-		self.unbuilt.push((handle.clone(), data, name.to_owned()));
+		self.unbuilt
+			.push((handle.clone(), intermediate, name.to_owned()));
 		handle
 	}
 
@@ -155,26 +158,24 @@ impl<A: Asset> AssetStorage<A> {
 		let count = old_len - self.handles.len();
 
 		if count > 0 {
-			log::trace!(
-				"Freed {} assets of type {}",
-				count,
-				std::any::type_name::<A>()
-			);
+			log::trace!("Freed {} {} assets", count, A::NAME);
 		}
 	}
 
-	pub fn build_waiting<F: FnMut(A::Data) -> Result<A, Box<dyn Error + Send + Sync>>>(
+	pub fn build_waiting<
+		F: FnMut(A::Intermediate) -> Result<A::Data, Box<dyn Error + Send + Sync>>,
+	>(
 		&mut self,
 		mut build_func: F,
 	) {
 		for (handle, data, name) in self.unbuilt.drain(..) {
 			let asset = match data.and_then(|d| build_func(d)) {
 				Ok(asset) => {
-					log::trace!("Asset '{}' loaded successfully", name);
+					log::trace!("{} '{}' loaded", A::NAME, name);
 					asset
 				}
 				Err(e) => {
-					log::error!("Asset '{}' could not be loaded: {}", name, e);
+					log::error!("{} '{}' could not be loaded: {}", A::NAME, name, e);
 					continue;
 				}
 			};

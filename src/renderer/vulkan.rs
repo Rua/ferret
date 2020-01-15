@@ -19,7 +19,12 @@ pub(super) fn create_instance() -> Result<Arc<Instance>, Box<dyn Error + Send + 
 	{
 		let available_layers: Vec<_> = vulkano::instance::layers_list()?.collect();
 
-		for to_enable in ["VK_LAYER_LUNARG_standard_validation", "VK_LAYER_LUNARG_monitor"].iter() {
+		for to_enable in [
+			"VK_LAYER_LUNARG_standard_validation",
+			"VK_LAYER_LUNARG_monitor",
+		]
+		.iter()
+		{
 			if let Some(_) = available_layers.iter().find(|l| l.name() == *to_enable) {
 				layers.push(*to_enable);
 			}

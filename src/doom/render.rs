@@ -2,7 +2,10 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	doom::{
 		components::{MapDynamic, SpriteRender, Transform},
-		map::Map,
+		map::{
+			textures::{Flat, WallTexture},
+			Map,
+		},
 		sprite::Sprite,
 	},
 	geometry::Angle,
@@ -15,7 +18,11 @@ use crate::{
 };
 use nalgebra::{Matrix4, Vector2, Vector3};
 use specs::{Entities, Entity, Join, ReadExpect, ReadStorage, RunNow, World};
-use std::{error::Error, collections::{HashMap, hash_map::Entry}, sync::Arc};
+use std::{
+	collections::{hash_map::Entry, HashMap},
+	error::Error,
+	sync::Arc,
+};
 use vulkano::{
 	buffer::{BufferAccess, CpuBufferPool},
 	command_buffer::{
@@ -30,7 +37,10 @@ use vulkano::{
 	framebuffer::{Framebuffer, FramebufferAbstract, RenderPassAbstract, Subpass},
 	image::ImageViewAccess,
 	impl_vertex,
-	pipeline::{vertex::OneVertexOneInstanceDefinition, viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
+	pipeline::{
+		vertex::OneVertexOneInstanceDefinition, viewport::Viewport, GraphicsPipeline,
+		GraphicsPipelineAbstract,
+	},
 	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
 	single_pass_renderpass,
 	swapchain::AcquireError,
@@ -409,13 +419,37 @@ impl MapRenderSystem {
 		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
 		rotation: Vector3<Angle>,
 	) -> Result<AutoCommandBufferBuilder, Box<dyn Error + Send + Sync>> {
-		let (texture_storage, map_component) =
-			world.system_data::<(ReadExpect<AssetStorage<Texture>>, ReadStorage<MapDynamic>)>();
+		let (flat_storage, wall_texture_storage, map_component) = world.system_data::<(
+			ReadExpect<AssetStorage<Flat>>,
+			ReadExpect<AssetStorage<WallTexture>>,
+			ReadStorage<MapDynamic>,
+		)>();
 
 		for component in map_component.join() {
-			// Draw the normal parts of the map
-			for (texture, mesh) in component.map_model.meshes() {
-				let texture = texture_storage.get(&texture).unwrap();
+			// Draw the walls
+			for (handle, mesh) in component.map_model.wall_meshes() {
+				let texture = wall_texture_storage.get(handle).unwrap();
+
+				let texture_set = Arc::new(
+					self.normal_texture_pool
+						.next()
+						.add_sampled_image(texture.inner(), sampler.clone())?
+						.build()?,
+				);
+
+				command_buffer_builder = command_buffer_builder.draw_indexed(
+					self.normal_pipeline.clone(),
+					&dynamic_state,
+					vec![Arc::new(mesh.vertex_buffer().into_buffer_slice())],
+					mesh.index_buffer().unwrap(),
+					(matrix_set.clone(), texture_set.clone()),
+					(),
+				)?;
+			}
+
+			// Draw the flats
+			for (handle, mesh) in component.map_model.flat_meshes() {
+				let texture = flat_storage.get(handle).unwrap();
 
 				let texture_set = Arc::new(
 					self.normal_texture_pool
@@ -435,8 +469,8 @@ impl MapRenderSystem {
 			}
 
 			// Draw the sky
-			let (texture, mesh) = component.map_model.sky_mesh();
-			let texture = texture_storage.get(&texture).unwrap();
+			let (handle, mesh) = component.map_model.sky_mesh();
+			let texture = wall_texture_storage.get(handle).unwrap();
 			let sky_buffer = self.sky_buffer_pool.next(sky_frag::ty::FragParams {
 				screenSize: [800.0, 600.0],
 				pitch: rotation[1].to_degrees() as f32,
@@ -637,7 +671,8 @@ impl SpriteRenderSystem {
 
 			// Set up instance data
 			let instance_matrix = Matrix4::new_translation(&transform.position)
-				* Matrix4::new_rotation(Vector3::new(0.0, 0.0, yaw.to_radians() as f32)) * texture_info.matrix;
+				* Matrix4::new_rotation(Vector3::new(0.0, 0.0, yaw.to_radians() as f32))
+				* texture_info.matrix;
 			let instance_data = InstanceData {
 				in_flip: image_info.flip,
 				in_light_level: light_level,
@@ -670,7 +705,10 @@ impl SpriteRenderSystem {
 			command_buffer_builder = command_buffer_builder.draw(
 				self.pipeline.clone(),
 				&dynamic_state,
-				vec![Arc::new(self.mesh.vertex_buffer().into_buffer_slice()), Arc::new(instance_buffer)],
+				vec![
+					Arc::new(self.mesh.vertex_buffer().into_buffer_slice()),
+					Arc::new(instance_buffer),
+				],
 				(matrix_set.clone(), texture_set.clone()),
 				(),
 			)?;

@@ -1,9 +1,7 @@
 use crate::{
 	assets::{Asset, AssetFormat, AssetHandle, AssetStorage, DataSource},
 	doom::image::ImageFormat,
-	renderer::{
-		texture::{Texture, TextureBuilder},
-	},
+	renderer::texture::{Texture, TextureBuilder},
 };
 use lazy_static::lazy_static;
 use nalgebra::{Matrix4, Vector3};
@@ -17,7 +15,9 @@ pub struct Sprite {
 }
 
 impl Asset for Sprite {
-	type Data = SpriteBuilder;
+	type Data = Self;
+	type Intermediate = SpriteBuilder;
+	const NAME: &'static str = "Sprite";
 }
 
 impl Sprite {
@@ -78,7 +78,7 @@ impl SpriteBuilder {
 			.map(|(builder, matrix)| {
 				let (texture, future) = builder.build(queue.clone())?;
 				let handle = texture_storage.insert(texture);
-				Ok(TextureInfo {handle, matrix})
+				Ok(TextureInfo { handle, matrix })
 			})
 			.collect::<Result<_, Box<dyn Error + Send + Sync>>>()?;
 
@@ -166,8 +166,15 @@ impl AssetFormat for SpriteFormat {
 					height: image.size[1] as u32,
 				})
 				.with_format(Format::R8G8B8A8Unorm);
-			let matrix = Matrix4::new_translation(&Vector3::new(0.0, image.offset[0] as f32, image.offset[1] as f32))
-				* Matrix4::new_nonuniform_scaling(&Vector3::new(0.0, image.size[0] as f32, image.size[1] as f32));
+			let matrix = Matrix4::new_translation(&Vector3::new(
+				0.0,
+				image.offset[0] as f32,
+				image.offset[1] as f32,
+			)) * Matrix4::new_nonuniform_scaling(&Vector3::new(
+				0.0,
+				image.size[0] as f32,
+				image.size[1] as f32,
+			));
 			textures.push((builder, matrix));
 		}
 

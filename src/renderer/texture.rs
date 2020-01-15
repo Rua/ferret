@@ -13,7 +13,9 @@ pub struct Texture {
 }
 
 impl Asset for Texture {
-	type Data = TextureBuilder;
+	type Intermediate = TextureBuilder;
+	type Data = Self;
+	const NAME: &'static str = "Texture";
 }
 
 impl Texture {

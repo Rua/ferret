@@ -10,18 +10,19 @@ use crate::{
 		entities::EntityTypes,
 		map::{
 			lumps::{ChildNode, EitherVertex, LinedefFlags, MapData, Thing},
-			textures::{FlatFormat, TextureFormat},
+			textures::{Flat, FlatFormat, WallTexture, WallTextureFormat},
 		},
 		wad::WadLoader,
 	},
 	geometry::{BoundingBox2, Side},
-	renderer::texture::Texture,
 };
+use derivative::Derivative;
 use nalgebra::Vector2;
 use specs::{Entity, Join, ReadExpect, ReadStorage, World, WorldExt, WriteStorage};
 use std::{
 	collections::{hash_map::Entry, HashMap},
 	error::Error,
+	fmt::Debug,
 };
 
 pub fn spawn_map_entities(
@@ -114,11 +115,13 @@ pub struct Map {
 	pub linedefs: Vec<Linedef>,
 	pub sectors: Vec<Sector>,
 	pub gl_nodes: Vec<GLNode>,
-	pub sky: AssetHandle<Texture>,
+	pub sky: AssetHandle<WallTexture>,
 }
 
 impl Asset for Map {
-	type Data = MapData;
+	type Data = Self;
+	type Intermediate = MapData;
+	const NAME: &'static str = "Map";
 }
 
 impl Map {
@@ -138,11 +141,12 @@ pub fn build_map(
 	map_data: MapData,
 	sky_name: &str,
 	loader: &mut WadLoader,
-	texture_storage: &mut AssetStorage<Texture>,
+	flat_storage: &mut AssetStorage<Flat>,
+	wall_texture_storage: &mut AssetStorage<WallTexture>,
 ) -> Result<Map, Box<dyn Error + Send + Sync>> {
 	let mut textures = HashMap::new();
 	let mut flats = HashMap::new();
-	let sky = texture_storage.load(sky_name, TextureFormat, loader);
+	let sky = wall_texture_storage.load(sky_name, WallTextureFormat, loader);
 
 	let MapData {
 		linedefs: linedefs_data,
@@ -168,7 +172,7 @@ pub fn build_map(
 						let handle = match flats.entry(name) {
 							Entry::Vacant(entry) => {
 								let handle =
-									texture_storage.load(entry.key(), FlatFormat, &mut *loader);
+									flat_storage.load(entry.key(), FlatFormat, &mut *loader);
 								entry.insert(handle)
 							}
 							Entry::Occupied(entry) => entry.into_mut(),
@@ -183,7 +187,7 @@ pub fn build_map(
 						let handle = match flats.entry(name) {
 							Entry::Vacant(entry) => {
 								let handle =
-									texture_storage.load(entry.key(), FlatFormat, &mut *loader);
+									flat_storage.load(entry.key(), FlatFormat, &mut *loader);
 								entry.insert(handle)
 							}
 							Entry::Occupied(entry) => entry.into_mut(),
@@ -210,8 +214,11 @@ pub fn build_map(
 					Some(name) => {
 						let handle = match textures.entry(name) {
 							Entry::Vacant(entry) => {
-								let handle =
-									texture_storage.load(entry.key(), TextureFormat, &mut *loader);
+								let handle = wall_texture_storage.load(
+									entry.key(),
+									WallTextureFormat,
+									&mut *loader,
+								);
 								entry.insert(handle)
 							}
 							Entry::Occupied(entry) => entry.into_mut(),
@@ -220,31 +227,37 @@ pub fn build_map(
 					}
 				},
 				bottom_texture: match data.bottom_texture_name {
-					None => None,
+					None => TextureType::None,
 					Some(name) => {
 						let handle = match textures.entry(name.clone()) {
 							Entry::Vacant(entry) => {
-								let handle =
-									texture_storage.load(entry.key(), TextureFormat, &mut *loader);
+								let handle = wall_texture_storage.load(
+									entry.key(),
+									WallTextureFormat,
+									&mut *loader,
+								);
 								entry.insert(handle)
 							}
 							Entry::Occupied(entry) => entry.into_mut(),
 						};
-						Some(handle.clone())
+						TextureType::Normal(handle.clone())
 					}
 				},
 				middle_texture: match data.middle_texture_name {
-					None => None,
+					None => TextureType::None,
 					Some(name) => {
 						let handle = match textures.entry(name) {
 							Entry::Vacant(entry) => {
-								let handle =
-									texture_storage.load(entry.key(), TextureFormat, &mut *loader);
+								let handle = wall_texture_storage.load(
+									entry.key(),
+									WallTextureFormat,
+									&mut *loader,
+								);
 								entry.insert(handle)
 							}
 							Entry::Occupied(entry) => entry.into_mut(),
 						};
-						Some(handle.clone())
+						TextureType::Normal(handle.clone())
 					}
 				},
 				sector_index: data.sector_index,
@@ -363,14 +376,15 @@ pub fn build_map(
 	})
 }
 
-#[derive(Clone, Debug)]
-pub enum TextureType {
-	Normal(AssetHandle<Texture>),
+#[derive(Derivative)]
+#[derivative(Clone(bound = ""), Debug(bound = ""))]
+pub enum TextureType<T> {
+	Normal(AssetHandle<T>),
 	Sky,
 	None,
 }
 
-impl TextureType {
+impl<T> TextureType<T> {
 	pub fn is_sky(&self) -> bool {
 		if let TextureType::Sky = *self {
 			true
@@ -392,9 +406,9 @@ pub struct Linedef {
 #[derive(Clone, Debug)]
 pub struct Sidedef {
 	pub texture_offset: Vector2<f32>,
-	pub top_texture: TextureType,
-	pub bottom_texture: Option<AssetHandle<Texture>>,
-	pub middle_texture: Option<AssetHandle<Texture>>,
+	pub top_texture: TextureType<WallTexture>,
+	pub bottom_texture: TextureType<WallTexture>,
+	pub middle_texture: TextureType<WallTexture>,
 	pub sector_index: usize,
 }
 
@@ -402,8 +416,8 @@ pub struct Sidedef {
 pub struct Sector {
 	pub floor_height: f32,
 	pub ceiling_height: f32,
-	pub floor_texture: TextureType,
-	pub ceiling_texture: TextureType,
+	pub floor_texture: TextureType<Flat>,
+	pub ceiling_texture: TextureType<Flat>,
 	pub light_level: f32,
 	pub special_type: u16,
 	pub sector_tag: u16,

@@ -1,9 +1,11 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
-	doom::map::{LinedefFlags, Map, Side, TextureType},
+	doom::map::{
+		textures::{Flat, WallTexture},
+		LinedefFlags, Map, Side, TextureType,
+	},
 	renderer::{
 		mesh::{Mesh, MeshBuilder},
-		texture::Texture,
 		video::Video,
 	},
 };
@@ -13,24 +15,34 @@ use std::{collections::HashMap, error::Error};
 use vulkano::{image::Dimensions, impl_vertex};
 
 pub struct MapModel {
-	meshes: Vec<(AssetHandle<Texture>, Mesh)>,
-	sky_mesh: (AssetHandle<Texture>, Mesh),
+	flat_meshes: Vec<(AssetHandle<Flat>, Mesh)>,
+	sky_mesh: (AssetHandle<WallTexture>, Mesh),
+	wall_meshes: Vec<(AssetHandle<WallTexture>, Mesh)>,
 }
 
 impl MapModel {
 	pub fn new(
-		meshes: Vec<(AssetHandle<Texture>, Mesh)>,
-		sky_mesh: (AssetHandle<Texture>, Mesh),
+		flat_meshes: Vec<(AssetHandle<Flat>, Mesh)>,
+		sky_mesh: (AssetHandle<WallTexture>, Mesh),
+		wall_meshes: Vec<(AssetHandle<WallTexture>, Mesh)>,
 	) -> MapModel {
-		MapModel { meshes, sky_mesh }
+		MapModel {
+			flat_meshes,
+			sky_mesh,
+			wall_meshes,
+		}
 	}
 
-	pub fn meshes(&self) -> &Vec<(AssetHandle<Texture>, Mesh)> {
-		&self.meshes
+	pub fn flat_meshes(&self) -> &Vec<(AssetHandle<Flat>, Mesh)> {
+		&self.flat_meshes
 	}
 
-	pub fn sky_mesh(&self) -> &(AssetHandle<Texture>, Mesh) {
+	pub fn sky_mesh(&self) -> &(AssetHandle<WallTexture>, Mesh) {
 		&self.sky_mesh
+	}
+
+	pub fn wall_meshes(&self) -> &Vec<(AssetHandle<WallTexture>, Mesh)> {
+		&self.wall_meshes
 	}
 }
 
@@ -50,29 +62,43 @@ impl_vertex!(SkyVertexData, in_position);
 
 pub fn make_model(map: &Map, world: &World) -> Result<MapModel, Box<dyn Error + Send + Sync>> {
 	// Create meshes
-	let (meshes, sky_mesh) = make_meshes(map, world)?;
-	let mut ret = Vec::new();
-
+	let (flat_meshes, sky_mesh, wall_meshes) = make_meshes(map, world)?;
 	let video = world.fetch::<Video>();
 
-	// Regular meshes
-	for (tex, (vertices, indices)) in meshes {
+	// Flat meshes
+	let mut flat_ret = Vec::new();
+	for (tex, (vertices, indices)) in flat_meshes {
 		let (mesh, future) = MeshBuilder::new()
 			.with_vertices(vertices)
 			.with_indices(indices)
 			.build(video.queues().graphics.clone())?;
 
-		ret.push((tex, mesh));
+		flat_ret.push((tex, mesh));
 	}
 
 	// Sky mesh
 	let (vertices, indices) = sky_mesh;
-	let (mesh, future) = MeshBuilder::new()
+	let (sky_ret, future) = MeshBuilder::new()
 		.with_vertices(vertices)
 		.with_indices(indices)
 		.build(video.queues().graphics.clone())?;
 
-	Ok(MapModel::new(ret, (map.sky.clone(), mesh)))
+	// Wall meshes
+	let mut wall_ret = Vec::new();
+	for (tex, (vertices, indices)) in wall_meshes {
+		let (mesh, future) = MeshBuilder::new()
+			.with_vertices(vertices)
+			.with_indices(indices)
+			.build(video.queues().graphics.clone())?;
+
+		wall_ret.push((tex, mesh));
+	}
+
+	Ok(MapModel::new(
+		flat_ret,
+		(map.sky.clone(), sky_ret),
+		wall_ret,
+	))
 }
 
 fn make_meshes(
@@ -80,8 +106,9 @@ fn make_meshes(
 	world: &World,
 ) -> Result<
 	(
-		HashMap<AssetHandle<Texture>, (Vec<VertexData>, Vec<u32>)>,
+		HashMap<AssetHandle<Flat>, (Vec<VertexData>, Vec<u32>)>,
 		(Vec<SkyVertexData>, Vec<u32>),
+		HashMap<AssetHandle<WallTexture>, (Vec<VertexData>, Vec<u32>)>,
 	),
 	Box<dyn Error + Send + Sync>,
 > {
@@ -170,9 +197,13 @@ fn make_meshes(
 		}
 	}
 
-	let mut meshes: HashMap<AssetHandle<Texture>, (Vec<VertexData>, Vec<u32>)> = HashMap::new();
+	let mut flat_meshes: HashMap<AssetHandle<Flat>, (Vec<VertexData>, Vec<u32>)> = HashMap::new();
 	let mut sky_mesh: (Vec<SkyVertexData>, Vec<u32>) = (Vec::new(), Vec::new());
-	let texture_storage = world.system_data::<ReadExpect<AssetStorage<Texture>>>();
+	let mut wall_meshes: HashMap<AssetHandle<WallTexture>, (Vec<VertexData>, Vec<u32>)> =
+		HashMap::new();
+
+	let flat_storage = world.system_data::<ReadExpect<AssetStorage<Flat>>>();
+	let wall_texture_storage = world.system_data::<ReadExpect<AssetStorage<WallTexture>>>();
 
 	// Walls
 	for linedef in &map.linedefs {
@@ -211,9 +242,10 @@ fn make_meshes(
 						);
 					}
 					TextureType::Normal(handle) => {
-						let dimensions = texture_storage.get(handle).unwrap().dimensions();
-						let (ref mut vertices, ref mut indices) =
-							meshes.entry(handle.clone()).or_insert((vec![], vec![]));
+						let dimensions = wall_texture_storage.get(handle).unwrap().dimensions();
+						let (ref mut vertices, ref mut indices) = wall_meshes
+							.entry(handle.clone())
+							.or_insert((vec![], vec![]));
 
 						let tex_v = if linedef.flags.contains(LinedefFlags::DONTPEGTOP) {
 							[0.0, spans[0] - spans[1]]
@@ -235,77 +267,92 @@ fn make_meshes(
 				}
 
 				// Bottom section
-				if let Some(handle) = &front_sidedef.bottom_texture {
-					let dimensions = texture_storage.get(handle).unwrap().dimensions();
-					let (ref mut vertices, ref mut indices) =
-						meshes.entry(handle.clone()).or_insert((vec![], vec![]));
+				match &front_sidedef.bottom_texture {
+					TextureType::None => (),
+					TextureType::Sky => unimplemented!(),
+					TextureType::Normal(handle) => {
+						let dimensions = wall_texture_storage.get(handle).unwrap().dimensions();
+						let (ref mut vertices, ref mut indices) = wall_meshes
+							.entry(handle.clone())
+							.or_insert((vec![], vec![]));
 
-					let tex_v = if linedef.flags.contains(LinedefFlags::DONTPEGBOTTOM) {
-						[
-							front_sector.ceiling_height - spans[2],
-							front_sector.ceiling_height - spans[3],
-						]
-					} else {
-						[0.0, spans[2] - spans[3]]
-					};
+						let tex_v = if linedef.flags.contains(LinedefFlags::DONTPEGBOTTOM) {
+							[
+								front_sector.ceiling_height - spans[2],
+								front_sector.ceiling_height - spans[3],
+							]
+						} else {
+							[0.0, spans[2] - spans[3]]
+						};
 
-					push_wall(
-						vertices,
-						indices,
-						linedef_vertices,
-						[spans[2], spans[3]],
-						tex_v,
-						front_sidedef.texture_offset,
-						dimensions,
-						front_sector.light_level,
-					);
+						push_wall(
+							vertices,
+							indices,
+							linedef_vertices,
+							[spans[2], spans[3]],
+							tex_v,
+							front_sidedef.texture_offset,
+							dimensions,
+							front_sector.light_level,
+						);
+					}
 				}
 
 				// Middle section
-				if let Some(handle) = &front_sidedef.middle_texture {
-					let dimensions = texture_storage.get(handle).unwrap().dimensions();
-					let (ref mut vertices, ref mut indices) =
-						meshes.entry(handle.clone()).or_insert((vec![], vec![]));
+				match &front_sidedef.middle_texture {
+					TextureType::None => (),
+					TextureType::Sky => unimplemented!(),
+					TextureType::Normal(handle) => {
+						let dimensions = wall_texture_storage.get(handle).unwrap().dimensions();
+						let (ref mut vertices, ref mut indices) = wall_meshes
+							.entry(handle.clone())
+							.or_insert((vec![], vec![]));
 
-					let tex_v = if linedef.flags.contains(LinedefFlags::DONTPEGBOTTOM) {
-						[spans[2] - spans[1], 0.0]
-					} else {
-						[0.0, spans[1] - spans[2]]
-					};
+						let tex_v = if linedef.flags.contains(LinedefFlags::DONTPEGBOTTOM) {
+							[spans[2] - spans[1], 0.0]
+						} else {
+							[0.0, spans[1] - spans[2]]
+						};
 
-					push_wall(
-						vertices,
-						indices,
-						linedef_vertices,
-						[spans[1], spans[2]],
-						tex_v,
-						front_sidedef.texture_offset,
-						dimensions,
-						front_sector.light_level,
-					);
+						push_wall(
+							vertices,
+							indices,
+							linedef_vertices,
+							[spans[1], spans[2]],
+							tex_v,
+							front_sidedef.texture_offset,
+							dimensions,
+							front_sector.light_level,
+						);
+					}
 				}
 			} else {
-				if let Some(handle) = &front_sidedef.middle_texture {
-					let dimensions = texture_storage.get(handle).unwrap().dimensions();
-					let (ref mut vertices, ref mut indices) =
-						meshes.entry(handle.clone()).or_insert((vec![], vec![]));
+				match &front_sidedef.middle_texture {
+					TextureType::None => (),
+					TextureType::Sky => unimplemented!(),
+					TextureType::Normal(handle) => {
+						let dimensions = wall_texture_storage.get(handle).unwrap().dimensions();
+						let (ref mut vertices, ref mut indices) = wall_meshes
+							.entry(handle.clone())
+							.or_insert((vec![], vec![]));
 
-					let tex_v = if linedef.flags.contains(LinedefFlags::DONTPEGBOTTOM) {
-						[front_sector.floor_height - front_sector.ceiling_height, 0.0]
-					} else {
-						[0.0, front_sector.ceiling_height - front_sector.floor_height]
-					};
+						let tex_v = if linedef.flags.contains(LinedefFlags::DONTPEGBOTTOM) {
+							[front_sector.floor_height - front_sector.ceiling_height, 0.0]
+						} else {
+							[0.0, front_sector.ceiling_height - front_sector.floor_height]
+						};
 
-					push_wall(
-						vertices,
-						indices,
-						linedef_vertices,
-						[front_sector.ceiling_height, front_sector.floor_height],
-						tex_v,
-						front_sidedef.texture_offset,
-						dimensions,
-						front_sector.light_level,
-					);
+						push_wall(
+							vertices,
+							indices,
+							linedef_vertices,
+							[front_sector.ceiling_height, front_sector.floor_height],
+							tex_v,
+							front_sidedef.texture_offset,
+							dimensions,
+							front_sector.light_level,
+						);
+					}
 				}
 			}
 		}
@@ -323,9 +370,10 @@ fn make_meshes(
 					push_sky_flat(&mut sky_mesh.0, &mut sky_mesh.1, iter, sector.floor_height)
 				}
 				TextureType::Normal(handle) => {
-					let dimensions = texture_storage.get(handle).unwrap().dimensions();
-					let (ref mut vertices, ref mut indices) =
-						meshes.entry(handle.clone()).or_insert((vec![], vec![]));
+					let dimensions = flat_storage.get(handle).unwrap().dimensions();
+					let (ref mut vertices, ref mut indices) = flat_meshes
+						.entry(handle.clone())
+						.or_insert((vec![], vec![]));
 
 					push_flat(
 						vertices,
@@ -350,9 +398,10 @@ fn make_meshes(
 					sector.ceiling_height,
 				),
 				TextureType::Normal(handle) => {
-					let dimensions = texture_storage.get(handle).unwrap().dimensions();
-					let (ref mut vertices, ref mut indices) =
-						meshes.entry(handle.clone()).or_insert((vec![], vec![]));
+					let dimensions = flat_storage.get(handle).unwrap().dimensions();
+					let (ref mut vertices, ref mut indices) = flat_meshes
+						.entry(handle.clone())
+						.or_insert((vec![], vec![]));
 
 					push_flat(
 						vertices,
@@ -367,5 +416,5 @@ fn make_meshes(
 		}
 	}
 
-	Ok((meshes, sky_mesh))
+	Ok((flat_meshes, sky_mesh, wall_meshes))
 }
