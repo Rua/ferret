@@ -4,47 +4,11 @@ use crate::{
 		textures::{Flat, WallTexture},
 		LinedefFlags, Map, Side, TextureType,
 	},
-	renderer::{
-		mesh::{Mesh, MeshBuilder},
-		video::Video,
-	},
 };
 use nalgebra::Vector2;
 use specs::{ReadExpect, World};
 use std::{collections::HashMap, error::Error};
 use vulkano::{image::Dimensions, impl_vertex};
-
-pub struct MapModel {
-	flat_meshes: Vec<(AssetHandle<Flat>, Mesh)>,
-	sky_mesh: (AssetHandle<WallTexture>, Mesh),
-	wall_meshes: Vec<(AssetHandle<WallTexture>, Mesh)>,
-}
-
-impl MapModel {
-	pub fn new(
-		flat_meshes: Vec<(AssetHandle<Flat>, Mesh)>,
-		sky_mesh: (AssetHandle<WallTexture>, Mesh),
-		wall_meshes: Vec<(AssetHandle<WallTexture>, Mesh)>,
-	) -> MapModel {
-		MapModel {
-			flat_meshes,
-			sky_mesh,
-			wall_meshes,
-		}
-	}
-
-	pub fn flat_meshes(&self) -> &Vec<(AssetHandle<Flat>, Mesh)> {
-		&self.flat_meshes
-	}
-
-	pub fn sky_mesh(&self) -> &(AssetHandle<WallTexture>, Mesh) {
-		&self.sky_mesh
-	}
-
-	pub fn wall_meshes(&self) -> &Vec<(AssetHandle<WallTexture>, Mesh)> {
-		&self.wall_meshes
-	}
-}
 
 #[derive(Clone, Debug, Default)]
 pub struct VertexData {
@@ -60,48 +24,7 @@ pub struct SkyVertexData {
 }
 impl_vertex!(SkyVertexData, in_position);
 
-pub fn make_model(map: &Map, world: &World) -> Result<MapModel, Box<dyn Error + Send + Sync>> {
-	// Create meshes
-	let (flat_meshes, sky_mesh, wall_meshes) = make_meshes(map, world)?;
-	let video = world.fetch::<Video>();
-
-	// Flat meshes
-	let mut flat_ret = Vec::new();
-	for (tex, (vertices, indices)) in flat_meshes {
-		let (mesh, future) = MeshBuilder::new()
-			.with_vertices(vertices)
-			.with_indices(indices)
-			.build(video.queues().graphics.clone())?;
-
-		flat_ret.push((tex, mesh));
-	}
-
-	// Sky mesh
-	let (vertices, indices) = sky_mesh;
-	let (sky_ret, future) = MeshBuilder::new()
-		.with_vertices(vertices)
-		.with_indices(indices)
-		.build(video.queues().graphics.clone())?;
-
-	// Wall meshes
-	let mut wall_ret = Vec::new();
-	for (tex, (vertices, indices)) in wall_meshes {
-		let (mesh, future) = MeshBuilder::new()
-			.with_vertices(vertices)
-			.with_indices(indices)
-			.build(video.queues().graphics.clone())?;
-
-		wall_ret.push((tex, mesh));
-	}
-
-	Ok(MapModel::new(
-		flat_ret,
-		(map.sky.clone(), sky_ret),
-		wall_ret,
-	))
-}
-
-fn make_meshes(
+pub fn make_meshes(
 	map: &Map,
 	world: &World,
 ) -> Result<

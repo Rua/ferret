@@ -191,30 +191,6 @@ impl Asset for SpriteImage {
 	}
 }
 
-/*				let mut data = vec![RGBAColor::default(); image.data.len()];
-
-				for i in 0..image.size[0] * image.size[1] {
-					let index = image.data[i].i;
-					let alpha = image.data[i].a;
-
-					if alpha == 0xFF {
-						data[i] = palette[index as usize];
-					}
-				}
-
-				let builder = TextureBuilder::new()
-					.with_data(data)
-					.with_dimensions(Dimensions::Dim2d {
-						width: image.size[0] as u32,
-						height: image.size[1] as u32,
-					})
-					.with_format(Format::R8G8B8A8Unorm);
-
-
-				let (texture, future) = builder.build(queue.clone())?;
-				let handle = texture_storage.insert(texture);
-				Ok(TextureInfo { handle, matrix })*/
-
 #[derive(Clone, Debug, Default)]
 pub struct VertexData {
 	pub in_position: [f32; 2],

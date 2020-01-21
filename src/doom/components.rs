@@ -2,7 +2,7 @@
 use crate::{
 	assets::AssetHandle,
 	doom::{
-		map::{meshes::MapModel, Map},
+		map::Map,
 		sprite::Sprite,
 	},
 	geometry::Angle,
@@ -20,7 +20,6 @@ pub struct SpriteRenderComponent {
 #[derive(Component)]
 #[storage(HashMapStorage)]
 pub struct MapDynamic {
-	pub map_model: MapModel,
 	pub map: AssetHandle<Map>,
 }
 

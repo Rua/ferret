@@ -278,9 +278,11 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 									image.size[1] as f32,
 								));
 
+								let (texture, future) = builder.build(video.queues().graphics.clone())?;
+
 								Ok(crate::doom::sprite::SpriteImage {
 									matrix,
-									texture: builder.build(video.queues().graphics.clone())?.0,
+									texture,
 								})
 							});
 						}
@@ -342,7 +344,8 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 									})
 									.with_format(Format::R8G8B8A8Unorm);
 
-								Ok(builder.build(video.queues().graphics.clone())?.0)
+								let (texture, future) = builder.build(video.queues().graphics.clone())?;
+								Ok(texture)
 							});
 						}
 
@@ -375,24 +378,16 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 									})
 									.with_format(Format::R8G8B8A8Unorm);
 
-								Ok(builder.build(video.queues().graphics.clone())?.0)
+								let (texture, future) = builder.build(video.queues().graphics.clone())?;
+								Ok(texture)
 							});
 						}
-
-						// Generate model
-						let map_model = {
-							let map_storage =
-								world.system_data::<ReadExpect<AssetStorage<doom::map::Map>>>();
-							let map = map_storage.get(&map).unwrap();
-							doom::map::meshes::make_model(&map, &world)?
-						};
 
 						// Create world entity
 						world
 							.create_entity()
 							.with(doom::components::MapDynamic {
 								map: map.clone(),
-								map_model,
 							})
 							.build();
 
