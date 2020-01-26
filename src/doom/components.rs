@@ -25,6 +25,20 @@ pub struct LightFlash {
 	pub off_time: Duration,
 	pub time_left: Duration,
 	pub state: bool,
+	pub flash_type: LightFlashType,
+}
+
+#[derive(Clone, Component, Copy, Debug)]
+pub enum LightFlashType {
+	Broken,
+	Strobe,
+	StrobeUnSync(Duration),
+}
+
+impl Default for LightFlashType {
+	fn default() -> LightFlashType {
+		LightFlashType::Broken
+	}
 }
 
 #[derive(Clone, Component, Copy, Debug, Default)]

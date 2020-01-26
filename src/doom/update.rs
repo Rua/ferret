@@ -1,7 +1,7 @@
 use crate::{
 	assets::AssetStorage,
 	doom::{
-		components::{LightFlash, LightGlow, MapDynamic, SectorRef, Transform},
+		components::{LightFlash, LightFlashType, LightGlow, MapDynamic, SectorRef, Transform},
 		input::{Action, Axis},
 		map::Map,
 	},
@@ -63,21 +63,46 @@ impl<'a> RunNow<'a> for LightUpdateSystem {
 					.expect("map_entity does not have MapDynamic component");
 				let map = map_storage.get(&map_dynamic.map).unwrap();
 
-				if light_flash.state {
-					light_flash.time_left =
-						light_flash.on_time * (rng.gen::<bool>() as u32) + crate::doom::FRAME_TIME;
-					map_dynamic.sectors[sector_ref.index].light_level =
-						map.sectors[sector_ref.index].light_level;
-				} else {
-					light_flash.time_left =
-						light_flash.off_time.mul_f64(rng.gen::<f64>()) + crate::doom::FRAME_TIME;
-					map_dynamic.sectors[sector_ref.index].light_level = map.sectors
-						[sector_ref.index]
-						.neighbours
-						.iter()
-						.map(|index| map.sectors[*index].light_level)
-						.min_by(|x, y| x.partial_cmp(y).unwrap())
-						.unwrap_or(0.0);
+				let max_light = map.sectors[sector_ref.index].light_level;
+				let min_light = map.sectors[sector_ref.index]
+					.neighbours
+					.iter()
+					.map(|index| map.sectors[*index].light_level)
+					.min_by(|x, y| x.partial_cmp(y).unwrap())
+					.unwrap_or(0.0);
+
+				match light_flash.flash_type {
+					LightFlashType::Broken => {
+						if light_flash.state {
+							light_flash.time_left = light_flash.on_time
+								* (rng.gen::<bool>() as u32)
+								+ crate::doom::FRAME_TIME;
+							map_dynamic.sectors[sector_ref.index].light_level = max_light;
+						} else {
+							light_flash.time_left = light_flash.off_time.mul_f64(rng.gen::<f64>())
+								+ crate::doom::FRAME_TIME;
+							map_dynamic.sectors[sector_ref.index].light_level = min_light;
+						}
+					}
+					LightFlashType::Strobe => {
+						if light_flash.state {
+							light_flash.time_left = light_flash.on_time;
+							map_dynamic.sectors[sector_ref.index].light_level = max_light;
+						} else {
+							light_flash.time_left = light_flash.off_time;
+							map_dynamic.sectors[sector_ref.index].light_level =
+								if min_light == max_light {
+									0.0
+								} else {
+									min_light
+								};
+						}
+					}
+					LightFlashType::StrobeUnSync(time) => {
+						light_flash.time_left =
+							time.mul_f64(rng.gen::<f64>()) + crate::doom::FRAME_TIME;
+						light_flash.flash_type = LightFlashType::Strobe;
+					}
 				}
 			}
 		}

@@ -3,7 +3,9 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
 	doom::{
-		components::{LightFlash, LightGlow, SpawnOnCeiling, SpawnPoint, SpriteRender},
+		components::{
+			LightFlash, LightFlashType, LightGlow, SpawnOnCeiling, SpawnPoint, SpriteRender,
+		},
 		sprite::Sprite,
 		wad::WadLoader,
 	},
@@ -1598,25 +1600,43 @@ impl EntityTypes {
 					off_time: 8 * crate::doom::FRAME_TIME,
 					on_time: 64 * crate::doom::FRAME_TIME,
 					..LightFlash::default()
-			})
+				})
 		});
 		sector_types.insert(1, handle.clone());
 
-		// Blink 0.5 s
+		// Fast strobe unsynchronised
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(LightFlash {
+					flash_type: LightFlashType::StrobeUnSync(8 * crate::doom::FRAME_TIME),
+					off_time: 15 * crate::doom::FRAME_TIME,
+					on_time: 5 * crate::doom::FRAME_TIME,
+					..LightFlash::default()
+				})
 		});
 		sector_types.insert(2, handle.clone());
 
-		// Blink 1 s
+		// Slow strobe unsynchronised
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(LightFlash {
+					flash_type: LightFlashType::StrobeUnSync(8 * crate::doom::FRAME_TIME),
+					off_time: 35 * crate::doom::FRAME_TIME,
+					on_time: 5 * crate::doom::FRAME_TIME,
+					..LightFlash::default()
+				})
 		});
 		sector_types.insert(3, handle.clone());
 
-		// Blink 0.5 s + 20% damage
+		// Fast strobe unsynchronised + 20% damage
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(LightFlash {
+					flash_type: LightFlashType::StrobeUnSync(8 * crate::doom::FRAME_TIME),
+					off_time: 15 * crate::doom::FRAME_TIME,
+					on_time: 5 * crate::doom::FRAME_TIME,
+					..LightFlash::default()
+				})
 		});
 		sector_types.insert(4, handle.clone());
 
@@ -1660,15 +1680,27 @@ impl EntityTypes {
 		});
 		sector_types.insert(11, handle.clone());
 
-		// Blink 0.5 s, synchronised
+		// Slow strobe
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(LightFlash {
+					flash_type: LightFlashType::Strobe,
+					off_time: 35 * crate::doom::FRAME_TIME,
+					on_time: 5 * crate::doom::FRAME_TIME,
+					..LightFlash::default()
+				})
 		});
 		sector_types.insert(12, handle.clone());
 
-		// Blink 1 s, synchronised
+		// Fast strobe
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(LightFlash {
+					flash_type: LightFlashType::Strobe,
+					off_time: 15 * crate::doom::FRAME_TIME,
+					on_time: 5 * crate::doom::FRAME_TIME,
+					..LightFlash::default()
+				})
 		});
 		sector_types.insert(13, handle.clone());
 
