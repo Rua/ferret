@@ -447,7 +447,8 @@ pub fn build_map(
 			if let [Some(ref mut front_sidedef), Some(ref mut back_sidedef)] = &mut sidedefs {
 				// Set sector neighbours
 				if front_sidedef.sector_index != back_sidedef.sector_index {
-					let front_sector_neighbours = &mut sectors[front_sidedef.sector_index].neighbours;
+					let front_sector_neighbours =
+						&mut sectors[front_sidedef.sector_index].neighbours;
 					if !front_sector_neighbours.contains(&back_sidedef.sector_index) {
 						front_sector_neighbours.push(back_sidedef.sector_index);
 					}

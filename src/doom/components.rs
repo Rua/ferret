@@ -27,6 +27,13 @@ pub struct LightFlash {
 	pub state: bool,
 }
 
+#[derive(Clone, Component, Copy, Debug, Default)]
+#[storage(HashMapStorage)]
+pub struct LightGlow {
+	pub speed: f32,
+	pub state: bool,
+}
+
 #[derive(Clone, Component, Debug)]
 #[storage(HashMapStorage)]
 pub struct MapDynamic {

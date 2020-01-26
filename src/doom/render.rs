@@ -619,7 +619,7 @@ impl SpriteRenderSystem {
 			map_storage,
 			sprite_storage,
 			sprite_image_storage,
-			map_component,
+			map_dynamic_component,
 			sprite_component,
 			transform_component,
 		) = world.system_data::<(
@@ -633,8 +633,8 @@ impl SpriteRenderSystem {
 			ReadStorage<Transform>,
 		)>();
 
-		let map_handle = &map_component.join().next().unwrap().map;
-		let map = map_storage.get(map_handle).unwrap();
+		let map_dynamic = map_dynamic_component.join().next().unwrap();
+		let map = map_storage.get(&map_dynamic.map).unwrap();
 
 		// Group draws into batches by texture
 		let mut batches: HashMap<AssetHandle<SpriteImage>, Vec<InstanceData>> = HashMap::new();
@@ -677,8 +677,7 @@ impl SpriteRenderSystem {
 			} else {
 				let ssect =
 					map.find_subsector(Vector2::new(transform.position[0], transform.position[1]));
-				let sector = &map.sectors[ssect.sector_index];
-				sector.light_level
+				map_dynamic.sectors[ssect.sector_index].light_level
 			};
 
 			// Set up instance data

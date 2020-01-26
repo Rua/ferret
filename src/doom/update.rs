@@ -1,7 +1,7 @@
 use crate::{
 	assets::AssetStorage,
 	doom::{
-		components::{LightFlash, MapDynamic, SectorRef, Transform},
+		components::{LightFlash, LightGlow, MapDynamic, SectorRef, Transform},
 		input::{Action, Axis},
 		map::Map,
 	},
@@ -39,6 +39,7 @@ impl<'a> RunNow<'a> for LightUpdateSystem {
 			map_storage,
 			delta,
 			mut light_flash_storage,
+			mut light_glow_storage,
 			mut map_dynamic_storage,
 			sector_ref_storage,
 			mut rng,
@@ -46,6 +47,7 @@ impl<'a> RunNow<'a> for LightUpdateSystem {
 			ReadExpect<AssetStorage<Map>>,
 			ReadExpect<Duration>,
 			WriteStorage<LightFlash>,
+			WriteStorage<LightGlow>,
 			WriteStorage<MapDynamic>,
 			ReadStorage<SectorRef>,
 			WriteExpect<Pcg64Mcg>,
@@ -76,6 +78,39 @@ impl<'a> RunNow<'a> for LightUpdateSystem {
 						.map(|index| map.sectors[*index].light_level)
 						.min_by(|x, y| x.partial_cmp(y).unwrap())
 						.unwrap_or(0.0);
+				}
+			}
+		}
+
+		for (sector_ref, light_glow) in (&sector_ref_storage, &mut light_glow_storage).join() {
+			let map_dynamic = map_dynamic_storage
+				.get_mut(sector_ref.map_entity)
+				.expect("map_entity does not have MapDynamic component");
+			let map = map_storage.get(&map_dynamic.map).unwrap();
+			let speed = light_glow.speed * delta.as_secs_f32();
+
+			if light_glow.state {
+				map_dynamic.sectors[sector_ref.index].light_level += speed;
+				let max_light = map.sectors[sector_ref.index].light_level;
+
+				if map_dynamic.sectors[sector_ref.index].light_level > max_light {
+					map_dynamic.sectors[sector_ref.index].light_level =
+						2.0 * max_light - map_dynamic.sectors[sector_ref.index].light_level;
+					light_glow.state = !light_glow.state;
+				}
+			} else {
+				map_dynamic.sectors[sector_ref.index].light_level -= speed;
+				let min_light = map.sectors[sector_ref.index]
+					.neighbours
+					.iter()
+					.map(|index| map.sectors[*index].light_level)
+					.min_by(|x, y| x.partial_cmp(y).unwrap())
+					.unwrap_or(0.0);
+
+				if map_dynamic.sectors[sector_ref.index].light_level < min_light {
+					map_dynamic.sectors[sector_ref.index].light_level =
+						2.0 * min_light - map_dynamic.sectors[sector_ref.index].light_level;
+					light_glow.state = !light_glow.state;
 				}
 			}
 		}
