@@ -381,6 +381,7 @@ pub fn build_map(
 				special_type: data.special_type,
 				sector_tag: data.special_type,
 				subsectors: Vec::new(),
+				neighbours: Vec::new(),
 			})
 		})
 		.collect::<Result<Vec<Sector>, Box<dyn Error + Send + Sync>>>()?;
@@ -443,8 +444,19 @@ pub fn build_map(
 				data.sidedef_indices[1].map(|x| sidedefs[x].take().unwrap()),
 			];
 
-			// If an upper texture is neighboured by two sky flats, make it sky too
 			if let [Some(ref mut front_sidedef), Some(ref mut back_sidedef)] = &mut sidedefs {
+				// Set sector neighbours
+				let front_sector_neighbours = &mut sectors[front_sidedef.sector_index].neighbours;
+				if !front_sector_neighbours.contains(&back_sidedef.sector_index) {
+					front_sector_neighbours.push(back_sidedef.sector_index);
+				}
+
+				let back_sector_neighbours = &mut sectors[back_sidedef.sector_index].neighbours;
+				if !back_sector_neighbours.contains(&front_sidedef.sector_index) {
+					back_sector_neighbours.push(front_sidedef.sector_index);
+				}
+
+				// If an upper texture is neighboured by two sky flats, make it sky too
 				if sectors[front_sidedef.sector_index].ceiling_texture.is_sky()
 					&& sectors[back_sidedef.sector_index].ceiling_texture.is_sky()
 				{
@@ -592,6 +604,7 @@ pub struct Sector {
 	pub special_type: u16,
 	pub sector_tag: u16,
 	pub subsectors: Vec<Vec<Vector2<f32>>>,
+	pub neighbours: Vec<usize>,
 }
 
 #[derive(Clone, Debug)]
