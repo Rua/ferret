@@ -446,14 +446,16 @@ pub fn build_map(
 
 			if let [Some(ref mut front_sidedef), Some(ref mut back_sidedef)] = &mut sidedefs {
 				// Set sector neighbours
-				let front_sector_neighbours = &mut sectors[front_sidedef.sector_index].neighbours;
-				if !front_sector_neighbours.contains(&back_sidedef.sector_index) {
-					front_sector_neighbours.push(back_sidedef.sector_index);
-				}
+				if front_sidedef.sector_index != back_sidedef.sector_index {
+					let front_sector_neighbours = &mut sectors[front_sidedef.sector_index].neighbours;
+					if !front_sector_neighbours.contains(&back_sidedef.sector_index) {
+						front_sector_neighbours.push(back_sidedef.sector_index);
+					}
 
-				let back_sector_neighbours = &mut sectors[back_sidedef.sector_index].neighbours;
-				if !back_sector_neighbours.contains(&front_sidedef.sector_index) {
-					back_sector_neighbours.push(front_sidedef.sector_index);
+					let back_sector_neighbours = &mut sectors[back_sidedef.sector_index].neighbours;
+					if !back_sector_neighbours.contains(&front_sidedef.sector_index) {
+						back_sector_neighbours.push(front_sidedef.sector_index);
+					}
 				}
 
 				// If an upper texture is neighboured by two sky flats, make it sky too
