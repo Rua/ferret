@@ -3,7 +3,7 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
 	doom::{
-		components::{SpawnPoint, SpriteRender},
+		components::{LightFlash, SpawnPoint, SpriteRender},
 		sprite::Sprite,
 		wad::WadLoader,
 	},
@@ -1543,6 +1543,11 @@ impl EntityTypes {
 		// Blink random
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+			.with_component(LightFlash {
+				off_time: 7 * crate::doom::FRAME_TIME,
+				on_time: 64 * crate::doom::FRAME_TIME,
+				..LightFlash::default()
+			})
 		});
 		sector_types.insert(1, handle.clone());
 

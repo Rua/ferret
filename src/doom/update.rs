@@ -1,16 +1,67 @@
 use crate::{
 	doom::{
-		components::Transform,
+		components::{LightFlash, Transform},
 		input::{Action, Axis},
 	},
 	input::{Bindings, InputState},
 };
 use nalgebra::Vector2;
-use specs::{Entity, ReadExpect, RunNow, World, WriteStorage};
+use rand::Rng;
+use rand_pcg::Pcg64Mcg;
+use specs::{Entity, Join, ReadExpect, RunNow, World, WriteExpect, WriteStorage};
+use std::time::Duration;
 
-pub struct UpdateSystem;
+#[derive(Default)]
+pub struct UpdateSystem {
+	light_update: LightUpdateSystem,
+	player_move: PlayerMoveSystem,
+}
 
 impl<'a> RunNow<'a> for UpdateSystem {
+	fn setup(&mut self, _world: &mut World) {}
+
+	fn run_now(&mut self, world: &'a World) {
+		self.light_update.run_now(world);
+		self.player_move.run_now(world);
+	}
+}
+
+#[derive(Default)]
+struct LightUpdateSystem;
+
+impl<'a> RunNow<'a> for LightUpdateSystem {
+	fn setup(&mut self, _world: &mut World) {}
+
+	fn run_now(&mut self, world: &'a World) {
+		let (delta, mut light_flash_storage, mut rng) = world.system_data::<(
+			ReadExpect<Duration>,
+			WriteStorage<LightFlash>,
+			WriteExpect<Pcg64Mcg>,
+		)>();
+
+		for light_flash in (&mut light_flash_storage).join() {
+			if let Some(new_time) = light_flash.time_left.checked_sub(*delta) {
+				light_flash.time_left = new_time;
+			} else {
+				light_flash.state = !light_flash.state;
+				let random = rng.gen::<f64>();
+
+				if light_flash.state {
+					light_flash.time_left = light_flash.on_time.mul_f64(random) + crate::doom::FRAME_TIME;
+					log::trace!("Light turning on");
+				} else {
+					light_flash.time_left = light_flash.off_time.mul_f64(random) + crate::doom::FRAME_TIME;
+					log::trace!("Light turning off");
+				}
+			}
+		}
+	}
+}
+
+#[derive(Default)]
+struct PlayerMoveSystem;
+
+impl<'a> RunNow<'a> for PlayerMoveSystem {
 	fn setup(&mut self, _world: &mut World) {}
 
 	fn run_now(&mut self, world: &'a World) {

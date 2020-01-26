@@ -81,7 +81,6 @@ impl RenderSystem {
 		let target = RenderTarget::new(
 			video.surface().clone(),
 			video.device().clone(),
-			video.queues().graphics.family().id(),
 			size,
 		)?;
 

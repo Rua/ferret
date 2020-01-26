@@ -7,12 +7,22 @@ use crate::{
 use nalgebra::Vector3;
 use specs::{Component, DenseVecStorage, HashMapStorage};
 use specs_derive::Component;
+use std::time::Duration;
 
 /*#[derive(Clone, Component, Debug)]
 #[storage(VecStorage)]
 pub struct SpriteRenderComponent {
 	pub sprite: AssetHandle<Sprite>,
 }*/
+
+#[derive(Clone, Component, Copy, Debug, Default)]
+#[storage(HashMapStorage)]
+pub struct LightFlash {
+	pub on_time: Duration,
+	pub off_time: Duration,
+	pub time_left: Duration,
+	pub state: bool,
+}
 
 #[derive(Clone, Component, Debug)]
 #[storage(HashMapStorage)]

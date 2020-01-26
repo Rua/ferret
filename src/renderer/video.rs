@@ -71,7 +71,6 @@ impl Video {
 
 pub struct RenderTarget {
 	images: Vec<Arc<SwapchainImage<Window>>>,
-	queue_family_id: u32,
 	swapchain: Arc<Swapchain<Window>>,
 }
 
@@ -79,7 +78,6 @@ impl RenderTarget {
 	pub fn new(
 		surface: Arc<Surface<Window>>,
 		device: Arc<Device>,
-		queue_family_id: u32,
 		dimensions: [u32; 2],
 	) -> Result<RenderTarget, Box<dyn Error + Send + Sync>> {
 		let capabilities = surface.capabilities(device.physical_device())?;
@@ -110,7 +108,7 @@ impl RenderTarget {
 			capabilities.current_extent.unwrap_or(dimensions),
 			1,
 			image_usage,
-			SharingMode::Exclusive(queue_family_id),
+			SharingMode::Exclusive,
 			capabilities.current_transform,
 			CompositeAlpha::Opaque,
 			present_mode,
@@ -120,7 +118,6 @@ impl RenderTarget {
 
 		Ok(RenderTarget {
 			images,
-			queue_family_id,
 			swapchain,
 		})
 	}
@@ -164,7 +161,7 @@ impl RenderTarget {
 			capabilities.current_extent.unwrap_or(dimensions),
 			1,
 			image_usage,
-			SharingMode::Exclusive(self.queue_family_id),
+			SharingMode::Exclusive,
 			capabilities.current_transform,
 			CompositeAlpha::Opaque,
 			self.swapchain.present_mode(),
@@ -175,7 +172,6 @@ impl RenderTarget {
 
 		Ok(RenderTarget {
 			images,
-			queue_family_id: self.queue_family_id,
 			swapchain,
 		})
 	}

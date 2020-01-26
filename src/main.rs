@@ -19,6 +19,8 @@ use crate::{
 	renderer::{texture::TextureBuilder, video::Video},
 };
 use nalgebra::{Matrix4, Vector3};
+use rand::SeedableRng;
+use rand_pcg::Pcg64Mcg;
 use specs::{world::Builder, ReadExpect, RunNow, World, WorldExt, WriteExpect};
 use std::{
 	error::Error,
@@ -29,8 +31,6 @@ use vulkano::{format::Format, image::Dimensions};
 use winit::{
 	ElementState, Event, EventsLoop, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent,
 };
-
-const FRAME_TIME: Duration = Duration::from_nanos(28571429); // 1/35 sec
 
 fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	Logger::init().unwrap();
@@ -110,6 +110,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	let mut world = World::new();
 
 	// Register components
+	world.register::<doom::components::LightFlash>();
 	world.register::<doom::components::MapDynamic>();
 	world.register::<doom::components::SectorRef>();
 	world.register::<doom::components::SpawnPoint>();
@@ -126,14 +127,17 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	world.insert(AssetStorage::<doom::sprite::SpriteImage>::default());
 
 	// Insert other resources
+	world.insert(Pcg64Mcg::from_entropy());
 	world.insert(video);
 	world.insert(audio);
 	world.insert(loader);
 	world.insert(InputState::new());
 	world.insert(bindings);
-	world.insert(FRAME_TIME);
+	world.insert(doom::FRAME_TIME);
 
+	// Create systems
 	let mut render_system = doom::render::RenderSystem::new(&world)?;
+	let mut update_system = doom::update::UpdateSystem::default();
 
 	command_sender.send("map E1M1".to_owned()).ok();
 
@@ -420,10 +424,10 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 		// Run game frames
 		leftover_time += delta;
 
-		if leftover_time >= FRAME_TIME {
-			leftover_time -= FRAME_TIME;
+		if leftover_time >= doom::FRAME_TIME {
+			leftover_time -= doom::FRAME_TIME;
 
-			doom::update::UpdateSystem.run_now(&world);
+			update_system.run_now(&world);
 
 			// Reset input delta state
 			{
