@@ -6,7 +6,7 @@ use crate::{
 	assets::{Asset, AssetFormat, AssetHandle, AssetStorage, DataSource},
 	component::EntityTemplate,
 	doom::{
-		components::{SectorRef, SpawnPoint, Transform},
+		components::{SectorRef, SpawnOnCeiling, SpawnPoint, Transform},
 		entities::EntityTypes,
 		map::{
 			lumps::{
@@ -22,7 +22,9 @@ use crate::{
 };
 use derivative::Derivative;
 use nalgebra::{Vector2, Vector3};
-use specs::{Entity, Join, ReadExpect, ReadStorage, World, WorldExt, WriteStorage};
+use specs::{
+	storage::StorageEntry, Entity, Join, ReadExpect, ReadStorage, World, WorldExt, WriteStorage,
+};
 use std::{
 	collections::{hash_map::Entry, HashMap},
 	error::Error,
@@ -55,11 +57,17 @@ pub fn spawn_things(
 
 		// Set entity transform
 		let z = {
-			let map_storage = world.system_data::<ReadExpect<AssetStorage<Map>>>();
+			let (map_storage, mut spawn_on_ceiling_storage) = world
+				.system_data::<(ReadExpect<AssetStorage<Map>>, WriteStorage<SpawnOnCeiling>)>();
 			let map = map_storage.get(&map_handle).unwrap();
 			let ssect = map.find_subsector(thing.position);
 			let sector = &map.sectors[ssect.sector_index];
-			sector.floor_height
+
+			if let StorageEntry::Occupied(entry) = spawn_on_ceiling_storage.entry(entity)? {
+				sector.ceiling_height - entry.remove().offset
+			} else {
+				sector.floor_height
+			}
 		};
 
 		let mut transform_storage = world.system_data::<WriteStorage<Transform>>();

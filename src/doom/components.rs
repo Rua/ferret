@@ -50,6 +50,12 @@ pub struct SectorRef {
 
 #[derive(Clone, Component, Copy, Debug)]
 #[storage(HashMapStorage)]
+pub struct SpawnOnCeiling {
+	pub offset: f32,
+}
+
+#[derive(Clone, Component, Copy, Debug)]
+#[storage(HashMapStorage)]
 pub struct SpawnPoint {
 	pub player_num: usize,
 }

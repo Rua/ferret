@@ -3,7 +3,7 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
 	doom::{
-		components::{LightFlash, LightGlow, SpawnPoint, SpriteRender},
+		components::{LightFlash, LightGlow, SpawnOnCeiling, SpawnPoint, SpriteRender},
 		sprite::Sprite,
 		wad::WadLoader,
 	},
@@ -319,6 +319,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 72.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("KEEN", &mut *loader),
 					frame: 0,
@@ -1143,6 +1146,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 68.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR1", &mut *loader),
 					frame: 0,
@@ -1154,6 +1160,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 84.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR2", &mut *loader),
 					frame: 0,
@@ -1165,6 +1174,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 84.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR3", &mut *loader),
 					frame: 0,
@@ -1176,6 +1188,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 68.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR4", &mut *loader),
 					frame: 0,
@@ -1187,6 +1202,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 52.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR5", &mut *loader),
 					frame: 0,
@@ -1198,6 +1216,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 84.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR2", &mut *loader),
 					frame: 0,
@@ -1209,6 +1230,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 68.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR4", &mut *loader),
 					frame: 0,
@@ -1220,6 +1244,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 52.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR3", &mut *loader),
 					frame: 0,
@@ -1231,6 +1258,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 52.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR5", &mut *loader),
 					frame: 0,
@@ -1242,6 +1272,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 68.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR1", &mut *loader),
 					frame: 0,
@@ -1440,6 +1473,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 88.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("HDB1", &mut *loader),
 					frame: 0,
@@ -1451,6 +1487,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 88.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("HDB2", &mut *loader),
 					frame: 0,
@@ -1462,6 +1501,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 64.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("HDB3", &mut *loader),
 					frame: 0,
@@ -1473,6 +1515,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 64.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("HDB4", &mut *loader),
 					frame: 0,
@@ -1484,6 +1529,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 64.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("HDB5", &mut *loader),
 					frame: 0,
@@ -1495,6 +1543,9 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(SpawnOnCeiling {
+					offset: 64.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("HDB6", &mut *loader),
 					frame: 0,

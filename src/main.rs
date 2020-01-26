@@ -114,6 +114,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	world.register::<doom::components::LightGlow>();
 	world.register::<doom::components::MapDynamic>();
 	world.register::<doom::components::SectorRef>();
+	world.register::<doom::components::SpawnOnCeiling>();
 	world.register::<doom::components::SpawnPoint>();
 	world.register::<doom::components::SpriteRender>();
 	world.register::<doom::components::Transform>();
