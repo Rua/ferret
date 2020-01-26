@@ -1,10 +1,7 @@
 //use crate::assets::AssetHandle;
 use crate::{
 	assets::AssetHandle,
-	doom::{
-		map::Map,
-		sprite::Sprite,
-	},
+	doom::{map::Map, sprite::Sprite},
 	geometry::Angle,
 };
 use nalgebra::Vector3;
@@ -17,10 +14,17 @@ pub struct SpriteRenderComponent {
 	pub sprite: AssetHandle<Sprite>,
 }*/
 
-#[derive(Component)]
+#[derive(Clone, Component, Debug)]
 #[storage(HashMapStorage)]
 pub struct MapDynamic {
 	pub map: AssetHandle<Map>,
+}
+
+#[derive(Clone, Component, Debug)]
+#[storage(HashMapStorage)]
+pub struct SectorRef {
+	pub map: AssetHandle<Map>,
+	pub sector_index: usize,
 }
 
 #[derive(Clone, Component, Copy, Debug)]

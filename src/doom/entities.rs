@@ -3,7 +3,7 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
 	doom::{
-		components::{SpawnPoint, SpriteRender, Transform},
+		components::{SpawnPoint, SpriteRender},
 		sprite::Sprite,
 		wad::WadLoader,
 	},
@@ -14,6 +14,7 @@ use std::collections::HashMap;
 pub struct EntityTypes {
 	pub names: HashMap<&'static str, AssetHandle<EntityTemplate>>,
 	pub doomednums: HashMap<u16, AssetHandle<EntityTemplate>>,
+	pub sector_types: HashMap<u16, AssetHandle<EntityTemplate>>,
 }
 
 impl EntityTypes {
@@ -24,46 +25,42 @@ impl EntityTypes {
 			WriteExpect<AssetStorage<Sprite>>,
 			WriteExpect<WadLoader>,
 		)>();
+
+		// *** Mobj/thing types ***
 		let mut names = HashMap::new();
 		let mut doomednums = HashMap::new();
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpawnPoint { player_num: 1 })
 		});
 		doomednums.insert(1, handle.clone());
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpawnPoint { player_num: 2 })
 		});
 		doomednums.insert(2, handle.clone());
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpawnPoint { player_num: 3 })
 		});
 		doomednums.insert(3, handle.clone());
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpawnPoint { player_num: 4 })
 		});
 		doomednums.insert(4, handle.clone());
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 		});
 		doomednums.insert(11, handle.clone());
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PLAY", &mut *loader),
 					frame: 0,
@@ -74,7 +71,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POSS", &mut *loader),
 					frame: 0,
@@ -86,7 +82,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SPOS", &mut *loader),
 					frame: 0,
@@ -98,7 +93,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("VILE", &mut *loader),
 					frame: 0,
@@ -110,7 +104,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("FIRE", &mut *loader),
 					frame: 0,
@@ -121,7 +114,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SKEL", &mut *loader),
 					frame: 0,
@@ -133,7 +125,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("FATB", &mut *loader),
 					frame: 0,
@@ -144,7 +135,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PUFF", &mut *loader),
 					frame: 1,
@@ -155,7 +145,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("FATT", &mut *loader),
 					frame: 0,
@@ -167,7 +156,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("MANF", &mut *loader),
 					frame: 0,
@@ -178,7 +166,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CPOS", &mut *loader),
 					frame: 0,
@@ -190,7 +177,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TROO", &mut *loader),
 					frame: 0,
@@ -202,7 +188,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SARG", &mut *loader),
 					frame: 0,
@@ -214,7 +199,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SARG", &mut *loader),
 					frame: 0,
@@ -226,7 +210,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("HEAD", &mut *loader),
 					frame: 0,
@@ -238,7 +221,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BOSS", &mut *loader),
 					frame: 0,
@@ -250,7 +232,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BAL7", &mut *loader),
 					frame: 0,
@@ -261,7 +242,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BOS2", &mut *loader),
 					frame: 0,
@@ -273,7 +253,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SKUL", &mut *loader),
 					frame: 0,
@@ -285,7 +264,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SPID", &mut *loader),
 					frame: 0,
@@ -297,7 +275,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BSPI", &mut *loader),
 					frame: 0,
@@ -309,7 +286,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CYBR", &mut *loader),
 					frame: 0,
@@ -321,7 +297,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PAIN", &mut *loader),
 					frame: 0,
@@ -333,7 +308,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SSWV", &mut *loader),
 					frame: 0,
@@ -345,7 +319,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("KEEN", &mut *loader),
 					frame: 0,
@@ -357,7 +330,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BBRN", &mut *loader),
 					frame: 0,
@@ -369,7 +341,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SSWV", &mut *loader),
 					frame: 0,
@@ -381,14 +352,12 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 		});
 		names.insert("BOSSTARGET", handle.clone());
 		doomednums.insert(87, handle.clone());
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BOSF", &mut *loader),
 					frame: 0,
@@ -399,7 +368,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("FIRE", &mut *loader),
 					frame: 0,
@@ -410,7 +378,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BAR1", &mut *loader),
 					frame: 0,
@@ -422,7 +389,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BAL1", &mut *loader),
 					frame: 0,
@@ -433,7 +399,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BAL2", &mut *loader),
 					frame: 0,
@@ -444,7 +409,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("MISL", &mut *loader),
 					frame: 0,
@@ -455,7 +419,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PLSS", &mut *loader),
 					frame: 0,
@@ -466,7 +429,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BFS1", &mut *loader),
 					frame: 0,
@@ -477,7 +439,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("APLS", &mut *loader),
 					frame: 0,
@@ -488,7 +449,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PUFF", &mut *loader),
 					frame: 0,
@@ -499,7 +459,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BLUD", &mut *loader),
 					frame: 2,
@@ -510,7 +469,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TFOG", &mut *loader),
 					frame: 0,
@@ -521,7 +479,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("IFOG", &mut *loader),
 					frame: 0,
@@ -532,14 +489,12 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 		});
 		names.insert("TELEPORTMAN", handle.clone());
 		doomednums.insert(14, handle.clone());
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BFE2", &mut *loader),
 					frame: 0,
@@ -550,7 +505,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("ARM1", &mut *loader),
 					frame: 0,
@@ -562,7 +516,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("ARM2", &mut *loader),
 					frame: 0,
@@ -574,7 +527,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BON1", &mut *loader),
 					frame: 0,
@@ -586,7 +538,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BON2", &mut *loader),
 					frame: 0,
@@ -598,7 +549,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BKEY", &mut *loader),
 					frame: 0,
@@ -610,7 +560,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("RKEY", &mut *loader),
 					frame: 0,
@@ -622,7 +571,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("YKEY", &mut *loader),
 					frame: 0,
@@ -634,7 +582,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("YSKU", &mut *loader),
 					frame: 0,
@@ -646,7 +593,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("RSKU", &mut *loader),
 					frame: 0,
@@ -658,7 +604,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BSKU", &mut *loader),
 					frame: 0,
@@ -670,7 +615,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("STIM", &mut *loader),
 					frame: 0,
@@ -682,7 +626,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("MEDI", &mut *loader),
 					frame: 0,
@@ -694,7 +637,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SOUL", &mut *loader),
 					frame: 0,
@@ -706,7 +648,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PINV", &mut *loader),
 					frame: 0,
@@ -718,7 +659,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PSTR", &mut *loader),
 					frame: 0,
@@ -730,7 +670,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PINS", &mut *loader),
 					frame: 0,
@@ -742,7 +681,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SUIT", &mut *loader),
 					frame: 0,
@@ -754,7 +692,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PMAP", &mut *loader),
 					frame: 0,
@@ -766,7 +703,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PVIS", &mut *loader),
 					frame: 0,
@@ -778,7 +714,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("MEGA", &mut *loader),
 					frame: 0,
@@ -790,7 +725,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CLIP", &mut *loader),
 					frame: 0,
@@ -802,7 +736,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("AMMO", &mut *loader),
 					frame: 0,
@@ -814,7 +747,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("ROCK", &mut *loader),
 					frame: 0,
@@ -826,7 +758,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BROK", &mut *loader),
 					frame: 0,
@@ -838,7 +769,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CELL", &mut *loader),
 					frame: 0,
@@ -850,7 +780,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CELP", &mut *loader),
 					frame: 0,
@@ -862,7 +791,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SHEL", &mut *loader),
 					frame: 0,
@@ -874,7 +802,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SBOX", &mut *loader),
 					frame: 0,
@@ -886,7 +813,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BPAK", &mut *loader),
 					frame: 0,
@@ -898,7 +824,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BFUG", &mut *loader),
 					frame: 0,
@@ -910,7 +835,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("MGUN", &mut *loader),
 					frame: 0,
@@ -922,7 +846,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CSAW", &mut *loader),
 					frame: 0,
@@ -934,7 +857,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("LAUN", &mut *loader),
 					frame: 0,
@@ -946,7 +868,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PLAS", &mut *loader),
 					frame: 0,
@@ -958,7 +879,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SHOT", &mut *loader),
 					frame: 0,
@@ -970,7 +890,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SGN2", &mut *loader),
 					frame: 0,
@@ -982,7 +901,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TLMP", &mut *loader),
 					frame: 0,
@@ -994,7 +912,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TLP2", &mut *loader),
 					frame: 0,
@@ -1006,7 +923,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("COLU", &mut *loader),
 					frame: 0,
@@ -1018,7 +934,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("COL1", &mut *loader),
 					frame: 0,
@@ -1030,7 +945,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("COL2", &mut *loader),
 					frame: 0,
@@ -1042,7 +956,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("COL3", &mut *loader),
 					frame: 0,
@@ -1054,7 +967,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("COL4", &mut *loader),
 					frame: 0,
@@ -1066,7 +978,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("COL6", &mut *loader),
 					frame: 0,
@@ -1078,7 +989,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("COL5", &mut *loader),
 					frame: 0,
@@ -1090,7 +1000,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CEYE", &mut *loader),
 					frame: 0,
@@ -1102,7 +1011,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("FSKU", &mut *loader),
 					frame: 0,
@@ -1114,7 +1022,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TRE1", &mut *loader),
 					frame: 0,
@@ -1126,7 +1033,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TBLU", &mut *loader),
 					frame: 0,
@@ -1138,7 +1044,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TGRN", &mut *loader),
 					frame: 0,
@@ -1150,7 +1055,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TRED", &mut *loader),
 					frame: 0,
@@ -1162,7 +1066,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SMBT", &mut *loader),
 					frame: 0,
@@ -1174,7 +1077,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SMGT", &mut *loader),
 					frame: 0,
@@ -1186,7 +1088,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SMRT", &mut *loader),
 					frame: 0,
@@ -1198,7 +1099,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SMIT", &mut *loader),
 					frame: 0,
@@ -1210,7 +1110,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("ELEC", &mut *loader),
 					frame: 0,
@@ -1222,7 +1121,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CAND", &mut *loader),
 					frame: 0,
@@ -1234,7 +1132,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CBRA", &mut *loader),
 					frame: 0,
@@ -1246,7 +1143,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR1", &mut *loader),
 					frame: 0,
@@ -1258,7 +1154,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR2", &mut *loader),
 					frame: 0,
@@ -1270,7 +1165,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR3", &mut *loader),
 					frame: 0,
@@ -1282,7 +1176,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR4", &mut *loader),
 					frame: 0,
@@ -1294,7 +1187,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR5", &mut *loader),
 					frame: 0,
@@ -1306,7 +1198,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR2", &mut *loader),
 					frame: 0,
@@ -1318,7 +1209,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR4", &mut *loader),
 					frame: 0,
@@ -1330,7 +1220,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR3", &mut *loader),
 					frame: 0,
@@ -1342,7 +1231,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR5", &mut *loader),
 					frame: 0,
@@ -1354,7 +1242,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("GOR1", &mut *loader),
 					frame: 0,
@@ -1366,7 +1253,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("HEAD", &mut *loader),
 					frame: 11,
@@ -1378,7 +1264,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PLAY", &mut *loader),
 					frame: 13,
@@ -1390,7 +1275,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POSS", &mut *loader),
 					frame: 11,
@@ -1402,7 +1286,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SARG", &mut *loader),
 					frame: 13,
@@ -1414,7 +1297,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SKUL", &mut *loader),
 					frame: 10,
@@ -1426,7 +1308,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TROO", &mut *loader),
 					frame: 12,
@@ -1438,7 +1319,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SPOS", &mut *loader),
 					frame: 11,
@@ -1450,7 +1330,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PLAY", &mut *loader),
 					frame: 22,
@@ -1462,7 +1341,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PLAY", &mut *loader),
 					frame: 22,
@@ -1474,7 +1352,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POL2", &mut *loader),
 					frame: 0,
@@ -1486,7 +1363,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POL5", &mut *loader),
 					frame: 0,
@@ -1498,7 +1374,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POL4", &mut *loader),
 					frame: 0,
@@ -1510,7 +1385,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POL3", &mut *loader),
 					frame: 0,
@@ -1522,7 +1396,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POL1", &mut *loader),
 					frame: 0,
@@ -1534,7 +1407,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POL6", &mut *loader),
 					frame: 0,
@@ -1546,7 +1418,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TRE2", &mut *loader),
 					frame: 0,
@@ -1558,7 +1429,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("FCAN", &mut *loader),
 					frame: 0,
@@ -1570,7 +1440,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("HDB1", &mut *loader),
 					frame: 0,
@@ -1582,7 +1451,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("HDB2", &mut *loader),
 					frame: 0,
@@ -1594,7 +1462,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("HDB3", &mut *loader),
 					frame: 0,
@@ -1606,7 +1473,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("HDB4", &mut *loader),
 					frame: 0,
@@ -1618,7 +1484,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("HDB5", &mut *loader),
 					frame: 0,
@@ -1630,7 +1495,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("HDB6", &mut *loader),
 					frame: 0,
@@ -1642,7 +1506,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POB1", &mut *loader),
 					frame: 0,
@@ -1654,7 +1517,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POB2", &mut *loader),
 					frame: 0,
@@ -1666,7 +1528,6 @@ impl EntityTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
-				.with_component(Transform::default())
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BRS1", &mut *loader),
 					frame: 0,
@@ -1676,6 +1537,99 @@ impl EntityTypes {
 		names.insert("MISC86", handle.clone());
 		doomednums.insert(81, handle.clone());
 
-		EntityTypes { names, doomednums }
+		// *** Sector types ***
+		let mut sector_types = HashMap::new();
+
+		// Blink random
+		let handle = template_storage.insert({
+			EntityTemplate::new()
+		});
+		sector_types.insert(1, handle.clone());
+
+		// Blink 0.5 s
+		let handle = template_storage.insert({
+			EntityTemplate::new()
+		});
+		sector_types.insert(2, handle.clone());
+
+		// Blink 1 s
+		let handle = template_storage.insert({
+			EntityTemplate::new()
+		});
+		sector_types.insert(3, handle.clone());
+
+		// Blink 0.5 s + 20% damage
+		let handle = template_storage.insert({
+			EntityTemplate::new()
+		});
+		sector_types.insert(4, handle.clone());
+
+		// 10% damage
+		let handle = template_storage.insert({
+			EntityTemplate::new()
+		});
+		sector_types.insert(5, handle.clone());
+
+		// 5% damage
+		let handle = template_storage.insert({
+			EntityTemplate::new()
+		});
+		sector_types.insert(7, handle.clone());
+
+		// Glow
+		let handle = template_storage.insert({
+			EntityTemplate::new()
+		});
+		sector_types.insert(8, handle.clone());
+
+		// Secret
+		let handle = template_storage.insert({
+			EntityTemplate::new()
+		});
+		sector_types.insert(9, handle.clone());
+
+		// Door close 30 s after level start
+		let handle = template_storage.insert({
+			EntityTemplate::new()
+		});
+		sector_types.insert(10, handle.clone());
+
+		// 20% damage, end map on death
+		let handle = template_storage.insert({
+			EntityTemplate::new()
+		});
+		sector_types.insert(11, handle.clone());
+
+		// Blink 0.5 s, synchronised
+		let handle = template_storage.insert({
+			EntityTemplate::new()
+		});
+		sector_types.insert(12, handle.clone());
+
+		// Blink 1 s, synchronised
+		let handle = template_storage.insert({
+			EntityTemplate::new()
+		});
+		sector_types.insert(13, handle.clone());
+
+		// Door open 300 s after level start
+		let handle = template_storage.insert({
+			EntityTemplate::new()
+		});
+		sector_types.insert(14, handle.clone());
+
+		// 20% damage
+		let handle = template_storage.insert({
+			EntityTemplate::new()
+		});
+		sector_types.insert(16, handle.clone());
+
+		// Random flicker
+		let handle = template_storage.insert({
+			EntityTemplate::new()
+		});
+		sector_types.insert(17, handle.clone());
+
+		EntityTypes { names, doomednums, sector_types }
 	}
 }

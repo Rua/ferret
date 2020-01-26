@@ -16,10 +16,7 @@ use crate::{
 	component::EntityTemplate,
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
 	logger::Logger,
-	renderer::{
-		texture::TextureBuilder,
-		video::Video,
-	},
+	renderer::{texture::TextureBuilder, video::Video},
 };
 use nalgebra::{Matrix4, Vector3};
 use specs::{world::Builder, ReadExpect, RunNow, World, WorldExt, WriteExpect};
@@ -111,10 +108,15 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	//println!("{}", serde_json::to_string(&bindings)?);
 
 	let mut world = World::new();
+
+	// Register components
 	world.register::<doom::components::MapDynamic>();
+	world.register::<doom::components::SectorRef>();
 	world.register::<doom::components::SpawnPoint>();
 	world.register::<doom::components::SpriteRender>();
 	world.register::<doom::components::Transform>();
+
+	// Insert asset storages
 	world.insert(AssetStorage::<EntityTemplate>::default());
 	world.insert(AssetStorage::<doom::map::Map>::default());
 	world.insert(AssetStorage::<doom::map::textures::Flat>::default());
@@ -122,6 +124,8 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	world.insert(AssetStorage::<doom::image::Palette>::default());
 	world.insert(AssetStorage::<doom::sprite::Sprite>::default());
 	world.insert(AssetStorage::<doom::sprite::SpriteImage>::default());
+
+	// Insert other resources
 	world.insert(video);
 	world.insert(audio);
 	world.insert(loader);
@@ -230,21 +234,22 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						world.insert(entity_types);
 
 						{
-							let (palette_storage, mut sprite_storage, mut sprite_image_storage, mut source, video) =
-								world.system_data::<(
-									ReadExpect<AssetStorage<crate::doom::image::Palette>>,
-									WriteExpect<AssetStorage<crate::doom::sprite::Sprite>>,
-									WriteExpect<AssetStorage<crate::doom::sprite::SpriteImage>>,
-									WriteExpect<crate::doom::wad::WadLoader>,
-									ReadExpect<crate::renderer::video::Video>,
-								)>();
+							let (
+								palette_storage,
+								mut sprite_storage,
+								mut sprite_image_storage,
+								mut source,
+								video,
+							) = world.system_data::<(
+								ReadExpect<AssetStorage<crate::doom::image::Palette>>,
+								WriteExpect<AssetStorage<crate::doom::sprite::Sprite>>,
+								WriteExpect<AssetStorage<crate::doom::sprite::SpriteImage>>,
+								WriteExpect<crate::doom::wad::WadLoader>,
+								ReadExpect<crate::renderer::video::Video>,
+							)>();
 							let palette = palette_storage.get(&palette_handle).unwrap();
 							sprite_storage.build_waiting(|intermediate| {
-								Ok(intermediate
-									.build(
-										&mut *sprite_image_storage,
-										&mut *source,
-									)?)
+								Ok(intermediate.build(&mut *sprite_image_storage, &mut *source)?)
 							});
 							sprite_image_storage.build_waiting(|image| {
 								let data: Vec<_> = image
@@ -278,12 +283,10 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 									image.size[1] as f32,
 								));
 
-								let (texture, future) = builder.build(video.queues().graphics.clone())?;
+								let (texture, future) =
+									builder.build(video.queues().graphics.clone())?;
 
-								Ok(crate::doom::sprite::SpriteImage {
-									matrix,
-									texture,
-								})
+								Ok(crate::doom::sprite::SpriteImage { matrix, texture })
 							});
 						}
 
@@ -344,7 +347,8 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 									})
 									.with_format(Format::R8G8B8A8Unorm);
 
-								let (texture, future) = builder.build(video.queues().graphics.clone())?;
+								let (texture, future) =
+									builder.build(video.queues().graphics.clone())?;
 								Ok(texture)
 							});
 						}
@@ -378,7 +382,8 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 									})
 									.with_format(Format::R8G8B8A8Unorm);
 
-								let (texture, future) = builder.build(video.queues().graphics.clone())?;
+								let (texture, future) =
+									builder.build(video.queues().graphics.clone())?;
 								Ok(texture)
 							});
 						}
@@ -386,18 +391,19 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						// Create world entity
 						world
 							.create_entity()
-							.with(doom::components::MapDynamic {
-								map: map.clone(),
-							})
+							.with(doom::components::MapDynamic { map: map.clone() })
 							.build();
 
-						// Spawn things
+						// Spawn things and specials
 						let things = {
 							let mut loader =
 								world.system_data::<WriteExpect<doom::wad::WadLoader>>();
 							doom::map::lumps::ThingsFormat.import(name, &mut *loader)?
 						};
-						doom::map::spawn_map_entities(things, &world, &map)?;
+						doom::map::spawn_things(things, &world, &map)?;
+						doom::map::spawn_sector_specials(&world, &map)?;
+
+						// Spawn player
 						let entity = doom::map::spawn_player(&world)?;
 						world.insert(entity);
 					}

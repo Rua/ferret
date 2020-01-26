@@ -6,7 +6,7 @@ use crate::{
 use lazy_static::lazy_static;
 use nalgebra::Matrix4;
 use regex::Regex;
-use std::{error::Error};
+use std::error::Error;
 use vulkano::impl_vertex;
 
 pub struct Sprite {
@@ -65,13 +65,21 @@ impl SpriteBuilder {
 			.map(|name| sprite_image_storage.load(&name, source))
 			.collect();
 
-		let frames = self.frames.into_iter().map(|rotations|
-			rotations.into_iter().map(|info|
-				SpriteImageInfo { flip: info.flip, handle: handles[info.image_index].clone()}
-			).collect()
-		).collect();
+		let frames = self
+			.frames
+			.into_iter()
+			.map(|rotations| {
+				rotations
+					.into_iter()
+					.map(|info| SpriteImageInfo {
+						flip: info.flip,
+						handle: handles[info.image_index].clone(),
+					})
+					.collect()
+			})
+			.collect();
 
-		Ok(Sprite {frames})
+		Ok(Sprite { frames })
 	}
 }
 

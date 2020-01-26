@@ -10,9 +10,8 @@ use crate::{
 	},
 	geometry::Angle,
 	renderer::{
-		AsBytes,
 		video::{RenderTarget, Video},
-		vulkan,
+		vulkan, AsBytes,
 	},
 };
 use nalgebra::{Matrix4, Vector2, Vector3};
@@ -147,7 +146,10 @@ impl RenderSystem {
 		Ok(RenderSystem {
 			framebuffers,
 			map: MapRenderSystem::new(render_pass.clone())?,
-			matrix_uniform_pool: CpuBufferPool::new(video.device().clone(), BufferUsage::uniform_buffer()),
+			matrix_uniform_pool: CpuBufferPool::new(
+				video.device().clone(),
+				BufferUsage::uniform_buffer(),
+			),
 			matrix_set_pool,
 			render_pass: render_pass.clone(),
 			sampler,
@@ -393,11 +395,15 @@ impl MapRenderSystem {
 			index_buffer_pool: CpuBufferPool::new(device.clone(), BufferUsage::index_buffer()),
 			vertex_buffer_pool: CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer()),
 
-			normal_texture_set_pool: FixedSizeDescriptorSetsPool::new(normal_pipeline.descriptor_set_layout(1).unwrap().clone()),
+			normal_texture_set_pool: FixedSizeDescriptorSetsPool::new(
+				normal_pipeline.descriptor_set_layout(1).unwrap().clone(),
+			),
 			normal_pipeline,
 
 			sky_uniform_pool: CpuBufferPool::new(device.clone(), BufferUsage::uniform_buffer()),
-			sky_texture_set_pool: FixedSizeDescriptorSetsPool::new(sky_pipeline.descriptor_set_layout(1).unwrap().clone()),
+			sky_texture_set_pool: FixedSizeDescriptorSetsPool::new(
+				sky_pipeline.descriptor_set_layout(1).unwrap().clone(),
+			),
 			sky_pipeline,
 		})
 	}
@@ -411,20 +417,24 @@ impl MapRenderSystem {
 		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
 		rotation: Vector3<Angle>,
 	) -> Result<AutoCommandBufferBuilder, Box<dyn Error + Send + Sync>> {
-		let (flat_storage, map_storage, wall_texture_storage, map_component) = world.system_data::<(
-			ReadExpect<AssetStorage<Flat>>,
-			ReadExpect<AssetStorage<Map>>,
-			ReadExpect<AssetStorage<WallTexture>>,
-			ReadStorage<MapDynamic>,
-		)>();
+		let (flat_storage, map_storage, wall_texture_storage, map_component) = world
+			.system_data::<(
+				ReadExpect<AssetStorage<Flat>>,
+				ReadExpect<AssetStorage<Map>>,
+				ReadExpect<AssetStorage<WallTexture>>,
+				ReadStorage<MapDynamic>,
+			)>();
 
 		for component in map_component.join() {
 			let map = map_storage.get(&component.map).unwrap();
-			let (flat_meshes, sky_mesh, wall_meshes) = crate::doom::map::meshes::make_meshes(map, world)?;
+			let (flat_meshes, sky_mesh, wall_meshes) =
+				crate::doom::map::meshes::make_meshes(map, world)?;
 
 			// Draw the walls
 			for (handle, mesh) in wall_meshes {
-				let vertex_buffer = self.vertex_buffer_pool.chunk(mesh.0.as_bytes().iter().copied())?;
+				let vertex_buffer = self
+					.vertex_buffer_pool
+					.chunk(mesh.0.as_bytes().iter().copied())?;
 				let index_buffer = self.index_buffer_pool.chunk(mesh.1)?;
 				let texture = wall_texture_storage.get(&handle).unwrap();
 
@@ -447,7 +457,9 @@ impl MapRenderSystem {
 
 			// Draw the flats
 			for (handle, mesh) in flat_meshes {
-				let vertex_buffer = self.vertex_buffer_pool.chunk(mesh.0.as_bytes().iter().copied())?;
+				let vertex_buffer = self
+					.vertex_buffer_pool
+					.chunk(mesh.0.as_bytes().iter().copied())?;
 				let index_buffer = self.index_buffer_pool.chunk(mesh.1)?;
 				let texture = flat_storage.get(&handle).unwrap();
 
@@ -469,7 +481,9 @@ impl MapRenderSystem {
 			}
 
 			// Draw the sky
-			let vertex_buffer = self.vertex_buffer_pool.chunk(sky_mesh.0.as_bytes().iter().copied())?;
+			let vertex_buffer = self
+				.vertex_buffer_pool
+				.chunk(sky_mesh.0.as_bytes().iter().copied())?;
 			let index_buffer = self.index_buffer_pool.chunk(sky_mesh.1)?;
 			let texture = wall_texture_storage.get(&map.sky).unwrap();
 			let sky_buffer = self.sky_uniform_pool.next(sky_frag::ty::FragParams {
@@ -557,7 +571,8 @@ impl SpriteRenderSystem {
 		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
 		// Create mesh
-		let (vertex_buffer, future) = ImmutableBuffer::from_iter(vec![
+		let (vertex_buffer, future) = ImmutableBuffer::from_iter(
+			vec![
 				VertexData {
 					in_position: [0.0, -1.0, 0.0],
 					in_texture_coord: [1.0, 0.0],
@@ -574,15 +589,21 @@ impl SpriteRenderSystem {
 					in_position: [0.0, -1.0, -1.0],
 					in_texture_coord: [1.0, 1.0],
 				},
-			].as_bytes().iter().copied(),
+			]
+			.as_bytes()
+			.iter()
+			.copied(),
 			BufferUsage::vertex_buffer(),
-			video.queues().graphics.clone())?;
+			video.queues().graphics.clone(),
+		)?;
 
 		Ok(SpriteRenderSystem {
 			vertex_buffer,
 
 			instance_buffer_pool: CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer()),
-			texture_set_pool: FixedSizeDescriptorSetsPool::new(pipeline.descriptor_set_layout(1).unwrap().clone()),
+			texture_set_pool: FixedSizeDescriptorSetsPool::new(
+				pipeline.descriptor_set_layout(1).unwrap().clone(),
+			),
 			pipeline,
 		})
 	}
@@ -701,10 +722,7 @@ impl SpriteRenderSystem {
 			command_buffer_builder = command_buffer_builder.draw(
 				self.pipeline.clone(),
 				&dynamic_state,
-				vec![
-					self.vertex_buffer.clone(),
-					Arc::new(instance_buffer),
-				],
+				vec![self.vertex_buffer.clone(), Arc::new(instance_buffer)],
 				(matrix_set.clone(), texture_set.clone()),
 				(),
 			)?;

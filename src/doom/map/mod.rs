@@ -6,7 +6,7 @@ use crate::{
 	assets::{Asset, AssetFormat, AssetHandle, AssetStorage, DataSource},
 	component::EntityTemplate,
 	doom::{
-		components::{SpawnPoint, Transform},
+		components::{SectorRef, SpawnPoint, Transform},
 		entities::EntityTypes,
 		map::{
 			lumps::{
@@ -21,7 +21,7 @@ use crate::{
 	geometry::{BoundingBox2, Side},
 };
 use derivative::Derivative;
-use nalgebra::Vector2;
+use nalgebra::{Vector2, Vector3};
 use specs::{Entity, Join, ReadExpect, ReadStorage, World, WorldExt, WriteStorage};
 use std::{
 	collections::{hash_map::Entry, HashMap},
@@ -29,10 +29,10 @@ use std::{
 	fmt::Debug,
 };
 
-pub fn spawn_map_entities(
+pub fn spawn_things(
 	things: Vec<Thing>,
 	world: &World,
-	map: &AssetHandle<Map>,
+	map_handle: &AssetHandle<Map>,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
 	for thing in things {
 		// Fetch entity template
@@ -55,19 +55,21 @@ pub fn spawn_map_entities(
 
 		// Set entity transform
 		let z = {
-			let storage = world.system_data::<ReadExpect<AssetStorage<Map>>>();
-			let map = storage.get(&map).unwrap();
+			let map_storage = world.system_data::<ReadExpect<AssetStorage<Map>>>();
+			let map = map_storage.get(&map_handle).unwrap();
 			let ssect = map.find_subsector(thing.position);
 			let sector = &map.sectors[ssect.sector_index];
 			sector.floor_height
 		};
 
 		let mut transform_storage = world.system_data::<WriteStorage<Transform>>();
-		let transform = transform_storage.get_mut(entity).unwrap();
-		transform.position[0] = thing.position[0];
-		transform.position[1] = thing.position[1];
-		transform.position[2] = z;
-		transform.rotation[2] = thing.angle;
+		transform_storage.insert(
+			entity,
+			Transform {
+				position: Vector3::new(thing.position[0], thing.position[1], z),
+				rotation: Vector3::new(0.into(), 0.into(), thing.angle),
+			},
+		)?;
 	}
 
 	Ok(())
@@ -109,9 +111,54 @@ pub fn spawn_player(world: &World) -> Result<Entity, Box<dyn Error + Send + Sync
 
 	// Set entity transform
 	let mut transform_storage = world.system_data::<WriteStorage<Transform>>();
-	*transform_storage.get_mut(entity).unwrap() = transform;
+	transform_storage.insert(entity, transform)?;
 
 	Ok(entity)
+}
+
+pub fn spawn_sector_specials(
+	world: &World,
+	map_handle: &AssetHandle<Map>,
+) -> Result<(), Box<dyn Error + Send + Sync>> {
+	let map_storage = world.system_data::<ReadExpect<AssetStorage<Map>>>();
+	let map = map_storage.get(&map_handle).unwrap();
+
+	for (i, sector) in map.sectors.iter().enumerate() {
+		if sector.special_type == 0 {
+			continue;
+		}
+
+		// Fetch entity template
+		let (entity_types, template_storage) = world.system_data::<(
+			ReadExpect<EntityTypes>,
+			ReadExpect<AssetStorage<EntityTemplate>>,
+		)>();
+		let handle =
+			entity_types
+				.sector_types
+				.get(&sector.special_type)
+				.ok_or(Box::from(format!(
+					"Sector special type not found: {}",
+					sector.special_type
+				)) as Box<dyn Error + Send + Sync>)?;
+		let template = template_storage.get(handle).unwrap();
+
+		// Create entity and add components
+		let entity = world.entities().create();
+		template.add_to_entity(entity, world)?;
+
+		// Set entity sector reference
+		let mut sector_ref_storage = world.system_data::<WriteStorage<SectorRef>>();
+		sector_ref_storage.insert(
+			entity,
+			SectorRef {
+				map: map_handle.clone(),
+				sector_index: i,
+			},
+		)?;
+	}
+
+	Ok(())
 }
 
 #[derive(Clone, Debug)]

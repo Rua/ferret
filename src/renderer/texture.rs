@@ -1,6 +1,4 @@
-use crate::{
-	renderer::AsBytes,
-};
+use crate::renderer::AsBytes;
 use std::sync::Arc;
 use vulkano::{
 	buffer::{cpu_access::CpuAccessibleBuffer, BufferUsage},
