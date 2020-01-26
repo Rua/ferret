@@ -78,11 +78,7 @@ impl RenderSystem {
 		// Create render target
 		let (width, height) = video.surface().window().get_inner_size().unwrap().into();
 		let size = [width, height];
-		let target = RenderTarget::new(
-			video.surface().clone(),
-			video.device().clone(),
-			size,
-		)?;
+		let target = RenderTarget::new(video.surface().clone(), video.device().clone(), size)?;
 
 		// Create depth buffer
 		let depth_buffer = vulkan::create_depth_buffer(&video.device(), size)?;

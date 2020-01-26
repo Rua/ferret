@@ -44,13 +44,14 @@ impl<'a> RunNow<'a> for LightUpdateSystem {
 				light_flash.time_left = new_time;
 			} else {
 				light_flash.state = !light_flash.state;
-				let random = rng.gen::<f64>();
 
 				if light_flash.state {
-					light_flash.time_left = light_flash.on_time.mul_f64(random) + crate::doom::FRAME_TIME;
+					light_flash.time_left =
+						light_flash.on_time * (rng.gen::<bool>() as u32) + crate::doom::FRAME_TIME;
 					log::trace!("Light turning on");
 				} else {
-					light_flash.time_left = light_flash.off_time.mul_f64(random) + crate::doom::FRAME_TIME;
+					light_flash.time_left =
+						light_flash.off_time.mul_f64(rng.gen::<f64>()) + crate::doom::FRAME_TIME;
 					log::trace!("Light turning off");
 				}
 			}

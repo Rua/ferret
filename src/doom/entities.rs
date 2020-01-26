@@ -1544,7 +1544,7 @@ impl EntityTypes {
 		let handle = template_storage.insert({
 			EntityTemplate::new()
 			.with_component(LightFlash {
-				off_time: 7 * crate::doom::FRAME_TIME,
+				off_time: 8 * crate::doom::FRAME_TIME,
 				on_time: 64 * crate::doom::FRAME_TIME,
 				..LightFlash::default()
 			})

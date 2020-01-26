@@ -116,10 +116,7 @@ impl RenderTarget {
 			ColorSpace::SrgbNonLinear,
 		)?;
 
-		Ok(RenderTarget {
-			images,
-			swapchain,
-		})
+		Ok(RenderTarget { images, swapchain })
 	}
 
 	pub fn acquire_next_image(
@@ -170,10 +167,7 @@ impl RenderTarget {
 			self.swapchain.clone(),
 		)?;
 
-		Ok(RenderTarget {
-			images,
-			swapchain,
-		})
+		Ok(RenderTarget { images, swapchain })
 	}
 
 	pub fn images(&self) -> &Vec<Arc<SwapchainImage<Window>>> {
