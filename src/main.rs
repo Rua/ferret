@@ -295,7 +295,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						}
 
 						// Load map
-						let map = {
+						let map_handle = {
 							let (
 								mut loader,
 								mut map_storage,
@@ -307,7 +307,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 								WriteExpect<AssetStorage<doom::map::textures::Flat>>,
 								WriteExpect<AssetStorage<doom::map::textures::WallTexture>>,
 							)>();
-							let map = map_storage.load(name, &mut *loader);
+							let map_handle = map_storage.load(name, &mut *loader);
 							map_storage.build_waiting(|data| {
 								doom::map::build_map(
 									data,
@@ -318,7 +318,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 								)
 							});
 
-							map
+							map_handle
 						};
 
 						// Build flats and wall textures
@@ -393,10 +393,23 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						}
 
 						// Create world entity
-						world
-							.create_entity()
-							.with(doom::components::MapDynamic { map: map.clone() })
-							.build();
+						let map_dynamic = {
+							let map_storage =
+								world.system_data::<ReadExpect<AssetStorage<doom::map::Map>>>();
+							let map = map_storage.get(&map_handle).unwrap();
+
+							doom::components::MapDynamic {
+								map: map_handle.clone(),
+								sectors: map
+									.sectors
+									.iter()
+									.map(|sector| doom::map::SectorDynamic {
+										light_level: sector.light_level,
+									})
+									.collect(),
+							}
+						};
+						let map_entity = world.create_entity().with(map_dynamic).build();
 
 						// Spawn things and specials
 						let things = {
@@ -404,8 +417,8 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 								world.system_data::<WriteExpect<doom::wad::WadLoader>>();
 							doom::map::lumps::ThingsFormat.import(name, &mut *loader)?
 						};
-						doom::map::spawn_things(things, &world, &map)?;
-						doom::map::spawn_sector_specials(&world, &map)?;
+						doom::map::spawn_things(things, &world, &map_handle)?;
+						doom::map::spawn_sector_specials(&world, map_entity, &map_handle)?;
 
 						// Spawn player
 						let entity = doom::map::spawn_player(&world)?;

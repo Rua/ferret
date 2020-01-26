@@ -1,11 +1,14 @@
 //use crate::assets::AssetHandle;
 use crate::{
 	assets::AssetHandle,
-	doom::{map::Map, sprite::Sprite},
+	doom::{
+		map::{Map, SectorDynamic},
+		sprite::Sprite,
+	},
 	geometry::Angle,
 };
 use nalgebra::Vector3;
-use specs::{Component, DenseVecStorage, HashMapStorage};
+use specs::{Component, DenseVecStorage, Entity, HashMapStorage};
 use specs_derive::Component;
 use std::time::Duration;
 
@@ -28,13 +31,14 @@ pub struct LightFlash {
 #[storage(HashMapStorage)]
 pub struct MapDynamic {
 	pub map: AssetHandle<Map>,
+	pub sectors: Vec<SectorDynamic>,
 }
 
 #[derive(Clone, Component, Debug)]
 #[storage(HashMapStorage)]
 pub struct SectorRef {
-	pub map: AssetHandle<Map>,
-	pub sector_index: usize,
+	pub map_entity: Entity,
+	pub index: usize,
 }
 
 #[derive(Clone, Component, Copy, Debug)]

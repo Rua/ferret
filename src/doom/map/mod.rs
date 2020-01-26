@@ -118,6 +118,7 @@ pub fn spawn_player(world: &World) -> Result<Entity, Box<dyn Error + Send + Sync
 
 pub fn spawn_sector_specials(
 	world: &World,
+	map_entity: Entity,
 	map_handle: &AssetHandle<Map>,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
 	let map_storage = world.system_data::<ReadExpect<AssetStorage<Map>>>();
@@ -152,8 +153,8 @@ pub fn spawn_sector_specials(
 		sector_ref_storage.insert(
 			entity,
 			SectorRef {
-				map: map_handle.clone(),
-				sector_index: i,
+				map_entity,
+				index: i,
 			},
 		)?;
 	}
@@ -633,4 +634,9 @@ impl BranchNode {
 pub enum GLNode {
 	Leaf(LeafNode),
 	Branch(BranchNode),
+}
+
+#[derive(Clone, Debug)]
+pub struct SectorDynamic {
+	pub light_level: f32,
 }

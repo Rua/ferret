@@ -1,6 +1,6 @@
 use crate::{
 	doom::{
-		components::{LightFlash, Transform},
+		components::{LightFlash, MapDynamic, SectorRef, Transform},
 		input::{Action, Axis},
 	},
 	input::{Bindings, InputState},
@@ -8,7 +8,7 @@ use crate::{
 use nalgebra::Vector2;
 use rand::Rng;
 use rand_pcg::Pcg64Mcg;
-use specs::{Entity, Join, ReadExpect, RunNow, World, WriteExpect, WriteStorage};
+use specs::{Entity, Join, ReadExpect, ReadStorage, RunNow, World, WriteExpect, WriteStorage};
 use std::time::Duration;
 
 #[derive(Default)]
@@ -33,26 +33,32 @@ impl<'a> RunNow<'a> for LightUpdateSystem {
 	fn setup(&mut self, _world: &mut World) {}
 
 	fn run_now(&mut self, world: &'a World) {
-		let (delta, mut light_flash_storage, mut rng) = world.system_data::<(
-			ReadExpect<Duration>,
-			WriteStorage<LightFlash>,
-			WriteExpect<Pcg64Mcg>,
-		)>();
+		let (delta, mut light_flash_storage, mut map_dynamic_storage, sector_ref_storage, mut rng) =
+			world.system_data::<(
+				ReadExpect<Duration>,
+				WriteStorage<LightFlash>,
+				WriteStorage<MapDynamic>,
+				ReadStorage<SectorRef>,
+				WriteExpect<Pcg64Mcg>,
+			)>();
 
-		for light_flash in (&mut light_flash_storage).join() {
+		for (sector_ref, light_flash) in (&sector_ref_storage, &mut light_flash_storage).join() {
 			if let Some(new_time) = light_flash.time_left.checked_sub(*delta) {
 				light_flash.time_left = new_time;
 			} else {
 				light_flash.state = !light_flash.state;
+				let map_dynamic = map_dynamic_storage
+					.get_mut(sector_ref.map_entity)
+					.expect("map_entity does not have MapDynamic component");
 
 				if light_flash.state {
 					light_flash.time_left =
 						light_flash.on_time * (rng.gen::<bool>() as u32) + crate::doom::FRAME_TIME;
-					log::trace!("Light turning on");
+					map_dynamic.sectors[sector_ref.index].light_level = 1.0;
 				} else {
 					light_flash.time_left =
 						light_flash.off_time.mul_f64(rng.gen::<f64>()) + crate::doom::FRAME_TIME;
-					log::trace!("Light turning off");
+					map_dynamic.sectors[sector_ref.index].light_level = 0.0;
 				}
 			}
 		}

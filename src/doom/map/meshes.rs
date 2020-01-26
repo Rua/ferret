@@ -1,8 +1,11 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
-	doom::map::{
-		textures::{Flat, WallTexture},
-		LinedefFlags, Map, Side, TextureType,
+	doom::{
+		components::MapDynamic,
+		map::{
+			textures::{Flat, WallTexture},
+			LinedefFlags, Map, Side, TextureType,
+		},
 	},
 };
 use nalgebra::Vector2;
@@ -26,6 +29,7 @@ impl_vertex!(SkyVertexData, in_position);
 
 pub fn make_meshes(
 	map: &Map,
+	map_dynamic: &MapDynamic,
 	world: &World,
 ) -> Result<
 	(
@@ -136,6 +140,7 @@ pub fn make_meshes(
 				None => continue,
 			};
 			let front_sector = &map.sectors[front_sidedef.sector_index];
+			let front_sector_dynamic = &map_dynamic.sectors[front_sidedef.sector_index];
 
 			// Swap the vertices if we're on the left side of the linedef
 			let linedef_vertices = match side {
@@ -184,7 +189,7 @@ pub fn make_meshes(
 							tex_v,
 							front_sidedef.texture_offset,
 							dimensions,
-							front_sector.light_level,
+							front_sector_dynamic.light_level,
 						);
 					}
 				}
@@ -216,7 +221,7 @@ pub fn make_meshes(
 							tex_v,
 							front_sidedef.texture_offset,
 							dimensions,
-							front_sector.light_level,
+							front_sector_dynamic.light_level,
 						);
 					}
 				}
@@ -245,7 +250,7 @@ pub fn make_meshes(
 							tex_v,
 							front_sidedef.texture_offset,
 							dimensions,
-							front_sector.light_level,
+							front_sector_dynamic.light_level,
 						);
 					}
 				}
@@ -273,7 +278,7 @@ pub fn make_meshes(
 							tex_v,
 							front_sidedef.texture_offset,
 							dimensions,
-							front_sector.light_level,
+							front_sector_dynamic.light_level,
 						);
 					}
 				}
@@ -282,7 +287,9 @@ pub fn make_meshes(
 	}
 
 	// Flats
-	for sector in &map.sectors {
+	for (i, sector) in map.sectors.iter().enumerate() {
+		let sector_dynamic = &map_dynamic.sectors[i];
+
 		for vertices in &sector.subsectors {
 			// Floor
 			let iter = vertices.iter().rev();
@@ -304,7 +311,7 @@ pub fn make_meshes(
 						iter,
 						sector.floor_height,
 						dimensions,
-						sector.light_level,
+						sector_dynamic.light_level,
 					);
 				}
 			}
@@ -332,7 +339,7 @@ pub fn make_meshes(
 						iter,
 						sector.ceiling_height,
 						dimensions,
-						sector.light_level,
+						sector_dynamic.light_level,
 					);
 				}
 			}

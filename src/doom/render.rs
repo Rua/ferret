@@ -420,10 +420,10 @@ impl MapRenderSystem {
 				ReadStorage<MapDynamic>,
 			)>();
 
-		for component in map_component.join() {
-			let map = map_storage.get(&component.map).unwrap();
+		for map_dynamic in map_component.join() {
+			let map = map_storage.get(&map_dynamic.map).unwrap();
 			let (flat_meshes, sky_mesh, wall_meshes) =
-				crate::doom::map::meshes::make_meshes(map, world)?;
+				crate::doom::map::meshes::make_meshes(map, map_dynamic, world)?;
 
 			// Draw the walls
 			for (handle, mesh) in wall_meshes {
