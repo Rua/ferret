@@ -3,6 +3,7 @@ use byteorder::{ReadBytesExt, LE};
 use std::{
 	error::Error,
 	io::{Cursor, Read, Seek, SeekFrom},
+	ops::Deref,
 };
 
 #[derive(Copy, Clone, Default)]
@@ -21,7 +22,15 @@ pub struct IAColor {
 	pub a: u8,
 }
 
-pub type Palette = [RGBAColor; 256];
+pub struct Palette([RGBAColor; 256]);
+
+impl Deref for Palette {
+	type Target = [RGBAColor; 256];
+
+	fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 impl Asset for Palette {
 	type Data = Self;
@@ -47,7 +56,7 @@ impl Asset for Palette {
 			palette[i] = RGBAColor { r, g, b, a: 0xFF };
 		}
 
-		Ok(palette)
+		Ok(Palette(palette))
 	}
 }
 
