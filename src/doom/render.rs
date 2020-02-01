@@ -188,7 +188,7 @@ impl RenderSystem {
 		let queues = video.queues();
 
 		// Prepare for drawing
-		let (image_num, future) = match self.target.acquire_next_image() {
+		let (image_num, suboptimal, future) = match self.target.acquire_next_image() {
 			Ok(x) => x,
 			Err(AcquireError::OutOfDate) => {
 				self.recreate()?;

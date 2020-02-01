@@ -1,7 +1,6 @@
 use crate::renderer::AsBytes;
 use std::sync::Arc;
 use vulkano::{
-	buffer::{cpu_access::CpuAccessibleBuffer, BufferUsage},
 	device::Queue,
 	format::Format,
 	image::{sys::ImageCreationError, Dimensions, ImageViewAccess, ImmutableImage},
@@ -56,16 +55,13 @@ impl TextureBuilder {
 		self,
 		queue: Arc<Queue>,
 	) -> Result<(Texture, Box<dyn GpuFuture>), ImageCreationError> {
-		// Create staging buffer
-		let buffer = CpuAccessibleBuffer::from_iter(
-			queue.device().clone(),
-			BufferUsage::transfer_source(),
-			self.data.as_bytes().iter().copied(),
-		)?;
-
 		// Create the image
-		let (image, future) =
-			ImmutableImage::from_buffer(buffer, self.dimensions, self.format, queue)?;
+		let (image, future) = ImmutableImage::from_iter(
+			self.data.as_bytes().iter().copied(),
+			self.dimensions,
+			self.format,
+			queue,
+		)?;
 
 		Ok((Texture { inner: image }, Box::from(future)))
 	}

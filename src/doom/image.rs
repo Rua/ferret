@@ -28,8 +28,8 @@ impl Deref for Palette {
 	type Target = [RGBAColor; 256];
 
 	fn deref(&self) -> &Self::Target {
-        &self.0
-    }
+		&self.0
+	}
 }
 
 impl Asset for Palette {

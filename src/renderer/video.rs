@@ -84,7 +84,7 @@ impl RenderTarget {
 		let surface_format =
 			choose_format(&capabilities).ok_or("No suitable swapchain format found.")?;
 		let present_mode = [PresentMode::Mailbox, PresentMode::Fifo]
-			.into_iter()
+			.iter()
 			.copied()
 			.find(|mode| capabilities.present_modes.supports(*mode))
 			.unwrap();
@@ -121,7 +121,7 @@ impl RenderTarget {
 
 	pub fn acquire_next_image(
 		&self,
-	) -> Result<(usize, SwapchainAcquireFuture<Window>), AcquireError> {
+	) -> Result<(usize, bool, SwapchainAcquireFuture<Window>), AcquireError> {
 		vulkano::swapchain::acquire_next_image(self.swapchain.clone(), None)
 	}
 
