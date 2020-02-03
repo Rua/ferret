@@ -13,7 +13,7 @@ use vulkano::{
 	sync::SharingMode,
 };
 use vulkano_win::VkSurfaceBuild;
-use winit::{EventsLoop, Window, WindowBuilder};
+use winit::{dpi::Size, event_loop::EventLoop, window::{Window, WindowBuilder}};
 
 pub struct Video {
 	device: Arc<Device>,
@@ -23,14 +23,14 @@ pub struct Video {
 
 impl Video {
 	pub fn new(
-		event_loop: &EventsLoop,
+		event_loop: &EventLoop<()>,
 	) -> Result<(Video, DebugCallback), Box<dyn Error + Send + Sync>> {
 		// Create Vulkan instance
 		let instance = vulkan::create_instance()?;
 
 		let surface = WindowBuilder::new()
-			.with_min_dimensions((320, 240).into())
-			.with_dimensions((800, 600).into())
+			.with_min_inner_size(Size::Physical([320, 240].into()))
+			.with_inner_size(Size::Physical([800, 600].into()))
 			.with_title("Ferret")
 			.build_vk_surface(event_loop, instance.clone())?;
 

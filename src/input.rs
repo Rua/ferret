@@ -6,7 +6,7 @@ use std::{
 	hash::Hash,
 };
 use winit::{
-	DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent,
+	event::{DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent},
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -83,7 +83,7 @@ impl InputState {
 		}
 	}
 
-	pub fn process_event(&mut self, event: &Event) {
+	pub fn process_event(&mut self, event: &Event<()>) {
 		match event {
 			Event::WindowEvent { event, .. } => match *event {
 				WindowEvent::KeyboardInput {

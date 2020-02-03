@@ -7,7 +7,7 @@ use vulkano::{
 	instance::{Instance, PhysicalDevice, QueueFamily},
 	swapchain::Surface,
 };
-use winit::Window;
+use winit::window::Window;
 
 pub(super) fn create_instance() -> Result<Arc<Instance>, Box<dyn Error + Send + Sync>> {
 	let mut instance_extensions = vulkano_win::required_extensions();

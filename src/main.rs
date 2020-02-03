@@ -29,7 +29,9 @@ use std::{
 };
 use vulkano::{format::Format, image::Dimensions};
 use winit::{
-	ElementState, Event, EventsLoop, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent,
+	event::{ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent},
+	event_loop::{ControlFlow, EventLoop},
+	platform::desktop::EventLoopExtDesktop,
 };
 
 fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -44,7 +46,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 		}
 	};
 
-	let mut event_loop = EventsLoop::new();
+	let mut event_loop = EventLoop::new();
 
 	let (video, _debug_callback) = match Video::new(&event_loop) {
 		Ok(val) => val,
@@ -162,7 +164,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 		//println!("{} fps", 1.0/delta.as_secs_f32());
 
 		// Process events from the system
-		event_loop.poll_events(|event| {
+		event_loop.run_return(|event, _, control_flow| {
 			let (mut input_state, video) =
 				world.system_data::<(WriteExpect<InputState>, ReadExpect<Video>)>();
 			input_state.process_event(&event);
@@ -171,20 +173,20 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 				Event::WindowEvent { event, .. } => match event {
 					WindowEvent::CloseRequested => {
 						command_sender.send("quit".to_owned()).ok();
+						*control_flow = ControlFlow::Exit;
 					}
 					WindowEvent::MouseInput {
 						state: ElementState::Pressed,
 						..
 					} => {
 						let window = video.surface().window();
-						if let Err(msg) = window.grab_cursor(true) {
+						if let Err(msg) = window.set_cursor_grab(true) {
 							log::warn!("Couldn't grab cursor: {}", msg);
 						}
-						window.hide_cursor(true);
+						window.set_cursor_visible(false);
 						input_state.set_mouse_delta_enabled(true);
 					}
-					WindowEvent::Focused(false)
-					| WindowEvent::KeyboardInput {
+					WindowEvent::Focused(false) | WindowEvent::KeyboardInput {
 						input:
 							KeyboardInput {
 								state: ElementState::Pressed,
@@ -194,14 +196,17 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						..
 					} => {
 						let window = video.surface().window();
-						if let Err(msg) = window.grab_cursor(false) {
+						if let Err(msg) = window.set_cursor_grab(false) {
 							log::warn!("Couldn't release cursor: {}", msg);
 						}
-						window.hide_cursor(false);
+						window.set_cursor_visible(true);
 						input_state.set_mouse_delta_enabled(false);
 					}
 					_ => {}
-				},
+				}
+				Event::RedrawEventsCleared => {
+					*control_flow = ControlFlow::Exit;
+				}
 				_ => {}
 			}
 		});

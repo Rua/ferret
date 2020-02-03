@@ -1,5 +1,5 @@
 use crate::{
-	assets::{AssetHandle, AssetStorage},
+	assets::AssetStorage,
 	doom::{
 		components::{MapDynamic, SpriteRender, Transform},
 		map::{
@@ -76,8 +76,7 @@ impl RenderSystem {
 		)?;
 
 		// Create render target
-		let (width, height) = video.surface().window().get_inner_size().unwrap().into();
-		let size = [width, height];
+		let size = video.surface().window().inner_size().into();
 		let target = RenderTarget::new(video.surface().clone(), video.device().clone(), size)?;
 
 		// Create depth buffer
@@ -154,15 +153,13 @@ impl RenderSystem {
 	}
 
 	pub fn recreate(&mut self) -> Result<(), Box<dyn Error + Send + Sync>> {
-		let (width, height) = self
+		let size = self
 			.target
 			.swapchain()
 			.surface()
 			.window()
-			.get_inner_size()
-			.unwrap()
+			.inner_size()
 			.into();
-		let size = [width, height];
 		self.target = self.target.recreate(size)?;
 		let depth_buffer = vulkan::create_depth_buffer(self.target.device(), size)?;
 
@@ -637,7 +634,7 @@ impl SpriteRenderSystem {
 		let map = map_storage.get(&map_dynamic.map).unwrap();
 
 		// Group draws into batches by texture
-		let mut batches: HashMap<AssetHandle<SpriteImage>, Vec<InstanceData>> = HashMap::new();
+		let mut batches: HashMap<Arc<dyn ImageViewAccess + Send + Sync>, Vec<InstanceData>> = HashMap::new();
 
 		for (entity, sprite_render, transform) in
 			(&entities, &sprite_component, &transform_component).join()
@@ -691,7 +688,7 @@ impl SpriteRenderSystem {
 			};
 
 			// Add to batches
-			match batches.entry(image_info.handle.clone()) {
+			match batches.entry(sprite_image_storage.get(&image_info.handle).unwrap().texture.inner()) {
 				Entry::Occupied(mut entry) => {
 					entry.get_mut().push(instance_data);
 				}
@@ -702,12 +699,11 @@ impl SpriteRenderSystem {
 		}
 
 		// Draw the batches
-		for (sprite_image_handle, instance_data) in batches {
-			let sprite_image = sprite_image_storage.get(&sprite_image_handle).unwrap();
+		for (texture, instance_data) in batches {
 			let texture_set = Arc::new(
 				self.texture_set_pool
 					.next()
-					.add_sampled_image(sprite_image.texture.inner(), sampler.clone())?
+					.add_sampled_image(texture, sampler.clone())?
 					.build()?,
 			);
 
