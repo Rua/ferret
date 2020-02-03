@@ -175,6 +175,9 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						command_sender.send("quit".to_owned()).ok();
 						*control_flow = ControlFlow::Exit;
 					}
+					WindowEvent::Resized(_) => if let Err(msg) = render_system.recreate() {
+						log::warn!("Error recreating swapchain: {}", msg);
+					}
 					WindowEvent::MouseInput {
 						state: ElementState::Pressed,
 						..
