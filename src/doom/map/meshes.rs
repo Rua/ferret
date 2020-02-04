@@ -1,7 +1,7 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
 	doom::{
-		components::{MapDynamic, SectorDynamic},
+		components::{LinedefDynamic, MapDynamic, SectorDynamic},
 		map::{
 			textures::{Flat, WallTexture},
 			LinedefFlags, Map, Side, TextureType,
@@ -129,19 +129,29 @@ pub fn make_meshes(
 	let mut wall_meshes: HashMap<AssetHandle<WallTexture>, (Vec<VertexData>, Vec<u32>)> =
 		HashMap::new();
 
-	let (flat_storage, wall_texture_storage, sector_dynamic_component) = world.system_data::<(
+	let (flat_storage, wall_texture_storage, linedef_dynamic_component, sector_dynamic_component) = world.system_data::<(
 		ReadExpect<AssetStorage<Flat>>,
 		ReadExpect<AssetStorage<WallTexture>>,
+		ReadStorage<LinedefDynamic>,
 		ReadStorage<SectorDynamic>,
 	)>();
 
 	// Walls
-	for linedef in &map.linedefs {
+	for (linedef_index, linedef) in map.linedefs.iter().enumerate() {
+		let linedef_dynamic = linedef_dynamic_component.get(map_dynamic.linedefs[linedef_index]).unwrap();
+
 		for side in [Side::Right, Side::Left].iter().copied() {
 			let front_sidedef = match &linedef.sidedefs[side as usize] {
 				Some(x) => x,
 				None => continue,
 			};
+			let mut texture_offset = front_sidedef.texture_offset;
+
+			// Doom only scrolls the front/right sidedef. Why? Who knows.
+			if side == Side::Right {
+				texture_offset += linedef_dynamic.texture_offset;
+			}
+
 			let front_sector = &map.sectors[front_sidedef.sector_index];
 			let front_sector_dynamic = sector_dynamic_component
 				.get(map_dynamic.sectors[front_sidedef.sector_index])
@@ -192,7 +202,7 @@ pub fn make_meshes(
 							linedef_vertices,
 							[spans[0], spans[1]],
 							tex_v,
-							front_sidedef.texture_offset,
+							texture_offset,
 							dimensions,
 							front_sector_dynamic.light_level,
 						);
@@ -224,7 +234,7 @@ pub fn make_meshes(
 							linedef_vertices,
 							[spans[2], spans[3]],
 							tex_v,
-							front_sidedef.texture_offset,
+							texture_offset,
 							dimensions,
 							front_sector_dynamic.light_level,
 						);
@@ -253,7 +263,7 @@ pub fn make_meshes(
 							linedef_vertices,
 							[spans[1], spans[2]],
 							tex_v,
-							front_sidedef.texture_offset,
+							texture_offset,
 							dimensions,
 							front_sector_dynamic.light_level,
 						);
@@ -281,7 +291,7 @@ pub fn make_meshes(
 							linedef_vertices,
 							[front_sector.ceiling_height, front_sector.floor_height],
 							tex_v,
-							front_sidedef.texture_offset,
+							texture_offset,
 							dimensions,
 							front_sector_dynamic.light_level,
 						);

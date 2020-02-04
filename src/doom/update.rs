@@ -1,7 +1,7 @@
 use crate::{
 	assets::AssetStorage,
 	doom::{
-		components::{LightFlash, LightFlashType, LightGlow, MapDynamic, SectorDynamic, Transform},
+		components::{LightFlash, LightFlashType, LightGlow, LinedefDynamic, MapDynamic, SectorDynamic, TextureScroll, Transform},
 		input::{Action, Axis},
 		map::Map,
 	},
@@ -17,6 +17,7 @@ use std::time::Duration;
 pub struct UpdateSystem {
 	light_update: LightUpdateSystem,
 	player_move: PlayerMoveSystem,
+	texture_scroll: TextureScrollSystem,
 }
 
 impl<'a> RunNow<'a> for UpdateSystem {
@@ -25,6 +26,7 @@ impl<'a> RunNow<'a> for UpdateSystem {
 	fn run_now(&mut self, world: &'a World) {
 		self.light_update.run_now(world);
 		self.player_move.run_now(world);
+		self.texture_scroll.run_now(world);
 	}
 }
 
@@ -180,5 +182,28 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 		move_dir *= 20.0;
 
 		transform.position += axes[0] * move_dir[0] + axes[1] * move_dir[1];
+	}
+}
+
+#[derive(Default)]
+struct TextureScrollSystem;
+
+impl<'a> RunNow<'a> for TextureScrollSystem {
+	fn setup(&mut self, _world: &mut World) {}
+
+	fn run_now(&mut self, world: &'a World) {
+		let (
+			delta,
+			mut linedef_dynamic_component,
+			texture_scroll_component,
+		) = world.system_data::<(
+			ReadExpect<Duration>,
+			WriteStorage<LinedefDynamic>,
+			ReadStorage<TextureScroll>,
+		)>();
+
+		for (linedef_dynamic, texture_scroll) in (&mut linedef_dynamic_component, &texture_scroll_component).join() {
+			linedef_dynamic.texture_offset += texture_scroll.speed * delta.as_secs_f32();
+		}
 	}
 }

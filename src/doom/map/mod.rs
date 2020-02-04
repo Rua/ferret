@@ -132,12 +132,12 @@ pub fn spawn_map_entities(
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
 	let (
 		map_storage,
-		mut map_dynamic_storage,
+		mut map_dynamic_component,
 		template_storage,
 		linedef_types,
-		mut linedef_ref_storage,
+		mut linedef_dynamic_component,
 		sector_types,
-		mut sector_ref_storage,
+		mut sector_dynamic_component
 	) = world.system_data::<(
 		ReadExpect<AssetStorage<Map>>,
 		WriteStorage<MapDynamic>,
@@ -162,11 +162,13 @@ pub fn spawn_map_entities(
 		// Create entity and set reference
 		let entity = world.entities().create();
 		map_dynamic.linedefs.push(entity);
-		linedef_ref_storage.insert(
+		linedef_dynamic_component.insert(
 			entity,
 			LinedefDynamic {
 				map_entity,
 				index: i,
+
+				texture_offset: Vector2::new(0.0, 0.0),
 			},
 		)?;
 
@@ -192,7 +194,7 @@ pub fn spawn_map_entities(
 		// Create entity and set reference
 		let entity = world.entities().create();
 		map_dynamic.sectors.push(entity);
-		sector_ref_storage.insert(
+		sector_dynamic_component.insert(
 			entity,
 			SectorDynamic {
 				map_entity,
@@ -218,7 +220,7 @@ pub fn spawn_map_entities(
 		template.add_to_entity(entity, world)?;
 	}
 
-	map_dynamic_storage.insert(map_entity, map_dynamic)?;
+	map_dynamic_component.insert(map_entity, map_dynamic)?;
 
 	Ok(())
 }

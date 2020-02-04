@@ -4,7 +4,7 @@ use crate::{
 	doom::{map::Map, sprite::Sprite},
 	geometry::Angle,
 };
-use nalgebra::Vector3;
+use nalgebra::{Vector2, Vector3};
 use specs::{Component, DenseVecStorage, Entity, HashMapStorage};
 use specs_derive::Component;
 use std::time::Duration;
@@ -53,14 +53,16 @@ pub struct MapDynamic {
 	pub sectors: Vec<Entity>,
 }
 
-#[derive(Clone, Component, Debug)]
+#[derive(Clone, Component, Copy, Debug)]
 #[storage(HashMapStorage)]
 pub struct LinedefDynamic {
 	pub map_entity: Entity,
 	pub index: usize,
+
+	pub texture_offset: Vector2<f32>,
 }
 
-#[derive(Clone, Component, Debug)]
+#[derive(Clone, Component, Copy, Debug)]
 #[storage(HashMapStorage)]
 pub struct SectorDynamic {
 	pub map_entity: Entity,
@@ -86,6 +88,11 @@ pub struct SpriteRender {
 	pub sprite: AssetHandle<Sprite>,
 	pub frame: usize,
 	pub full_bright: bool,
+}
+
+#[derive(Clone, Component, Copy, Debug)]
+pub struct TextureScroll {
+	pub speed: Vector2<f32>,
 }
 
 #[derive(Clone, Component, Copy, Debug)]

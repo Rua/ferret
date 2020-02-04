@@ -123,6 +123,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	world.register::<doom::components::SpawnOnCeiling>();
 	world.register::<doom::components::SpawnPoint>();
 	world.register::<doom::components::SpriteRender>();
+	world.register::<doom::components::TextureScroll>();
 	world.register::<doom::components::Transform>();
 
 	// Insert asset storages

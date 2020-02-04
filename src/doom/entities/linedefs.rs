@@ -1,7 +1,9 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
+	doom::components::TextureScroll,
 };
+use nalgebra::Vector2;
 use specs::{World, WriteExpect};
 use std::collections::HashMap;
 
@@ -255,6 +257,9 @@ impl LinedefTypes {
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
+				.with_component(TextureScroll {
+					speed: Vector2::new(35.0, 0.0),
+				})
         });
         doomednums.insert(48, handle.clone());
 
