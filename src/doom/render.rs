@@ -426,12 +426,12 @@ impl MapRenderSystem {
 					.vertex_buffer_pool
 					.chunk(mesh.0.as_bytes().iter().copied())?;
 				let index_buffer = self.index_buffer_pool.chunk(mesh.1)?;
-				let texture = wall_texture_storage.get(&handle).unwrap();
+				let image = wall_texture_storage.get(&handle).unwrap();
 
 				let texture_set = Arc::new(
 					self.normal_texture_set_pool
 						.next()
-						.add_sampled_image(texture.inner(), sampler.clone())?
+						.add_sampled_image(image.clone(), sampler.clone())?
 						.build()?,
 				);
 
@@ -451,12 +451,12 @@ impl MapRenderSystem {
 					.vertex_buffer_pool
 					.chunk(mesh.0.as_bytes().iter().copied())?;
 				let index_buffer = self.index_buffer_pool.chunk(mesh.1)?;
-				let texture = flat_storage.get(&handle).unwrap();
+				let image = flat_storage.get(&handle).unwrap();
 
 				let texture_set = Arc::new(
 					self.normal_texture_set_pool
 						.next()
-						.add_sampled_image(texture.inner(), sampler.clone())?
+						.add_sampled_image(image.clone(), sampler.clone())?
 						.build()?,
 				);
 
@@ -475,7 +475,7 @@ impl MapRenderSystem {
 				.vertex_buffer_pool
 				.chunk(sky_mesh.0.as_bytes().iter().copied())?;
 			let index_buffer = self.index_buffer_pool.chunk(sky_mesh.1)?;
-			let texture = wall_texture_storage.get(&map.sky).unwrap();
+			let image = wall_texture_storage.get(&map.sky).unwrap();
 			let sky_buffer = self.sky_uniform_pool.next(sky_frag::ty::FragParams {
 				screenSize: [800.0, 600.0],
 				pitch: rotation[1].to_degrees() as f32,
@@ -485,7 +485,7 @@ impl MapRenderSystem {
 			let texture_params_set = Arc::new(
 				self.sky_texture_set_pool
 					.next()
-					.add_sampled_image(texture.inner(), sampler.clone())?
+					.add_sampled_image(image.clone(), sampler.clone())?
 					.add_buffer(sky_buffer)?
 					.build()?,
 			);
@@ -561,7 +561,7 @@ impl SpriteRenderSystem {
 		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
 		// Create mesh
-		let (vertex_buffer, future) = ImmutableBuffer::from_iter(
+		let (vertex_buffer, _future) = ImmutableBuffer::from_iter(
 			vec![
 				VertexData {
 					in_position: [0.0, -1.0, 0.0],
@@ -632,7 +632,8 @@ impl SpriteRenderSystem {
 		let map = map_storage.get(&map_dynamic.map).unwrap();
 
 		// Group draws into batches by texture
-		let mut batches: HashMap<Arc<dyn ImageViewAccess + Send + Sync>, Vec<InstanceData>> = HashMap::new();
+		let mut batches: HashMap<Arc<dyn ImageViewAccess + Send + Sync>, Vec<InstanceData>> =
+			HashMap::new();
 
 		for (entity, sprite_render, transform) in
 			(&entities, &sprite_component, &transform_component).join()
@@ -686,7 +687,13 @@ impl SpriteRenderSystem {
 			};
 
 			// Add to batches
-			match batches.entry(sprite_image_storage.get(&image_info.handle).unwrap().texture.inner()) {
+			match batches.entry(
+				sprite_image_storage
+					.get(&image_info.handle)
+					.unwrap()
+					.image
+					.clone(),
+			) {
 				Entry::Occupied(mut entry) => {
 					entry.get_mut().push(instance_data);
 				}

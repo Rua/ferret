@@ -13,7 +13,11 @@ use vulkano::{
 	sync::SharingMode,
 };
 use vulkano_win::VkSurfaceBuild;
-use winit::{dpi::Size, event_loop::EventLoop, window::{Window, WindowBuilder}};
+use winit::{
+	dpi::Size,
+	event_loop::EventLoop,
+	window::{Window, WindowBuilder},
+};
 
 pub struct Video {
 	device: Arc<Device>,

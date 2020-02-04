@@ -1,13 +1,12 @@
 use crate::{
 	assets::{Asset, AssetFormat, AssetHandle, AssetStorage, DataSource},
 	doom::image::{Image, ImageFormat},
-	renderer::texture::Texture,
 };
 use lazy_static::lazy_static;
 use nalgebra::Matrix4;
 use regex::Regex;
-use std::error::Error;
-use vulkano::impl_vertex;
+use std::{error::Error, sync::Arc};
+use vulkano::{image::ImageViewAccess, impl_vertex};
 
 pub struct Sprite {
 	frames: Vec<Vec<SpriteImageInfo>>,
@@ -182,7 +181,7 @@ impl Asset for Sprite {
 }
 
 pub struct SpriteImage {
-	pub texture: Texture,
+	pub image: Arc<dyn ImageViewAccess + Send + Sync>,
 	pub matrix: Matrix4<f32>,
 }
 

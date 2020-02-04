@@ -5,8 +5,8 @@ use std::{
 	fmt::Debug,
 	hash::Hash,
 };
-use winit::{
-	event::{DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent},
+use winit::event::{
+	DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent,
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

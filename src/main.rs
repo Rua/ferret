@@ -16,7 +16,7 @@ use crate::{
 	component::EntityTemplate,
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
 	logger::Logger,
-	renderer::{texture::TextureBuilder, video::Video},
+	renderer::{video::Video, AsBytes},
 };
 use nalgebra::{Matrix4, Vector3};
 use rand::SeedableRng;
@@ -27,7 +27,10 @@ use std::{
 	sync::mpsc,
 	time::{Duration, Instant},
 };
-use vulkano::{format::Format, image::Dimensions};
+use vulkano::{
+	format::Format,
+	image::{Dimensions, ImmutableImage},
+};
 use winit::{
 	event::{ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent},
 	event_loop::{ControlFlow, EventLoop},
@@ -175,8 +178,10 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						command_sender.send("quit".to_owned()).ok();
 						*control_flow = ControlFlow::Exit;
 					}
-					WindowEvent::Resized(_) => if let Err(msg) = render_system.recreate() {
-						log::warn!("Error recreating swapchain: {}", msg);
+					WindowEvent::Resized(_) => {
+						if let Err(msg) = render_system.recreate() {
+							log::warn!("Error recreating swapchain: {}", msg);
+						}
 					}
 					WindowEvent::MouseInput {
 						state: ElementState::Pressed,
@@ -189,7 +194,8 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						window.set_cursor_visible(false);
 						input_state.set_mouse_delta_enabled(true);
 					}
-					WindowEvent::Focused(false) | WindowEvent::KeyboardInput {
+					WindowEvent::Focused(false)
+					| WindowEvent::KeyboardInput {
 						input:
 							KeyboardInput {
 								state: ElementState::Pressed,
@@ -206,7 +212,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						input_state.set_mouse_delta_enabled(false);
 					}
 					_ => {}
-				}
+				},
 				Event::RedrawEventsCleared => {
 					*control_flow = ControlFlow::Exit;
 				}
@@ -231,6 +237,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 					"map" => {
 						let name = &args[1];
 						log::info!("Loading map {}...", name);
+						let start_time = Instant::now();
 
 						// Load palette
 						let palette_handle = {
@@ -265,6 +272,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 							sprite_storage.build_waiting(|intermediate| {
 								Ok(intermediate.build(&mut *sprite_image_storage, &mut *source)?)
 							});
+
 							sprite_image_storage.build_waiting(|image| {
 								let data: Vec<_> = image
 									.data
@@ -279,14 +287,6 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 									.collect();
 
 								// Create the image
-								let builder = TextureBuilder::new()
-									.with_data(data)
-									.with_dimensions(Dimensions::Dim2d {
-										width: image.size[0] as u32,
-										height: image.size[1] as u32,
-									})
-									.with_format(Format::R8G8B8A8Unorm);
-
 								let matrix = Matrix4::new_translation(&Vector3::new(
 									0.0,
 									image.offset[0] as f32,
@@ -297,10 +297,17 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 									image.size[1] as f32,
 								));
 
-								let (texture, future) =
-									builder.build(video.queues().graphics.clone())?;
+								let (image, _future) = ImmutableImage::from_iter(
+									data.as_bytes().iter().copied(),
+									Dimensions::Dim2d {
+										width: image.size[0] as u32,
+										height: image.size[1] as u32,
+									},
+									Format::R8G8B8A8Unorm,
+									video.queues().graphics.clone(),
+								)?;
 
-								Ok(crate::doom::sprite::SpriteImage { matrix, texture })
+								Ok(crate::doom::sprite::SpriteImage { matrix, image })
 							});
 						}
 
@@ -353,17 +360,17 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 									.collect();
 
 								// Create the image
-								let builder = TextureBuilder::new()
-									.with_data(data)
-									.with_dimensions(Dimensions::Dim2d {
+								let (image, _future) = ImmutableImage::from_iter(
+									data.as_bytes().iter().copied(),
+									Dimensions::Dim2d {
 										width: image.size[0] as u32,
 										height: image.size[1] as u32,
-									})
-									.with_format(Format::R8G8B8A8Unorm);
+									},
+									Format::R8G8B8A8Unorm,
+									video.queues().graphics.clone(),
+								)?;
 
-								let (texture, future) =
-									builder.build(video.queues().graphics.clone())?;
-								Ok(texture)
+								Ok(image)
 							});
 						}
 
@@ -388,17 +395,17 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 									})
 									.collect();
 
-								let builder = TextureBuilder::new()
-									.with_data(data)
-									.with_dimensions(Dimensions::Dim2d {
+								let (image, _future) = ImmutableImage::from_iter(
+									data.as_bytes().iter().copied(),
+									Dimensions::Dim2d {
 										width: image.size[0] as u32,
 										height: image.size[1] as u32,
-									})
-									.with_format(Format::R8G8B8A8Unorm);
+									},
+									Format::R8G8B8A8Unorm,
+									video.queues().graphics.clone(),
+								)?;
 
-								let (texture, future) =
-									builder.build(video.queues().graphics.clone())?;
-								Ok(texture)
+								Ok(image)
 							});
 						}
 
@@ -433,6 +440,11 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						// Spawn player
 						let entity = doom::map::spawn_player(&world)?;
 						world.insert(entity);
+
+						log::debug!(
+							"Loading took {} s",
+							(Instant::now() - start_time).as_secs_f32()
+						);
 					}
 					"quit" => should_quit = true,
 					_ => log::error!("Unknown command: {}", args[0]),

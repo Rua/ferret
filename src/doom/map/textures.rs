@@ -1,7 +1,6 @@
 use crate::{
 	assets::{Asset, AssetFormat, DataSource},
 	doom::image::{IAColor, Image, ImageFormat},
-	renderer::texture::Texture,
 };
 use byteorder::{ReadBytesExt, LE};
 use std::{
@@ -9,12 +8,14 @@ use std::{
 	error::Error,
 	io::{Cursor, Read, Seek, SeekFrom},
 	str,
+	sync::Arc,
 };
+use vulkano::image::ImageViewAccess;
 
 pub struct Flat;
 
 impl Asset for Flat {
-	type Data = Texture;
+	type Data = Arc<dyn ImageViewAccess + Send + Sync>;
 	type Intermediate = Image;
 	const NAME: &'static str = "Flat";
 
@@ -62,7 +63,7 @@ impl AssetFormat for PNamesFormat {
 pub struct WallTexture;
 
 impl Asset for WallTexture {
-	type Data = Texture;
+	type Data = Arc<dyn ImageViewAccess + Send + Sync>;
 	type Intermediate = Image;
 	const NAME: &'static str = "WallTexture";
 
