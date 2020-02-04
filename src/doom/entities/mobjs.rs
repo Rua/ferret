@@ -3,9 +3,7 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
 	doom::{
-		components::{
-			LightFlash, LightFlashType, LightGlow, SpawnOnCeiling, SpawnPoint, SpriteRender,
-		},
+		components::{SpawnOnCeiling, SpawnPoint, SpriteRender},
 		sprite::Sprite,
 		wad::WadLoader,
 	},
@@ -13,22 +11,20 @@ use crate::{
 use specs::{World, WriteExpect};
 use std::collections::HashMap;
 
-pub struct EntityTypes {
+pub struct MobjTypes {
 	pub names: HashMap<&'static str, AssetHandle<EntityTemplate>>,
 	pub doomednums: HashMap<u16, AssetHandle<EntityTemplate>>,
-	pub sector_types: HashMap<u16, AssetHandle<EntityTemplate>>,
 }
 
-impl EntityTypes {
+impl MobjTypes {
 	#[rustfmt::skip]
-	pub fn new(world: &World) -> EntityTypes {
+	pub fn new(world: &World) -> MobjTypes {
 		let (mut template_storage, mut sprite_storage, mut loader) = world.system_data::<(
 			WriteExpect<AssetStorage<EntityTemplate>>,
 			WriteExpect<AssetStorage<Sprite>>,
 			WriteExpect<WadLoader>,
 		)>();
 
-		// *** Mobj/thing types ***
 		let mut names = HashMap::new();
 		let mut doomednums = HashMap::new();
 
@@ -1590,138 +1586,6 @@ impl EntityTypes {
 		names.insert("MISC86", handle.clone());
 		doomednums.insert(81, handle.clone());
 
-		// *** Sector types ***
-		let mut sector_types = HashMap::new();
-
-		// Blink random
-		let handle = template_storage.insert({
-			EntityTemplate::new()
-				.with_component(LightFlash {
-					off_time: 8 * crate::doom::FRAME_TIME,
-					on_time: 64 * crate::doom::FRAME_TIME,
-					..LightFlash::default()
-				})
-		});
-		sector_types.insert(1, handle.clone());
-
-		// Fast strobe unsynchronised
-		let handle = template_storage.insert({
-			EntityTemplate::new()
-				.with_component(LightFlash {
-					flash_type: LightFlashType::StrobeUnSync(8 * crate::doom::FRAME_TIME),
-					off_time: 15 * crate::doom::FRAME_TIME,
-					on_time: 5 * crate::doom::FRAME_TIME,
-					..LightFlash::default()
-				})
-		});
-		sector_types.insert(2, handle.clone());
-
-		// Slow strobe unsynchronised
-		let handle = template_storage.insert({
-			EntityTemplate::new()
-				.with_component(LightFlash {
-					flash_type: LightFlashType::StrobeUnSync(8 * crate::doom::FRAME_TIME),
-					off_time: 35 * crate::doom::FRAME_TIME,
-					on_time: 5 * crate::doom::FRAME_TIME,
-					..LightFlash::default()
-				})
-		});
-		sector_types.insert(3, handle.clone());
-
-		// Fast strobe unsynchronised + 20% damage
-		let handle = template_storage.insert({
-			EntityTemplate::new()
-				.with_component(LightFlash {
-					flash_type: LightFlashType::StrobeUnSync(8 * crate::doom::FRAME_TIME),
-					off_time: 15 * crate::doom::FRAME_TIME,
-					on_time: 5 * crate::doom::FRAME_TIME,
-					..LightFlash::default()
-				})
-		});
-		sector_types.insert(4, handle.clone());
-
-		// 10% damage
-		let handle = template_storage.insert({
-			EntityTemplate::new()
-		});
-		sector_types.insert(5, handle.clone());
-
-		// 5% damage
-		let handle = template_storage.insert({
-			EntityTemplate::new()
-		});
-		sector_types.insert(7, handle.clone());
-
-		// Glow
-		let handle = template_storage.insert({
-			EntityTemplate::new()
-				.with_component(LightGlow {
-					speed: 1.09375,
-					..LightGlow::default()
-				})
-		});
-		sector_types.insert(8, handle.clone());
-
-		// Secret
-		let handle = template_storage.insert({
-			EntityTemplate::new()
-		});
-		sector_types.insert(9, handle.clone());
-
-		// Door close 30 s after level start
-		let handle = template_storage.insert({
-			EntityTemplate::new()
-		});
-		sector_types.insert(10, handle.clone());
-
-		// 20% damage, end map on death
-		let handle = template_storage.insert({
-			EntityTemplate::new()
-		});
-		sector_types.insert(11, handle.clone());
-
-		// Slow strobe
-		let handle = template_storage.insert({
-			EntityTemplate::new()
-				.with_component(LightFlash {
-					flash_type: LightFlashType::Strobe,
-					off_time: 35 * crate::doom::FRAME_TIME,
-					on_time: 5 * crate::doom::FRAME_TIME,
-					..LightFlash::default()
-				})
-		});
-		sector_types.insert(12, handle.clone());
-
-		// Fast strobe
-		let handle = template_storage.insert({
-			EntityTemplate::new()
-				.with_component(LightFlash {
-					flash_type: LightFlashType::Strobe,
-					off_time: 15 * crate::doom::FRAME_TIME,
-					on_time: 5 * crate::doom::FRAME_TIME,
-					..LightFlash::default()
-				})
-		});
-		sector_types.insert(13, handle.clone());
-
-		// Door open 300 s after level start
-		let handle = template_storage.insert({
-			EntityTemplate::new()
-		});
-		sector_types.insert(14, handle.clone());
-
-		// 20% damage
-		let handle = template_storage.insert({
-			EntityTemplate::new()
-		});
-		sector_types.insert(16, handle.clone());
-
-		// Random flicker
-		let handle = template_storage.insert({
-			EntityTemplate::new()
-		});
-		sector_types.insert(17, handle.clone());
-
-		EntityTypes { names, doomednums, sector_types }
+		MobjTypes { names, doomednums }
 	}
 }

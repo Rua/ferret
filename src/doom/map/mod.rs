@@ -6,8 +6,8 @@ use crate::{
 	assets::{Asset, AssetFormat, AssetHandle, AssetStorage, DataSource},
 	component::EntityTemplate,
 	doom::{
-		components::{SectorRef, SpawnOnCeiling, SpawnPoint, Transform},
-		entities::EntityTypes,
+		components::{LinedefRef, SectorRef, SpawnOnCeiling, SpawnPoint, Transform},
+		entities::{LinedefTypes, MobjTypes, SectorTypes},
 		map::{
 			lumps::{
 				ChildNode, EitherVertex, GLNodesFormat, GLSSectFormat, GLSegsFormat, GLVertFormat,
@@ -39,7 +39,7 @@ pub fn spawn_things(
 	for thing in things {
 		// Fetch entity template
 		let (entity_types, template_storage) = world.system_data::<(
-			ReadExpect<EntityTypes>,
+			ReadExpect<MobjTypes>,
 			ReadExpect<AssetStorage<EntityTemplate>>,
 		)>();
 		let handle = entity_types
@@ -103,7 +103,7 @@ pub fn spawn_player(world: &World) -> Result<Entity, Box<dyn Error + Send + Sync
 
 	// Fetch entity template
 	let (entity_types, template_storage) = world.system_data::<(
-		ReadExpect<EntityTypes>,
+		ReadExpect<MobjTypes>,
 		ReadExpect<AssetStorage<EntityTemplate>>,
 	)>();
 	let handle = entity_types
@@ -124,6 +124,52 @@ pub fn spawn_player(world: &World) -> Result<Entity, Box<dyn Error + Send + Sync
 	Ok(entity)
 }
 
+pub fn spawn_linedef_specials(
+	world: &World,
+	map_entity: Entity,
+	map_handle: &AssetHandle<Map>,
+) -> Result<(), Box<dyn Error + Send + Sync>> {
+	let map_storage = world.system_data::<ReadExpect<AssetStorage<Map>>>();
+	let map = map_storage.get(&map_handle).unwrap();
+
+	for (i, linedef) in map.linedefs.iter().enumerate() {
+		if linedef.special_type == 0 {
+			continue;
+		}
+
+		// Fetch entity template
+		let (entity_types, template_storage) = world.system_data::<(
+			ReadExpect<LinedefTypes>,
+			ReadExpect<AssetStorage<EntityTemplate>>,
+		)>();
+		let handle =
+			entity_types
+				.doomednums
+				.get(&linedef.special_type)
+				.ok_or(Box::from(format!(
+					"Linedef special type not found: {}",
+					linedef.special_type
+				)) as Box<dyn Error + Send + Sync>)?;
+		let template = template_storage.get(handle).unwrap();
+
+		// Create entity and add components
+		let entity = world.entities().create();
+		template.add_to_entity(entity, world)?;
+
+		// Set entity linedef reference
+		let mut linedef_ref_storage = world.system_data::<WriteStorage<LinedefRef>>();
+		linedef_ref_storage.insert(
+			entity,
+			LinedefRef {
+				map_entity,
+				index: i,
+			},
+		)?;
+	}
+
+	Ok(())
+}
+
 pub fn spawn_sector_specials(
 	world: &World,
 	map_entity: Entity,
@@ -139,12 +185,12 @@ pub fn spawn_sector_specials(
 
 		// Fetch entity template
 		let (entity_types, template_storage) = world.system_data::<(
-			ReadExpect<EntityTypes>,
+			ReadExpect<SectorTypes>,
 			ReadExpect<AssetStorage<EntityTemplate>>,
 		)>();
 		let handle =
 			entity_types
-				.sector_types
+				.doomednums
 				.get(&sector.special_type)
 				.ok_or(Box::from(format!(
 					"Sector special type not found: {}",
@@ -474,6 +520,10 @@ pub fn build_map(
 					front_sidedef.top_texture = TextureType::Sky;
 					back_sidedef.top_texture = TextureType::Sky;
 				}
+			}
+
+			if data.special_type != 0 {
+				println!("{}", data.special_type);
 			}
 
 			Ok(Linedef {

@@ -62,6 +62,13 @@ pub struct SectorRef {
 	pub index: usize,
 }
 
+#[derive(Clone, Component, Debug)]
+#[storage(HashMapStorage)]
+pub struct LinedefRef {
+	pub map_entity: Entity,
+	pub index: usize,
+}
+
 #[derive(Clone, Component, Copy, Debug)]
 #[storage(HashMapStorage)]
 pub struct SpawnOnCeiling {

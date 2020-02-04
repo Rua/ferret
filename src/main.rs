@@ -117,6 +117,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	// Register components
 	world.register::<doom::components::LightFlash>();
 	world.register::<doom::components::LightGlow>();
+	world.register::<doom::components::LinedefRef>();
 	world.register::<doom::components::MapDynamic>();
 	world.register::<doom::components::SectorRef>();
 	world.register::<doom::components::SpawnOnCeiling>();
@@ -251,9 +252,11 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						};
 
 						// Load entity type data
-						let entity_types = doom::entities::EntityTypes::new(&world);
-						world.insert(entity_types);
+						world.insert(doom::entities::MobjTypes::new(&world));
+						world.insert(doom::entities::SectorTypes::new(&world));
+						world.insert(doom::entities::LinedefTypes::new(&world));
 
+						// Load sprite images
 						{
 							let (
 								palette_storage,
@@ -434,8 +437,9 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 								world.system_data::<WriteExpect<doom::wad::WadLoader>>();
 							doom::map::lumps::ThingsFormat.import(name, &mut *loader)?
 						};
-						doom::map::spawn_things(things, &world, &map_handle)?;
+						doom::map::spawn_linedef_specials(&world, map_entity, &map_handle)?;
 						doom::map::spawn_sector_specials(&world, map_entity, &map_handle)?;
+						doom::map::spawn_things(things, &world, &map_handle)?;
 
 						// Spawn player
 						let entity = doom::map::spawn_player(&world)?;
