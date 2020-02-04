@@ -1,10 +1,10 @@
 use crate::{
-    assets::{AssetHandle, AssetStorage},
-    component::EntityTemplate,
-    doom::components::{LightFlash, LightFlashType, LightGlow},
+	assets::{AssetHandle, AssetStorage},
+	component::EntityTemplate,
+	doom::components::{LightFlash, LightFlashType, LightGlow},
 };
-use std::collections::HashMap;
 use specs::{World, WriteExpect};
+use std::collections::HashMap;
 
 pub struct SectorTypes {
 	pub doomednums: HashMap<u16, AssetHandle<EntityTemplate>>,

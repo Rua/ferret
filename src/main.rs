@@ -21,7 +21,7 @@ use crate::{
 use nalgebra::{Matrix4, Vector3};
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
-use specs::{world::Builder, ReadExpect, RunNow, World, WorldExt, WriteExpect};
+use specs::{ReadExpect, RunNow, World, WorldExt, WriteExpect};
 use std::{
 	error::Error,
 	sync::mpsc,
@@ -412,33 +412,13 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 							});
 						}
 
-						// Create world entity
-						let map_dynamic = {
-							let map_storage =
-								world.system_data::<ReadExpect<AssetStorage<doom::map::Map>>>();
-							let map = map_storage.get(&map_handle).unwrap();
-
-							doom::components::MapDynamic {
-								map: map_handle.clone(),
-								sectors: map
-									.sectors
-									.iter()
-									.map(|sector| doom::map::SectorDynamic {
-										light_level: sector.light_level,
-									})
-									.collect(),
-							}
-						};
-						let map_entity = world.create_entity().with(map_dynamic).build();
-
-						// Spawn things and specials
+						// Spawn map entities and things
 						let things = {
 							let mut loader =
 								world.system_data::<WriteExpect<doom::wad::WadLoader>>();
 							doom::map::lumps::ThingsFormat.import(name, &mut *loader)?
 						};
-						doom::map::spawn_linedef_specials(&world, map_entity, &map_handle)?;
-						doom::map::spawn_sector_specials(&world, map_entity, &map_handle)?;
+						doom::map::spawn_map_entities(&world, &map_handle)?;
 						doom::map::spawn_things(things, &world, &map_handle)?;
 
 						// Spawn player

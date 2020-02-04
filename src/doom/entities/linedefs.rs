@@ -1,9 +1,9 @@
 use crate::{
-    assets::{AssetHandle, AssetStorage},
-    component::EntityTemplate,
+	assets::{AssetHandle, AssetStorage},
+	component::EntityTemplate,
 };
-use std::collections::HashMap;
 use specs::{World, WriteExpect};
+use std::collections::HashMap;
 
 pub struct LinedefTypes {
 	pub doomednums: HashMap<u16, AssetHandle<EntityTemplate>>,
