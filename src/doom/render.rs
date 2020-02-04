@@ -1,7 +1,7 @@
 use crate::{
 	assets::AssetStorage,
 	doom::{
-		components::{MapDynamic, SpriteRender, Transform},
+		components::{MapDynamic, SectorDynamic, SpriteRender, Transform},
 		map::{
 			textures::{Flat, WallTexture},
 			Map,
@@ -615,6 +615,7 @@ impl SpriteRenderSystem {
 			sprite_storage,
 			sprite_image_storage,
 			map_dynamic_component,
+			sector_dynamic_component,
 			sprite_component,
 			transform_component,
 		) = world.system_data::<(
@@ -624,6 +625,7 @@ impl SpriteRenderSystem {
 			ReadExpect<AssetStorage<Sprite>>,
 			ReadExpect<AssetStorage<SpriteImage>>,
 			ReadStorage<MapDynamic>,
+			ReadStorage<SectorDynamic>,
 			ReadStorage<SpriteRender>,
 			ReadStorage<Transform>,
 		)>();
@@ -673,7 +675,10 @@ impl SpriteRenderSystem {
 			} else {
 				let ssect =
 					map.find_subsector(Vector2::new(transform.position[0], transform.position[1]));
-				map_dynamic.sectors[ssect.sector_index].light_level
+				sector_dynamic_component
+					.get(map_dynamic.sectors[ssect.sector_index])
+					.unwrap()
+					.light_level
 			};
 
 			// Set up instance data

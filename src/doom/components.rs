@@ -1,10 +1,7 @@
 //use crate::assets::AssetHandle;
 use crate::{
 	assets::AssetHandle,
-	doom::{
-		map::{Map, SectorDynamic},
-		sprite::Sprite,
-	},
+	doom::{map::Map, sprite::Sprite},
 	geometry::Angle,
 };
 use nalgebra::Vector3;
@@ -52,21 +49,24 @@ pub struct LightGlow {
 #[storage(HashMapStorage)]
 pub struct MapDynamic {
 	pub map: AssetHandle<Map>,
-	pub sectors: Vec<SectorDynamic>,
+	pub linedefs: Vec<Entity>,
+	pub sectors: Vec<Entity>,
 }
 
 #[derive(Clone, Component, Debug)]
 #[storage(HashMapStorage)]
-pub struct SectorRef {
+pub struct LinedefDynamic {
 	pub map_entity: Entity,
 	pub index: usize,
 }
 
 #[derive(Clone, Component, Debug)]
 #[storage(HashMapStorage)]
-pub struct LinedefRef {
+pub struct SectorDynamic {
 	pub map_entity: Entity,
 	pub index: usize,
+
+	pub light_level: f32,
 }
 
 #[derive(Clone, Component, Copy, Debug)]

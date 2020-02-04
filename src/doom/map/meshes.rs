@@ -1,7 +1,7 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
 	doom::{
-		components::MapDynamic,
+		components::{MapDynamic, SectorDynamic},
 		map::{
 			textures::{Flat, WallTexture},
 			LinedefFlags, Map, Side, TextureType,
@@ -9,7 +9,7 @@ use crate::{
 	},
 };
 use nalgebra::Vector2;
-use specs::{ReadExpect, World};
+use specs::{ReadExpect, ReadStorage, World};
 use std::{collections::HashMap, error::Error};
 use vulkano::{image::Dimensions, impl_vertex};
 
@@ -129,8 +129,11 @@ pub fn make_meshes(
 	let mut wall_meshes: HashMap<AssetHandle<WallTexture>, (Vec<VertexData>, Vec<u32>)> =
 		HashMap::new();
 
-	let flat_storage = world.system_data::<ReadExpect<AssetStorage<Flat>>>();
-	let wall_texture_storage = world.system_data::<ReadExpect<AssetStorage<WallTexture>>>();
+	let (flat_storage, wall_texture_storage, sector_dynamic_component) = world.system_data::<(
+		ReadExpect<AssetStorage<Flat>>,
+		ReadExpect<AssetStorage<WallTexture>>,
+		ReadStorage<SectorDynamic>,
+	)>();
 
 	// Walls
 	for linedef in &map.linedefs {
@@ -140,7 +143,9 @@ pub fn make_meshes(
 				None => continue,
 			};
 			let front_sector = &map.sectors[front_sidedef.sector_index];
-			let front_sector_dynamic = &map_dynamic.sectors[front_sidedef.sector_index];
+			let front_sector_dynamic = sector_dynamic_component
+				.get(map_dynamic.sectors[front_sidedef.sector_index])
+				.unwrap();
 
 			// Swap the vertices if we're on the left side of the linedef
 			let linedef_vertices = match side {
@@ -288,7 +293,9 @@ pub fn make_meshes(
 
 	// Flats
 	for (i, sector) in map.sectors.iter().enumerate() {
-		let sector_dynamic = &map_dynamic.sectors[i];
+		let sector_dynamic = sector_dynamic_component
+			.get(map_dynamic.sectors[i])
+			.unwrap();
 
 		for vertices in &sector.subsectors {
 			// Floor

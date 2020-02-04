@@ -1,7 +1,7 @@
 use crate::{
 	assets::AssetStorage,
 	doom::{
-		components::{LightFlash, LightFlashType, LightGlow, MapDynamic, SectorRef, Transform},
+		components::{LightFlash, LightFlashType, LightGlow, MapDynamic, SectorDynamic, Transform},
 		input::{Action, Axis},
 		map::Map,
 	},
@@ -38,33 +38,36 @@ impl<'a> RunNow<'a> for LightUpdateSystem {
 		let (
 			map_storage,
 			delta,
-			mut light_flash_storage,
-			mut light_glow_storage,
-			mut map_dynamic_storage,
-			sector_ref_storage,
+			mut light_flash_component,
+			mut light_glow_component,
+			map_dynamic_component,
+			mut sector_dynamic_component,
 			mut rng,
 		) = world.system_data::<(
 			ReadExpect<AssetStorage<Map>>,
 			ReadExpect<Duration>,
 			WriteStorage<LightFlash>,
 			WriteStorage<LightGlow>,
-			WriteStorage<MapDynamic>,
-			ReadStorage<SectorRef>,
+			ReadStorage<MapDynamic>,
+			WriteStorage<SectorDynamic>,
 			WriteExpect<Pcg64Mcg>,
 		)>();
 
-		for (sector_ref, light_flash) in (&sector_ref_storage, &mut light_flash_storage).join() {
+		for (sector_dynamic, light_flash) in
+			(&mut sector_dynamic_component, &mut light_flash_component).join()
+		{
 			if let Some(new_time) = light_flash.time_left.checked_sub(*delta) {
 				light_flash.time_left = new_time;
 			} else {
 				light_flash.state = !light_flash.state;
-				let map_dynamic = map_dynamic_storage
-					.get_mut(sector_ref.map_entity)
+				let map_dynamic = map_dynamic_component
+					.get(sector_dynamic.map_entity)
 					.expect("map_entity does not have MapDynamic component");
 				let map = map_storage.get(&map_dynamic.map).unwrap();
+				let sector = &map.sectors[sector_dynamic.index];
 
-				let max_light = map.sectors[sector_ref.index].light_level;
-				let min_light = map.sectors[sector_ref.index]
+				let max_light = sector.light_level;
+				let min_light = sector
 					.neighbours
 					.iter()
 					.map(|index| map.sectors[*index].light_level)
@@ -77,25 +80,24 @@ impl<'a> RunNow<'a> for LightUpdateSystem {
 							light_flash.time_left = light_flash.on_time
 								* (rng.gen::<bool>() as u32)
 								+ crate::doom::FRAME_TIME;
-							map_dynamic.sectors[sector_ref.index].light_level = max_light;
+							sector_dynamic.light_level = max_light;
 						} else {
 							light_flash.time_left = light_flash.off_time.mul_f64(rng.gen::<f64>())
 								+ crate::doom::FRAME_TIME;
-							map_dynamic.sectors[sector_ref.index].light_level = min_light;
+							sector_dynamic.light_level = min_light;
 						}
 					}
 					LightFlashType::Strobe => {
 						if light_flash.state {
 							light_flash.time_left = light_flash.on_time;
-							map_dynamic.sectors[sector_ref.index].light_level = max_light;
+							sector_dynamic.light_level = max_light;
 						} else {
 							light_flash.time_left = light_flash.off_time;
-							map_dynamic.sectors[sector_ref.index].light_level =
-								if min_light == max_light {
-									0.0
-								} else {
-									min_light
-								};
+							sector_dynamic.light_level = if min_light == max_light {
+								0.0
+							} else {
+								min_light
+							};
 						}
 					}
 					LightFlashType::StrobeUnSync(time) => {
@@ -107,34 +109,35 @@ impl<'a> RunNow<'a> for LightUpdateSystem {
 			}
 		}
 
-		for (sector_ref, light_glow) in (&sector_ref_storage, &mut light_glow_storage).join() {
-			let map_dynamic = map_dynamic_storage
-				.get_mut(sector_ref.map_entity)
+		for (sector_dynamic, light_glow) in
+			(&mut sector_dynamic_component, &mut light_glow_component).join()
+		{
+			let map_dynamic = map_dynamic_component
+				.get(sector_dynamic.map_entity)
 				.expect("map_entity does not have MapDynamic component");
 			let map = map_storage.get(&map_dynamic.map).unwrap();
+			let sector = &map.sectors[sector_dynamic.index];
 			let speed = light_glow.speed * delta.as_secs_f32();
 
 			if light_glow.state {
-				map_dynamic.sectors[sector_ref.index].light_level += speed;
-				let max_light = map.sectors[sector_ref.index].light_level;
+				sector_dynamic.light_level += speed;
+				let max_light = sector.light_level;
 
-				if map_dynamic.sectors[sector_ref.index].light_level > max_light {
-					map_dynamic.sectors[sector_ref.index].light_level =
-						2.0 * max_light - map_dynamic.sectors[sector_ref.index].light_level;
+				if sector_dynamic.light_level > max_light {
+					sector_dynamic.light_level = 2.0 * max_light - sector_dynamic.light_level;
 					light_glow.state = !light_glow.state;
 				}
 			} else {
-				map_dynamic.sectors[sector_ref.index].light_level -= speed;
-				let min_light = map.sectors[sector_ref.index]
+				sector_dynamic.light_level -= speed;
+				let min_light = sector
 					.neighbours
 					.iter()
 					.map(|index| map.sectors[*index].light_level)
 					.min_by(|x, y| x.partial_cmp(y).unwrap())
 					.unwrap_or(0.0);
 
-				if map_dynamic.sectors[sector_ref.index].light_level < min_light {
-					map_dynamic.sectors[sector_ref.index].light_level =
-						2.0 * min_light - map_dynamic.sectors[sector_ref.index].light_level;
+				if sector_dynamic.light_level < min_light {
+					sector_dynamic.light_level = 2.0 * min_light - sector_dynamic.light_level;
 					light_glow.state = !light_glow.state;
 				}
 			}

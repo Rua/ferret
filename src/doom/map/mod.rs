@@ -6,7 +6,9 @@ use crate::{
 	assets::{Asset, AssetFormat, AssetHandle, AssetStorage, DataSource},
 	component::EntityTemplate,
 	doom::{
-		components::{LinedefRef, MapDynamic, SectorRef, SpawnOnCeiling, SpawnPoint, Transform},
+		components::{
+			LinedefDynamic, MapDynamic, SectorDynamic, SpawnOnCeiling, SpawnPoint, Transform,
+		},
 		entities::{LinedefTypes, MobjTypes, SectorTypes},
 		map::{
 			lumps::{
@@ -141,35 +143,28 @@ pub fn spawn_map_entities(
 		WriteStorage<MapDynamic>,
 		ReadExpect<AssetStorage<EntityTemplate>>,
 		ReadExpect<LinedefTypes>,
-		WriteStorage<LinedefRef>,
+		WriteStorage<LinedefDynamic>,
 		ReadExpect<SectorTypes>,
-		WriteStorage<SectorRef>,
+		WriteStorage<SectorDynamic>,
 	)>();
 	let map = map_storage.get(&map_handle).unwrap();
 
 	// Create map entity
 	let map_entity = world.entities().create();
-	map_dynamic_storage.insert(
-		map_entity,
-		MapDynamic {
-			map: map_handle.clone(),
-			sectors: map
-				.sectors
-				.iter()
-				.map(|sector| SectorDynamic {
-					light_level: sector.light_level,
-				})
-				.collect(),
-		},
-	)?;
+	let mut map_dynamic = MapDynamic {
+		map: map_handle.clone(),
+		linedefs: Vec::with_capacity(map.linedefs.len()),
+		sectors: Vec::with_capacity(map.sectors.len()),
+	};
 
 	// Create linedef entities
 	for (i, linedef) in map.linedefs.iter().enumerate() {
 		// Create entity and set reference
 		let entity = world.entities().create();
+		map_dynamic.linedefs.push(entity);
 		linedef_ref_storage.insert(
 			entity,
-			LinedefRef {
+			LinedefDynamic {
 				map_entity,
 				index: i,
 			},
@@ -196,11 +191,14 @@ pub fn spawn_map_entities(
 	for (i, sector) in map.sectors.iter().enumerate() {
 		// Create entity and set reference
 		let entity = world.entities().create();
+		map_dynamic.sectors.push(entity);
 		sector_ref_storage.insert(
 			entity,
-			SectorRef {
+			SectorDynamic {
 				map_entity,
 				index: i,
+
+				light_level: sector.light_level,
 			},
 		)?;
 
@@ -219,6 +217,8 @@ pub fn spawn_map_entities(
 		let template = template_storage.get(handle).unwrap();
 		template.add_to_entity(entity, world)?;
 	}
+
+	map_dynamic_storage.insert(map_entity, map_dynamic)?;
 
 	Ok(())
 }
@@ -715,9 +715,4 @@ impl BranchNode {
 pub enum GLNode {
 	Leaf(LeafNode),
 	Branch(BranchNode),
-}
-
-#[derive(Clone, Debug)]
-pub struct SectorDynamic {
-	pub light_level: f32,
 }
