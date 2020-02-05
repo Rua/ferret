@@ -411,11 +411,6 @@ impl LinedefTypes {
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(78, handle.clone());
-
-        let handle = template_storage.insert({
-        	EntityTemplate::new()
-        });
         doomednums.insert(79, handle.clone());
 
         let handle = template_storage.insert({
@@ -443,12 +438,7 @@ impl LinedefTypes {
         });
         doomednums.insert(84, handle.clone());
 
-        let handle = template_storage.insert({
-        	EntityTemplate::new()
-        });
-        doomednums.insert(85, handle.clone());
-
-        let handle = template_storage.insert({
+    	let handle = template_storage.insert({
         	EntityTemplate::new()
         });
         doomednums.insert(86, handle.clone());

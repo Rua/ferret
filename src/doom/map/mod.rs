@@ -137,7 +137,7 @@ pub fn spawn_map_entities(
 		linedef_types,
 		mut linedef_dynamic_component,
 		sector_types,
-		mut sector_dynamic_component
+		mut sector_dynamic_component,
 	) = world.system_data::<(
 		ReadExpect<AssetStorage<Map>>,
 		WriteStorage<MapDynamic>,
@@ -655,6 +655,18 @@ pub struct Linedef {
 	pub sidedefs: [Option<Sidedef>; 2],
 }
 
+impl Linedef {
+	pub fn point_side(&self, point: Vector2<f32>) -> Side {
+		if crate::geometry::point_side(self.vertices[0], self.vertices[1] - self.vertices[0], point)
+			< 0.0
+		{
+			Side::Right
+		} else {
+			Side::Left
+		}
+	}
+}
+
 #[derive(Clone, Debug)]
 pub struct Sidedef {
 	pub texture_offset: Vector2<f32>,
@@ -701,11 +713,7 @@ pub struct BranchNode {
 
 impl BranchNode {
 	pub fn point_side(&self, point: Vector2<f32>) -> Side {
-		let d = point - self.partition_point;
-		let left = self.partition_dir[1] * d[0];
-		let right = self.partition_dir[0] * d[1];
-
-		if right < left {
+		if crate::geometry::point_side(self.partition_point, self.partition_dir, point) < 0.0 {
 			Side::Right
 		} else {
 			Side::Left

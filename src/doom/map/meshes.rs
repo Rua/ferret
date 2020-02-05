@@ -129,16 +129,19 @@ pub fn make_meshes(
 	let mut wall_meshes: HashMap<AssetHandle<WallTexture>, (Vec<VertexData>, Vec<u32>)> =
 		HashMap::new();
 
-	let (flat_storage, wall_texture_storage, linedef_dynamic_component, sector_dynamic_component) = world.system_data::<(
-		ReadExpect<AssetStorage<Flat>>,
-		ReadExpect<AssetStorage<WallTexture>>,
-		ReadStorage<LinedefDynamic>,
-		ReadStorage<SectorDynamic>,
-	)>();
+	let (flat_storage, wall_texture_storage, linedef_dynamic_component, sector_dynamic_component) =
+		world.system_data::<(
+			ReadExpect<AssetStorage<Flat>>,
+			ReadExpect<AssetStorage<WallTexture>>,
+			ReadStorage<LinedefDynamic>,
+			ReadStorage<SectorDynamic>,
+		)>();
 
 	// Walls
 	for (linedef_index, linedef) in map.linedefs.iter().enumerate() {
-		let linedef_dynamic = linedef_dynamic_component.get(map_dynamic.linedefs[linedef_index]).unwrap();
+		let linedef_dynamic = linedef_dynamic_component
+			.get(map_dynamic.linedefs[linedef_index])
+			.unwrap();
 
 		for side in [Side::Right, Side::Left].iter().copied() {
 			let front_sidedef = match &linedef.sidedefs[side as usize] {

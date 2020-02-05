@@ -1,4 +1,4 @@
-use nalgebra::{Vector2, Vector3};
+use nalgebra::{Matrix, Vector2, Vector3};
 use std::f32::{INFINITY, NEG_INFINITY};
 
 #[derive(Debug, Clone)]
@@ -241,4 +241,48 @@ impl std::ops::Not for Side {
 			Side::Left => Side::Right,
 		}
 	}
+}
+
+// == 0: on line, < 0: right of line, > 0: left of line
+#[inline]
+pub fn point_side(
+	target_point: Vector2<f32>,
+	target_direction: Vector2<f32>,
+	src_point: Vector2<f32>,
+) -> f32 {
+	let d = src_point - target_point;
+	target_direction[0] * d[1] - target_direction[1] * d[0]
+}
+
+pub fn intersect(
+	target_point: Vector2<f32>,
+	target_direction: Vector2<f32>,
+	src_point: Vector2<f32>,
+	src_direction: Vector2<f32>,
+) -> f32 {
+	let denom = target_direction[0] * src_direction[1] - target_direction[1] * src_direction[0];
+
+	if denom == 0.0 {
+		return 1.0;
+	}
+
+	let t = (target_direction[1] * src_point[0] - target_direction[0] * src_point[1]
+		+ target_direction[0] * target_point[1]
+		- target_direction[1] * target_point[0])
+		/ denom;
+
+	if t <= 0.0 || t >= 1.0 {
+		return 1.0;
+	}
+
+	let u = (Matrix::dot(&-target_direction, &target_point)
+		+ Matrix::dot(&target_direction, &src_point)
+		+ Matrix::dot(&target_direction, &src_direction) * t)
+		/ Matrix::dot(&target_direction, &target_direction);
+
+	if u <= 0.0 || u >= 1.0 {
+		return 1.0;
+	}
+
+	t
 }

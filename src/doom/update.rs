@@ -1,10 +1,14 @@
 use crate::{
 	assets::AssetStorage,
 	doom::{
-		components::{LightFlash, LightFlashType, LightGlow, LinedefDynamic, MapDynamic, SectorDynamic, TextureScroll, Transform},
+		components::{
+			LightFlash, LightFlashType, LightGlow, LinedefDynamic, MapDynamic, SectorDynamic,
+			TextureScroll, Transform,
+		},
 		input::{Action, Axis},
 		map::Map,
 	},
+	geometry::Side,
 	input::{Bindings, InputState},
 };
 use nalgebra::Vector2;
@@ -154,13 +158,24 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 	fn setup(&mut self, _world: &mut World) {}
 
 	fn run_now(&mut self, world: &'a World) {
-		let (entity, mut transform_storage, input_state, bindings) = world.system_data::<(
-			ReadExpect<Entity>,
-			WriteStorage<Transform>,
-			ReadExpect<InputState>,
+		let (
+			bindings,
+			entity,
+			input_state,
+			map_storage,
+			map_dynamic_component,
+			mut transform_component,
+		) = world.system_data::<(
 			ReadExpect<Bindings<Action, Axis>>,
+			ReadExpect<Entity>,
+			ReadExpect<InputState>,
+			ReadExpect<AssetStorage<Map>>,
+			ReadStorage<MapDynamic>,
+			WriteStorage<Transform>,
 		)>();
-		let transform = transform_storage.get_mut(*entity).unwrap();
+
+		// Player translation and rotation
+		let transform = transform_component.get_mut(*entity).unwrap();
 
 		transform.rotation[1] += (bindings.axis_value(&Axis::Pitch, &input_state) * 1e6) as i32;
 		transform.rotation[1].0 =
@@ -182,6 +197,45 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 		move_dir *= 20.0;
 
 		transform.position += axes[0] * move_dir[0] + axes[1] * move_dir[1];
+
+		// Use command
+		if bindings.action_is_down(&Action::Use, &input_state) {
+			let map_dynamic = map_dynamic_component.join().next().unwrap();
+			let map = map_storage.get(&map_dynamic.map).unwrap();
+
+			const USERANGE: f32 = 64.0;
+			let mut point = transform.position;
+			point[2] += 41.0; // TODO: Store view height properly
+			let yaw = transform.rotation[2].to_radians() as f32;
+			let direction = Vector2::new(yaw.cos(), yaw.sin()) * USERANGE;
+
+			let mut tmax = 1.0;
+			let mut closest_linedef = None;
+
+			for (i, linedef) in map.linedefs.iter().enumerate() {
+				let t = crate::geometry::intersect(
+					linedef.vertices[0],
+					linedef.vertices[1] - linedef.vertices[0],
+					Vector2::new(point[0], point[1]),
+					direction,
+				);
+
+				if t < tmax {
+					tmax = t;
+					closest_linedef = Some(i);
+				}
+			}
+
+			if let Some(linedef_index) = closest_linedef {
+				let linedef = &map.linedefs[linedef_index];
+
+				if linedef.special_type != 0
+					&& linedef.point_side(Vector2::new(point[0], point[1])) == Side::Right
+				{
+					println!("Used linedef {}!", linedef_index);
+				}
+			}
+		}
 	}
 }
 
@@ -192,17 +246,16 @@ impl<'a> RunNow<'a> for TextureScrollSystem {
 	fn setup(&mut self, _world: &mut World) {}
 
 	fn run_now(&mut self, world: &'a World) {
-		let (
-			delta,
-			mut linedef_dynamic_component,
-			texture_scroll_component,
-		) = world.system_data::<(
-			ReadExpect<Duration>,
-			WriteStorage<LinedefDynamic>,
-			ReadStorage<TextureScroll>,
-		)>();
+		let (delta, mut linedef_dynamic_component, texture_scroll_component) = world
+			.system_data::<(
+				ReadExpect<Duration>,
+				WriteStorage<LinedefDynamic>,
+				ReadStorage<TextureScroll>,
+			)>();
 
-		for (linedef_dynamic, texture_scroll) in (&mut linedef_dynamic_component, &texture_scroll_component).join() {
+		for (linedef_dynamic, texture_scroll) in
+			(&mut linedef_dynamic_component, &texture_scroll_component).join()
+		{
 			linedef_dynamic.texture_offset += texture_scroll.speed * delta.as_secs_f32();
 		}
 	}
