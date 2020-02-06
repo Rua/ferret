@@ -6,7 +6,7 @@ use crate::{
 			LightFlash, LightFlashType, LightGlow, LinedefDynamic, MapDynamic, SectorDynamic,
 			TextureScroll, Transform,
 		},
-		input::{Action, Axis},
+		input::{Action, Axis, UserCommand},
 		map::Map,
 	},
 	geometry::Side,
@@ -21,6 +21,7 @@ use std::time::Duration;
 #[derive(Default)]
 pub struct UpdateSystem {
 	light_update: LightUpdateSystem,
+	player_command: PlayerCommandSystem,
 	player_move: PlayerMoveSystem,
 	texture_scroll: TextureScrollSystem,
 }
@@ -30,6 +31,7 @@ impl<'a> RunNow<'a> for UpdateSystem {
 
 	fn run_now(&mut self, world: &'a World) {
 		self.light_update.run_now(world);
+		self.player_command.run_now(world);
 		self.player_move.run_now(world);
 		self.texture_scroll.run_now(world);
 	}
@@ -153,43 +155,60 @@ impl<'a> RunNow<'a> for LightUpdateSystem {
 }
 
 #[derive(Default)]
+struct PlayerCommandSystem;
+
+impl<'a> RunNow<'a> for PlayerCommandSystem {
+	fn setup(&mut self, _world: &mut World) {}
+
+	fn run_now(&mut self, world: &'a World) {
+		let (bindings, mut client, input_state) = world.system_data::<(
+			ReadExpect<Bindings<Action, Axis>>,
+			WriteExpect<Client>,
+			ReadExpect<InputState>,
+		)>();
+
+		let command = UserCommand {
+			action_attack: bindings.action_is_down(&Action::Attack, &input_state),
+			action_use: bindings.action_is_down(&Action::Use, &input_state),
+			axis_forward: bindings.axis_value(&Axis::Forward, &input_state) as f32,
+			axis_pitch: bindings.axis_value(&Axis::Pitch, &input_state) as f32,
+			axis_strafe: bindings.axis_value(&Axis::Strafe, &input_state) as f32,
+			axis_yaw: bindings.axis_value(&Axis::Yaw, &input_state) as f32,
+		};
+
+		client.previous_command = client.command;
+		client.command = command;
+	}
+}
+
+#[derive(Default)]
 struct PlayerMoveSystem;
 
 impl<'a> RunNow<'a> for PlayerMoveSystem {
 	fn setup(&mut self, _world: &mut World) {}
 
 	fn run_now(&mut self, world: &'a World) {
-		let (
-			bindings,
-			client,
-			input_state,
-			map_storage,
-			map_dynamic_component,
-			mut transform_component,
-		) = world.system_data::<(
-			ReadExpect<Bindings<Action, Axis>>,
-			ReadExpect<Client>,
-			ReadExpect<InputState>,
-			ReadExpect<AssetStorage<Map>>,
-			ReadStorage<MapDynamic>,
-			WriteStorage<Transform>,
-		)>();
+		let (client, map_storage, map_dynamic_component, mut transform_component) = world
+			.system_data::<(
+				WriteExpect<Client>,
+				ReadExpect<AssetStorage<Map>>,
+				ReadStorage<MapDynamic>,
+				WriteStorage<Transform>,
+			)>();
 
-		// Player translation and rotation
 		if let Some(entity) = client.entity {
+			// Player translation and rotation
 			let transform = transform_component.get_mut(entity).unwrap();
 
-			transform.rotation[1] += (bindings.axis_value(&Axis::Pitch, &input_state) * 1e6) as i32;
+			transform.rotation[1] += (client.command.axis_pitch * 1e6) as i32;
 			transform.rotation[1].0 =
 				num_traits::clamp(transform.rotation[1].0, -0x40000000, 0x40000000);
 
-			transform.rotation[2] -= (bindings.axis_value(&Axis::Yaw, &input_state) * 1e6) as i32;
+			transform.rotation[2] -= (client.command.axis_yaw * 1e6) as i32;
 
 			let axes = crate::geometry::angles_to_axes(transform.rotation);
-			let mut move_dir = Vector2::new(
-				bindings.axis_value(&Axis::Forward, &input_state) as f32,
-				bindings.axis_value(&Axis::Strafe, &input_state) as f32,
-			);
+			let mut move_dir =
+				Vector2::new(client.command.axis_forward, client.command.axis_strafe);
 			let len = move_dir.norm();
 
 			if len > 1.0 {
@@ -201,7 +220,7 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 			transform.position += axes[0] * move_dir[0] + axes[1] * move_dir[1];
 
 			// Use command
-			if bindings.action_is_down(&Action::Use, &input_state) {
+			if client.command.action_use && !client.previous_command.action_use {
 				let map_dynamic = map_dynamic_component.join().next().unwrap();
 				let map = map_storage.get(&map_dynamic.map).unwrap();
 
