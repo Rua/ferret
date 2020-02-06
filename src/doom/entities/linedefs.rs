@@ -1,7 +1,7 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
-	doom::components::TextureScroll,
+	doom::components::{DoorUse, TextureScroll},
 };
 use nalgebra::Vector2;
 use specs::{World, WriteExpect};
@@ -22,6 +22,10 @@ impl LinedefTypes {
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
+				.with_component(DoorUse {
+					speed: 2.0 / crate::doom::FRAME_TIME.as_secs_f32(),
+					wait_time: 150 * crate::doom::FRAME_TIME,
+				})
         });
         doomednums.insert(1, handle.clone());
 

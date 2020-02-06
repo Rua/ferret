@@ -201,6 +201,8 @@ pub fn spawn_map_entities(
 				index: i,
 
 				light_level: sector.light_level,
+				floor_height: sector.floor_height,
+				ceiling_height: sector.ceiling_height,
 			},
 		)?;
 

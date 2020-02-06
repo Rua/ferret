@@ -155,7 +155,6 @@ pub fn make_meshes(
 				texture_offset += linedef_dynamic.texture_offset;
 			}
 
-			let front_sector = &map.sectors[front_sidedef.sector_index];
 			let front_sector_dynamic = sector_dynamic_component
 				.get(map_dynamic.sectors[front_sidedef.sector_index])
 				.unwrap();
@@ -168,12 +167,20 @@ pub fn make_meshes(
 
 			// Two-sided or one-sided sidedef?
 			if let Some(back_sidedef) = &linedef.sidedefs[!side as usize] {
-				let back_sector = &map.sectors[back_sidedef.sector_index];
+				let back_sector_dynamic = sector_dynamic_component
+					.get(map_dynamic.sectors[back_sidedef.sector_index])
+					.unwrap();
 				let spans = [
-					front_sector.ceiling_height,
-					f32::min(front_sector.ceiling_height, back_sector.ceiling_height),
-					f32::max(back_sector.floor_height, front_sector.floor_height),
-					front_sector.floor_height,
+					front_sector_dynamic.ceiling_height,
+					f32::min(
+						front_sector_dynamic.ceiling_height,
+						back_sector_dynamic.ceiling_height,
+					),
+					f32::max(
+						back_sector_dynamic.floor_height,
+						front_sector_dynamic.floor_height,
+					),
+					front_sector_dynamic.floor_height,
 				];
 
 				// Top section
@@ -224,8 +231,8 @@ pub fn make_meshes(
 
 						let tex_v = if linedef.flags.contains(LinedefFlags::DONTPEGBOTTOM) {
 							[
-								front_sector.ceiling_height - spans[2],
-								front_sector.ceiling_height - spans[3],
+								front_sector_dynamic.ceiling_height - spans[2],
+								front_sector_dynamic.ceiling_height - spans[3],
 							]
 						} else {
 							[0.0, spans[2] - spans[3]]
@@ -283,16 +290,27 @@ pub fn make_meshes(
 							.or_insert((vec![], vec![]));
 
 						let tex_v = if linedef.flags.contains(LinedefFlags::DONTPEGBOTTOM) {
-							[front_sector.floor_height - front_sector.ceiling_height, 0.0]
+							[
+								front_sector_dynamic.floor_height
+									- front_sector_dynamic.ceiling_height,
+								0.0,
+							]
 						} else {
-							[0.0, front_sector.ceiling_height - front_sector.floor_height]
+							[
+								0.0,
+								front_sector_dynamic.ceiling_height
+									- front_sector_dynamic.floor_height,
+							]
 						};
 
 						push_wall(
 							vertices,
 							indices,
 							linedef_vertices,
-							[front_sector.ceiling_height, front_sector.floor_height],
+							[
+								front_sector_dynamic.ceiling_height,
+								front_sector_dynamic.floor_height,
+							],
 							tex_v,
 							texture_offset,
 							dimensions,
@@ -316,9 +334,12 @@ pub fn make_meshes(
 
 			match &sector.floor_texture {
 				TextureType::None => (),
-				TextureType::Sky => {
-					push_sky_flat(&mut sky_mesh.0, &mut sky_mesh.1, iter, sector.floor_height)
-				}
+				TextureType::Sky => push_sky_flat(
+					&mut sky_mesh.0,
+					&mut sky_mesh.1,
+					iter,
+					sector_dynamic.floor_height,
+				),
 				TextureType::Normal(handle) => {
 					let dimensions = flat_storage.get(handle).unwrap().dimensions();
 					let (ref mut vertices, ref mut indices) = flat_meshes
@@ -329,7 +350,7 @@ pub fn make_meshes(
 						vertices,
 						indices,
 						iter,
-						sector.floor_height,
+						sector_dynamic.floor_height,
 						dimensions,
 						sector_dynamic.light_level,
 					);
@@ -345,7 +366,7 @@ pub fn make_meshes(
 					&mut sky_mesh.0,
 					&mut sky_mesh.1,
 					iter,
-					sector.ceiling_height,
+					sector_dynamic.ceiling_height,
 				),
 				TextureType::Normal(handle) => {
 					let dimensions = flat_storage.get(handle).unwrap().dimensions();
@@ -357,7 +378,7 @@ pub fn make_meshes(
 						vertices,
 						indices,
 						iter,
-						sector.ceiling_height,
+						sector_dynamic.ceiling_height,
 						dimensions,
 						sector_dynamic.light_level,
 					);

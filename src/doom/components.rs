@@ -9,11 +9,29 @@ use specs::{Component, DenseVecStorage, Entity, HashMapStorage};
 use specs_derive::Component;
 use std::time::Duration;
 
-/*#[derive(Clone, Component, Debug)]
-#[storage(VecStorage)]
-pub struct SpriteRenderComponent {
-	pub sprite: AssetHandle<Sprite>,
-}*/
+#[derive(Clone, Component, Copy, Debug)]
+#[storage(HashMapStorage)]
+pub struct DoorActive {
+	pub state: DoorState,
+	pub speed: f32,
+	pub target_height: f32,
+	pub time_left: Duration,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum DoorState {
+	Closed,
+	Opening,
+	Open,
+	Closing,
+}
+
+#[derive(Clone, Component, Copy, Debug, Default)]
+#[storage(HashMapStorage)]
+pub struct DoorUse {
+	pub speed: f32,
+	pub wait_time: Duration,
+}
 
 #[derive(Clone, Component, Copy, Debug, Default)]
 #[storage(HashMapStorage)]
@@ -25,7 +43,7 @@ pub struct LightFlash {
 	pub flash_type: LightFlashType,
 }
 
-#[derive(Clone, Component, Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum LightFlashType {
 	Broken,
 	Strobe,
@@ -69,6 +87,8 @@ pub struct SectorDynamic {
 	pub index: usize,
 
 	pub light_level: f32,
+	pub floor_height: f32,
+	pub ceiling_height: f32,
 }
 
 #[derive(Clone, Component, Copy, Debug)]

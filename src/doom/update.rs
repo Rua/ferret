@@ -3,8 +3,8 @@ use crate::{
 	doom::{
 		client::Client,
 		components::{
-			LightFlash, LightFlashType, LightGlow, LinedefDynamic, MapDynamic, SectorDynamic,
-			TextureScroll, Transform,
+			DoorActive, DoorState, DoorUse, LightFlash, LightFlashType, LightGlow, LinedefDynamic,
+			MapDynamic, SectorDynamic, TextureScroll, Transform,
 		},
 		input::{Action, Axis, UserCommand},
 		map::Map,
@@ -15,14 +15,16 @@ use crate::{
 use nalgebra::Vector2;
 use rand::Rng;
 use rand_pcg::Pcg64Mcg;
-use specs::{Join, ReadExpect, ReadStorage, RunNow, World, WriteExpect, WriteStorage};
+use specs::{Entities, Join, ReadExpect, ReadStorage, RunNow, World, WriteExpect, WriteStorage};
 use std::time::Duration;
 
 #[derive(Default)]
 pub struct UpdateSystem {
+	door_update: DoorUpdateSystem,
 	light_update: LightUpdateSystem,
 	player_command: PlayerCommandSystem,
 	player_move: PlayerMoveSystem,
+	player_use: PlayerUseSystem,
 	texture_scroll: TextureScrollSystem,
 }
 
@@ -30,10 +32,83 @@ impl<'a> RunNow<'a> for UpdateSystem {
 	fn setup(&mut self, _world: &mut World) {}
 
 	fn run_now(&mut self, world: &'a World) {
+		self.door_update.run_now(world);
 		self.light_update.run_now(world);
 		self.player_command.run_now(world);
 		self.player_move.run_now(world);
+		self.player_use.run_now(world);
 		self.texture_scroll.run_now(world);
+	}
+}
+
+#[derive(Default)]
+struct DoorUpdateSystem;
+
+impl<'a> RunNow<'a> for DoorUpdateSystem {
+	fn setup(&mut self, _world: &mut World) {}
+
+	fn run_now(&mut self, world: &'a World) {
+		let (
+			entities,
+			map_storage,
+			delta,
+			mut door_active_component,
+			map_dynamic_component,
+			mut sector_dynamic_component,
+		) = world.system_data::<(
+			Entities,
+			ReadExpect<AssetStorage<Map>>,
+			ReadExpect<Duration>,
+			WriteStorage<DoorActive>,
+			ReadStorage<MapDynamic>,
+			WriteStorage<SectorDynamic>,
+		)>();
+
+		let mut done = Vec::new();
+
+		for (entity, sector_dynamic, door_active) in (
+			&entities,
+			&mut sector_dynamic_component,
+			&mut door_active_component,
+		)
+			.join()
+		{
+			let map_dynamic = map_dynamic_component
+				.get(sector_dynamic.map_entity)
+				.expect("map_entity does not have MapDynamic component");
+			let map = map_storage.get(&map_dynamic.map).unwrap();
+
+			match door_active.state {
+				DoorState::Opening => {
+					sector_dynamic.ceiling_height += door_active.speed * delta.as_secs_f32();
+
+					if sector_dynamic.ceiling_height > door_active.target_height {
+						sector_dynamic.ceiling_height = door_active.target_height;
+						door_active.state = DoorState::Open;
+					}
+				}
+				DoorState::Open => {
+					if let Some(new_time) = door_active.time_left.checked_sub(*delta) {
+						door_active.time_left = new_time;
+					} else {
+						door_active.target_height = map.sectors[sector_dynamic.index].floor_height;
+						door_active.state = DoorState::Closing;
+					}
+				}
+				DoorState::Closing => {
+					sector_dynamic.ceiling_height -= door_active.speed * delta.as_secs_f32();
+
+					if sector_dynamic.ceiling_height < door_active.target_height {
+						done.push(entity);
+					}
+				}
+				_ => todo!(),
+			}
+		}
+
+		for entity in done {
+			door_active_component.remove(entity);
+		}
 	}
 }
 
@@ -188,16 +263,10 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 	fn setup(&mut self, _world: &mut World) {}
 
 	fn run_now(&mut self, world: &'a World) {
-		let (client, map_storage, map_dynamic_component, mut transform_component) = world
-			.system_data::<(
-				WriteExpect<Client>,
-				ReadExpect<AssetStorage<Map>>,
-				ReadStorage<MapDynamic>,
-				WriteStorage<Transform>,
-			)>();
+		let (client, mut transform_component) =
+			world.system_data::<(WriteExpect<Client>, WriteStorage<Transform>)>();
 
 		if let Some(entity) = client.entity {
-			// Player translation and rotation
 			let transform = transform_component.get_mut(entity).unwrap();
 
 			transform.rotation[1] += (client.command.axis_pitch * 1e6) as i32;
@@ -218,9 +287,38 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 			move_dir *= 20.0;
 
 			transform.position += axes[0] * move_dir[0] + axes[1] * move_dir[1];
+		}
+	}
+}
 
-			// Use command
+#[derive(Default)]
+struct PlayerUseSystem;
+
+impl<'a> RunNow<'a> for PlayerUseSystem {
+	fn setup(&mut self, _world: &mut World) {}
+
+	fn run_now(&mut self, world: &'a World) {
+		let (
+			client,
+			map_storage,
+			mut door_active_component,
+			door_use_component,
+			map_dynamic_component,
+			sector_dynamic_component,
+			mut transform_component,
+		) = world.system_data::<(
+			WriteExpect<Client>,
+			ReadExpect<AssetStorage<Map>>,
+			WriteStorage<DoorActive>,
+			ReadStorage<DoorUse>,
+			ReadStorage<MapDynamic>,
+			ReadStorage<SectorDynamic>,
+			WriteStorage<Transform>,
+		)>();
+
+		if let Some(entity) = client.entity {
 			if client.command.action_use && !client.previous_command.action_use {
+				let transform = transform_component.get_mut(entity).unwrap();
 				let map_dynamic = map_dynamic_component.join().next().unwrap();
 				let map = map_storage.get(&map_dynamic.map).unwrap();
 
@@ -230,6 +328,7 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 				let yaw = transform.rotation[2].to_radians() as f32;
 				let direction = Vector2::new(yaw.cos(), yaw.sin()) * USERANGE;
 
+				// Find the closest linedef hit
 				let mut tmax = 1.0;
 				let mut closest_linedef = None;
 
@@ -247,13 +346,56 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 					}
 				}
 
+				// We hit a linedef, use it
 				if let Some(linedef_index) = closest_linedef {
 					let linedef = &map.linedefs[linedef_index];
 
-					if linedef.special_type != 0
-						&& linedef.point_side(Vector2::new(point[0], point[1])) == Side::Right
-					{
-						println!("Used linedef {}!", linedef_index);
+					// Used from the back, ignore
+					if linedef.point_side(Vector2::new(point[0], point[1])) != Side::Right {
+						return;
+					}
+
+					let linedef_entity = map_dynamic.linedefs[linedef_index];
+
+					if let Some(door_use) = door_use_component.get(linedef_entity) {
+						if let Some(back_sidedef) = &linedef.sidedefs[Side::Left as usize] {
+							let sector_index = back_sidedef.sector_index;
+							let sector = &map.sectors[sector_index];
+
+							if let Some(target_height) = sector
+								.neighbours
+								.iter()
+								.map(|index| {
+									sector_dynamic_component
+										.get(map_dynamic.sectors[*index])
+										.unwrap()
+										.ceiling_height
+								})
+								.min_by(|x, y| x.partial_cmp(y).unwrap())
+							{
+								let sector_entity = map_dynamic.sectors[sector_index];
+
+								door_active_component
+									.insert(
+										sector_entity,
+										DoorActive {
+											state: DoorState::Opening,
+											speed: door_use.speed,
+											target_height: target_height - 4.0,
+											time_left: door_use.wait_time,
+										},
+									)
+									.unwrap();
+							} else {
+								log::error!(
+									"Used door linedef {}, sector {}, has no neighbouring sectors",
+									linedef_index,
+									sector_index
+								);
+							}
+						} else {
+							log::error!("Used door linedef {} has no back sector", linedef_index);
+						}
 					}
 				}
 			}
