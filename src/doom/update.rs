@@ -373,19 +373,40 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 								})
 								.min_by(|x, y| x.partial_cmp(y).unwrap())
 							{
+								let target_height = target_height - 4.0;
 								let sector_entity = map_dynamic.sectors[sector_index];
+								let sector_dynamic =
+									sector_dynamic_component.get(sector_entity).unwrap();
 
-								door_active_component
-									.insert(
-										sector_entity,
-										DoorActive {
-											state: DoorState::Opening,
-											speed: door_use.speed,
-											target_height: target_height - 4.0,
-											time_left: door_use.wait_time,
-										},
-									)
-									.unwrap();
+								if let Some(door_active) =
+									door_active_component.get_mut(sector_entity)
+								{
+									match door_active.state {
+										DoorState::Closing => {
+											// Re-open the door
+											door_active.state = DoorState::Opening;
+											door_active.target_height = target_height;
+										}
+										DoorState::Opening | DoorState::Open => {
+											// Close the door early
+											door_active.state = DoorState::Closing;
+											door_active.target_height = sector_dynamic.floor_height;
+										}
+										_ => todo!(),
+									}
+								} else {
+									door_active_component
+										.insert(
+											sector_entity,
+											DoorActive {
+												state: DoorState::Opening,
+												speed: door_use.speed,
+												target_height,
+												time_left: door_use.wait_time,
+											},
+										)
+										.unwrap();
+								}
 							} else {
 								log::error!(
 									"Used door linedef {}, sector {}, has no neighbouring sectors",
