@@ -1,6 +1,7 @@
 use crate::{
 	assets::AssetStorage,
 	doom::{
+		client::Client,
 		components::{
 			LightFlash, LightFlashType, LightGlow, LinedefDynamic, MapDynamic, SectorDynamic,
 			TextureScroll, Transform,
@@ -14,7 +15,7 @@ use crate::{
 use nalgebra::Vector2;
 use rand::Rng;
 use rand_pcg::Pcg64Mcg;
-use specs::{Entity, Join, ReadExpect, ReadStorage, RunNow, World, WriteExpect, WriteStorage};
+use specs::{Join, ReadExpect, ReadStorage, RunNow, World, WriteExpect, WriteStorage};
 use std::time::Duration;
 
 #[derive(Default)]
@@ -160,14 +161,14 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 	fn run_now(&mut self, world: &'a World) {
 		let (
 			bindings,
-			entity,
+			client,
 			input_state,
 			map_storage,
 			map_dynamic_component,
 			mut transform_component,
 		) = world.system_data::<(
 			ReadExpect<Bindings<Action, Axis>>,
-			ReadExpect<Entity>,
+			ReadExpect<Client>,
 			ReadExpect<InputState>,
 			ReadExpect<AssetStorage<Map>>,
 			ReadStorage<MapDynamic>,
@@ -175,64 +176,66 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 		)>();
 
 		// Player translation and rotation
-		let transform = transform_component.get_mut(*entity).unwrap();
+		if let Some(entity) = client.entity {
+			let transform = transform_component.get_mut(entity).unwrap();
 
-		transform.rotation[1] += (bindings.axis_value(&Axis::Pitch, &input_state) * 1e6) as i32;
-		transform.rotation[1].0 =
-			num_traits::clamp(transform.rotation[1].0, -0x40000000, 0x40000000);
+			transform.rotation[1] += (bindings.axis_value(&Axis::Pitch, &input_state) * 1e6) as i32;
+			transform.rotation[1].0 =
+				num_traits::clamp(transform.rotation[1].0, -0x40000000, 0x40000000);
 
-		transform.rotation[2] -= (bindings.axis_value(&Axis::Yaw, &input_state) * 1e6) as i32;
+			transform.rotation[2] -= (bindings.axis_value(&Axis::Yaw, &input_state) * 1e6) as i32;
 
-		let axes = crate::geometry::angles_to_axes(transform.rotation);
-		let mut move_dir = Vector2::new(
-			bindings.axis_value(&Axis::Forward, &input_state) as f32,
-			bindings.axis_value(&Axis::Strafe, &input_state) as f32,
-		);
-		let len = move_dir.norm();
+			let axes = crate::geometry::angles_to_axes(transform.rotation);
+			let mut move_dir = Vector2::new(
+				bindings.axis_value(&Axis::Forward, &input_state) as f32,
+				bindings.axis_value(&Axis::Strafe, &input_state) as f32,
+			);
+			let len = move_dir.norm();
 
-		if len > 1.0 {
-			move_dir /= len;
-		}
-
-		move_dir *= 20.0;
-
-		transform.position += axes[0] * move_dir[0] + axes[1] * move_dir[1];
-
-		// Use command
-		if bindings.action_is_down(&Action::Use, &input_state) {
-			let map_dynamic = map_dynamic_component.join().next().unwrap();
-			let map = map_storage.get(&map_dynamic.map).unwrap();
-
-			const USERANGE: f32 = 64.0;
-			let mut point = transform.position;
-			point[2] += 41.0; // TODO: Store view height properly
-			let yaw = transform.rotation[2].to_radians() as f32;
-			let direction = Vector2::new(yaw.cos(), yaw.sin()) * USERANGE;
-
-			let mut tmax = 1.0;
-			let mut closest_linedef = None;
-
-			for (i, linedef) in map.linedefs.iter().enumerate() {
-				let t = crate::geometry::intersect(
-					linedef.vertices[0],
-					linedef.vertices[1] - linedef.vertices[0],
-					Vector2::new(point[0], point[1]),
-					direction,
-				);
-
-				if t < tmax {
-					tmax = t;
-					closest_linedef = Some(i);
-				}
+			if len > 1.0 {
+				move_dir /= len;
 			}
 
-			if let Some(linedef_index) = closest_linedef {
-				let linedef = &map.linedefs[linedef_index];
+			move_dir *= 20.0;
 
-				if linedef.special_type != 0
-					&& linedef.point_side(Vector2::new(point[0], point[1])) == Side::Right
-				{
-					println!("Used linedef {}!", linedef_index);
+			transform.position += axes[0] * move_dir[0] + axes[1] * move_dir[1];
+
+			// Use command
+			if bindings.action_is_down(&Action::Use, &input_state) {
+				let map_dynamic = map_dynamic_component.join().next().unwrap();
+				let map = map_storage.get(&map_dynamic.map).unwrap();
+
+				const USERANGE: f32 = 64.0;
+				let mut point = transform.position;
+				point[2] += 41.0; // TODO: Store view height properly
+				let yaw = transform.rotation[2].to_radians() as f32;
+				let direction = Vector2::new(yaw.cos(), yaw.sin()) * USERANGE;
+
+				let mut tmax = 1.0;
+				let mut closest_linedef = None;
+
+				for (i, linedef) in map.linedefs.iter().enumerate() {
+					let t = crate::geometry::intersect(
+						linedef.vertices[0],
+						linedef.vertices[1] - linedef.vertices[0],
+						Vector2::new(point[0], point[1]),
+						direction,
+					);
+
+					if t < tmax {
+						tmax = t;
+						closest_linedef = Some(i);
+					}
+				}
+
+				if let Some(linedef_index) = closest_linedef {
+					let linedef = &map.linedefs[linedef_index];
+
+					if linedef.special_type != 0
+						&& linedef.point_side(Vector2::new(point[0], point[1])) == Side::Right
+					{
+						println!("Used linedef {}!", linedef_index);
+					}
 				}
 			}
 		}

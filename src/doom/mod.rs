@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+pub mod client;
 pub mod components;
 pub mod entities;
 pub mod image;

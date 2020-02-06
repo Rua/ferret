@@ -1,6 +1,7 @@
 use crate::{
 	assets::AssetStorage,
 	doom::{
+		client::Client,
 		components::{MapDynamic, SectorDynamic, SpriteRender, Transform},
 		map::{
 			textures::{Flat, WallTexture},
@@ -15,7 +16,7 @@ use crate::{
 	},
 };
 use nalgebra::{Matrix4, Vector2, Vector3};
-use specs::{Entities, Entity, Join, ReadExpect, ReadStorage, RunNow, World};
+use specs::{Entities, Join, ReadExpect, ReadStorage, RunNow, World};
 use std::{
 	collections::{hash_map::Entry, HashMap},
 	error::Error,
@@ -222,53 +223,63 @@ impl RenderSystem {
 		let proj = projection_matrix(90.0, aspect_ratio, 0.1, 10000.0);
 
 		// View matrix
-		let (view_entity, transform_storage) =
-			world.system_data::<(ReadExpect<Entity>, ReadStorage<Transform>)>();
-		let Transform {
-			mut position,
-			rotation,
-		} = *transform_storage.get(*view_entity).unwrap();
-		position += Vector3::new(0.0, 0.0, 41.0);
+		let (client, transform_storage) =
+			world.system_data::<(ReadExpect<Client>, ReadStorage<Transform>)>();
 
-		let view = Matrix4::new_rotation(Vector3::new(-rotation[0].to_radians() as f32, 0.0, 0.0))
-			* Matrix4::new_rotation(Vector3::new(0.0, -rotation[1].to_radians() as f32, 0.0))
-			* Matrix4::new_rotation(Vector3::new(0.0, 0.0, -rotation[2].to_radians() as f32))
-			* Matrix4::new_translation(&-position);
+		if let Some(entity) = client.entity {
+			let Transform {
+				mut position,
+				rotation,
+			} = *transform_storage.get(entity).unwrap();
+			position += Vector3::new(0.0, 0.0, 41.0);
 
-		// Create UBO
-		let data = map_normal_vert::ty::UniformBufferObject {
-			view: view.into(),
-			proj: proj.into(),
-		};
+			let view =
+				Matrix4::new_rotation(Vector3::new(-rotation[0].to_radians() as f32, 0.0, 0.0))
+					* Matrix4::new_rotation(Vector3::new(
+						0.0,
+						-rotation[1].to_radians() as f32,
+						0.0,
+					)) * Matrix4::new_rotation(Vector3::new(
+					0.0,
+					0.0,
+					-rotation[2].to_radians() as f32,
+				)) * Matrix4::new_translation(&-position);
 
-		let matrix_buffer = self.matrix_uniform_pool.next(data)?;
-		let matrix_set = Arc::new(
-			self.matrix_set_pool
-				.next()
-				.add_buffer(matrix_buffer)?
-				.build()?,
-		);
+			// Create UBO
+			let data = map_normal_vert::ty::UniformBufferObject {
+				view: view.into(),
+				proj: proj.into(),
+			};
 
-		// Draw the map
-		command_buffer_builder = self.map.draw(
-			world,
-			command_buffer_builder,
-			dynamic_state.clone(),
-			self.sampler.clone(),
-			matrix_set.clone(),
-			rotation,
-		)?;
+			let matrix_buffer = self.matrix_uniform_pool.next(data)?;
+			let matrix_set = Arc::new(
+				self.matrix_set_pool
+					.next()
+					.add_buffer(matrix_buffer)?
+					.build()?,
+			);
 
-		// Draw sprites
-		command_buffer_builder = self.sprites.draw(
-			world,
-			command_buffer_builder,
-			dynamic_state,
-			self.sampler.clone(),
-			matrix_set,
-			rotation[2],
-			position,
-		)?;
+			// Draw the map
+			command_buffer_builder = self.map.draw(
+				world,
+				command_buffer_builder,
+				dynamic_state.clone(),
+				self.sampler.clone(),
+				matrix_set.clone(),
+				rotation,
+			)?;
+
+			// Draw sprites
+			command_buffer_builder = self.sprites.draw(
+				world,
+				command_buffer_builder,
+				dynamic_state,
+				self.sampler.clone(),
+				matrix_set,
+				rotation[2],
+				position,
+			)?;
+		}
 
 		// Finalise
 		let command_buffer = Arc::new(command_buffer_builder.end_render_pass()?.build()?);
@@ -610,7 +621,7 @@ impl SpriteRenderSystem {
 	) -> Result<AutoCommandBufferBuilder, Box<dyn Error + Send + Sync>> {
 		let (
 			entities,
-			view_entity,
+			client,
 			map_storage,
 			sprite_storage,
 			sprite_image_storage,
@@ -620,7 +631,7 @@ impl SpriteRenderSystem {
 			transform_component,
 		) = world.system_data::<(
 			Entities,
-			ReadExpect<Entity>,
+			ReadExpect<Client>,
 			ReadExpect<AssetStorage<Map>>,
 			ReadExpect<AssetStorage<Sprite>>,
 			ReadExpect<AssetStorage<SpriteImage>>,
@@ -641,8 +652,10 @@ impl SpriteRenderSystem {
 			(&entities, &sprite_component, &transform_component).join()
 		{
 			// Don't render the player's own sprite
-			if entity == *view_entity {
-				continue;
+			if let Some(view_entity) = client.entity {
+				if entity == view_entity {
+					continue;
+				}
 			}
 
 			let sprite = sprite_storage.get(&sprite_render.sprite).unwrap();

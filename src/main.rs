@@ -142,6 +142,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	world.insert(loader);
 	world.insert(InputState::new());
 	world.insert(bindings);
+	world.insert(doom::client::Client::default());
 	world.insert(doom::FRAME_TIME);
 
 	// Create systems
@@ -424,7 +425,9 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
 						// Spawn player
 						let entity = doom::map::spawn_player(&world)?;
-						world.insert(entity);
+						world
+							.system_data::<WriteExpect<doom::client::Client>>()
+							.entity = Some(entity);
 
 						log::debug!(
 							"Loading took {} s",
