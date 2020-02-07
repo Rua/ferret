@@ -102,7 +102,6 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 						done.push(entity);
 					}
 				}
-				_ => todo!(),
 			}
 		}
 
@@ -392,13 +391,13 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 											door_active.state = DoorState::Closing;
 											door_active.target_height = sector_dynamic.floor_height;
 										}
-										_ => todo!(),
 									}
 								} else {
 									door_active_component
 										.insert(
 											sector_entity,
 											DoorActive {
+												close_sound: door_use.close_sound.clone(),
 												state: DoorState::Opening,
 												speed: door_use.speed,
 												target_height,

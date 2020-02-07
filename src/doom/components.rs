@@ -1,6 +1,7 @@
 //use crate::assets::AssetHandle;
 use crate::{
 	assets::AssetHandle,
+	audio::Sound,
 	doom::{map::Map, sprite::Sprite},
 	geometry::Angle,
 };
@@ -9,9 +10,10 @@ use specs::{Component, DenseVecStorage, Entity, HashMapStorage};
 use specs_derive::Component;
 use std::time::Duration;
 
-#[derive(Clone, Component, Copy, Debug)]
+#[derive(Clone, Component, Debug)]
 #[storage(HashMapStorage)]
 pub struct DoorActive {
+	pub close_sound: AssetHandle<Sound>,
 	pub state: DoorState,
 	pub speed: f32,
 	pub target_height: f32,
@@ -20,15 +22,17 @@ pub struct DoorActive {
 
 #[derive(Clone, Copy, Debug)]
 pub enum DoorState {
-	Closed,
+	//Closed,
 	Opening,
 	Open,
 	Closing,
 }
 
-#[derive(Clone, Component, Copy, Debug, Default)]
+#[derive(Clone, Component, Debug)]
 #[storage(HashMapStorage)]
 pub struct DoorUse {
+	pub open_sound: AssetHandle<Sound>,
+	pub close_sound: AssetHandle<Sound>,
 	pub speed: f32,
 	pub wait_time: Duration,
 }

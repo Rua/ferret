@@ -533,10 +533,6 @@ pub fn build_map(
 				}
 			}
 
-			if data.special_type != 0 {
-				println!("{}", data.special_type);
-			}
-
 			Ok(Linedef {
 				vertices: [
 					vertexes_data[data.vertex_indices[0]],

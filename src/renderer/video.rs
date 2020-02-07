@@ -7,8 +7,8 @@ use vulkano::{
 	image::{swapchain::SwapchainImage, ImageUsage},
 	instance::debug::DebugCallback,
 	swapchain::{
-		AcquireError, Capabilities, ColorSpace, CompositeAlpha, PresentMode, Surface, Swapchain,
-		SwapchainAcquireFuture,
+		AcquireError, Capabilities, ColorSpace, CompositeAlpha, FullscreenExclusive, PresentMode,
+		Surface, Swapchain, SwapchainAcquireFuture,
 	},
 	sync::SharingMode,
 };
@@ -116,6 +116,7 @@ impl RenderTarget {
 			capabilities.current_transform,
 			CompositeAlpha::Opaque,
 			present_mode,
+			FullscreenExclusive::Default,
 			true,
 			ColorSpace::SrgbNonLinear,
 		)?;
@@ -166,6 +167,7 @@ impl RenderTarget {
 			capabilities.current_transform,
 			CompositeAlpha::Opaque,
 			self.swapchain.present_mode(),
+			FullscreenExclusive::Default,
 			true,
 			ColorSpace::SrgbNonLinear,
 			self.swapchain.clone(),

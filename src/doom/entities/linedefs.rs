@@ -1,7 +1,11 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
+	audio::Sound,
 	component::EntityTemplate,
-	doom::components::{DoorUse, TextureScroll},
+	doom::{
+		components::{DoorUse, TextureScroll},
+		wad::WadLoader,
+	},
 };
 use nalgebra::Vector2;
 use specs::{World, WriteExpect};
@@ -14,15 +18,19 @@ pub struct LinedefTypes {
 impl LinedefTypes {
 	#[rustfmt::skip]
 	pub fn new(world: &World) -> LinedefTypes {
-        let mut template_storage = world.system_data::<
+        let (mut template_storage, mut sound_storage, mut loader) = world.system_data::<(
 			WriteExpect<AssetStorage<EntityTemplate>>,
-		>();
+			WriteExpect<AssetStorage<Sound>>,
+			WriteExpect<WadLoader>,
+		)>();
 
         let mut doomednums = HashMap::new();
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
 				.with_component(DoorUse {
+					open_sound: sound_storage.load("DSDOROPN", &mut *loader),
+					close_sound: sound_storage.load("DSDORCLS", &mut *loader),
 					speed: 2.0 / crate::doom::FRAME_TIME.as_secs_f32(),
 					wait_time: 150 * crate::doom::FRAME_TIME,
 				})

@@ -11,3 +11,8 @@ impl Audio {
 impl Drop for Audio {
 	fn drop(&mut self) {}
 }
+
+pub struct Sound {
+	pub sampling_rate: u16,
+	pub samples: Vec<u8>,
+}

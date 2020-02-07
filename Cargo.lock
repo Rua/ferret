@@ -11,9 +11,9 @@ dependencies = [
 
 [[package]]
 name = "aho-corasick"
-version = "0.7.7"
+version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f56c476256dc249def911d6f7580b5fc7e875895b5d7ee88f5d602208035744"
+checksum = "743ad5a418686aad3b87fd14c43badd828cf26e214a00f92a384291cf22e1811"
 dependencies = [
  "memchr",
 ]
@@ -401,9 +401,9 @@ dependencies = [
 
 [[package]]
 name = "dispatch"
-version = "0.1.4"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04e93ca78226c51902d7aa8c12c988338aadd9e85ed9c6be8aaac39192ff3605"
+checksum = "bd0c93bb4b0c6d9b77f4435b0ae98c24d17f1c45b2ff844c6151a07256ca923b"
 
 [[package]]
 name = "dlib"
@@ -1363,7 +1363,7 @@ checksum = "826e7639553986605ec5979c7dd957c7895e93eabed50ab2ffa7f6128a75097c"
 [[package]]
 name = "vk-sys"
 version = "0.5.0"
-source = "git+https://github.com/vulkano-rs/vulkano#287a940178f2dac18178e2f10470453398a6597e"
+source = "git+https://github.com/vulkano-rs/vulkano#8ef0beaddf768db6c48696f7c8fd92dafbbdc0c8"
 
 [[package]]
 name = "void"
@@ -1374,7 +1374,7 @@ checksum = "6a02e4885ed3bc0f2de90ea6dd45ebcbb66dacffe03547fadbb0eeae2770887d"
 [[package]]
 name = "vulkano"
 version = "0.16.0"
-source = "git+https://github.com/vulkano-rs/vulkano#287a940178f2dac18178e2f10470453398a6597e"
+source = "git+https://github.com/vulkano-rs/vulkano#8ef0beaddf768db6c48696f7c8fd92dafbbdc0c8"
 dependencies = [
  "crossbeam",
  "fnv",
@@ -1400,7 +1400,7 @@ dependencies = [
 [[package]]
 name = "vulkano-win"
 version = "0.16.0"
-source = "git+https://github.com/vulkano-rs/vulkano#287a940178f2dac18178e2f10470453398a6597e"
+source = "git+https://github.com/vulkano-rs/vulkano#8ef0beaddf768db6c48696f7c8fd92dafbbdc0c8"
 dependencies = [
  "cocoa 0.20.0",
  "metal",
@@ -1531,9 +1531,9 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
 name = "winit"
-version = "0.20.0"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ba128780050481f453bec2a115b916dbc6ae79c303dee9bad8b9080bdccd4f5"
+checksum = "65a5c1a5ef76ac31cc97ad29489acdbed2178f3fc12ca00ee6cb11d60adb5a3a"
 dependencies = [
  "android_glue",
  "bitflags",

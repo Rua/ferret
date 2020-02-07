@@ -12,7 +12,7 @@ mod stdin;
 
 use crate::{
 	assets::{AssetFormat, AssetStorage},
-	audio::Audio,
+	audio::{Audio, Sound},
 	component::EntityTemplate,
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
 	logger::Logger,
@@ -134,6 +134,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	world.insert(AssetStorage::<doom::map::textures::Flat>::default());
 	world.insert(AssetStorage::<doom::map::textures::WallTexture>::default());
 	world.insert(AssetStorage::<doom::image::Palette>::default());
+	world.insert(AssetStorage::<Sound>::default());
 	world.insert(AssetStorage::<doom::sprite::Sprite>::default());
 	world.insert(AssetStorage::<doom::sprite::SpriteImage>::default());
 
@@ -315,6 +316,16 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 								)?;
 
 								Ok(crate::doom::sprite::SpriteImage { matrix, image })
+							});
+						}
+
+						// Load sounds
+						{
+							let mut sound_storage =
+								world.system_data::<WriteExpect<AssetStorage<Sound>>>();
+
+							sound_storage.build_waiting(|intermediate| {
+								doom::sound::build_sound(intermediate)
 							});
 						}
 

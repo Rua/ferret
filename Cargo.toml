@@ -24,7 +24,7 @@ specs-derive = "0.4.0"
 vulkano = {git = "https://github.com/vulkano-rs/vulkano"}
 vulkano-shaders = "0.16.0"
 vulkano-win = {git = "https://github.com/vulkano-rs/vulkano"}
-winit = {version = "0.20.0", features = ["serde"]}
+winit = {version = "0.21.0", features = ["serde"]}
 
 [patch.crates-io]
 vulkano = {git = "https://github.com/vulkano-rs/vulkano"}
