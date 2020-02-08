@@ -22,11 +22,12 @@ use std::time::Duration;
 
 #[derive(Default)]
 pub struct UpdateSystem {
-	door_update: DoorUpdateSystem,
-	light_update: LightUpdateSystem,
 	player_command: PlayerCommandSystem,
 	player_move: PlayerMoveSystem,
 	player_use: PlayerUseSystem,
+
+	door_update: DoorUpdateSystem,
+	light_update: LightUpdateSystem,
 	texture_scroll: TextureScrollSystem,
 }
 
@@ -34,11 +35,12 @@ impl<'a> RunNow<'a> for UpdateSystem {
 	fn setup(&mut self, _world: &mut World) {}
 
 	fn run_now(&mut self, world: &'a World) {
-		self.door_update.run_now(world);
-		self.light_update.run_now(world);
 		self.player_command.run_now(world);
 		self.player_move.run_now(world);
 		self.player_use.run_now(world);
+
+		self.door_update.run_now(world);
+		self.light_update.run_now(world);
 		self.texture_scroll.run_now(world);
 	}
 }
@@ -53,20 +55,16 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 		let (
 			entities,
 			sound_device,
-			map_storage,
 			sound_storage,
 			delta,
 			mut door_active_component,
-			map_dynamic_component,
 			mut sector_dynamic_component,
 		) = world.system_data::<(
 			Entities,
 			ReadExpect<rodio::Device>,
-			ReadExpect<AssetStorage<Map>>,
 			ReadExpect<AssetStorage<Sound>>,
 			ReadExpect<Duration>,
 			WriteStorage<DoorActive>,
-			ReadStorage<MapDynamic>,
 			WriteStorage<SectorDynamic>,
 		)>();
 
@@ -79,17 +77,20 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 		)
 			.join()
 		{
-			let map_dynamic = map_dynamic_component
-				.get(sector_dynamic.map_entity)
-				.expect("map_entity does not have MapDynamic component");
-			let map = map_storage.get(&map_dynamic.map).unwrap();
-
 			match door_active.state {
+				DoorState::Closed => {
+					door_active.state = DoorState::Opening;
+
+					// Play sound
+					let sound = sound_storage.get(&door_active.open_sound).unwrap();
+					let source = SoundSource::new(&sound);
+					rodio::play_raw(&sound_device, source.convert_samples());
+				}
 				DoorState::Opening => {
 					sector_dynamic.ceiling_height += door_active.speed * delta.as_secs_f32();
 
-					if sector_dynamic.ceiling_height > door_active.target_height {
-						sector_dynamic.ceiling_height = door_active.target_height;
+					if sector_dynamic.ceiling_height > door_active.open_height {
+						sector_dynamic.ceiling_height = door_active.open_height;
 						door_active.state = DoorState::Open;
 					}
 				}
@@ -97,7 +98,6 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 					if let Some(new_time) = door_active.time_left.checked_sub(*delta) {
 						door_active.time_left = new_time;
 					} else {
-						door_active.target_height = map.sectors[sector_dynamic.index].floor_height;
 						door_active.state = DoorState::Closing;
 
 						// Play sound
@@ -109,7 +109,7 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 				DoorState::Closing => {
 					sector_dynamic.ceiling_height -= door_active.speed * delta.as_secs_f32();
 
-					if sector_dynamic.ceiling_height < door_active.target_height {
+					if sector_dynamic.ceiling_height < door_active.close_height {
 						done.push(entity);
 					}
 				}
@@ -310,9 +310,7 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 	fn run_now(&mut self, world: &'a World) {
 		let (
 			client,
-			sound_device,
 			map_storage,
-			sound_storage,
 			mut door_active_component,
 			door_use_component,
 			map_dynamic_component,
@@ -320,9 +318,7 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 			mut transform_component,
 		) = world.system_data::<(
 			ReadExpect<Client>,
-			ReadExpect<rodio::Device>,
 			ReadExpect<AssetStorage<Map>>,
-			ReadExpect<AssetStorage<Sound>>,
 			WriteStorage<DoorActive>,
 			ReadStorage<DoorUse>,
 			ReadStorage<MapDynamic>,
@@ -376,7 +372,7 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 							let sector_index = back_sidedef.sector_index;
 							let sector = &map.sectors[sector_index];
 
-							if let Some(target_height) = sector
+							if let Some(open_height) = sector
 								.neighbours
 								.iter()
 								.map(|index| {
@@ -387,7 +383,7 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 								})
 								.min_by(|x, y| x.partial_cmp(y).unwrap())
 							{
-								let target_height = target_height - 4.0;
+								let open_height = open_height - 4.0;
 								let sector_entity = map_dynamic.sectors[sector_index];
 								let sector_dynamic =
 									sector_dynamic_component.get(sector_entity).unwrap();
@@ -398,51 +394,33 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 									match door_active.state {
 										DoorState::Closing => {
 											// Re-open the door
-											door_active.state = DoorState::Opening;
-											door_active.target_height = target_height;
-
-											// Play sound
-											let sound =
-												sound_storage.get(&door_use.open_sound).unwrap();
-											let source = SoundSource::new(&sound);
-											rodio::play_raw(
-												&sound_device,
-												source.convert_samples(),
-											);
+											door_active.state = DoorState::Closed;
+											door_active.time_left = door_use.wait_time;
 										}
 										DoorState::Opening | DoorState::Open => {
 											// Close the door early
-											door_active.state = DoorState::Closing;
-											door_active.target_height = sector_dynamic.floor_height;
-
-											// Play sound
-											let sound =
-												sound_storage.get(&door_use.close_sound).unwrap();
-											let source = SoundSource::new(&sound);
-											rodio::play_raw(
-												&sound_device,
-												source.convert_samples(),
-											);
+											door_active.state = DoorState::Open;
+											door_active.time_left = Duration::default();
 										}
+										DoorState::Closed => unreachable!(),
 									}
 								} else {
 									door_active_component
 										.insert(
 											sector_entity,
 											DoorActive {
+												open_sound: door_use.open_sound.clone(),
+												open_height: open_height,
+
 												close_sound: door_use.close_sound.clone(),
-												state: DoorState::Opening,
+												close_height: sector_dynamic.floor_height,
+
+												state: DoorState::Closed,
 												speed: door_use.speed,
-												target_height,
 												time_left: door_use.wait_time,
 											},
 										)
 										.unwrap();
-
-									// Play sound
-									let sound = sound_storage.get(&door_use.open_sound).unwrap();
-									let source = SoundSource::new(&sound);
-									rodio::play_raw(&sound_device, source.convert_samples());
 								}
 							} else {
 								log::error!(

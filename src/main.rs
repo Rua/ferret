@@ -21,7 +21,6 @@ use crate::{
 use nalgebra::{Matrix4, Vector3};
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
-use rodio::DeviceTrait;
 use specs::{ReadExpect, RunNow, World, WorldExt, WriteExpect};
 use std::{
 	error::Error,

@@ -13,16 +13,20 @@ use std::time::Duration;
 #[derive(Clone, Component, Debug)]
 #[storage(HashMapStorage)]
 pub struct DoorActive {
+	pub open_sound: AssetHandle<Sound>,
+	pub open_height: f32,
+
 	pub close_sound: AssetHandle<Sound>,
+	pub close_height: f32,
+
 	pub state: DoorState,
 	pub speed: f32,
-	pub target_height: f32,
 	pub time_left: Duration,
 }
 
 #[derive(Clone, Copy, Debug)]
 pub enum DoorState {
-	//Closed,
+	Closed,
 	Opening,
 	Open,
 	Closing,
