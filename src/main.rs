@@ -12,7 +12,7 @@ mod stdin;
 
 use crate::{
 	assets::{AssetFormat, AssetStorage},
-	audio::{Audio, Sound},
+	audio::Sound,
 	component::EntityTemplate,
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
 	logger::Logger,
@@ -61,7 +61,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 		}
 	};
 
-	let audio = match Audio::new() {
+	/*let audio = match Audio::new() {
 		Ok(val) => val,
 		Err(err) => {
 			return Err(Box::from(format!(
@@ -69,7 +69,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 				err
 			)));
 		}
-	};
+	};*/
 
 	let mut loader = doom::wad::WadLoader::new();
 	loader.add("doom.wad")?;
@@ -130,18 +130,18 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
 	// Insert asset storages
 	world.insert(AssetStorage::<EntityTemplate>::default());
+	world.insert(AssetStorage::<Sound>::default());
 	world.insert(AssetStorage::<doom::map::Map>::default());
 	world.insert(AssetStorage::<doom::map::textures::Flat>::default());
 	world.insert(AssetStorage::<doom::map::textures::WallTexture>::default());
 	world.insert(AssetStorage::<doom::image::Palette>::default());
-	world.insert(AssetStorage::<Sound>::default());
 	world.insert(AssetStorage::<doom::sprite::Sprite>::default());
 	world.insert(AssetStorage::<doom::sprite::SpriteImage>::default());
 
 	// Insert other resources
 	world.insert(Pcg64Mcg::from_entropy());
 	world.insert(video);
-	world.insert(audio);
+	world.insert(rodio::default_output_device().unwrap());
 	world.insert(loader);
 	world.insert(InputState::new());
 	world.insert(bindings);

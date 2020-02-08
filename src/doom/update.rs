@@ -1,5 +1,6 @@
 use crate::{
 	assets::AssetStorage,
+	audio::{Sound, SoundSource},
 	doom::{
 		client::Client,
 		components::{
@@ -15,6 +16,7 @@ use crate::{
 use nalgebra::Vector2;
 use rand::Rng;
 use rand_pcg::Pcg64Mcg;
+use rodio::Source;
 use specs::{Entities, Join, ReadExpect, ReadStorage, RunNow, World, WriteExpect, WriteStorage};
 use std::time::Duration;
 
@@ -50,14 +52,18 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 	fn run_now(&mut self, world: &'a World) {
 		let (
 			entities,
+			sound_device,
 			map_storage,
+			sound_storage,
 			delta,
 			mut door_active_component,
 			map_dynamic_component,
 			mut sector_dynamic_component,
 		) = world.system_data::<(
 			Entities,
+			ReadExpect<rodio::Device>,
 			ReadExpect<AssetStorage<Map>>,
+			ReadExpect<AssetStorage<Sound>>,
 			ReadExpect<Duration>,
 			WriteStorage<DoorActive>,
 			ReadStorage<MapDynamic>,
@@ -93,6 +99,11 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 					} else {
 						door_active.target_height = map.sectors[sector_dynamic.index].floor_height;
 						door_active.state = DoorState::Closing;
+
+						// Play sound
+						let sound = sound_storage.get(&door_active.close_sound).unwrap();
+						let source = SoundSource::new(&sound);
+						rodio::play_raw(&sound_device, source.convert_samples());
 					}
 				}
 				DoorState::Closing => {
@@ -299,15 +310,19 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 	fn run_now(&mut self, world: &'a World) {
 		let (
 			client,
+			sound_device,
 			map_storage,
+			sound_storage,
 			mut door_active_component,
 			door_use_component,
 			map_dynamic_component,
 			sector_dynamic_component,
 			mut transform_component,
 		) = world.system_data::<(
-			WriteExpect<Client>,
+			ReadExpect<Client>,
+			ReadExpect<rodio::Device>,
 			ReadExpect<AssetStorage<Map>>,
+			ReadExpect<AssetStorage<Sound>>,
 			WriteStorage<DoorActive>,
 			ReadStorage<DoorUse>,
 			ReadStorage<MapDynamic>,
@@ -385,11 +400,21 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 											// Re-open the door
 											door_active.state = DoorState::Opening;
 											door_active.target_height = target_height;
+
+											// Play sound
+											let sound = sound_storage.get(&door_use.open_sound).unwrap();
+											let source = SoundSource::new(&sound);
+											rodio::play_raw(&sound_device, source.convert_samples());
 										}
 										DoorState::Opening | DoorState::Open => {
 											// Close the door early
 											door_active.state = DoorState::Closing;
 											door_active.target_height = sector_dynamic.floor_height;
+
+											// Play sound
+											let sound = sound_storage.get(&door_use.close_sound).unwrap();
+											let source = SoundSource::new(&sound);
+											rodio::play_raw(&sound_device, source.convert_samples());
 										}
 									}
 								} else {
@@ -405,6 +430,11 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 											},
 										)
 										.unwrap();
+
+									// Play sound
+									let sound = sound_storage.get(&door_use.open_sound).unwrap();
+									let source = SoundSource::new(&sound);
+									rodio::play_raw(&sound_device, source.convert_samples());
 								}
 							} else {
 								log::error!(

@@ -30,23 +30,23 @@ pub fn build_sound(data: Vec<u8>) -> Result<Arc<Sound>, Box<dyn Error + Send + S
 		return Err(Box::from("No Doom sound file signature found"));
 	}
 
-	let sampling_rate = reader.read_u16::<LE>()?;
+	let sample_rate = reader.read_u16::<LE>()? as u32;
 	let sample_count = reader.read_u32::<LE>()? as usize;
 
-	let mut samples = vec![0u8; sample_count];
-	reader.read_exact(&mut samples)?;
+	let mut data = vec![0u8; sample_count];
+	reader.read_exact(&mut data)?;
 
 	// Remove padding bytes at start and end
-	if samples.ends_with(&[samples[sample_count - 17]; 16]) {
-		samples.drain(sample_count - 17..);
+	if data.ends_with(&[data[sample_count - 17]; 16]) {
+		data.drain(sample_count - 17..);
 	}
 
-	if samples.starts_with(&[samples[16]; 16]) {
-		samples.drain(..16);
+	if data.starts_with(&[data[16]; 16]) {
+		data.drain(..16);
 	}
 
 	Ok(Arc::new(Sound {
-		sampling_rate,
-		samples,
+		sample_rate,
+		data,
 	}))
 }
