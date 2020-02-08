@@ -402,9 +402,13 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 											door_active.target_height = target_height;
 
 											// Play sound
-											let sound = sound_storage.get(&door_use.open_sound).unwrap();
+											let sound =
+												sound_storage.get(&door_use.open_sound).unwrap();
 											let source = SoundSource::new(&sound);
-											rodio::play_raw(&sound_device, source.convert_samples());
+											rodio::play_raw(
+												&sound_device,
+												source.convert_samples(),
+											);
 										}
 										DoorState::Opening | DoorState::Open => {
 											// Close the door early
@@ -412,9 +416,13 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 											door_active.target_height = sector_dynamic.floor_height;
 
 											// Play sound
-											let sound = sound_storage.get(&door_use.close_sound).unwrap();
+											let sound =
+												sound_storage.get(&door_use.close_sound).unwrap();
 											let source = SoundSource::new(&sound);
-											rodio::play_raw(&sound_device, source.convert_samples());
+											rodio::play_raw(
+												&sound_device,
+												source.convert_samples(),
+											);
 										}
 									}
 								} else {

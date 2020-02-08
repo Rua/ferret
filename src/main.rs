@@ -21,6 +21,7 @@ use crate::{
 use nalgebra::{Matrix4, Vector3};
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
+use rodio::DeviceTrait;
 use specs::{ReadExpect, RunNow, World, WorldExt, WriteExpect};
 use std::{
 	error::Error,
@@ -60,6 +61,8 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 			)));
 		}
 	};
+
+	let sound_device = rodio::default_output_device().unwrap();
 
 	/*let audio = match Audio::new() {
 		Ok(val) => val,
@@ -141,7 +144,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	// Insert other resources
 	world.insert(Pcg64Mcg::from_entropy());
 	world.insert(video);
-	world.insert(rodio::default_output_device().unwrap());
+	world.insert(sound_device);
 	world.insert(loader);
 	world.insert(InputState::new());
 	world.insert(bindings);

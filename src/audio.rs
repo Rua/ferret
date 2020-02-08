@@ -27,12 +27,13 @@ pub struct SoundSource {
 
 impl SoundSource {
 	pub fn new(sound: &Sound) -> Self {
-		let duration_ns = 1_000_000_000u64.checked_mul(sound.data.len() as u64).unwrap()
-            / sound.sample_rate as u64;
+		let duration_ns = 1_000_000_000u64
+			.checked_mul(sound.data.len() as u64)
+			.unwrap() / sound.sample_rate as u64;
 		let duration = Duration::new(
-            duration_ns / 1_000_000_000,
-            (duration_ns % 1_000_000_000) as u32,
-        );
+			duration_ns / 1_000_000_000,
+			(duration_ns % 1_000_000_000) as u32,
+		);
 
 		let sample_rate = sound.sample_rate;
 
@@ -47,24 +48,24 @@ impl SoundSource {
 
 impl Source for SoundSource {
 	#[inline]
-    fn current_frame_len(&self) -> Option<usize> {
-        None
-    }
+	fn current_frame_len(&self) -> Option<usize> {
+		None
+	}
 
-    #[inline]
-    fn channels(&self) -> u16 {
-        1
-    }
+	#[inline]
+	fn channels(&self) -> u16 {
+		1
+	}
 
-    #[inline]
-    fn sample_rate(&self) -> u32 {
-        self.sample_rate
-    }
+	#[inline]
+	fn sample_rate(&self) -> u32 {
+		self.sample_rate
+	}
 
-    #[inline]
-    fn total_duration(&self) -> Option<Duration> {
-        Some(self.duration)
-    }
+	#[inline]
+	fn total_duration(&self) -> Option<Duration> {
+		Some(self.duration)
+	}
 }
 
 impl Iterator for SoundSource {
@@ -74,12 +75,12 @@ impl Iterator for SoundSource {
 	fn next(&mut self) -> Option<Self::Item> {
 		let item = self.data.get(self.current);
 		self.current += 1;
-		item.map(|x| ((*x as u16) << 8))
+		item.map(|x| ((*x as u16) << 8 | *x as u16))
 	}
 
 	#[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let len = self.data.len();
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		let len = self.data.len();
 		(len, Some(len))
-    }
+	}
 }

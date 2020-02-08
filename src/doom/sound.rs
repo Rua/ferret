@@ -45,8 +45,5 @@ pub fn build_sound(data: Vec<u8>) -> Result<Arc<Sound>, Box<dyn Error + Send + S
 		data.drain(..16);
 	}
 
-	Ok(Arc::new(Sound {
-		sample_rate,
-		data,
-	}))
+	Ok(Arc::new(Sound { sample_rate, data }))
 }

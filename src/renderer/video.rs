@@ -49,6 +49,10 @@ impl Video {
 
 		// Create Vulkan device
 		let (device, queues) = vulkan::create_device(&instance, &surface)?;
+		log::info!(
+			"Selected Vulkan device: {}",
+			device.physical_device().name()
+		);
 
 		// All done!
 		let video = Video {
