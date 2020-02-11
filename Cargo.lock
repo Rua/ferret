@@ -1644,8 +1644,9 @@ checksum = "914b1a6776c4c929a602fafd8bc742e06365d4bcbe48c30f9cca5824f70dc9dd"
 
 [[package]]
 name = "vk-sys"
-version = "0.5.0"
-source = "git+https://github.com/vulkano-rs/vulkano#8ef0beaddf768db6c48696f7c8fd92dafbbdc0c8"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c24c107c0402856ad434d2dc0f3dbdc68c9e170e8bab0f27aa82a282d234d57c"
 
 [[package]]
 name = "void"
@@ -1655,8 +1656,9 @@ checksum = "6a02e4885ed3bc0f2de90ea6dd45ebcbb66dacffe03547fadbb0eeae2770887d"
 
 [[package]]
 name = "vulkano"
-version = "0.16.0"
-source = "git+https://github.com/vulkano-rs/vulkano#8ef0beaddf768db6c48696f7c8fd92dafbbdc0c8"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9137b934eb7377d72026e9052207fbd08a99ffb30c89adcc0de5526ae908254b"
 dependencies = [
  "crossbeam",
  "fnv",
@@ -1669,9 +1671,9 @@ dependencies = [
 
 [[package]]
 name = "vulkano-shaders"
-version = "0.16.0"
+version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61ece0c3d1c97f4c8da578c51ef1025fbb9b6b79270a9065944778f621425618"
+checksum = "44e13966ba70bb30c9aabe3cd96393befc1b2ea076fc24149339de392b4357ae"
 dependencies = [
  "proc-macro2 1.0.8",
  "quote 1.0.2",
@@ -1681,8 +1683,9 @@ dependencies = [
 
 [[package]]
 name = "vulkano-win"
-version = "0.16.0"
-source = "git+https://github.com/vulkano-rs/vulkano#8ef0beaddf768db6c48696f7c8fd92dafbbdc0c8"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fa29e1ec4638ad38241ba3706f35c75033efae55c7bb5819eb8ada589fa57c9a"
 dependencies = [
  "cocoa 0.20.0",
  "metal",
