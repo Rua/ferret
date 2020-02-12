@@ -1,8 +1,10 @@
 use crate::{
-	assets::{Asset, DataSource},
-	audio::Sound,
+	assets::{Asset, AssetHandle, AssetStorage, DataSource},
+	audio::{Sound, SoundSource},
 };
 use byteorder::{ReadBytesExt, LE};
+use rodio::Source;
+use specs::{Entity, ReadExpect, RunNow, World, WriteExpect};
 use std::{
 	error::Error,
 	io::{Cursor, Read},
@@ -46,4 +48,26 @@ pub fn build_sound(data: Vec<u8>) -> Result<Arc<Sound>, Box<dyn Error + Send + S
 	}
 
 	Ok(Arc::new(Sound { sample_rate, data }))
+}
+
+#[derive(Default)]
+pub struct SoundSystem;
+
+impl<'a> RunNow<'a> for SoundSystem {
+	fn setup(&mut self, _world: &mut World) {}
+
+	fn run_now(&mut self, world: &'a World) {
+		let (sound_device, sound_storage, mut sound_queue) = world
+			.system_data::<(
+				ReadExpect<rodio::Device>,
+				ReadExpect<AssetStorage<Sound>>,
+				WriteExpect<Vec<(AssetHandle<Sound>, Entity)>>,
+			)>();
+
+		for (handle, _entity) in sound_queue.drain(..) {
+			let sound = sound_storage.get(&handle).unwrap();
+			let source = SoundSource::new(&sound);
+			rodio::play_raw(&sound_device, source.convert_samples());
+		}
+	}
 }

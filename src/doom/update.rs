@@ -1,6 +1,6 @@
 use crate::{
-	assets::AssetStorage,
-	audio::{Sound, SoundSource},
+	assets::{AssetHandle, AssetStorage},
+	audio::Sound,
 	doom::{
 		client::Client,
 		components::{
@@ -16,8 +16,7 @@ use crate::{
 use nalgebra::Vector2;
 use rand::Rng;
 use rand_pcg::Pcg64Mcg;
-use rodio::Source;
-use specs::{Entities, Join, ReadExpect, ReadStorage, RunNow, World, WriteExpect, WriteStorage};
+use specs::{Entity, Entities, Join, ReadExpect, ReadStorage, RunNow, World, WriteExpect, WriteStorage};
 use std::time::Duration;
 
 #[derive(Default)]
@@ -54,16 +53,14 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 	fn run_now(&mut self, world: &'a World) {
 		let (
 			entities,
-			sound_device,
-			sound_storage,
 			delta,
+			mut sound_queue,
 			mut door_active_component,
 			mut sector_dynamic_component,
 		) = world.system_data::<(
 			Entities,
-			ReadExpect<rodio::Device>,
-			ReadExpect<AssetStorage<Sound>>,
 			ReadExpect<Duration>,
+			WriteExpect<Vec<(AssetHandle<Sound>, Entity)>>,
 			WriteStorage<DoorActive>,
 			WriteStorage<SectorDynamic>,
 		)>();
@@ -82,9 +79,7 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 					door_active.state = DoorState::Opening;
 
 					// Play sound
-					let sound = sound_storage.get(&door_active.open_sound).unwrap();
-					let source = SoundSource::new(&sound);
-					rodio::play_raw(&sound_device, source.convert_samples());
+					sound_queue.push((door_active.open_sound.clone(), entity));
 				}
 				DoorState::Opening => {
 					sector_dynamic.ceiling_height += door_active.speed * delta.as_secs_f32();
@@ -101,9 +96,7 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 						door_active.state = DoorState::Closing;
 
 						// Play sound
-						let sound = sound_storage.get(&door_active.close_sound).unwrap();
-						let source = SoundSource::new(&sound);
-						rodio::play_raw(&sound_device, source.convert_samples());
+						sound_queue.push((door_active.close_sound.clone(), entity));
 					}
 				}
 				DoorState::Closing => {

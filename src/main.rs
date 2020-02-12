@@ -11,7 +11,7 @@ mod renderer;
 mod stdin;
 
 use crate::{
-	assets::{AssetFormat, AssetStorage},
+	assets::{AssetFormat, AssetHandle, AssetStorage},
 	audio::Sound,
 	component::EntityTemplate,
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
@@ -21,7 +21,7 @@ use crate::{
 use nalgebra::{Matrix4, Vector3};
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
-use specs::{ReadExpect, RunNow, World, WorldExt, WriteExpect};
+use specs::{Entity, ReadExpect, RunNow, World, WorldExt, WriteExpect};
 use std::{
 	error::Error,
 	sync::mpsc,
@@ -147,11 +147,13 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	world.insert(loader);
 	world.insert(InputState::new());
 	world.insert(bindings);
+	world.insert(Vec::<(AssetHandle<Sound>, Entity)>::new());
 	world.insert(doom::client::Client::default());
 	world.insert(doom::FRAME_TIME);
 
 	// Create systems
 	let mut render_system = doom::render::RenderSystem::new(&world)?;
+	let mut sound_system = doom::sound::SoundSystem;
 	let mut update_system = doom::update::UpdateSystem::default();
 
 	command_sender.send("map E1M1".to_owned()).ok();
@@ -473,6 +475,9 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 				input_state.reset();
 			}
 		}
+
+		// Update sound
+		sound_system.run_now(&world);
 
 		// Draw frame
 		render_system.run_now(&world);

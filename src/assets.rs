@@ -45,9 +45,9 @@ impl<A> AssetHandle<A> {
 		*self.id.as_ref()
 	}
 
-	fn is_unique(&self) -> bool {
+	/*fn is_unique(&self) -> bool {
 		Arc::strong_count(&self.id) == 1
-	}
+	}*/
 }
 
 #[derive(Derivative)]
@@ -146,7 +146,7 @@ impl<A: Asset> AssetStorage<A> {
 		}
 	}
 
-	pub fn clear_unused(&mut self) {
+	/*pub fn clear_unused(&mut self) {
 		let assets = &mut self.assets;
 		let unused_ids = &mut self.unused_ids;
 		let old_len = self.handles.len();
@@ -166,7 +166,7 @@ impl<A: Asset> AssetStorage<A> {
 		if count > 0 {
 			log::trace!("Freed {} {} assets", count, A::NAME);
 		}
-	}
+	}*/
 
 	pub fn build_waiting<
 		F: FnMut(A::Intermediate) -> Result<A::Data, Box<dyn Error + Send + Sync>>,
