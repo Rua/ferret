@@ -1,7 +1,7 @@
 //use crate::assets::AssetHandle;
 use crate::{
 	assets::AssetHandle,
-	audio::Sound,
+	audio::{Sink, Sound},
 	doom::{map::Map, sprite::Sprite},
 	geometry::Angle,
 };
@@ -97,6 +97,12 @@ pub struct SectorDynamic {
 	pub light_level: f32,
 	pub floor_height: f32,
 	pub ceiling_height: f32,
+}
+
+#[derive(Component)]
+#[storage(HashMapStorage)]
+pub struct SoundPlaying {
+	pub sink: Sink,
 }
 
 #[derive(Clone, Component, Copy, Debug)]

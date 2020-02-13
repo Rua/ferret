@@ -124,6 +124,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	world.register::<doom::components::LinedefDynamic>();
 	world.register::<doom::components::MapDynamic>();
 	world.register::<doom::components::SectorDynamic>();
+	world.register::<doom::components::SoundPlaying>();
 	world.register::<doom::components::SpawnOnCeiling>();
 	world.register::<doom::components::SpawnPoint>();
 	world.register::<doom::components::SpriteRender>();

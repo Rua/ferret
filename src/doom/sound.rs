@@ -1,18 +1,18 @@
 use crate::{
 	assets::{Asset, AssetHandle, AssetStorage, DataSource},
-	audio::{Sound, SoundSource},
+	audio::{Sink, Sound, SoundSource},
+	doom::components::SoundPlaying,
 };
 use byteorder::{ReadBytesExt, LE};
 use rodio::Source;
-use specs::{Entity, ReadExpect, RunNow, World, WriteExpect};
+use specs::{Entity, Entities, Join, ReadExpect, RunNow, World, WriteExpect, WriteStorage};
 use std::{
 	error::Error,
 	io::{Cursor, Read},
-	sync::Arc,
 };
 
 impl Asset for Sound {
-	type Data = Arc<Self>;
+	type Data = Self;
 	type Intermediate = Vec<u8>;
 	const NAME: &'static str = "Sound";
 
@@ -24,7 +24,7 @@ impl Asset for Sound {
 	}
 }
 
-pub fn build_sound(data: Vec<u8>) -> Result<Arc<Sound>, Box<dyn Error + Send + Sync>> {
+pub fn build_sound(data: Vec<u8>) -> Result<Sound, Box<dyn Error + Send + Sync>> {
 	let mut reader = Cursor::new(data);
 	let signature = reader.read_u16::<LE>()?;
 
@@ -35,19 +35,13 @@ pub fn build_sound(data: Vec<u8>) -> Result<Arc<Sound>, Box<dyn Error + Send + S
 	let sample_rate = reader.read_u16::<LE>()? as u32;
 	let sample_count = reader.read_u32::<LE>()? as usize;
 
-	let mut data = vec![0u8; sample_count];
+	let mut data = vec![0u8; sample_count - 32];
+	let mut padding = [0u8; 16];
+	reader.read_exact(&mut padding)?;
 	reader.read_exact(&mut data)?;
+	reader.read_exact(&mut padding)?;
 
-	// Remove padding bytes at start and end
-	if data.ends_with(&[data[sample_count - 17]; 16]) {
-		data.drain(sample_count - 17..);
-	}
-
-	if data.starts_with(&[data[16]; 16]) {
-		data.drain(..16);
-	}
-
-	Ok(Arc::new(Sound { sample_rate, data }))
+	Ok(Sound { sample_rate, data: data.into() })
 }
 
 #[derive(Default)]
@@ -57,17 +51,38 @@ impl<'a> RunNow<'a> for SoundSystem {
 	fn setup(&mut self, _world: &mut World) {}
 
 	fn run_now(&mut self, world: &'a World) {
-		let (sound_device, sound_storage, mut sound_queue) = world
+		let (entities, sound_device, sound_storage, mut sound_queue, mut sound_playing_component) = world
 			.system_data::<(
+				Entities,
 				ReadExpect<rodio::Device>,
 				ReadExpect<AssetStorage<Sound>>,
 				WriteExpect<Vec<(AssetHandle<Sound>, Entity)>>,
+				WriteStorage<SoundPlaying>,
 			)>();
 
-		for (handle, _entity) in sound_queue.drain(..) {
+		let mut to_remove = Vec::new();
+
+		// Update currently playing sounds
+		for (entity, sound_playing) in (&entities, &mut sound_playing_component).join() {
+			if sound_playing.sink.empty() {
+				to_remove.push(entity);
+			}
+		}
+
+		// Remove finished sounds
+		for entity in to_remove {
+			sound_playing_component.remove(entity);
+		}
+
+		// Play new sounds
+		for (handle, entity) in sound_queue.drain(..) {
 			let sound = sound_storage.get(&handle).unwrap();
-			let source = SoundSource::new(&sound);
-			rodio::play_raw(&sound_device, source.convert_samples());
+			let sink = Sink::new(&sound_device);
+			sink.append(SoundSource::new(&sound).convert_samples::<f32>());
+			//sink.detach();
+			sound_playing_component.insert(entity, SoundPlaying { sink }).ok();
+			/*let source = SoundSource::new(&sound);
+			rodio::play_raw(&sound_device, source.convert_samples());*/
 		}
 	}
 }
