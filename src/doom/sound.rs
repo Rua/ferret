@@ -4,8 +4,7 @@ use crate::{
 	doom::components::SoundPlaying,
 };
 use byteorder::{ReadBytesExt, LE};
-use rodio::Source;
-use specs::{Entity, Entities, Join, ReadExpect, RunNow, World, WriteExpect, WriteStorage};
+use specs::{Entities, Entity, Join, ReadExpect, RunNow, World, WriteExpect, WriteStorage};
 use std::{
 	error::Error,
 	io::{Cursor, Read},
@@ -41,7 +40,10 @@ pub fn build_sound(data: Vec<u8>) -> Result<Sound, Box<dyn Error + Send + Sync>>
 	reader.read_exact(&mut data)?;
 	reader.read_exact(&mut padding)?;
 
-	Ok(Sound { sample_rate, data: data.into() })
+	Ok(Sound {
+		sample_rate,
+		data: data.into(),
+	})
 }
 
 #[derive(Default)]
@@ -51,8 +53,8 @@ impl<'a> RunNow<'a> for SoundSystem {
 	fn setup(&mut self, _world: &mut World) {}
 
 	fn run_now(&mut self, world: &'a World) {
-		let (entities, sound_device, sound_storage, mut sound_queue, mut sound_playing_component) = world
-			.system_data::<(
+		let (entities, sound_device, sound_storage, mut sound_queue, mut sound_playing_component) =
+			world.system_data::<(
 				Entities,
 				ReadExpect<rodio::Device>,
 				ReadExpect<AssetStorage<Sound>>,
@@ -64,7 +66,7 @@ impl<'a> RunNow<'a> for SoundSystem {
 
 		// Update currently playing sounds
 		for (entity, sound_playing) in (&entities, &mut sound_playing_component).join() {
-			if sound_playing.sink.empty() {
+			if sound_playing.sink.is_done() {
 				to_remove.push(entity);
 			}
 		}
@@ -77,12 +79,14 @@ impl<'a> RunNow<'a> for SoundSystem {
 		// Play new sounds
 		for (handle, entity) in sound_queue.drain(..) {
 			let sound = sound_storage.get(&handle).unwrap();
-			let sink = Sink::new(&sound_device);
-			sink.append(SoundSource::new(&sound).convert_samples::<f32>());
-			//sink.detach();
-			sound_playing_component.insert(entity, SoundPlaying { sink }).ok();
-			/*let source = SoundSource::new(&sound);
-			rodio::play_raw(&sound_device, source.convert_samples());*/
+			let sink = Sink::play(&sound_device, SoundSource::new(&sound));
+
+			if let Ok(Some(sound_playing)) =
+				sound_playing_component.insert(entity, SoundPlaying { sink })
+			{
+				// Stop old sound on this entity, if any
+				sound_playing.sink.stop();
+			}
 		}
 	}
 }

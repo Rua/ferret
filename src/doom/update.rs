@@ -16,7 +16,9 @@ use crate::{
 use nalgebra::Vector2;
 use rand::Rng;
 use rand_pcg::Pcg64Mcg;
-use specs::{Entity, Entities, Join, ReadExpect, ReadStorage, RunNow, World, WriteExpect, WriteStorage};
+use specs::{
+	Entities, Entity, Join, ReadExpect, ReadStorage, RunNow, World, WriteExpect, WriteStorage,
+};
 use std::time::Duration;
 
 #[derive(Default)]
