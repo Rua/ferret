@@ -1,4 +1,4 @@
-use rodio::{source::Done, Device, Sample, Source};
+use rodio::{source::Done, Sample, Source};
 use std::{
 	sync::{
 		atomic::{AtomicBool, AtomicUsize, Ordering},
@@ -91,7 +91,7 @@ impl Iterator for SoundSource {
 	}
 }
 
-pub struct Sink {
+pub struct SoundController {
 	controls: Arc<Controls>,
 	is_playing: Arc<AtomicUsize>,
 }
@@ -100,33 +100,33 @@ struct Controls {
 	stopped: AtomicBool,
 }
 
-impl Sink {
+impl SoundController {
 	#[inline]
-	pub fn play<S>(device: &Device, source: S) -> Sink
+	pub fn new<S>(source: S) -> (SoundController, impl Source<Item = S::Item>)
 	where
 		S: Source + Send + 'static,
 		S::Item: Sample,
 		S::Item: Send,
 	{
-		let sink = Sink {
+		let controller = SoundController {
 			controls: Arc::new(Controls {
 				stopped: AtomicBool::new(false),
 			}),
 			is_playing: Arc::new(AtomicUsize::new(1)),
 		};
 
-		let controls = sink.controls.clone();
+		let controls = controller.controls.clone();
 		let source = source
 			.stoppable()
 			.periodic_access(Duration::from_millis(5), move |src| {
 				if controls.stopped.load(Ordering::SeqCst) {
 					src.stop();
 				}
-			})
-			.convert_samples();
-		let source = Done::new(source, sink.is_playing.clone());
-		rodio::play_raw(device, source);
-		sink
+			});
+		//.convert_samples();
+		let source = Done::new(source, controller.is_playing.clone());
+		//rodio::play_raw(device, source);
+		(controller, source)
 	}
 
 	#[inline]

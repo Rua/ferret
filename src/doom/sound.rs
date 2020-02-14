@@ -1,9 +1,10 @@
 use crate::{
 	assets::{Asset, AssetHandle, AssetStorage, DataSource},
-	audio::{Sink, Sound, SoundSource},
+	audio::{Sound, SoundController, SoundSource},
 	doom::components::SoundPlaying,
 };
 use byteorder::{ReadBytesExt, LE};
+use rodio::Source;
 use specs::{Entities, Entity, Join, ReadExpect, RunNow, World, WriteExpect, WriteStorage};
 use std::{
 	error::Error,
@@ -66,7 +67,7 @@ impl<'a> RunNow<'a> for SoundSystem {
 
 		// Update currently playing sounds
 		for (entity, sound_playing) in (&entities, &mut sound_playing_component).join() {
-			if sound_playing.sink.is_done() {
+			if sound_playing.controller.is_done() {
 				to_remove.push(entity);
 			}
 		}
@@ -79,14 +80,16 @@ impl<'a> RunNow<'a> for SoundSystem {
 		// Play new sounds
 		for (handle, entity) in sound_queue.drain(..) {
 			let sound = sound_storage.get(&handle).unwrap();
-			let sink = Sink::play(&sound_device, SoundSource::new(&sound));
+			let (controller, source) = SoundController::new(SoundSource::new(&sound));
 
 			if let Ok(Some(sound_playing)) =
-				sound_playing_component.insert(entity, SoundPlaying { sink })
+				sound_playing_component.insert(entity, SoundPlaying { controller })
 			{
 				// Stop old sound on this entity, if any
-				sound_playing.sink.stop();
+				sound_playing.controller.stop();
 			}
+
+			rodio::play_raw(&sound_device, source.convert_samples());
 		}
 	}
 }
