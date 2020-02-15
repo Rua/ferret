@@ -15,12 +15,22 @@ impl BoundingBox2 {
 		BoundingBox2 { min, max }
 	}
 
-	/*	pub fn zero() -> BoundingBox2 {
-		BoundingBox2::new(Vector2::zeros(), Vector2::zeros())
-	}*/
+	pub fn zero() -> BoundingBox2 {
+		BoundingBox2 {
+			min: Vector2::new(std::f32::INFINITY, std::f32::INFINITY),
+			max: Vector2::new(std::f32::NEG_INFINITY, std::f32::NEG_INFINITY),
+		}
+	}
 
 	pub fn from_extents(top: f32, bottom: f32, left: f32, right: f32) -> BoundingBox2 {
 		BoundingBox2::new(Vector2::new(bottom, left), Vector2::new(top, right))
+	}
+
+	pub fn add_point(&mut self, point: Vector2<f32>) {
+		for i in 0..2 {
+			self.min[i] = f32::min(self.min[i], point[i]);
+			self.max[i] = f32::max(self.max[i], point[i]);
+		}
 	}
 }
 

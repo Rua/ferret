@@ -138,6 +138,7 @@ pub fn spawn_map_entities(
 		mut linedef_dynamic_component,
 		sector_types,
 		mut sector_dynamic_component,
+		mut transform_component,
 	) = world.system_data::<(
 		ReadExpect<AssetStorage<Map>>,
 		WriteStorage<MapDynamic>,
@@ -146,6 +147,7 @@ pub fn spawn_map_entities(
 		WriteStorage<LinedefDynamic>,
 		ReadExpect<SectorTypes>,
 		WriteStorage<SectorDynamic>,
+		WriteStorage<Transform>,
 	)>();
 	let map = map_storage.get(&map_handle).unwrap();
 
@@ -203,6 +205,28 @@ pub fn spawn_map_entities(
 				light_level: sector.light_level,
 				floor_height: sector.floor_height,
 				ceiling_height: sector.ceiling_height,
+			},
+		)?;
+
+		// Find midpoint of sector for sound purposes
+		let mut bounding_box = BoundingBox2::zero();
+
+		for linedef in map.linedefs.iter() {
+			for sidedef in linedef.sidedefs.iter().flatten() {
+				if sidedef.sector_index == i {
+					bounding_box.add_point(linedef.vertices[0]);
+					bounding_box.add_point(linedef.vertices[1]);
+				}
+			}
+		}
+
+		let midpoint = (bounding_box.min + bounding_box.max) / 2.0;
+
+		transform_component.insert(
+			entity,
+			Transform {
+				position: Vector3::new(midpoint[0], midpoint[1], 0.0),
+				rotation: Vector3::new(0.into(), 0.into(), 0.into()),
 			},
 		)?;
 

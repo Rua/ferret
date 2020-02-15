@@ -1,8 +1,11 @@
-use rodio::{source::Done, Sample, Source};
+use rodio::{
+	source::{ChannelVolume, Done},
+	Sample, Source,
+};
 use std::{
 	sync::{
 		atomic::{AtomicBool, AtomicUsize, Ordering},
-		Arc,
+		Arc, Mutex,
 	},
 	time::Duration,
 };
@@ -20,13 +23,13 @@ impl Drop for Audio {
 }*/
 
 pub struct Sound {
-	pub data: Arc<[u8]>,
+	pub data: Arc<[i16]>,
 	pub sample_rate: u32,
 }
 
 pub struct SoundSource {
 	current: usize,
-	data: Arc<[u8]>,
+	data: Arc<[i16]>,
 	duration: Duration,
 	sample_rate: u32,
 }
@@ -75,13 +78,13 @@ impl Source for SoundSource {
 }
 
 impl Iterator for SoundSource {
-	type Item = u16;
+	type Item = i16;
 
 	#[inline]
 	fn next(&mut self) -> Option<Self::Item> {
 		let item = self.data.get(self.current);
 		self.current += 1;
-		item.map(|x| ((*x as u16) << 8 | *x as u16))
+		item.copied()
 	}
 
 	#[inline]
@@ -98,6 +101,7 @@ pub struct SoundController {
 
 struct Controls {
 	stopped: AtomicBool,
+	volumes: Mutex<[f32; 2]>,
 }
 
 impl SoundController {
@@ -111,21 +115,25 @@ impl SoundController {
 		let controller = SoundController {
 			controls: Arc::new(Controls {
 				stopped: AtomicBool::new(false),
+				volumes: Mutex::new([1.0, 1.0]),
 			}),
 			is_playing: Arc::new(AtomicUsize::new(1)),
 		};
 
 		let controls = controller.controls.clone();
-		let source = source
-			.stoppable()
-			.periodic_access(Duration::from_millis(5), move |src| {
+		let source = ChannelVolume::new(source.stoppable(), vec![1.0, 1.0]).periodic_access(
+			Duration::from_millis(5),
+			move |src| {
 				if controls.stopped.load(Ordering::SeqCst) {
-					src.stop();
+					src.inner_mut().stop();
+				} else {
+					let volumes = controls.volumes.lock().unwrap();
+					src.set_volume(0, volumes[0]);
+					src.set_volume(1, volumes[1]);
 				}
-			});
-		//.convert_samples();
+			},
+		);
 		let source = Done::new(source, controller.is_playing.clone());
-		//rodio::play_raw(device, source);
 		(controller, source)
 	}
 
@@ -137,5 +145,10 @@ impl SoundController {
 	#[inline]
 	pub fn is_done(&self) -> bool {
 		self.is_playing.load(Ordering::Relaxed) == 0
+	}
+
+	#[inline]
+	pub fn set_volumes(&self, volumes: [f32; 2]) {
+		*self.controls.volumes.lock().unwrap() = volumes;
 	}
 }
