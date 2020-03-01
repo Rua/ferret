@@ -130,6 +130,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	world.register::<doom::components::SpriteRender>();
 	world.register::<doom::components::TextureScroll>();
 	world.register::<doom::components::Transform>();
+	world.register::<doom::components::Velocity>();
 
 	// Insert asset storages
 	world.insert(AssetStorage::<EntityTemplate>::default());

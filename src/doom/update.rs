@@ -5,7 +5,7 @@ use crate::{
 		client::Client,
 		components::{
 			DoorActive, DoorState, DoorUse, LightFlash, LightFlashType, LightGlow, LinedefDynamic,
-			MapDynamic, SectorDynamic, TextureScroll, Transform,
+			MapDynamic, SectorDynamic, TextureScroll, Transform, Velocity,
 		},
 		input::{Action, Axis, UserCommand},
 		map::Map,
@@ -27,6 +27,8 @@ pub struct UpdateSystem {
 	player_move: PlayerMoveSystem,
 	player_use: PlayerUseSystem,
 
+	physics: PhysicsSystem,
+
 	door_update: DoorUpdateSystem,
 	light_update: LightUpdateSystem,
 	texture_scroll: TextureScrollSystem,
@@ -39,6 +41,8 @@ impl<'a> RunNow<'a> for UpdateSystem {
 		self.player_command.run_now(world);
 		self.player_move.run_now(world);
 		self.player_use.run_now(world);
+
+		self.physics.run_now(world);
 
 		self.door_update.run_now(world);
 		self.light_update.run_now(world);
@@ -268,11 +272,15 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 	fn setup(&mut self, _world: &mut World) {}
 
 	fn run_now(&mut self, world: &'a World) {
-		let (client, mut transform_component) =
-			world.system_data::<(WriteExpect<Client>, WriteStorage<Transform>)>();
+		let (client, mut transform_component, mut velocity_component) = world.system_data::<(
+			WriteExpect<Client>,
+			WriteStorage<Transform>,
+			WriteStorage<Velocity>,
+		)>();
 
 		if let Some(entity) = client.entity {
 			let transform = transform_component.get_mut(entity).unwrap();
+			let velocity = velocity_component.get_mut(entity).unwrap();
 
 			transform.rotation[1] += (client.command.axis_pitch * 1e6) as i32;
 			transform.rotation[1].0 =
@@ -289,9 +297,8 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 				move_dir /= len;
 			}
 
-			move_dir *= 20.0;
-
-			transform.position += axes[0] * move_dir[0] + axes[1] * move_dir[1];
+			move_dir *= 20.0 / crate::doom::FRAME_TIME.as_secs_f32();
+			velocity.velocity = axes[0] * move_dir[0] + axes[1] * move_dir[1];
 		}
 	}
 }
@@ -430,6 +437,25 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 					}
 				}
 			}
+		}
+	}
+}
+
+#[derive(Default)]
+struct PhysicsSystem;
+
+impl<'a> RunNow<'a> for PhysicsSystem {
+	fn setup(&mut self, _world: &mut World) {}
+
+	fn run_now(&mut self, world: &'a World) {
+		let (delta, mut transform_component, velocity_component) = world.system_data::<(
+			ReadExpect<Duration>,
+			WriteStorage<Transform>,
+			ReadStorage<Velocity>,
+		)>();
+
+		for (transform, velocity) in (&mut transform_component, &velocity_component).join() {
+			transform.position += velocity.velocity * delta.as_secs_f32();
 		}
 	}
 }

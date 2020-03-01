@@ -71,14 +71,6 @@ pub struct LightGlow {
 	pub state: bool,
 }
 
-#[derive(Clone, Component, Debug)]
-#[storage(HashMapStorage)]
-pub struct MapDynamic {
-	pub map: AssetHandle<Map>,
-	pub linedefs: Vec<Entity>,
-	pub sectors: Vec<Entity>,
-}
-
 #[derive(Clone, Component, Copy, Debug)]
 #[storage(HashMapStorage)]
 pub struct LinedefDynamic {
@@ -86,6 +78,14 @@ pub struct LinedefDynamic {
 	pub index: usize,
 
 	pub texture_offset: Vector2<f32>,
+}
+
+#[derive(Clone, Component, Debug)]
+#[storage(HashMapStorage)]
+pub struct MapDynamic {
+	pub map: AssetHandle<Map>,
+	pub linedefs: Vec<Entity>,
+	pub sectors: Vec<Entity>,
 }
 
 #[derive(Clone, Component, Copy, Debug)]
@@ -140,6 +140,19 @@ impl Default for Transform {
 		Transform {
 			position: Vector3::new(0.0, 0.0, 0.0),
 			rotation: Vector3::new(0.into(), 0.into(), 0.into()),
+		}
+	}
+}
+
+#[derive(Clone, Component, Copy, Debug)]
+pub struct Velocity {
+	pub velocity: Vector3<f32>,
+}
+
+impl Default for Velocity {
+	fn default() -> Velocity {
+		Velocity {
+			velocity: Vector3::new(0.0, 0.0, 0.0),
 		}
 	}
 }

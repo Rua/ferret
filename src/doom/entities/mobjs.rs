@@ -3,7 +3,7 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
 	doom::{
-		components::{SpawnOnCeiling, SpawnPoint, SpriteRender},
+		components::{SpawnOnCeiling, SpawnPoint, SpriteRender, Velocity},
 		sprite::Sprite,
 		wad::WadLoader,
 	},
@@ -64,6 +64,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("PLAYER", handle.clone());
 
@@ -74,6 +75,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("POSSESSED", handle.clone());
 		doomednums.insert(3004, handle.clone());
@@ -85,6 +87,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("SHOTGUY", handle.clone());
 		doomednums.insert(9, handle.clone());
@@ -96,6 +99,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("VILE", handle.clone());
 		doomednums.insert(64, handle.clone());
@@ -117,6 +121,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("UNDEAD", handle.clone());
 		doomednums.insert(66, handle.clone());
@@ -128,6 +133,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: true,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("TRACER", handle.clone());
 
@@ -148,6 +154,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("FATSO", handle.clone());
 		doomednums.insert(67, handle.clone());
@@ -159,6 +166,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: true,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("FATSHOT", handle.clone());
 
@@ -169,6 +177,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("CHAINGUY", handle.clone());
 		doomednums.insert(65, handle.clone());
@@ -180,6 +189,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("TROOP", handle.clone());
 		doomednums.insert(3001, handle.clone());
@@ -191,6 +201,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("SERGEANT", handle.clone());
 		doomednums.insert(3002, handle.clone());
@@ -202,6 +213,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("SHADOWS", handle.clone());
 		doomednums.insert(58, handle.clone());
@@ -213,6 +225,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("HEAD", handle.clone());
 		doomednums.insert(3005, handle.clone());
@@ -224,6 +237,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("BRUISER", handle.clone());
 		doomednums.insert(3003, handle.clone());
@@ -235,6 +249,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: true,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("BRUISERSHOT", handle.clone());
 
@@ -245,6 +260,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("KNIGHT", handle.clone());
 		doomednums.insert(69, handle.clone());
@@ -256,6 +272,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: true,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("SKULL", handle.clone());
 		doomednums.insert(3006, handle.clone());
@@ -267,6 +284,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("SPIDER", handle.clone());
 		doomednums.insert(7, handle.clone());
@@ -278,6 +296,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("BABY", handle.clone());
 		doomednums.insert(68, handle.clone());
@@ -289,6 +308,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("CYBORG", handle.clone());
 		doomednums.insert(16, handle.clone());
@@ -300,6 +320,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("PAIN", handle.clone());
 		doomednums.insert(71, handle.clone());
@@ -311,6 +332,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("WOLFSS", handle.clone());
 		doomednums.insert(84, handle.clone());
@@ -325,6 +347,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("KEEN", handle.clone());
 		doomednums.insert(72, handle.clone());
@@ -336,6 +359,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("BOSSBRAIN", handle.clone());
 		doomednums.insert(88, handle.clone());
@@ -364,6 +388,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: true,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("SPAWNSHOT", handle.clone());
 
@@ -384,6 +409,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: false,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("BARREL", handle.clone());
 		doomednums.insert(2035, handle.clone());
@@ -395,6 +421,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: true,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("TROOPSHOT", handle.clone());
 
@@ -405,6 +432,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: true,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("HEADSHOT", handle.clone());
 
@@ -415,6 +443,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: true,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("ROCKET", handle.clone());
 
@@ -425,6 +454,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: true,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("PLASMA", handle.clone());
 
@@ -435,6 +465,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: true,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("BFG", handle.clone());
 
@@ -445,6 +476,7 @@ impl MobjTypes {
 					frame: 0,
 					full_bright: true,
 				})
+				.with_component(Velocity::default())
 		});
 		names.insert("ARACHPLAZ", handle.clone());
 
