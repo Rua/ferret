@@ -10,6 +10,12 @@ use specs::{Component, DenseVecStorage, Entity, HashMapStorage};
 use specs_derive::Component;
 use std::time::Duration;
 
+#[derive(Clone, Component, Copy, Debug)]
+pub struct BoxCollider {
+	pub height: f32,
+	pub radius: f32,
+}
+
 #[derive(Clone, Component, Debug)]
 #[storage(HashMapStorage)]
 pub struct DoorActive {

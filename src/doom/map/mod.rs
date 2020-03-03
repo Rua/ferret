@@ -209,18 +209,18 @@ pub fn spawn_map_entities(
 		)?;
 
 		// Find midpoint of sector for sound purposes
-		let mut bounding_box = BoundingBox2::zero();
+		let mut bbox = BoundingBox2::zero();
 
 		for linedef in map.linedefs.iter() {
 			for sidedef in linedef.sidedefs.iter().flatten() {
 				if sidedef.sector_index == i {
-					bounding_box.add_point(linedef.vertices[0]);
-					bounding_box.add_point(linedef.vertices[1]);
+					bbox.add_point(linedef.vertices[0]);
+					bbox.add_point(linedef.vertices[1]);
 				}
 			}
 		}
 
-		let midpoint = (bounding_box.min + bounding_box.max) / 2.0;
+		let midpoint = (bbox.min + bbox.max) / 2.0;
 
 		transform_component.insert(
 			entity,
@@ -562,6 +562,12 @@ pub fn build_map(
 					vertexes_data[data.vertex_indices[0]],
 					vertexes_data[data.vertex_indices[1]],
 				],
+				bbox: {
+					let mut bbox = BoundingBox2::zero();
+					bbox.add_point(vertexes_data[data.vertex_indices[0]]);
+					bbox.add_point(vertexes_data[data.vertex_indices[1]]);
+					bbox
+				},
 				flags: data.flags,
 				special_type: data.special_type,
 				sector_tag: data.sector_tag,
@@ -671,6 +677,7 @@ impl<T> TextureType<T> {
 #[derive(Clone, Debug)]
 pub struct Linedef {
 	pub vertices: [Vector2<f32>; 2],
+	pub bbox: BoundingBox2,
 	pub flags: LinedefFlags,
 	pub special_type: u16,
 	pub sector_tag: u16,
@@ -685,6 +692,33 @@ impl Linedef {
 			Side::Right
 		} else {
 			Side::Left
+		}
+	}
+
+	pub fn intersects_bbox(&self, bbox: &BoundingBox2) -> bool {
+		if bbox.max[0] <= self.bbox.min[0]
+			|| bbox.min[0] >= self.bbox.max[0]
+			|| bbox.max[1] <= self.bbox.min[1]
+			|| bbox.min[1] >= self.bbox.max[1]
+		{
+			return false;
+		}
+
+		let point = self.vertices[0];
+		let dir = self.vertices[1] - self.vertices[0];
+		let sides = [
+			crate::geometry::point_side(point, dir, Vector2::new(bbox.min[0], bbox.min[1])),
+			crate::geometry::point_side(point, dir, Vector2::new(bbox.min[0], bbox.max[1])),
+			crate::geometry::point_side(point, dir, Vector2::new(bbox.max[0], bbox.min[1])),
+			crate::geometry::point_side(point, dir, Vector2::new(bbox.max[0], bbox.max[1])),
+		];
+
+		if sides[0] < 0.0 && sides[1] < 0.0 && sides[2] < 0.0 && sides[3] < 0.0
+			|| sides[0] > 0.0 && sides[1] > 0.0 && sides[2] > 0.0 && sides[3] > 0.0
+		{
+			false
+		} else {
+			true
 		}
 	}
 }

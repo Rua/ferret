@@ -3,7 +3,7 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
 	doom::{
-		components::{SpawnOnCeiling, SpawnPoint, SpriteRender, Velocity},
+		components::{BoxCollider, SpawnOnCeiling, SpawnPoint, SpriteRender, Velocity},
 		sprite::Sprite,
 		wad::WadLoader,
 	},
@@ -59,6 +59,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 56.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PLAY", &mut *loader),
 					frame: 0,
@@ -70,6 +74,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 56.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POSS", &mut *loader),
 					frame: 0,
@@ -82,6 +90,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 56.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SPOS", &mut *loader),
 					frame: 0,
@@ -94,6 +106,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 56.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("VILE", &mut *loader),
 					frame: 0,
@@ -116,6 +132,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 56.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SKEL", &mut *loader),
 					frame: 0,
@@ -149,6 +169,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 64.0,
+					radius: 48.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("FATT", &mut *loader),
 					frame: 0,
@@ -172,6 +196,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 56.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CPOS", &mut *loader),
 					frame: 0,
@@ -184,6 +212,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 56.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TROO", &mut *loader),
 					frame: 0,
@@ -196,6 +228,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 56.0,
+					radius: 30.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SARG", &mut *loader),
 					frame: 0,
@@ -208,6 +244,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 56.0,
+					radius: 30.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SARG", &mut *loader),
 					frame: 0,
@@ -220,6 +260,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 56.0,
+					radius: 31.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("HEAD", &mut *loader),
 					frame: 0,
@@ -232,6 +276,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 64.0,
+					radius: 24.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BOSS", &mut *loader),
 					frame: 0,
@@ -255,6 +303,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 64.0,
+					radius: 24.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BOS2", &mut *loader),
 					frame: 0,
@@ -267,6 +319,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 56.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SKUL", &mut *loader),
 					frame: 0,
@@ -279,6 +335,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 100.0,
+					radius: 128.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SPID", &mut *loader),
 					frame: 0,
@@ -291,6 +351,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 64.0,
+					radius: 64.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BSPI", &mut *loader),
 					frame: 0,
@@ -303,6 +367,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 110.0,
+					radius: 40.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CYBR", &mut *loader),
 					frame: 0,
@@ -315,6 +383,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 56.0,
+					radius: 31.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PAIN", &mut *loader),
 					frame: 0,
@@ -327,6 +399,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 56.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SSWV", &mut *loader),
 					frame: 0,
@@ -339,6 +415,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 72.0,
+					radius: 16.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 72.0,
 				})
@@ -354,6 +434,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BBRN", &mut *loader),
 					frame: 0,
@@ -404,6 +488,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 42.0,
+					radius: 10.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BAR1", &mut *loader),
 					frame: 0,
@@ -538,6 +626,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("ARM1", &mut *loader),
 					frame: 0,
@@ -549,6 +641,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("ARM2", &mut *loader),
 					frame: 0,
@@ -560,6 +656,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BON1", &mut *loader),
 					frame: 0,
@@ -571,6 +671,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BON2", &mut *loader),
 					frame: 0,
@@ -582,6 +686,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BKEY", &mut *loader),
 					frame: 0,
@@ -593,6 +701,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("RKEY", &mut *loader),
 					frame: 0,
@@ -604,6 +716,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("YKEY", &mut *loader),
 					frame: 0,
@@ -615,6 +731,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("YSKU", &mut *loader),
 					frame: 0,
@@ -626,6 +746,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("RSKU", &mut *loader),
 					frame: 0,
@@ -637,6 +761,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BSKU", &mut *loader),
 					frame: 0,
@@ -648,6 +776,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("STIM", &mut *loader),
 					frame: 0,
@@ -659,6 +791,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("MEDI", &mut *loader),
 					frame: 0,
@@ -670,6 +806,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SOUL", &mut *loader),
 					frame: 0,
@@ -681,6 +821,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PINV", &mut *loader),
 					frame: 0,
@@ -692,6 +836,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PSTR", &mut *loader),
 					frame: 0,
@@ -703,6 +851,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PINS", &mut *loader),
 					frame: 0,
@@ -714,6 +866,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SUIT", &mut *loader),
 					frame: 0,
@@ -725,6 +881,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PMAP", &mut *loader),
 					frame: 0,
@@ -736,6 +896,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PVIS", &mut *loader),
 					frame: 0,
@@ -747,6 +911,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("MEGA", &mut *loader),
 					frame: 0,
@@ -758,6 +926,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CLIP", &mut *loader),
 					frame: 0,
@@ -769,6 +941,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("AMMO", &mut *loader),
 					frame: 0,
@@ -780,6 +956,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("ROCK", &mut *loader),
 					frame: 0,
@@ -791,6 +971,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BROK", &mut *loader),
 					frame: 0,
@@ -802,6 +986,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CELL", &mut *loader),
 					frame: 0,
@@ -813,6 +1001,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CELP", &mut *loader),
 					frame: 0,
@@ -824,6 +1016,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SHEL", &mut *loader),
 					frame: 0,
@@ -835,6 +1031,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SBOX", &mut *loader),
 					frame: 0,
@@ -846,6 +1046,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BPAK", &mut *loader),
 					frame: 0,
@@ -857,6 +1061,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("BFUG", &mut *loader),
 					frame: 0,
@@ -868,6 +1076,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("MGUN", &mut *loader),
 					frame: 0,
@@ -879,6 +1091,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CSAW", &mut *loader),
 					frame: 0,
@@ -890,6 +1106,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("LAUN", &mut *loader),
 					frame: 0,
@@ -901,6 +1121,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PLAS", &mut *loader),
 					frame: 0,
@@ -912,6 +1136,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SHOT", &mut *loader),
 					frame: 0,
@@ -923,6 +1151,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SGN2", &mut *loader),
 					frame: 0,
@@ -934,6 +1166,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TLMP", &mut *loader),
 					frame: 0,
@@ -945,6 +1181,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TLP2", &mut *loader),
 					frame: 0,
@@ -956,6 +1196,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("COLU", &mut *loader),
 					frame: 0,
@@ -967,6 +1211,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("COL1", &mut *loader),
 					frame: 0,
@@ -978,6 +1226,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("COL2", &mut *loader),
 					frame: 0,
@@ -989,6 +1241,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("COL3", &mut *loader),
 					frame: 0,
@@ -1000,6 +1256,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("COL4", &mut *loader),
 					frame: 0,
@@ -1011,6 +1271,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("COL6", &mut *loader),
 					frame: 0,
@@ -1022,6 +1286,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("COL5", &mut *loader),
 					frame: 0,
@@ -1033,6 +1301,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CEYE", &mut *loader),
 					frame: 0,
@@ -1044,6 +1316,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("FSKU", &mut *loader),
 					frame: 0,
@@ -1055,6 +1331,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TRE1", &mut *loader),
 					frame: 0,
@@ -1066,6 +1346,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TBLU", &mut *loader),
 					frame: 0,
@@ -1077,6 +1361,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TGRN", &mut *loader),
 					frame: 0,
@@ -1088,6 +1376,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TRED", &mut *loader),
 					frame: 0,
@@ -1099,6 +1391,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SMBT", &mut *loader),
 					frame: 0,
@@ -1110,6 +1406,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SMGT", &mut *loader),
 					frame: 0,
@@ -1121,6 +1421,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SMRT", &mut *loader),
 					frame: 0,
@@ -1132,6 +1436,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SMIT", &mut *loader),
 					frame: 0,
@@ -1143,6 +1451,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("ELEC", &mut *loader),
 					frame: 0,
@@ -1154,6 +1466,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CAND", &mut *loader),
 					frame: 0,
@@ -1165,6 +1481,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("CBRA", &mut *loader),
 					frame: 0,
@@ -1176,6 +1496,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 68.0,
+					radius: 16.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 68.0,
 				})
@@ -1190,6 +1514,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 84.0,
+					radius: 16.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 84.0,
 				})
@@ -1204,6 +1532,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 84.0,
+					radius: 16.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 84.0,
 				})
@@ -1218,6 +1550,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 68.0,
+					radius: 16.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 68.0,
 				})
@@ -1232,6 +1568,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 52.0,
+					radius: 16.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 52.0,
 				})
@@ -1246,6 +1586,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 84.0,
+					radius: 20.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 84.0,
 				})
@@ -1260,6 +1604,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 68.0,
+					radius: 20.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 68.0,
 				})
@@ -1274,6 +1622,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 52.0,
+					radius: 20.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 52.0,
 				})
@@ -1288,6 +1640,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 52.0,
+					radius: 20.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 52.0,
 				})
@@ -1302,6 +1658,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 68.0,
+					radius: 20.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 68.0,
 				})
@@ -1316,6 +1676,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("HEAD", &mut *loader),
 					frame: 11,
@@ -1327,6 +1691,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PLAY", &mut *loader),
 					frame: 13,
@@ -1338,6 +1706,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POSS", &mut *loader),
 					frame: 11,
@@ -1349,6 +1721,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SARG", &mut *loader),
 					frame: 13,
@@ -1360,6 +1736,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SKUL", &mut *loader),
 					frame: 10,
@@ -1371,6 +1751,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TROO", &mut *loader),
 					frame: 12,
@@ -1382,6 +1766,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("SPOS", &mut *loader),
 					frame: 11,
@@ -1393,6 +1781,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PLAY", &mut *loader),
 					frame: 22,
@@ -1404,6 +1796,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PLAY", &mut *loader),
 					frame: 22,
@@ -1415,6 +1811,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POL2", &mut *loader),
 					frame: 0,
@@ -1426,6 +1826,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POL5", &mut *loader),
 					frame: 0,
@@ -1437,6 +1841,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POL4", &mut *loader),
 					frame: 0,
@@ -1448,6 +1856,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POL3", &mut *loader),
 					frame: 0,
@@ -1459,6 +1871,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POL1", &mut *loader),
 					frame: 0,
@@ -1470,6 +1886,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("POL6", &mut *loader),
 					frame: 0,
@@ -1481,6 +1901,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 32.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("TRE2", &mut *loader),
 					frame: 0,
@@ -1492,6 +1916,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("FCAN", &mut *loader),
 					frame: 0,
@@ -1503,6 +1931,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 88.0,
+					radius: 16.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 88.0,
 				})
@@ -1517,6 +1949,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 88.0,
+					radius: 16.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 88.0,
 				})
@@ -1531,6 +1967,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 64.0,
+					radius: 16.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 64.0,
 				})
@@ -1545,6 +1985,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 64.0,
+					radius: 16.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 64.0,
 				})
@@ -1559,6 +2003,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 64.0,
+					radius: 16.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 64.0,
 				})
@@ -1573,6 +2021,10 @@ impl MobjTypes {
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()
+				.with_component(BoxCollider {
+					height: 64.0,
+					radius: 16.0,
+				})
 				.with_component(SpawnOnCeiling {
 					offset: 64.0,
 				})

@@ -6,6 +6,7 @@ pub mod entities;
 pub mod image;
 pub mod input;
 pub mod map;
+pub mod physics;
 pub mod render;
 pub mod sound;
 pub mod sprite;

@@ -117,6 +117,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	let mut world = World::new();
 
 	// Register components
+	world.register::<doom::components::BoxCollider>();
 	world.register::<doom::components::DoorActive>();
 	world.register::<doom::components::DoorUse>();
 	world.register::<doom::components::LightFlash>();
