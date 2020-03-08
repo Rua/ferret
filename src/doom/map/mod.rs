@@ -582,10 +582,7 @@ pub fn build_map(
 		.rev()
 		.map(|data| {
 			Ok(GLNode::Branch(BranchNode {
-				partition_line: Line::new(
-					data.partition_point.clone(),
-					data.partition_dir.clone(),
-				),
+				partition_line: Line::new(data.partition_point.clone(), data.partition_dir.clone()),
 				child_bboxes: data.child_bboxes.clone(),
 				child_indices: [
 					match data.child_indices[0] {

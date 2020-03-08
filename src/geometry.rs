@@ -10,7 +10,7 @@ impl Line {
 	pub fn new(point: Vector2<f32>, dir: Vector2<f32>) -> Line {
 		assert!(dir[0] != 0.0 || dir[1] != 0.0);
 
-		Line {point, dir}
+		Line { point, dir }
 	}
 
 	#[inline]
