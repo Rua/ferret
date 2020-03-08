@@ -44,14 +44,14 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 		)
 			.join()
 		{
-			//transform.position += velocity.velocity * delta.as_secs_f32();
-			XYMovement(
+			transform.position += velocity.velocity * delta.as_secs_f32();
+			/*XYMovement(
 				*delta,
 				*&map,
 				*&box_collider,
 				&mut transform.position,
 				&mut velocity.velocity,
-			);
+			);*/
 		}
 	}
 }

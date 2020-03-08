@@ -7,7 +7,7 @@ use crate::{
 		input::{Action, Axis, UserCommand},
 		map::Map,
 	},
-	geometry::Side,
+	geometry::{Line, Side},
 	input::{Bindings, InputState},
 };
 use nalgebra::Vector2;
@@ -118,26 +118,22 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 				let map = map_storage.get(&map_dynamic.map).unwrap();
 
 				const USERANGE: f32 = 64.0;
-				let mut point = transform.position;
-				point[2] += 41.0; // TODO: Store view height properly
 				let yaw = transform.rotation[2].to_radians() as f32;
-				let direction = Vector2::new(yaw.cos(), yaw.sin()) * USERANGE;
+				let use_line = Line::new(
+					Vector2::new(transform.position[0], transform.position[1]),
+					Vector2::new(yaw.cos(), yaw.sin()) * USERANGE,
+				);
 
 				// Find the closest linedef hit
-				let mut tmax = 1.0;
+				let mut pmax = 1.0;
 				let mut closest_linedef = None;
 
 				for (i, linedef) in map.linedefs.iter().enumerate() {
-					let t = crate::geometry::intersect(
-						linedef.vertices[0],
-						linedef.vertices[1] - linedef.vertices[0],
-						Vector2::new(point[0], point[1]),
-						direction,
-					);
-
-					if t < tmax {
-						tmax = t;
-						closest_linedef = Some(i);
+					if let Some((linedef_p, use_p)) = linedef.line.intersect(&use_line) {
+						if linedef_p >= 0.0 && linedef_p <= 1.0 && use_p >= 0.0 && use_p < pmax {
+							pmax = use_p;
+							closest_linedef = Some(i);
+						}
 					}
 				}
 
@@ -146,7 +142,7 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 					let linedef = &map.linedefs[linedef_index];
 
 					// Used from the back, ignore
-					if linedef.point_side(Vector2::new(point[0], point[1])) != Side::Right {
+					if linedef.point_side(use_line.point) != Side::Right {
 						return;
 					}
 

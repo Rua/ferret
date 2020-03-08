@@ -20,7 +20,7 @@ use crate::{
 		},
 		wad::WadLoader,
 	},
-	geometry::{BoundingBox2, Side},
+	geometry::{BoundingBox2, Line, Side},
 };
 use derivative::Derivative;
 use nalgebra::{Vector2, Vector3};
@@ -214,8 +214,8 @@ pub fn spawn_map_entities(
 		for linedef in map.linedefs.iter() {
 			for sidedef in linedef.sidedefs.iter().flatten() {
 				if sidedef.sector_index == i {
-					bbox.add_point(linedef.vertices[0]);
-					bbox.add_point(linedef.vertices[1]);
+					bbox.add_point(linedef.line.point);
+					bbox.add_point(linedef.line.point + linedef.line.dir);
 				}
 			}
 		}
@@ -558,10 +558,10 @@ pub fn build_map(
 			}
 
 			Ok(Linedef {
-				vertices: [
+				line: Line::new(
 					vertexes_data[data.vertex_indices[0]],
-					vertexes_data[data.vertex_indices[1]],
-				],
+					vertexes_data[data.vertex_indices[1]] - vertexes_data[data.vertex_indices[0]],
+				),
 				bbox: {
 					let mut bbox = BoundingBox2::zero();
 					bbox.add_point(vertexes_data[data.vertex_indices[0]]);
@@ -582,8 +582,10 @@ pub fn build_map(
 		.rev()
 		.map(|data| {
 			Ok(GLNode::Branch(BranchNode {
-				partition_point: data.partition_point.clone(),
-				partition_dir: data.partition_dir.clone(),
+				partition_line: Line::new(
+					data.partition_point.clone(),
+					data.partition_dir.clone(),
+				),
 				child_bboxes: data.child_bboxes.clone(),
 				child_indices: [
 					match data.child_indices[0] {
@@ -676,7 +678,7 @@ impl<T> TextureType<T> {
 
 #[derive(Clone, Debug)]
 pub struct Linedef {
-	pub vertices: [Vector2<f32>; 2],
+	pub line: Line,
 	pub bbox: BoundingBox2,
 	pub flags: LinedefFlags,
 	pub special_type: u16,
@@ -686,9 +688,7 @@ pub struct Linedef {
 
 impl Linedef {
 	pub fn point_side(&self, point: Vector2<f32>) -> Side {
-		if crate::geometry::point_side(self.vertices[0], self.vertices[1] - self.vertices[0], point)
-			< 0.0
-		{
+		if self.line.point_side(point) < 0.0 {
 			Side::Right
 		} else {
 			Side::Left
@@ -704,13 +704,11 @@ impl Linedef {
 			return false;
 		}
 
-		let point = self.vertices[0];
-		let dir = self.vertices[1] - self.vertices[0];
 		let sides = [
-			crate::geometry::point_side(point, dir, Vector2::new(bbox.min[0], bbox.min[1])),
-			crate::geometry::point_side(point, dir, Vector2::new(bbox.min[0], bbox.max[1])),
-			crate::geometry::point_side(point, dir, Vector2::new(bbox.max[0], bbox.min[1])),
-			crate::geometry::point_side(point, dir, Vector2::new(bbox.max[0], bbox.max[1])),
+			self.line.point_side(Vector2::new(bbox.min[0], bbox.min[1])),
+			self.line.point_side(Vector2::new(bbox.min[0], bbox.max[1])),
+			self.line.point_side(Vector2::new(bbox.max[0], bbox.min[1])),
+			self.line.point_side(Vector2::new(bbox.max[0], bbox.max[1])),
 		];
 
 		if sides[0] < 0.0 && sides[1] < 0.0 && sides[2] < 0.0 && sides[3] < 0.0
@@ -761,15 +759,14 @@ pub struct LeafNode {
 
 #[derive(Clone, Debug)]
 pub struct BranchNode {
-	pub partition_point: Vector2<f32>,
-	pub partition_dir: Vector2<f32>,
+	pub partition_line: Line,
 	pub child_bboxes: [BoundingBox2; 2],
 	pub child_indices: [usize; 2],
 }
 
 impl BranchNode {
 	pub fn point_side(&self, point: Vector2<f32>) -> Side {
-		if crate::geometry::point_side(self.partition_point, self.partition_dir, point) < 0.0 {
+		if self.partition_line.point_side(point) < 0.0 {
 			Side::Right
 		} else {
 			Side::Left

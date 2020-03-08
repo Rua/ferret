@@ -1,5 +1,69 @@
 use nalgebra::{Matrix, Vector2, Vector3};
-use std::f32::{INFINITY, NEG_INFINITY};
+
+#[derive(Debug, Clone)]
+pub struct Line {
+	pub point: Vector2<f32>,
+	pub dir: Vector2<f32>,
+}
+
+impl Line {
+	pub fn new(point: Vector2<f32>, dir: Vector2<f32>) -> Line {
+		assert!(dir[0] != 0.0 || dir[1] != 0.0);
+
+		Line {point, dir}
+	}
+
+	#[inline]
+	pub fn intersect(&self, other: &Line) -> Option<(f32, f32)> {
+		let denom = other.dir[0] * self.dir[1] - other.dir[1] * self.dir[0];
+
+		if denom == 0.0 {
+			return None;
+		}
+
+		let self_param = (other.dir[1] * self.point[0] - other.dir[0] * self.point[1]
+			+ other.dir[0] * other.point[1]
+			- other.dir[1] * other.point[0])
+			/ denom;
+
+		let other_param = (Matrix::dot(&-other.dir, &other.point)
+			+ Matrix::dot(&other.dir, &self.point)
+			+ Matrix::dot(&other.dir, &self.dir) * self_param)
+			/ Matrix::dot(&other.dir, &other.dir);
+
+		Some((self_param, other_param))
+	}
+
+	// == 0: on line, < 0: right of line, > 0: left of line
+	#[inline]
+	pub fn point_side(&self, point: Vector2<f32>) -> f32 {
+		let d = point - self.point;
+		self.dir[0] * d[1] - self.dir[1] * d[0]
+	}
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Side {
+	Right = 0,
+	Left = 1,
+}
+
+impl std::ops::Not for Side {
+	type Output = Side;
+
+	fn not(self) -> Self::Output {
+		match self {
+			Side::Right => Side::Left,
+			Side::Left => Side::Right,
+		}
+	}
+}
+
+/*#[derive(Clone, Debug)]
+pub struct Plane {
+	pub normal: Vector3<f32>,
+	pub distance: f32,
+}*/
 
 #[derive(Debug, Clone)]
 pub struct BoundingBox2 {
@@ -34,7 +98,7 @@ impl BoundingBox2 {
 	}
 }
 
-#[derive(Debug, Clone)]
+/*#[derive(Debug, Clone)]
 pub struct BoundingBox3 {
 	pub min: Vector3<f32>,
 	pub max: Vector3<f32>,
@@ -61,13 +125,7 @@ impl From<&BoundingBox2> for BoundingBox3 {
 			Vector3::new(bounding_box.max[0], bounding_box.max[1], INFINITY),
 		)
 	}
-}
-
-#[derive(Clone, Debug)]
-pub struct Plane {
-	pub normal: Vector3<f32>,
-	pub distance: f32,
-}
+}*/
 
 // Represented internally as BAM
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -234,65 +292,4 @@ pub fn angles_to_axes(angles: Vector3<Angle>) -> [Vector3<f32>; 3] {
 			(cos[2] * cos[1]) as f32,
 		),
 	]
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Side {
-	Right = 0,
-	Left = 1,
-}
-
-impl std::ops::Not for Side {
-	type Output = Side;
-
-	fn not(self) -> Self::Output {
-		match self {
-			Side::Right => Side::Left,
-			Side::Left => Side::Right,
-		}
-	}
-}
-
-// == 0: on line, < 0: right of line, > 0: left of line
-#[inline]
-pub fn point_side(
-	target_point: Vector2<f32>,
-	target_direction: Vector2<f32>,
-	src_point: Vector2<f32>,
-) -> f32 {
-	let d = src_point - target_point;
-	target_direction[0] * d[1] - target_direction[1] * d[0]
-}
-
-pub fn intersect(
-	target_point: Vector2<f32>,
-	target_direction: Vector2<f32>,
-	src_point: Vector2<f32>,
-	src_direction: Vector2<f32>,
-) -> f32 {
-	let denom = target_direction[0] * src_direction[1] - target_direction[1] * src_direction[0];
-
-	if denom == 0.0 {
-		return 1.0;
-	}
-
-	let t = (target_direction[1] * src_point[0] - target_direction[0] * src_point[1]
-		+ target_direction[0] * target_point[1]
-		- target_direction[1] * target_point[0])
-		/ denom;
-
-	if t <= 0.0 || t >= 1.0 {
-		return 1.0;
-	}
-
-	let u = (Matrix::dot(&-target_direction, &target_point)
-		+ Matrix::dot(&target_direction, &src_point)
-		+ Matrix::dot(&target_direction, &src_direction) * t)
-		/ Matrix::dot(&target_direction, &target_direction);
-
-	if u <= 0.0 || u >= 1.0 {
-		return 1.0;
-	}
-
-	t
 }
