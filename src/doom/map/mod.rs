@@ -557,11 +557,11 @@ pub fn build_map(
 				}
 			}
 
+			let dir = vertexes_data[data.vertex_indices[1]] - vertexes_data[data.vertex_indices[0]];
+
 			Ok(Linedef {
-				line: Line::new(
-					vertexes_data[data.vertex_indices[0]],
-					vertexes_data[data.vertex_indices[1]] - vertexes_data[data.vertex_indices[0]],
-				),
+				line: Line::new(vertexes_data[data.vertex_indices[0]], dir),
+				normal: Vector2::new(dir[1], -dir[0]).normalize(),
 				bbox: {
 					let mut bbox = BoundingBox2::zero();
 					bbox.add_point(vertexes_data[data.vertex_indices[0]]);
@@ -676,6 +676,7 @@ impl<T> TextureType<T> {
 #[derive(Clone, Debug)]
 pub struct Linedef {
 	pub line: Line,
+	pub normal: Vector2<f32>,
 	pub bbox: BoundingBox2,
 	pub flags: LinedefFlags,
 	pub special_type: u16,
@@ -692,7 +693,7 @@ impl Linedef {
 		}
 	}
 
-	pub fn intersects_bbox(&self, bbox: &BoundingBox2) -> bool {
+	/*pub fn intersects_bbox(&self, bbox: &BoundingBox2) -> bool {
 		if bbox.max[0] <= self.bbox.min[0]
 			|| bbox.min[0] >= self.bbox.max[0]
 			|| bbox.max[1] <= self.bbox.min[1]
@@ -715,7 +716,7 @@ impl Linedef {
 		} else {
 			true
 		}
-	}
+	}*/
 }
 
 #[derive(Clone, Debug)]

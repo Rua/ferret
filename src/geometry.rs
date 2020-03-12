@@ -86,6 +86,10 @@ impl BoundingBox2 {
 		}
 	}
 
+	pub fn from_radius(radius: f32) -> BoundingBox2 {
+		BoundingBox2::new(Vector2::new(-radius, -radius), Vector2::new(radius, radius))
+	}
+
 	pub fn from_extents(top: f32, bottom: f32, left: f32, right: f32) -> BoundingBox2 {
 		BoundingBox2::new(Vector2::new(bottom, left), Vector2::new(top, right))
 	}
