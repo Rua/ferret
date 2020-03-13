@@ -1,10 +1,10 @@
 use crate::{
 	assets::AssetStorage,
 	doom::{
-		components::{BoxCollider, MapDynamic, Transform, Velocity},
+		components::{BoxCollider, MapDynamic, SectorDynamic, Transform, Velocity},
 		map::{Linedef, Map},
 	},
-	geometry::{BoundingBox2, Line},
+	geometry::{BoundingBox3, Line2, Line3},
 };
 use lazy_static::lazy_static;
 use nalgebra::{Vector2, Vector3};
@@ -23,6 +23,7 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 			map_storage,
 			box_collider_component,
 			map_dynamic_component,
+			sector_dynamic_component,
 			mut transform_component,
 			mut velocity_component,
 		) = world.system_data::<(
@@ -30,6 +31,7 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 			ReadExpect<AssetStorage<Map>>,
 			ReadStorage<BoxCollider>,
 			ReadStorage<MapDynamic>,
+			ReadStorage<SectorDynamic>,
 			WriteStorage<Transform>,
 			WriteStorage<Velocity>,
 		)>();
@@ -48,6 +50,8 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 			xy_movement(
 				*delta,
 				*&map,
+				&map_dynamic,
+				&sector_dynamic_component,
 				*&box_collider,
 				&mut transform.position,
 				&mut velocity.velocity,
@@ -59,6 +63,8 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 fn xy_movement(
 	delta: Duration,
 	map: &Map,
+	map_dynamic: &MapDynamic,
+	sector_dynamic_component: &ReadStorage<SectorDynamic>,
 	collider: &BoxCollider,
 	position: &mut Vector3<f32>,
 	velocity: &mut Vector3<f32>,
@@ -71,8 +77,8 @@ fn xy_movement(
 		return;
 	}
 
-	let mut new_position = Vector2::new(position[0], position[1]);
-	let mut new_velocity = Vector2::new(velocity[0], velocity[1]);
+	let mut new_position = *position;
+	let mut new_velocity = *velocity;
 	let time_left = delta;
 
 	if new_velocity[0] > *MAXMOVE {
@@ -87,20 +93,32 @@ fn xy_movement(
 		new_velocity[1] = -*MAXMOVE;
 	}
 
-	let bbox = BoundingBox2::from_radius(collider.radius);
+	let bbox = BoundingBox3::from_radius_height(collider.radius, collider.height);
 
 	{
-		let move_step = Line::new(new_position, new_velocity * time_left.as_secs_f32());
+		let move_step = Line3::new(new_position, new_velocity * time_left.as_secs_f32());
 
-		if let Some(intersect) = trace(&move_step, &bbox, map) {
+		if let Some(intersect) = trace(
+			&move_step,
+			&bbox,
+			map,
+			map_dynamic,
+			sector_dynamic_component,
+		) {
 			// Push back against the collision
 			let change = intersect.normal * new_velocity.dot(&intersect.normal) * 1.01;
 			new_velocity -= change;
 
 			// Try another move
-			let move_step = Line::new(new_position, new_velocity * time_left.as_secs_f32());
+			let move_step = Line3::new(new_position, new_velocity * time_left.as_secs_f32());
 
-			if let Some(_intersect) = trace(&move_step, &bbox, map) {
+			if let Some(_intersect) = trace(
+				&move_step,
+				&bbox,
+				map,
+				map_dynamic,
+				sector_dynamic_component,
+			) {
 				new_velocity = nalgebra::zero();
 			} else {
 				new_position += move_step.dir;
@@ -110,25 +128,46 @@ fn xy_movement(
 		}
 	}
 
-	position[0] = new_position[0];
-	position[1] = new_position[1];
-	velocity[0] = new_velocity[0];
-	velocity[1] = new_velocity[1];
+	*position = new_position;
+	*velocity = new_velocity;
 }
 
 #[derive(Clone, Copy, Debug)]
 struct Intersect {
 	fraction: f32,
-	normal: Vector2<f32>,
+	normal: Vector3<f32>,
 }
 
-fn trace(move_step: &Line, bbox: &BoundingBox2, map: &Map) -> Option<Intersect> {
+fn trace(
+	move_step: &Line3,
+	bbox: &BoundingBox3,
+	map: &Map,
+	map_dynamic: &MapDynamic,
+	sector_dynamic_component: &ReadStorage<SectorDynamic>,
+) -> Option<Intersect> {
 	let mut ret: Option<Intersect> = None;
 
 	for linedef in map.linedefs.iter() {
 		if let Some(intersect) = intersect_linedef(move_step, bbox, linedef) {
 			if intersect.fraction < ret.as_ref().map_or(1.0, |x| x.fraction) {
-				ret = Some(intersect)
+				if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
+					let front_sector = sector_dynamic_component
+						.get(map_dynamic.sectors[front_sidedef.sector_index])
+						.unwrap();
+					let back_sector = sector_dynamic_component
+						.get(map_dynamic.sectors[back_sidedef.sector_index])
+						.unwrap();
+
+					if !(front_sector.floor_height <= move_step.point[2] + bbox.min[2]
+						&& back_sector.floor_height <= move_step.point[2] + bbox.min[2]
+						&& front_sector.ceiling_height >= move_step.point[2] + bbox.max[2]
+						&& back_sector.ceiling_height >= move_step.point[2] + bbox.max[2])
+					{
+						ret = Some(intersect);
+					}
+				} else {
+					ret = Some(intersect);
+				}
 			}
 		}
 	}
@@ -137,10 +176,15 @@ fn trace(move_step: &Line, bbox: &BoundingBox2, map: &Map) -> Option<Intersect> 
 }
 
 fn intersect_linedef(
-	move_step: &Line,
-	bbox: &BoundingBox2,
+	move_step: &Line3,
+	bbox: &BoundingBox3,
 	linedef: &Linedef,
 ) -> Option<Intersect> {
+	let move_step = Line2::new(
+		Vector2::new(move_step.point[0], move_step.point[1]),
+		Vector2::new(move_step.dir[0], move_step.dir[1]),
+	);
+
 	let bbox_corners = [
 		Vector2::new(bbox.min[0], bbox.min[1]) + move_step.point,
 		Vector2::new(bbox.min[0], bbox.max[1]) + move_step.point,
@@ -149,10 +193,10 @@ fn intersect_linedef(
 	];
 
 	let bbox_normals = [
-		Vector2::new(-1.0, 0.0),
-		Vector2::new(0.0, 1.0),
-		Vector2::new(1.0, 0.0),
-		Vector2::new(0.0, -1.0),
+		Vector3::new(-1.0, 0.0, 0.0),
+		Vector3::new(0.0, 1.0, 0.0),
+		Vector3::new(1.0, 0.0, 0.0),
+		Vector3::new(0.0, -1.0, 0.0),
 	];
 
 	let mut ret: Option<Intersect> = None;
@@ -160,7 +204,7 @@ fn intersect_linedef(
 	for i in 0..4 {
 		// Intersect bbox corner with linedef
 		if let Some((fraction, linedef_fraction)) =
-			Line::new(bbox_corners[i], move_step.dir).intersect(&linedef.line)
+			Line2::new(bbox_corners[i], move_step.dir).intersect(&linedef.line)
 		{
 			if fraction >= 0.0
 				&& fraction < ret.as_ref().map_or(1.0, |x| x.fraction)
@@ -171,21 +215,21 @@ fn intersect_linedef(
 					fraction,
 					normal: if move_step.dir.dot(&linedef.normal) > 0.0 {
 						// Flip the normal if we're on the left side of the linedef
-						-linedef.normal
+						Vector3::new(-linedef.normal[0], -linedef.normal[1], 0.0)
 					} else {
-						linedef.normal
+						Vector3::new(linedef.normal[0], linedef.normal[1], 0.0)
 					},
 				});
 			}
 		}
 
 		// Intersect linedef vertices with bbox edge
-		let bbox_edge = Line::new(bbox_corners[i], bbox_corners[(i + 1) % 4] - bbox_corners[i]);
+		let bbox_edge = Line2::new(bbox_corners[i], bbox_corners[(i + 1) % 4] - bbox_corners[i]);
 		let linedef_vertices = [linedef.line.point, linedef.line.point + linedef.line.dir];
 
 		for vertex in &linedef_vertices {
 			if let Some((fraction, edge_fraction)) =
-				Line::new(*vertex, -move_step.dir).intersect(&bbox_edge)
+				Line2::new(*vertex, -move_step.dir).intersect(&bbox_edge)
 			{
 				if fraction >= 0.0
 					&& fraction < ret.as_ref().map_or(1.0, |x| x.fraction)

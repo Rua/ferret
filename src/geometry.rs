@@ -1,20 +1,20 @@
 use nalgebra::{Matrix, Vector2, Vector3};
 
 #[derive(Debug, Clone)]
-pub struct Line {
+pub struct Line2 {
 	pub point: Vector2<f32>,
 	pub dir: Vector2<f32>,
 }
 
-impl Line {
-	pub fn new(point: Vector2<f32>, dir: Vector2<f32>) -> Line {
+impl Line2 {
+	pub fn new(point: Vector2<f32>, dir: Vector2<f32>) -> Line2 {
 		assert!(dir[0] != 0.0 || dir[1] != 0.0);
 
-		Line { point, dir }
+		Line2 { point, dir }
 	}
 
 	#[inline]
-	pub fn intersect(&self, other: &Line) -> Option<(f32, f32)> {
+	pub fn intersect(&self, other: &Line2) -> Option<(f32, f32)> {
 		let denom = other.dir[0] * self.dir[1] - other.dir[1] * self.dir[0];
 
 		if denom == 0.0 {
@@ -39,6 +39,20 @@ impl Line {
 	pub fn point_side(&self, point: Vector2<f32>) -> f32 {
 		let d = point - self.point;
 		self.dir[0] * d[1] - self.dir[1] * d[0]
+	}
+}
+
+#[derive(Debug, Clone)]
+pub struct Line3 {
+	pub point: Vector3<f32>,
+	pub dir: Vector3<f32>,
+}
+
+impl Line3 {
+	pub fn new(point: Vector3<f32>, dir: Vector3<f32>) -> Line3 {
+		assert!(dir[0] != 0.0 || dir[1] != 0.0 || dir[2] != 0.0);
+
+		Line3 { point, dir }
 	}
 }
 
@@ -86,9 +100,9 @@ impl BoundingBox2 {
 		}
 	}
 
-	pub fn from_radius(radius: f32) -> BoundingBox2 {
+	/*pub fn from_radius(radius: f32) -> BoundingBox2 {
 		BoundingBox2::new(Vector2::new(-radius, -radius), Vector2::new(radius, radius))
-	}
+	}*/
 
 	pub fn from_extents(top: f32, bottom: f32, left: f32, right: f32) -> BoundingBox2 {
 		BoundingBox2::new(Vector2::new(bottom, left), Vector2::new(top, right))
@@ -102,7 +116,7 @@ impl BoundingBox2 {
 	}
 }
 
-/*#[derive(Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct BoundingBox3 {
 	pub min: Vector3<f32>,
 	pub max: Vector3<f32>,
@@ -117,12 +131,19 @@ impl BoundingBox3 {
 		BoundingBox3 { min, max }
 	}
 
+	pub fn from_radius_height(radius: f32, height: f32) -> BoundingBox3 {
+		BoundingBox3::new(
+			Vector3::new(-radius, -radius, 0.0),
+			Vector3::new(radius, radius, height),
+		)
+	}
+
 	/*pub fn zero() -> BoundingBox3 {
 		BoundingBox3::new(Vector3::zeros(), Vector3::zeros())
 	}*/
 }
 
-impl From<&BoundingBox2> for BoundingBox3 {
+/*impl From<&BoundingBox2> for BoundingBox3 {
 	fn from(bounding_box: &BoundingBox2) -> BoundingBox3 {
 		BoundingBox3::new(
 			Vector3::new(bounding_box.min[0], bounding_box.min[1], NEG_INFINITY),

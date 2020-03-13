@@ -20,7 +20,7 @@ use crate::{
 		},
 		wad::WadLoader,
 	},
-	geometry::{BoundingBox2, Line, Side},
+	geometry::{BoundingBox2, Line2, Side},
 };
 use derivative::Derivative;
 use nalgebra::{Vector2, Vector3};
@@ -560,7 +560,7 @@ pub fn build_map(
 			let dir = vertexes_data[data.vertex_indices[1]] - vertexes_data[data.vertex_indices[0]];
 
 			Ok(Linedef {
-				line: Line::new(vertexes_data[data.vertex_indices[0]], dir),
+				line: Line2::new(vertexes_data[data.vertex_indices[0]], dir),
 				normal: Vector2::new(dir[1], -dir[0]).normalize(),
 				bbox: {
 					let mut bbox = BoundingBox2::zero();
@@ -582,7 +582,10 @@ pub fn build_map(
 		.rev()
 		.map(|data| {
 			Ok(GLNode::Branch(BranchNode {
-				partition_line: Line::new(data.partition_point.clone(), data.partition_dir.clone()),
+				partition_line: Line2::new(
+					data.partition_point.clone(),
+					data.partition_dir.clone(),
+				),
 				child_bboxes: data.child_bboxes.clone(),
 				child_indices: [
 					match data.child_indices[0] {
@@ -675,7 +678,7 @@ impl<T> TextureType<T> {
 
 #[derive(Clone, Debug)]
 pub struct Linedef {
-	pub line: Line,
+	pub line: Line2,
 	pub normal: Vector2<f32>,
 	pub bbox: BoundingBox2,
 	pub flags: LinedefFlags,
@@ -757,7 +760,7 @@ pub struct LeafNode {
 
 #[derive(Clone, Debug)]
 pub struct BranchNode {
-	pub partition_line: Line,
+	pub partition_line: Line2,
 	pub child_bboxes: [BoundingBox2; 2],
 	pub child_indices: [usize; 2],
 }

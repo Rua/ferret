@@ -7,7 +7,7 @@ use crate::{
 		input::{Action, Axis, UserCommand},
 		map::Map,
 	},
-	geometry::{Line, Side},
+	geometry::{Line2, Side},
 	input::{Bindings, InputState},
 };
 use nalgebra::Vector2;
@@ -71,7 +71,6 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 
 			transform.rotation[2] -= (client.command.axis_yaw * 1e6) as i32;
 
-			let axes = crate::geometry::angles_to_axes(transform.rotation);
 			let mut move_dir =
 				Vector2::new(client.command.axis_forward, client.command.axis_strafe);
 			let len = move_dir.norm();
@@ -81,6 +80,9 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 			}
 
 			move_dir *= 20.0 / crate::doom::FRAME_TIME.as_secs_f32();
+
+			let angles = transform.rotation; //Vector3::new(0.into(), 0.into(), transform.rotation[2]);
+			let axes = crate::geometry::angles_to_axes(angles);
 			velocity.velocity = axes[0] * move_dir[0] + axes[1] * move_dir[1];
 		}
 	}
@@ -119,7 +121,7 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 
 				const USERANGE: f32 = 64.0;
 				let yaw = transform.rotation[2].to_radians() as f32;
-				let use_line = Line::new(
+				let use_line = Line2::new(
 					Vector2::new(transform.position[0], transform.position[1]),
 					Vector2::new(yaw.cos(), yaw.sin()) * USERANGE,
 				);
