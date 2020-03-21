@@ -1,4 +1,4 @@
-use nalgebra::{Matrix, Vector2, Vector3};
+use nalgebra::{Vector2, Vector3};
 
 #[derive(Debug, Clone)]
 pub struct Line2 {
@@ -15,21 +15,17 @@ impl Line2 {
 
 	#[inline]
 	pub fn intersect(&self, other: &Line2) -> Option<(f32, f32)> {
-		let denom = other.dir[0] * self.dir[1] - other.dir[1] * self.dir[0];
+		let normal = Vector2::new(other.dir[1], -other.dir[0]).normalize();
+		let denom = self.dir.dot(&normal);
 
 		if denom == 0.0 {
 			return None;
 		}
 
-		let self_param = (other.dir[1] * self.point[0] - other.dir[0] * self.point[1]
-			+ other.dir[0] * other.point[1]
-			- other.dir[1] * other.point[0])
-			/ denom;
+		let self_param = (other.point - self.point).dot(&normal) / denom;
 
-		let other_param = (Matrix::dot(&-other.dir, &other.point)
-			+ Matrix::dot(&other.dir, &self.point)
-			+ Matrix::dot(&other.dir, &self.dir) * self_param)
-			/ Matrix::dot(&other.dir, &other.dir);
+		let other_param = (self.point + self.dir * self_param - other.point).dot(&other.dir)
+			/ other.dir.dot(&other.dir);
 
 		Some((self_param, other_param))
 	}
