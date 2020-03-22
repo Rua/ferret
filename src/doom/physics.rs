@@ -4,7 +4,7 @@ use crate::{
 		components::{BoxCollider, MapDynamic, SectorDynamic, Transform, Velocity},
 		map::{Linedef, Map},
 	},
-	geometry::{BoundingBox3, Line2, Line3},
+	geometry::{BoundingBox2, BoundingBox3, Line2, Line3},
 };
 use lazy_static::lazy_static;
 use nalgebra::{Vector2, Vector3};
@@ -140,15 +140,27 @@ struct Intersect {
 
 fn trace(
 	move_step: &Line3,
-	bbox: &BoundingBox3,
+	entity_bbox: &BoundingBox3,
 	map: &Map,
 	map_dynamic: &MapDynamic,
 	sector_dynamic_component: &ReadStorage<SectorDynamic>,
 ) -> Option<Intersect> {
+	let move_step2 = Line2::from(move_step);
+	let current_bbox = BoundingBox2::from(entity_bbox).offset(move_step2.point);
+	let move_bbox = current_bbox.union(&current_bbox.offset(move_step2.dir));
+
+	let bbox_corners = [
+		Vector2::new(current_bbox.min[0], current_bbox.min[1]),
+		Vector2::new(current_bbox.min[0], current_bbox.max[1]),
+		Vector2::new(current_bbox.max[0], current_bbox.max[1]),
+		Vector2::new(current_bbox.max[0], current_bbox.min[1]),
+	];
+
 	let mut ret: Option<Intersect> = None;
 
 	for linedef in map.linedefs.iter() {
-		if let Some(intersect) = intersect_linedef(move_step, bbox, linedef) {
+		if let Some(intersect) = intersect_linedef(&move_step2, &move_bbox, &bbox_corners, linedef)
+		{
 			if intersect.fraction < ret.as_ref().map_or(1.0, |x| x.fraction) {
 				if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
 					let front_sector = sector_dynamic_component
@@ -158,10 +170,10 @@ fn trace(
 						.get(map_dynamic.sectors[back_sidedef.sector_index])
 						.unwrap();
 
-					if !(front_sector.floor_height <= move_step.point[2] + bbox.min[2]
-						&& back_sector.floor_height <= move_step.point[2] + bbox.min[2]
-						&& front_sector.ceiling_height >= move_step.point[2] + bbox.max[2]
-						&& back_sector.ceiling_height >= move_step.point[2] + bbox.max[2])
+					if !(front_sector.floor_height <= move_step.point[2] + entity_bbox.min[2]
+						&& back_sector.floor_height <= move_step.point[2] + entity_bbox.min[2]
+						&& front_sector.ceiling_height >= move_step.point[2] + entity_bbox.max[2]
+						&& back_sector.ceiling_height >= move_step.point[2] + entity_bbox.max[2])
 					{
 						ret = Some(intersect);
 					}
@@ -175,29 +187,24 @@ fn trace(
 	ret
 }
 
-fn intersect_linedef(
-	move_step: &Line3,
-	bbox: &BoundingBox3,
-	linedef: &Linedef,
-) -> Option<Intersect> {
-	let move_step = Line2::new(
-		Vector2::new(move_step.point[0], move_step.point[1]),
-		Vector2::new(move_step.dir[0], move_step.dir[1]),
-	);
-
-	let bbox_corners = [
-		Vector2::new(bbox.min[0], bbox.min[1]) + move_step.point,
-		Vector2::new(bbox.min[0], bbox.max[1]) + move_step.point,
-		Vector2::new(bbox.max[0], bbox.max[1]) + move_step.point,
-		Vector2::new(bbox.max[0], bbox.min[1]) + move_step.point,
-	];
-
-	let bbox_normals = [
+lazy_static! {
+	static ref BBOX_NORMALS: [Vector3<f32>; 4] = [
 		Vector3::new(-1.0, 0.0, 0.0),
 		Vector3::new(0.0, 1.0, 0.0),
 		Vector3::new(1.0, 0.0, 0.0),
 		Vector3::new(0.0, -1.0, 0.0),
 	];
+}
+
+fn intersect_linedef(
+	move_step: &Line2,
+	move_bbox: &BoundingBox2,
+	bbox_corners: &[Vector2<f32>; 4],
+	linedef: &Linedef,
+) -> Option<Intersect> {
+	if !move_bbox.overlaps(&linedef.bbox) {
+		return None;
+	}
 
 	let mut ret: Option<Intersect> = None;
 
@@ -238,7 +245,7 @@ fn intersect_linedef(
 				{
 					ret = Some(Intersect {
 						fraction,
-						normal: -bbox_normals[i],
+						normal: -BBOX_NORMALS[i],
 					});
 				}
 			}

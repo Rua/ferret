@@ -64,12 +64,8 @@ impl Linedef {
 		}
 	}
 
-	/*pub fn overlaps_bbox(&self, bbox: &BoundingBox2) -> bool {
-		if bbox.max[0] <= self.bbox.min[0]
-			|| bbox.min[0] >= self.bbox.max[0]
-			|| bbox.max[1] <= self.bbox.min[1]
-			|| bbox.min[1] >= self.bbox.max[1]
-		{
+	pub fn touches_bbox(&self, bbox: &BoundingBox2) -> bool {
+		if !self.bbox.overlaps(bbox) {
 			return false;
 		}
 
@@ -80,14 +76,8 @@ impl Linedef {
 			self.line.point_side(Vector2::new(bbox.max[0], bbox.max[1])),
 		];
 
-		if sides[0] < 0.0 && sides[1] < 0.0 && sides[2] < 0.0 && sides[3] < 0.0
-			|| sides[0] > 0.0 && sides[1] > 0.0 && sides[2] > 0.0 && sides[3] > 0.0
-		{
-			false
-		} else {
-			true
-		}
-	}*/
+		!(sides.iter().all(|x| *x < 0.0) || sides.iter().all(|x| *x > 0.0))
+	}
 }
 
 #[derive(Clone, Debug)]

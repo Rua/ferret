@@ -7,6 +7,7 @@ pub struct Line2 {
 }
 
 impl Line2 {
+	#[inline]
 	pub fn new(point: Vector2<f32>, dir: Vector2<f32>) -> Line2 {
 		assert!(dir[0] != 0.0 || dir[1] != 0.0);
 
@@ -38,6 +39,16 @@ impl Line2 {
 	}
 }
 
+impl From<&Line3> for Line2 {
+	#[inline]
+	fn from(line: &Line3) -> Line2 {
+		Line2::new(
+			Vector2::new(line.point[0], line.point[1]),
+			Vector2::new(line.dir[0], line.dir[1]),
+		)
+	}
+}
+
 #[derive(Debug, Clone)]
 pub struct Line3 {
 	pub point: Vector3<f32>,
@@ -45,6 +56,7 @@ pub struct Line3 {
 }
 
 impl Line3 {
+	#[inline]
 	pub fn new(point: Vector3<f32>, dir: Vector3<f32>) -> Line3 {
 		assert!(dir[0] != 0.0 || dir[1] != 0.0 || dir[2] != 0.0);
 
@@ -61,6 +73,7 @@ pub enum Side {
 impl std::ops::Not for Side {
 	type Output = Side;
 
+	#[inline]
 	fn not(self) -> Self::Output {
 		match self {
 			Side::Right => Side::Left,
@@ -82,6 +95,7 @@ pub struct BoundingBox2 {
 }
 
 impl BoundingBox2 {
+	#[inline]
 	pub fn new(min: Vector2<f32>, max: Vector2<f32>) -> BoundingBox2 {
 		assert!(min[0] <= max[0]);
 		assert!(min[1] <= max[1]);
@@ -89,6 +103,7 @@ impl BoundingBox2 {
 		BoundingBox2 { min, max }
 	}
 
+	#[inline]
 	pub fn zero() -> BoundingBox2 {
 		BoundingBox2 {
 			min: Vector2::new(std::f32::INFINITY, std::f32::INFINITY),
@@ -100,15 +115,57 @@ impl BoundingBox2 {
 		BoundingBox2::new(Vector2::new(-radius, -radius), Vector2::new(radius, radius))
 	}*/
 
+	#[inline]
 	pub fn from_extents(top: f32, bottom: f32, left: f32, right: f32) -> BoundingBox2 {
 		BoundingBox2::new(Vector2::new(bottom, left), Vector2::new(top, right))
 	}
 
+	#[inline]
 	pub fn add_point(&mut self, point: Vector2<f32>) {
 		for i in 0..2 {
 			self.min[i] = f32::min(self.min[i], point[i]);
 			self.max[i] = f32::max(self.max[i], point[i]);
 		}
+	}
+
+	#[inline]
+	pub fn offset(&self, offset: Vector2<f32>) -> BoundingBox2 {
+		BoundingBox2 {
+			min: self.min + offset,
+			max: self.max + offset,
+		}
+	}
+
+	#[inline]
+	pub fn overlaps(&self, other: &BoundingBox2) -> bool {
+		!(other.max[0] < self.min[0]
+			|| other.min[0] > self.max[0]
+			|| other.max[1] < self.min[1]
+			|| other.min[1] > self.max[1])
+	}
+
+	#[inline]
+	pub fn union(&self, other: &BoundingBox2) -> BoundingBox2 {
+		BoundingBox2 {
+			min: Vector2::new(
+				f32::min(self.min[0], other.min[0]),
+				f32::min(self.min[1], other.min[1]),
+			),
+			max: Vector2::new(
+				f32::max(self.max[0], other.max[0]),
+				f32::min(self.max[1], other.max[1]),
+			),
+		}
+	}
+}
+
+impl From<&BoundingBox3> for BoundingBox2 {
+	#[inline]
+	fn from(bbox: &BoundingBox3) -> BoundingBox2 {
+		BoundingBox2::new(
+			Vector2::new(bbox.min[0], bbox.min[1]),
+			Vector2::new(bbox.max[0], bbox.max[1]),
+		)
 	}
 }
 
@@ -119,6 +176,7 @@ pub struct BoundingBox3 {
 }
 
 impl BoundingBox3 {
+	#[inline]
 	pub fn new(min: Vector3<f32>, max: Vector3<f32>) -> BoundingBox3 {
 		assert!(min[0] <= max[0]);
 		assert!(min[1] <= max[1]);
@@ -127,6 +185,7 @@ impl BoundingBox3 {
 		BoundingBox3 { min, max }
 	}
 
+	#[inline]
 	pub fn from_radius_height(radius: f32, height: f32) -> BoundingBox3 {
 		BoundingBox3::new(
 			Vector3::new(-radius, -radius, 0.0),
