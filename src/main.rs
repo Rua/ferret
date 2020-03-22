@@ -351,7 +351,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 							)>();
 							let map_handle = map_storage.load(name, &mut *loader);
 							map_storage.build_waiting(|data| {
-								doom::map::build_map(
+								doom::map::load::build_map(
 									data,
 									"SKY1",
 									&mut *loader,
@@ -438,7 +438,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 						let things = {
 							let mut loader =
 								world.system_data::<WriteExpect<doom::wad::WadLoader>>();
-							doom::map::lumps::ThingsFormat.import(name, &mut *loader)?
+							doom::map::load::ThingsFormat.import(name, &mut *loader)?
 						};
 						doom::map::spawn_map_entities(&world, &map_handle)?;
 						doom::map::spawn_things(things, &world, &map_handle)?;

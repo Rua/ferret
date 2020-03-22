@@ -3,8 +3,8 @@ use crate::{
 	doom::{
 		components::{LinedefDynamic, MapDynamic, SectorDynamic},
 		map::{
-			textures::{Flat, WallTexture},
-			LinedefFlags, Map, Side, TextureType,
+			textures::{Flat, TextureType, WallTexture},
+			LinedefFlags, Map, Side,
 		},
 	},
 };

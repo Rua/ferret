@@ -1,8 +1,9 @@
 use crate::{
-	assets::{Asset, AssetFormat, DataSource},
+	assets::{Asset, AssetFormat, AssetHandle, DataSource},
 	doom::image::{IAColor, Image, ImageFormat},
 };
 use byteorder::{ReadBytesExt, LE};
+use derivative::Derivative;
 use std::{
 	collections::HashMap,
 	error::Error,
@@ -242,5 +243,23 @@ impl AssetFormat for RawTexturesFormat {
 				))
 			})
 			.collect()
+	}
+}
+
+#[derive(Derivative)]
+#[derivative(Clone(bound = ""), Debug(bound = ""))]
+pub enum TextureType<T> {
+	Normal(AssetHandle<T>),
+	Sky,
+	None,
+}
+
+impl<T> TextureType<T> {
+	pub fn is_sky(&self) -> bool {
+		if let TextureType::Sky = *self {
+			true
+		} else {
+			false
+		}
 	}
 }
