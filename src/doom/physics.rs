@@ -47,12 +47,23 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 			.join()
 		{
 			//transform.position += velocity.velocity * delta.as_secs_f32();
-			xy_movement(
+			let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
+
+			movement_xy(
 				*delta,
 				*&map,
 				&map_dynamic,
 				&sector_dynamic_component,
-				*&box_collider,
+				&bbox,
+				&mut transform.position,
+				&mut velocity.velocity,
+			);
+			movement_z(
+				*delta,
+				*&map,
+				&map_dynamic,
+				&sector_dynamic_component,
+				&bbox,
 				&mut transform.position,
 				&mut velocity.velocity,
 			);
@@ -60,19 +71,15 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 	}
 }
 
-fn xy_movement(
+fn movement_xy(
 	delta: Duration,
 	map: &Map,
 	map_dynamic: &MapDynamic,
 	sector_dynamic_component: &ReadStorage<SectorDynamic>,
-	collider: &BoxCollider,
+	bbox: &AABB3,
 	position: &mut Vector3<f32>,
 	velocity: &mut Vector3<f32>,
 ) {
-	lazy_static! {
-		static ref MAXMOVE: f32 = 30.0 / crate::doom::FRAME_TIME.as_secs_f32();
-	}
-
 	if velocity[0] == 0.0 && velocity[1] == 0.0 {
 		return;
 	}
@@ -81,22 +88,9 @@ fn xy_movement(
 	let mut new_velocity = *velocity;
 	let time_left = delta;
 
-	if new_velocity[0] > *MAXMOVE {
-		new_velocity[0] = *MAXMOVE;
-	} else if new_velocity[0] < -*MAXMOVE {
-		new_velocity[0] = -*MAXMOVE;
-	}
-
-	if new_velocity[1] > *MAXMOVE {
-		new_velocity[1] = *MAXMOVE;
-	} else if new_velocity[1] < -*MAXMOVE {
-		new_velocity[1] = -*MAXMOVE;
-	}
-
-	let bbox = AABB3::from_radius_height(collider.radius, collider.height);
-
 	{
-		let move_step = Line3::new(new_position, new_velocity * time_left.as_secs_f32());
+		let mut move_step = Line3::new(new_position, new_velocity * time_left.as_secs_f32());
+		move_step.dir[2] = 0.0;
 
 		if let Some(intersect) = trace(
 			&move_step,
@@ -110,7 +104,8 @@ fn xy_movement(
 			new_velocity -= change;
 
 			// Try another move
-			let move_step = Line3::new(new_position, new_velocity * time_left.as_secs_f32());
+			let mut move_step = Line3::new(new_position, new_velocity * time_left.as_secs_f32());
+			move_step.dir[2] = 0.0;
 
 			if let Some(_intersect) = trace(
 				&move_step,
@@ -253,4 +248,16 @@ fn intersect_linedef(
 	}
 
 	ret
+}
+
+fn movement_z (
+	delta: Duration,
+	map: &Map,
+	map_dynamic: &MapDynamic,
+	sector_dynamic_component: &ReadStorage<SectorDynamic>,
+	bbox: &AABB3,
+	position: &mut Vector3<f32>,
+	velocity: &mut Vector3<f32>,
+) {
+	position[2] += velocity[2] * delta.as_secs_f32();
 }
