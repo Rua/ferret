@@ -15,7 +15,7 @@ use crate::{
 			textures::{Flat, TextureType, WallTexture},
 		},
 	},
-	geometry::{BoundingBox2, Line2, Side},
+	geometry::{Line2, Side, AABB2},
 };
 use nalgebra::{Vector2, Vector3};
 use specs::{
@@ -48,7 +48,7 @@ impl Map {
 pub struct Linedef {
 	pub line: Line2,
 	pub normal: Vector2<f32>,
-	pub bbox: BoundingBox2,
+	pub bbox: AABB2,
 	pub flags: LinedefFlags,
 	pub special_type: u16,
 	pub sector_tag: u16,
@@ -64,7 +64,7 @@ impl Linedef {
 		}
 	}
 
-	pub fn touches_bbox(&self, bbox: &BoundingBox2) -> bool {
+	pub fn touches_bbox(&self, bbox: &AABB2) -> bool {
 		if !self.bbox.overlaps(bbox) {
 			return false;
 		}
@@ -119,7 +119,7 @@ pub struct LeafNode {
 #[derive(Clone, Debug)]
 pub struct BranchNode {
 	pub partition_line: Line2,
-	pub child_bboxes: [BoundingBox2; 2],
+	pub child_bboxes: [AABB2; 2],
 	pub child_indices: [usize; 2],
 }
 
@@ -315,7 +315,7 @@ pub fn spawn_map_entities(
 		)?;
 
 		// Find midpoint of sector for sound purposes
-		let mut bbox = BoundingBox2::zero();
+		let mut bbox = AABB2::zero();
 
 		for linedef in map.linedefs.iter() {
 			for sidedef in linedef.sidedefs.iter().flatten() {

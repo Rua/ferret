@@ -1,19 +1,36 @@
-use nalgebra::{Vector2, Vector3};
+use nalgebra::{
+	allocator::Allocator, storage::Owned, DefaultAllocator, DimName, Vector2, Vector3, VectorN, U2,
+	U3,
+};
 
 #[derive(Debug, Clone)]
-pub struct Line2 {
-	pub point: Vector2<f32>,
-	pub dir: Vector2<f32>,
+pub struct Line<D>
+where
+	D: DimName,
+	DefaultAllocator: Allocator<f32, D>,
+	Owned<f32, D>: Copy,
+{
+	pub point: VectorN<f32, D>,
+	pub dir: VectorN<f32, D>,
+}
+
+pub type Line2 = Line<U2>;
+pub type Line3 = Line<U3>;
+
+impl<D> Line<D>
+where
+	D: DimName,
+	DefaultAllocator: Allocator<f32, D>,
+	Owned<f32, D>: Copy,
+{
+	#[inline]
+	pub fn new(point: VectorN<f32, D>, dir: VectorN<f32, D>) -> Line<D> {
+		assert_ne!(dir, nalgebra::zero());
+		Line { point, dir }
+	}
 }
 
 impl Line2 {
-	#[inline]
-	pub fn new(point: Vector2<f32>, dir: Vector2<f32>) -> Line2 {
-		assert!(dir[0] != 0.0 || dir[1] != 0.0);
-
-		Line2 { point, dir }
-	}
-
 	#[inline]
 	pub fn intersect(&self, other: &Line2) -> Option<(f32, f32)> {
 		let normal = Vector2::new(other.dir[1], -other.dir[0]).normalize();
@@ -49,21 +66,6 @@ impl From<&Line3> for Line2 {
 	}
 }
 
-#[derive(Debug, Clone)]
-pub struct Line3 {
-	pub point: Vector3<f32>,
-	pub dir: Vector3<f32>,
-}
-
-impl Line3 {
-	#[inline]
-	pub fn new(point: Vector3<f32>, dir: Vector3<f32>) -> Line3 {
-		assert!(dir[0] != 0.0 || dir[1] != 0.0 || dir[2] != 0.0);
-
-		Line3 { point, dir }
-	}
-}
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Side {
 	Right = 0,
@@ -89,118 +91,101 @@ pub struct Plane {
 }*/
 
 #[derive(Debug, Clone)]
-pub struct BoundingBox2 {
-	pub min: Vector2<f32>,
-	pub max: Vector2<f32>,
+pub struct AABB<D>
+where
+	D: DimName,
+	DefaultAllocator: Allocator<f32, D>,
+	Owned<f32, D>: Copy,
+{
+	pub min: VectorN<f32, D>,
+	pub max: VectorN<f32, D>,
 }
 
-impl BoundingBox2 {
-	#[inline]
-	pub fn new(min: Vector2<f32>, max: Vector2<f32>) -> BoundingBox2 {
-		assert!(min[0] <= max[0]);
-		assert!(min[1] <= max[1]);
+pub type AABB2 = AABB<U2>;
+pub type AABB3 = AABB<U3>;
 
-		BoundingBox2 { min, max }
+impl<D> AABB<D>
+where
+	D: DimName,
+	DefaultAllocator: Allocator<f32, D>,
+	Owned<f32, D>: Copy,
+{
+	#[inline]
+	pub fn new(min: VectorN<f32, D>, max: VectorN<f32, D>) -> AABB<D> {
+		assert!((0..D::dim()).all(|i| min[i] <= max[i]));
+		AABB { min, max }
 	}
 
 	#[inline]
-	pub fn zero() -> BoundingBox2 {
-		BoundingBox2 {
-			min: Vector2::new(std::f32::INFINITY, std::f32::INFINITY),
-			max: Vector2::new(std::f32::NEG_INFINITY, std::f32::NEG_INFINITY),
-		}
-	}
-
-	/*pub fn from_radius(radius: f32) -> BoundingBox2 {
-		BoundingBox2::new(Vector2::new(-radius, -radius), Vector2::new(radius, radius))
-	}*/
-
-	#[inline]
-	pub fn from_extents(top: f32, bottom: f32, left: f32, right: f32) -> BoundingBox2 {
-		BoundingBox2::new(Vector2::new(bottom, left), Vector2::new(top, right))
-	}
-
-	#[inline]
-	pub fn add_point(&mut self, point: Vector2<f32>) {
-		for i in 0..2 {
-			self.min[i] = f32::min(self.min[i], point[i]);
-			self.max[i] = f32::max(self.max[i], point[i]);
+	pub fn zero() -> AABB<D> {
+		AABB {
+			min: VectorN::repeat(std::f32::INFINITY),
+			max: VectorN::repeat(std::f32::NEG_INFINITY),
 		}
 	}
 
 	#[inline]
-	pub fn offset(&self, offset: Vector2<f32>) -> BoundingBox2 {
-		BoundingBox2 {
+	pub fn add_point(&mut self, point: VectorN<f32, D>) {
+		self.min = VectorN::from_iterator((0..D::dim()).map(|i| f32::min(self.min[i], point[i])));
+		self.max = VectorN::from_iterator((0..D::dim()).map(|i| f32::max(self.max[i], point[i])));
+	}
+
+	#[inline]
+	pub fn offset(&self, offset: VectorN<f32, D>) -> AABB<D> {
+		AABB {
 			min: self.min + offset,
 			max: self.max + offset,
 		}
 	}
 
 	#[inline]
-	pub fn overlaps(&self, other: &BoundingBox2) -> bool {
-		self.min[0] <= other.max[0]
-			&& self.max[0] >= other.min[0]
-			&& self.min[1] <= other.max[1]
-			&& self.max[1] >= other.min[1]
+	pub fn overlaps(&self, other: &AABB<D>) -> bool {
+		(0..D::dim()).all(|i| self.min[i] <= other.max[i] && self.max[i] >= other.min[i])
 	}
 
 	#[inline]
-	pub fn union(&self, other: &BoundingBox2) -> BoundingBox2 {
-		BoundingBox2 {
-			min: Vector2::new(
-				f32::min(self.min[0], other.min[0]),
-				f32::min(self.min[1], other.min[1]),
-			),
-			max: Vector2::new(
-				f32::max(self.max[0], other.max[0]),
-				f32::max(self.max[1], other.max[1]),
-			),
+	pub fn union(&self, other: &AABB<D>) -> AABB<D> {
+		AABB {
+			min: VectorN::from_iterator((0..D::dim()).map(|i| f32::min(self.min[i], other.min[i]))),
+			max: VectorN::from_iterator((0..D::dim()).map(|i| f32::max(self.max[i], other.max[i]))),
 		}
 	}
 }
 
-impl From<&BoundingBox3> for BoundingBox2 {
+impl AABB2 {
+	/*pub fn from_radius(radius: f32) -> AABB2 {
+		AABB2::new(Vector2::new(-radius, -radius), Vector2::new(radius, radius))
+	}*/
+
 	#[inline]
-	fn from(bbox: &BoundingBox3) -> BoundingBox2 {
-		BoundingBox2::new(
+	pub fn from_extents(top: f32, bottom: f32, left: f32, right: f32) -> AABB2 {
+		AABB2::new(Vector2::new(bottom, left), Vector2::new(top, right))
+	}
+}
+
+impl From<&AABB3> for AABB2 {
+	#[inline]
+	fn from(bbox: &AABB3) -> AABB2 {
+		AABB2::new(
 			Vector2::new(bbox.min[0], bbox.min[1]),
 			Vector2::new(bbox.max[0], bbox.max[1]),
 		)
 	}
 }
 
-#[derive(Debug, Clone)]
-pub struct BoundingBox3 {
-	pub min: Vector3<f32>,
-	pub max: Vector3<f32>,
-}
-
-impl BoundingBox3 {
+impl AABB3 {
 	#[inline]
-	pub fn new(min: Vector3<f32>, max: Vector3<f32>) -> BoundingBox3 {
-		assert!(min[0] <= max[0]);
-		assert!(min[1] <= max[1]);
-		assert!(min[2] <= max[2]);
-
-		BoundingBox3 { min, max }
-	}
-
-	#[inline]
-	pub fn from_radius_height(radius: f32, height: f32) -> BoundingBox3 {
-		BoundingBox3::new(
+	pub fn from_radius_height(radius: f32, height: f32) -> AABB3 {
+		AABB3::new(
 			Vector3::new(-radius, -radius, 0.0),
 			Vector3::new(radius, radius, height),
 		)
 	}
-
-	/*pub fn zero() -> BoundingBox3 {
-		BoundingBox3::new(Vector3::zeros(), Vector3::zeros())
-	}*/
 }
 
-/*impl From<&BoundingBox2> for BoundingBox3 {
-	fn from(bounding_box: &BoundingBox2) -> BoundingBox3 {
-		BoundingBox3::new(
+/*impl From<&AABB2> for AABB3 {
+	fn from(bounding_box: &AABB2) -> AABB3 {
+		AABB3::new(
 			Vector3::new(bounding_box.min[0], bounding_box.min[1], NEG_INFINITY),
 			Vector3::new(bounding_box.max[0], bounding_box.max[1], INFINITY),
 		)

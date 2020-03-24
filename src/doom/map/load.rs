@@ -7,7 +7,7 @@ use crate::{
 		},
 		wad::WadLoader,
 	},
-	geometry::{Angle, BoundingBox2, Line2, Side},
+	geometry::{Angle, Line2, Side, AABB2},
 };
 use bitflags::bitflags;
 use byteorder::{ReadBytesExt, LE};
@@ -321,7 +321,7 @@ pub fn build_map(
 				line: Line2::new(vertexes_data[data.vertex_indices[0]], dir),
 				normal: Vector2::new(dir[1], -dir[0]).normalize(),
 				bbox: {
-					let mut bbox = BoundingBox2::zero();
+					let mut bbox = AABB2::zero();
 					bbox.add_point(vertexes_data[data.vertex_indices[0]]);
 					bbox.add_point(vertexes_data[data.vertex_indices[1]]);
 					bbox
@@ -786,7 +786,7 @@ impl AssetFormat for GLSSectFormat {
 pub struct GLNodeData {
 	pub partition_point: Vector2<f32>,
 	pub partition_dir: Vector2<f32>,
-	pub child_bboxes: [BoundingBox2; 2],
+	pub child_bboxes: [AABB2; 2],
 	pub child_indices: [ChildNode; 2],
 }
 
@@ -821,13 +821,13 @@ impl AssetFormat for GLNodesFormat {
 					reader.read_i16::<LE>()? as f32,
 				),
 				child_bboxes: [
-					BoundingBox2::from_extents(
+					AABB2::from_extents(
 						reader.read_i16::<LE>()? as f32,
 						reader.read_i16::<LE>()? as f32,
 						reader.read_i16::<LE>()? as f32,
 						reader.read_i16::<LE>()? as f32,
 					),
-					BoundingBox2::from_extents(
+					AABB2::from_extents(
 						reader.read_i16::<LE>()? as f32,
 						reader.read_i16::<LE>()? as f32,
 						reader.read_i16::<LE>()? as f32,

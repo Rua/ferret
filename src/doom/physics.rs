@@ -4,7 +4,7 @@ use crate::{
 		components::{BoxCollider, MapDynamic, SectorDynamic, Transform, Velocity},
 		map::{Linedef, Map},
 	},
-	geometry::{BoundingBox2, BoundingBox3, Line2, Line3},
+	geometry::{Line2, Line3, AABB2, AABB3},
 };
 use lazy_static::lazy_static;
 use nalgebra::{Vector2, Vector3};
@@ -93,7 +93,7 @@ fn xy_movement(
 		new_velocity[1] = -*MAXMOVE;
 	}
 
-	let bbox = BoundingBox3::from_radius_height(collider.radius, collider.height);
+	let bbox = AABB3::from_radius_height(collider.radius, collider.height);
 
 	{
 		let move_step = Line3::new(new_position, new_velocity * time_left.as_secs_f32());
@@ -140,13 +140,13 @@ struct Intersect {
 
 fn trace(
 	move_step: &Line3,
-	entity_bbox: &BoundingBox3,
+	entity_bbox: &AABB3,
 	map: &Map,
 	map_dynamic: &MapDynamic,
 	sector_dynamic_component: &ReadStorage<SectorDynamic>,
 ) -> Option<Intersect> {
 	let move_step2 = Line2::from(move_step);
-	let current_bbox = BoundingBox2::from(entity_bbox).offset(move_step2.point);
+	let current_bbox = AABB2::from(entity_bbox).offset(move_step2.point);
 	let move_bbox = current_bbox.union(&current_bbox.offset(move_step2.dir));
 
 	let bbox_corners = [
@@ -198,7 +198,7 @@ lazy_static! {
 
 fn intersect_linedef(
 	move_step: &Line2,
-	move_bbox: &BoundingBox2,
+	move_bbox: &AABB2,
 	bbox_corners: &[Vector2<f32>; 4],
 	linedef: &Linedef,
 ) -> Option<Intersect> {
