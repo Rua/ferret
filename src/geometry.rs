@@ -138,10 +138,10 @@ impl BoundingBox2 {
 
 	#[inline]
 	pub fn overlaps(&self, other: &BoundingBox2) -> bool {
-		!(other.max[0] < self.min[0]
-			|| other.min[0] > self.max[0]
-			|| other.max[1] < self.min[1]
-			|| other.min[1] > self.max[1])
+		self.min[0] <= other.max[0]
+			&& self.max[0] >= other.min[0]
+			&& self.min[1] <= other.max[1]
+			&& self.max[1] >= other.min[1]
 	}
 
 	#[inline]
@@ -153,7 +153,7 @@ impl BoundingBox2 {
 			),
 			max: Vector2::new(
 				f32::max(self.max[0], other.max[0]),
-				f32::min(self.max[1], other.max[1]),
+				f32::max(self.max[1], other.max[1]),
 			),
 		}
 	}
