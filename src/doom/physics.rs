@@ -259,5 +259,37 @@ fn movement_z (
 	position: &mut Vector3<f32>,
 	velocity: &mut Vector3<f32>,
 ) {
-	position[2] += velocity[2] * delta.as_secs_f32();
+	if velocity[2] == 0.0 {
+		return;
+	}
+
+	let mut new_position = *position;
+	let mut new_velocity = *velocity;
+
+	let ssect = map.find_subsector(Vector2::new(new_position[0], new_position[1]));
+	let sector = sector_dynamic_component
+		.get(map_dynamic.sectors[ssect.sector_index])
+		.unwrap();
+
+	let min = sector.floor_height;
+	let max = sector.ceiling_height;
+
+	new_position[2] += new_velocity[2] * delta.as_secs_f32();
+
+	if new_position[2] <= min - bbox.min[2] {
+		new_position[2] = min - bbox.min[2];
+
+		if new_velocity[2] < 0.0 {
+			new_velocity[2] = 0.0;
+		}
+	} else if new_position[2] >= max - bbox.max[2] {
+		new_position[2] = max - bbox.max[2];
+
+		if new_velocity[2] > 0.0 {
+			new_velocity[2] = 0.0;
+		}
+	}
+
+	*position = new_position;
+	*velocity = new_velocity;
 }
