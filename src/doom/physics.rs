@@ -250,7 +250,7 @@ fn intersect_linedef(
 	ret
 }
 
-fn movement_z (
+fn movement_z(
 	delta: Duration,
 	map: &Map,
 	map_dynamic: &MapDynamic,
@@ -271,8 +271,27 @@ fn movement_z (
 		.get(map_dynamic.sectors[ssect.sector_index])
 		.unwrap();
 
-	let min = sector.floor_height;
-	let max = sector.ceiling_height;
+	let mut min = sector.floor_height;
+	let mut max = sector.ceiling_height;
+	let bbox2 = (&bbox.offset(new_position)).into();
+
+	for linedef in map.linedefs.iter() {
+		if linedef.touches_bbox(&bbox2) {
+			if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
+				let front_sector = sector_dynamic_component
+					.get(map_dynamic.sectors[front_sidedef.sector_index])
+					.unwrap();
+				let back_sector = sector_dynamic_component
+					.get(map_dynamic.sectors[back_sidedef.sector_index])
+					.unwrap();
+
+				min = f32::max(min, front_sector.floor_height);
+				min = f32::max(min, back_sector.floor_height);
+				max = f32::min(max, front_sector.ceiling_height);
+				max = f32::min(max, back_sector.ceiling_height);
+			}
+		}
+	}
 
 	new_position[2] += new_velocity[2] * delta.as_secs_f32();
 
