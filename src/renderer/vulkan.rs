@@ -4,33 +4,42 @@ use vulkano::{
 	device::{Device, DeviceExtensions, Features, Queue},
 	format::Format,
 	image::{AttachmentImage, ImageCreationError},
-	instance::{Instance, PhysicalDevice, QueueFamily},
+	instance::{Instance, InstanceExtensions, PhysicalDevice, QueueFamily},
 	swapchain::Surface,
 };
 use winit::window::Window;
 
 pub(super) fn create_instance() -> Result<Arc<Instance>, Box<dyn Error + Send + Sync>> {
 	let mut instance_extensions = vulkano_win::required_extensions();
-	instance_extensions.ext_debug_utils = true;
+	let supported_extensions = InstanceExtensions::supported_by_core()?;
 
 	let mut layers = Vec::new();
 
 	#[cfg(debug_assertions)]
 	{
-		let available_layers: Vec<_> = vulkano::instance::layers_list()?.collect();
+		if supported_extensions.ext_debug_utils {
+			instance_extensions.ext_debug_utils = true;
 
-		for to_enable in [
-			"VK_LAYER_LUNARG_standard_validation",
-			"VK_LAYER_LUNARG_monitor",
-		]
-		.iter()
-		{
-			if let Some(_) = available_layers.iter().find(|l| l.name() == *to_enable) {
-				layers.push(*to_enable);
+			let available_layers: Vec<_> = vulkano::instance::layers_list()?.collect();
+
+			for to_enable in [
+				"VK_LAYER_LUNARG_standard_validation",
+				"VK_LAYER_LUNARG_monitor",
+			]
+			.iter()
+			{
+				if let Some(_) = available_layers.iter().find(|l| l.name() == *to_enable) {
+					layers.push(*to_enable);
+				}
 			}
-		}
 
-		log::debug!("Enabled Vulkan layers: {}", layers.join(", "));
+			log::debug!(
+				"EXT_debug_utils is available, enabled Vulkan validation layers: {}",
+				layers.join(", ")
+			);
+		} else {
+			log::debug!("EXT_debug_utils not available, Vulkan validation layers disabled");
+		}
 	}
 
 	let instance = Instance::new(

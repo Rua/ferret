@@ -28,7 +28,10 @@ pub struct Video {
 impl Video {
 	pub fn new(
 		event_loop: &EventLoop<()>,
-	) -> Result<(Video, DebugCallback), Box<dyn Error + Send + Sync>> {
+	) -> Result<(Video, Option<DebugCallback>), Box<dyn Error + Send + Sync>> {
+		// Load the Vulkan library
+		vulkano::instance::loader::auto_loader()?;
+
 		// Create Vulkan instance
 		let instance = vulkan::create_instance()?;
 
@@ -39,13 +42,18 @@ impl Video {
 			.build_vk_surface(event_loop, instance.clone())?;
 
 		// Setup debug callback for validation layers
+		#[cfg(debug_assertions)]
 		let debug_callback = DebugCallback::errors_and_warnings(&instance, |ref message| {
 			if message.ty.validation {
 				log::error!("{}: {}", message.layer_prefix, message.description);
 			} else {
 				log::warn!("{}: {}", message.layer_prefix, message.description);
 			}
-		})?;
+		})
+		.ok();
+
+		#[cfg(not(debug_assertions))]
+		let debug_callback = None;
 
 		// Create Vulkan device
 		let (device, queues) = vulkan::create_device(&instance, &surface)?;
