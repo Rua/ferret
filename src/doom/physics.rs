@@ -8,7 +8,7 @@ use crate::{
 };
 use lazy_static::lazy_static;
 use nalgebra::{Vector2, Vector3};
-use specs::{Join, ReadExpect, ReadStorage, RunNow, World, WriteStorage};
+use specs::{Entities, Join, ReadExpect, ReadStorage, RunNow, World, WriteStorage};
 use std::time::Duration;
 
 #[derive(Default)]
@@ -19,6 +19,7 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 
 	fn run_now(&mut self, world: &'a World) {
 		let (
+			entities,
 			delta,
 			map_storage,
 			box_collider_component,
@@ -27,6 +28,7 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 			mut transform_component,
 			mut velocity_component,
 		) = world.system_data::<(
+			Entities,
 			ReadExpect<Duration>,
 			ReadExpect<AssetStorage<Map>>,
 			ReadStorage<BoxCollider>,
@@ -39,34 +41,45 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 		let map_dynamic = map_dynamic_component.join().next().unwrap();
 		let map = map_storage.get(&map_dynamic.map).unwrap();
 
-		for (box_collider, transform, velocity) in (
+		// Clone the mask so that transform_component is free to be borrowed during the loop
+		let transform_mask = transform_component.mask().clone();
+
+		for (entity, box_collider, _, velocity) in (
+			&entities,
 			&box_collider_component,
-			&mut transform_component,
+			transform_mask,
 			&mut velocity_component,
 		)
 			.join()
 		{
+			let transform = transform_component.get_mut(entity).unwrap();
 			//transform.position += velocity.velocity * delta.as_secs_f32();
 			let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
 
-			movement_xy(
+			let (new_position, new_velocity) = movement_xy(
 				*delta,
 				*&map,
 				&map_dynamic,
 				&sector_dynamic_component,
 				&bbox,
-				&mut transform.position,
-				&mut velocity.velocity,
+				transform.position,
+				velocity.velocity,
 			);
-			movement_z(
+			transform.position = new_position;
+			velocity.velocity = new_velocity;
+
+			let (new_position, new_velocity) = movement_z(
 				*delta,
 				*&map,
 				&map_dynamic,
 				&sector_dynamic_component,
 				&bbox,
-				&mut transform.position,
-				&mut velocity.velocity,
+				transform.position,
+				velocity.velocity,
 			);
+
+			transform.position = new_position;
+			velocity.velocity = new_velocity;
 		}
 	}
 }
@@ -77,19 +90,17 @@ fn movement_xy(
 	map_dynamic: &MapDynamic,
 	sector_dynamic_component: &ReadStorage<SectorDynamic>,
 	bbox: &AABB3,
-	position: &mut Vector3<f32>,
-	velocity: &mut Vector3<f32>,
-) {
+	mut position: Vector3<f32>,
+	mut velocity: Vector3<f32>,
+) -> (Vector3<f32>, Vector3<f32>) {
 	if velocity[0] == 0.0 && velocity[1] == 0.0 {
-		return;
+		return (position, velocity);
 	}
 
-	let mut new_position = *position;
-	let mut new_velocity = *velocity;
 	let time_left = delta;
 
 	{
-		let mut move_step = Line3::new(new_position, new_velocity * time_left.as_secs_f32());
+		let mut move_step = Line3::new(position, velocity * time_left.as_secs_f32());
 		move_step.dir[2] = 0.0;
 
 		if let Some(intersect) = trace(
@@ -100,11 +111,11 @@ fn movement_xy(
 			sector_dynamic_component,
 		) {
 			// Push back against the collision
-			let change = intersect.normal * new_velocity.dot(&intersect.normal) * 1.01;
-			new_velocity -= change;
+			let change = intersect.normal * velocity.dot(&intersect.normal) * 1.01;
+			velocity -= change;
 
 			// Try another move
-			let mut move_step = Line3::new(new_position, new_velocity * time_left.as_secs_f32());
+			let mut move_step = Line3::new(position, velocity * time_left.as_secs_f32());
 			move_step.dir[2] = 0.0;
 
 			if let Some(_intersect) = trace(
@@ -114,17 +125,16 @@ fn movement_xy(
 				map_dynamic,
 				sector_dynamic_component,
 			) {
-				new_velocity = nalgebra::zero();
+				velocity = nalgebra::zero();
 			} else {
-				new_position += move_step.dir;
+				position += move_step.dir;
 			}
 		} else {
-			new_position += move_step.dir;
+			position += move_step.dir;
 		}
 	}
 
-	*position = new_position;
-	*velocity = new_velocity;
+	(position, velocity)
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -256,24 +266,21 @@ fn movement_z(
 	map_dynamic: &MapDynamic,
 	sector_dynamic_component: &ReadStorage<SectorDynamic>,
 	bbox: &AABB3,
-	position: &mut Vector3<f32>,
-	velocity: &mut Vector3<f32>,
-) {
+	mut position: Vector3<f32>,
+	mut velocity: Vector3<f32>,
+) -> (Vector3<f32>, Vector3<f32>) {
 	if velocity[2] == 0.0 {
-		return;
+		return (position, velocity);
 	}
 
-	let mut new_position = *position;
-	let mut new_velocity = *velocity;
-
-	let ssect = map.find_subsector(Vector2::new(new_position[0], new_position[1]));
+	let ssect = map.find_subsector(Vector2::new(position[0], position[1]));
 	let sector = sector_dynamic_component
 		.get(map_dynamic.sectors[ssect.sector_index])
 		.unwrap();
 
 	let mut min = sector.floor_height;
 	let mut max = sector.ceiling_height;
-	let bbox2 = (&bbox.offset(new_position)).into();
+	let bbox2 = (&bbox.offset(position)).into();
 
 	for linedef in map.linedefs.iter() {
 		if linedef.touches_bbox(&bbox2) {
@@ -293,22 +300,21 @@ fn movement_z(
 		}
 	}
 
-	new_position[2] += new_velocity[2] * delta.as_secs_f32();
+	position[2] += velocity[2] * delta.as_secs_f32();
 
-	if new_position[2] <= min - bbox.min[2] {
-		new_position[2] = min - bbox.min[2];
+	if position[2] <= min - bbox.min[2] {
+		position[2] = min - bbox.min[2];
 
-		if new_velocity[2] < 0.0 {
-			new_velocity[2] = 0.0;
+		if velocity[2] < 0.0 {
+			velocity[2] = 0.0;
 		}
-	} else if new_position[2] >= max - bbox.max[2] {
-		new_position[2] = max - bbox.max[2];
+	} else if position[2] >= max - bbox.max[2] {
+		position[2] = max - bbox.max[2];
 
-		if new_velocity[2] > 0.0 {
-			new_velocity[2] = 0.0;
+		if velocity[2] > 0.0 {
+			velocity[2] = 0.0;
 		}
 	}
 
-	*position = new_position;
-	*velocity = new_velocity;
+	(position, velocity)
 }
