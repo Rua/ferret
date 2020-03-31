@@ -61,7 +61,9 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 		}
 	};
 
-	let sound_device = rodio::default_output_device().unwrap();
+	let sound_device = std::thread::spawn(|| rodio::default_output_device().unwrap())
+		.join()
+		.unwrap();
 
 	/*let audio = match Audio::new() {
 		Ok(val) => val,
