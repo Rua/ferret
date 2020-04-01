@@ -4,7 +4,7 @@ Ferret is a game engine that aims to be compatible with the original Doom, and p
 
 The project is still an early work in progress, so it won't do much useful yet. Error handling is nearly nonexistent, so expect it to crash whenever anything is wrong.
 
-## Requirements
+## Instructions
 
 Ferret is only available as source code for now, so you'll need to build it yourself. Download Ferret's source code via the green button on the main page. Unpack the file somewhere. Before you're able to build it, you need to get some things set up.
 
