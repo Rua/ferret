@@ -16,6 +16,7 @@ use specs::{
 use std::{
 	error::Error,
 	io::{Cursor, Read},
+	sync::mpsc::SyncSender,
 };
 
 impl Asset for Sound {
@@ -71,7 +72,7 @@ impl<'a> RunNow<'a> for SoundSystem {
 		let (
 			entities,
 			client,
-			sound_device,
+			sound_sender,
 			sound_storage,
 			transform_component,
 			mut sound_queue,
@@ -79,7 +80,7 @@ impl<'a> RunNow<'a> for SoundSystem {
 		) = world.system_data::<(
 			Entities,
 			ReadExpect<Client>,
-			ReadExpect<rodio::Device>,
+			ReadExpect<SyncSender<Box<dyn Source<Item = f32> + Send>>>,
 			ReadExpect<AssetStorage<Sound>>,
 			ReadStorage<Transform>,
 			WriteExpect<Vec<(AssetHandle<Sound>, Entity)>>,
@@ -131,7 +132,7 @@ impl<'a> RunNow<'a> for SoundSystem {
 				sound_playing.controller.stop();
 			}
 
-			rodio::play_raw(&sound_device, source.convert_samples());
+			sound_sender.send(Box::from(source.convert_samples())).ok();
 		}
 	}
 }

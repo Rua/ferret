@@ -21,6 +21,7 @@ use crate::{
 use nalgebra::{Matrix4, Vector3};
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
+use rodio::Source;
 use specs::{Entity, ReadExpect, RunNow, World, WorldExt, WriteExpect};
 use std::{
 	error::Error,
@@ -61,19 +62,16 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 		}
 	};
 
-	let sound_device = std::thread::spawn(|| rodio::default_output_device().unwrap())
-		.join()
-		.unwrap();
+	let (sound_sender, sound_receiver) =
+		std::sync::mpsc::sync_channel::<Box<dyn Source<Item = f32> + Send>>(10);
 
-	/*let audio = match Audio::new() {
-		Ok(val) => val,
-		Err(err) => {
-			return Err(Box::from(format!(
-				"Could not initialise audio system: {}",
-				err
-			)));
+	std::thread::spawn(move || {
+		let device = rodio::default_output_device().unwrap();
+
+		for source in sound_receiver {
+			rodio::play_raw(&device, source);
 		}
-	};*/
+	});
 
 	let mut loader = doom::wad::WadLoader::new();
 	loader.add("doom.wad")?;
@@ -148,7 +146,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	// Insert other resources
 	world.insert(Pcg64Mcg::from_entropy());
 	world.insert(video);
-	world.insert(sound_device);
+	world.insert(sound_sender);
 	world.insert(loader);
 	world.insert(InputState::new());
 	world.insert(bindings);
