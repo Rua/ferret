@@ -68,6 +68,9 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	std::thread::spawn(move || {
 		let device = rodio::default_output_device().unwrap();
 
+		// Play a dummy sound to force the sound engine to initialise itself
+		rodio::play_raw(&device, rodio::source::Empty::new());
+
 		for source in sound_receiver {
 			rodio::play_raw(&device, source);
 		}
