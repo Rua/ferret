@@ -6,16 +6,21 @@ The project is still an early work in progress, so it won't do much useful yet. 
 
 ## Requirements
 
-Ferret is made in [Rust](https://www.rust-lang.org/), so you'll need to install that. Some of the dependencies also require support for other languages. On Linux Mint, I needed the following packages:
+### Rust
 
-```
-cmake
-libc6-dev
-g++
-python3-distutils
-```
+Ferret is only available as source code for now, so you'll need to set up the compiler and compile it yourself. Ferret is written in Rust; it can be downloaded and installed from https://www.rust-lang.org/tools/install.
 
-Ferret uses Vulkan for rendering, so you need to have a Vulkan-capable graphics card and the appropriate drivers installed. The package `mesa-vulkan-drivers` is needed on Linux Mint.
+### Shaderc
+
+Ferret uses [shaderc-rs](https://github.com/google/shaderc-rs) to compile shaders. During the overall build process, it will either use the shaderc library if it can find it on your system, or try to download and compile it from scratch. Compiling shaderc requires you to install additional packages, including a C compiler and Python, and also slows down the build process, so it's highly recommended to install shaderc on your system before building Ferret. 
+
+You can download readily-built files for shaderc at https://github.com/google/shaderc/blob/master/downloads.md. On Linux, it should be unpacked in the `/usr` directory. On Windows, you can place it anywhere you want, but you need to set the environment variable `SHADERC_LIB_DIR` to the location of shaderc's `lib` folder. Information on how to set environment variables can be found on various websites.
+
+### Vulkan
+
+Ferret uses Vulkan for rendering, so to run it, you need to have a Vulkan-capable graphics card and the appropriate drivers installed. The drivers must support Vulkan 1.1 at minimum. The package `mesa-vulkan-drivers` is needed on Linux Mint.
+
+### Doom
 
 Finally, the engine requires the `doom.wad` file from the original game in order to run. It should be placed in the root directory of the project, next to `doom.gwa` which is already present.
 
