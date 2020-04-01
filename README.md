@@ -6,9 +6,11 @@ The project is still an early work in progress, so it won't do much useful yet. 
 
 ## Requirements
 
+Ferret is only available as source code for now, so you'll need to build it yourself. Download Ferret's source code via the green button on the main page. Unpack the file somewhere. Before you're able to build it, you need to get some things set up.
+
 ### Rust
 
-Ferret is only available as source code for now, so you'll need to set up the compiler and compile it yourself. Ferret is written in Rust; it can be downloaded and installed from https://www.rust-lang.org/tools/install.
+Ferret is written in Rust. The Rust compiler and build system can be downloaded and installed from https://www.rust-lang.org/tools/install.
 
 ### Shaderc
 
@@ -23,6 +25,10 @@ Ferret uses Vulkan for rendering, so to run it, you need to have a Vulkan-capabl
 ### Doom
 
 Finally, the engine requires the `doom.wad` file from the original game in order to run. It should be placed in the root directory of the project, next to `doom.gwa` which is already present.
+
+### Building Ferret
+
+Once you have everything set up, open a terminal/command prompt, and use `cd` to go to the location where you unpacked Ferret's source code. Then, type `cargo run --release` to build and run Ferret. You can leave out `--release`, which will build quicker but Ferret itself will run much slower.
 
 ## Contributing
 
