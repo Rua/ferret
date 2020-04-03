@@ -241,18 +241,18 @@ pub fn spawn_map_entities(
 		mut map_dynamic_component,
 		template_storage,
 		linedef_types,
-		mut linedef_dynamic_component,
+		mut linedef_ref_component,
 		sector_types,
-		mut sector_dynamic_component,
+		mut sector_ref_component,
 		mut transform_component,
 	) = world.system_data::<(
 		ReadExpect<AssetStorage<Map>>,
 		WriteStorage<MapDynamic>,
 		ReadExpect<AssetStorage<EntityTemplate>>,
 		ReadExpect<LinedefTypes>,
-		WriteStorage<LinedefDynamic>,
+		WriteStorage<LinedefRef>,
 		ReadExpect<SectorTypes>,
-		WriteStorage<SectorDynamic>,
+		WriteStorage<SectorRef>,
 		WriteStorage<Transform>,
 	)>();
 	let map = map_storage.get(&map_handle).unwrap();
@@ -269,14 +269,15 @@ pub fn spawn_map_entities(
 	for (i, linedef) in map.linedefs.iter().enumerate() {
 		// Create entity and set reference
 		let entity = world.entities().create();
-		map_dynamic.linedefs.push(entity);
-		linedef_dynamic_component.insert(
+		map_dynamic.linedefs.push(LinedefDynamic {
 			entity,
-			LinedefDynamic {
+			texture_offset: Vector2::new(0.0, 0.0),
+		});
+		linedef_ref_component.insert(
+			entity,
+			LinedefRef {
 				map_entity,
 				index: i,
-
-				texture_offset: Vector2::new(0.0, 0.0),
 			},
 		)?;
 
@@ -301,16 +302,17 @@ pub fn spawn_map_entities(
 	for (i, sector) in map.sectors.iter().enumerate() {
 		// Create entity and set reference
 		let entity = world.entities().create();
-		map_dynamic.sectors.push(entity);
-		sector_dynamic_component.insert(
+		map_dynamic.sectors.push(SectorDynamic {
 			entity,
-			SectorDynamic {
+			light_level: sector.light_level,
+			floor_height: sector.floor_height,
+			ceiling_height: sector.ceiling_height,
+		});
+		sector_ref_component.insert(
+			entity,
+			SectorRef {
 				map_entity,
 				index: i,
-
-				light_level: sector.light_level,
-				floor_height: sector.floor_height,
-				ceiling_height: sector.ceiling_height,
 			},
 		)?;
 
@@ -357,27 +359,35 @@ pub fn spawn_map_entities(
 	Ok(())
 }
 
-#[derive(Clone, Component, Copy, Debug)]
-pub struct LinedefDynamic {
-	pub map_entity: Entity,
-	pub index: usize,
+#[derive(Clone, Component, Debug)]
+pub struct MapDynamic {
+	pub map: AssetHandle<Map>,
+	pub linedefs: Vec<LinedefDynamic>,
+	pub sectors: Vec<SectorDynamic>,
+}
 
+#[derive(Clone, Debug)]
+pub struct LinedefDynamic {
+	pub entity: Entity,
 	pub texture_offset: Vector2<f32>,
 }
 
 #[derive(Clone, Component, Debug)]
-pub struct MapDynamic {
-	pub map: AssetHandle<Map>,
-	pub linedefs: Vec<Entity>,
-	pub sectors: Vec<Entity>,
-}
-
-#[derive(Clone, Component, Copy, Debug)]
-pub struct SectorDynamic {
+pub struct LinedefRef {
 	pub map_entity: Entity,
 	pub index: usize,
+}
 
+#[derive(Clone, Debug)]
+pub struct SectorDynamic {
+	pub entity: Entity,
 	pub light_level: f32,
 	pub floor_height: f32,
 	pub ceiling_height: f32,
+}
+
+#[derive(Clone, Component, Debug)]
+pub struct SectorRef {
+	pub map_entity: Entity,
+	pub index: usize,
 }

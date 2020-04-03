@@ -1,6 +1,6 @@
 use crate::{
 	assets::AssetStorage,
-	doom::map::{Map, MapDynamic, SectorDynamic},
+	doom::map::{Map, MapDynamic, SectorRef},
 };
 use rand::Rng;
 use rand_pcg::Pcg64Mcg;
@@ -21,33 +21,34 @@ impl<'a> RunNow<'a> for LightUpdateSystem {
 		let (
 			map_storage,
 			delta,
+			mut rng,
+			sector_ref_component,
 			mut light_flash_component,
 			mut light_glow_component,
-			map_dynamic_component,
-			mut sector_dynamic_component,
-			mut rng,
+			mut map_dynamic_component,
 		) = world.system_data::<(
 			ReadExpect<AssetStorage<Map>>,
 			ReadExpect<Duration>,
+			WriteExpect<Pcg64Mcg>,
+			ReadStorage<SectorRef>,
 			WriteStorage<LightFlash>,
 			WriteStorage<LightGlow>,
-			ReadStorage<MapDynamic>,
-			WriteStorage<SectorDynamic>,
-			WriteExpect<Pcg64Mcg>,
+			WriteStorage<MapDynamic>,
 		)>();
 
-		for (sector_dynamic, light_flash) in
-			(&mut sector_dynamic_component, &mut light_flash_component).join()
+		for (sector_ref, light_flash) in (&sector_ref_component, &mut light_flash_component).join()
 		{
+			let map_dynamic = map_dynamic_component
+				.get_mut(sector_ref.map_entity)
+				.unwrap();
+			let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
+
 			if let Some(new_time) = light_flash.time_left.checked_sub(*delta) {
 				light_flash.time_left = new_time;
 			} else {
 				light_flash.state = !light_flash.state;
-				let map_dynamic = map_dynamic_component
-					.get(sector_dynamic.map_entity)
-					.expect("map_entity does not have MapDynamic component");
 				let map = map_storage.get(&map_dynamic.map).unwrap();
-				let sector = &map.sectors[sector_dynamic.index];
+				let sector = &map.sectors[sector_ref.index];
 
 				let max_light = sector.light_level;
 				let min_light = sector
@@ -92,14 +93,14 @@ impl<'a> RunNow<'a> for LightUpdateSystem {
 			}
 		}
 
-		for (sector_dynamic, light_glow) in
-			(&mut sector_dynamic_component, &mut light_glow_component).join()
-		{
+		for (sector_ref, light_glow) in (&sector_ref_component, &mut light_glow_component).join() {
 			let map_dynamic = map_dynamic_component
-				.get(sector_dynamic.map_entity)
-				.expect("map_entity does not have MapDynamic component");
+				.get_mut(sector_ref.map_entity)
+				.unwrap();
+			let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
+
 			let map = map_storage.get(&map_dynamic.map).unwrap();
-			let sector = &map.sectors[sector_dynamic.index];
+			let sector = &map.sectors[sector_ref.index];
 			let speed = light_glow.speed * delta.as_secs_f32();
 
 			if light_glow.state {

@@ -3,7 +3,7 @@ use crate::doom::{
 	components::TextureScroll,
 	door::DoorUpdateSystem,
 	light::LightUpdateSystem,
-	map::LinedefDynamic,
+	map::{LinedefRef, MapDynamic},
 	physics::PhysicsSystem,
 };
 use specs::{Join, ReadExpect, ReadStorage, RunNow, World, WriteStorage};
@@ -45,16 +45,21 @@ impl<'a> RunNow<'a> for TextureScrollSystem {
 	fn setup(&mut self, _world: &mut World) {}
 
 	fn run_now(&mut self, world: &'a World) {
-		let (delta, mut linedef_dynamic_component, texture_scroll_component) = world
-			.system_data::<(
+		let (delta, linedef_ref_component, texture_scroll_component, mut map_dynamic_component) =
+			world.system_data::<(
 				ReadExpect<Duration>,
-				WriteStorage<LinedefDynamic>,
+				ReadStorage<LinedefRef>,
 				ReadStorage<TextureScroll>,
+				WriteStorage<MapDynamic>,
 			)>();
 
-		for (linedef_dynamic, texture_scroll) in
-			(&mut linedef_dynamic_component, &texture_scroll_component).join()
+		for (linedef_ref, texture_scroll) in
+			(&linedef_ref_component, &texture_scroll_component).join()
 		{
+			let map_dynamic = map_dynamic_component
+				.get_mut(linedef_ref.map_entity)
+				.unwrap();
+			let linedef_dynamic = &mut map_dynamic.linedefs[linedef_ref.index];
 			linedef_dynamic.texture_offset += texture_scroll.speed * delta.as_secs_f32();
 		}
 	}

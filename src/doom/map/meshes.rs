@@ -2,11 +2,11 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	doom::map::{
 		textures::{Flat, TextureType, WallTexture},
-		LinedefDynamic, LinedefFlags, Map, MapDynamic, SectorDynamic, Side,
+		LinedefFlags, Map, MapDynamic, Side,
 	},
 };
 use nalgebra::Vector2;
-use specs::{ReadExpect, ReadStorage, World};
+use specs::{ReadExpect, World};
 use std::{collections::HashMap, error::Error};
 use vulkano::{image::Dimensions, impl_vertex};
 
@@ -126,19 +126,14 @@ pub fn make_meshes(
 	let mut wall_meshes: HashMap<AssetHandle<WallTexture>, (Vec<VertexData>, Vec<u32>)> =
 		HashMap::new();
 
-	let (flat_storage, wall_texture_storage, linedef_dynamic_component, sector_dynamic_component) =
-		world.system_data::<(
-			ReadExpect<AssetStorage<Flat>>,
-			ReadExpect<AssetStorage<WallTexture>>,
-			ReadStorage<LinedefDynamic>,
-			ReadStorage<SectorDynamic>,
-		)>();
+	let (flat_storage, wall_texture_storage) = world.system_data::<(
+		ReadExpect<AssetStorage<Flat>>,
+		ReadExpect<AssetStorage<WallTexture>>,
+	)>();
 
 	// Walls
 	for (linedef_index, linedef) in map.linedefs.iter().enumerate() {
-		let linedef_dynamic = linedef_dynamic_component
-			.get(map_dynamic.linedefs[linedef_index])
-			.unwrap();
+		let linedef_dynamic = &map_dynamic.linedefs[linedef_index];
 
 		for side in [Side::Right, Side::Left].iter().copied() {
 			let front_sidedef = match &linedef.sidedefs[side as usize] {
@@ -152,9 +147,7 @@ pub fn make_meshes(
 				texture_offset += linedef_dynamic.texture_offset;
 			}
 
-			let front_sector_dynamic = sector_dynamic_component
-				.get(map_dynamic.sectors[front_sidedef.sector_index])
-				.unwrap();
+			let front_sector_dynamic = &map_dynamic.sectors[front_sidedef.sector_index];
 
 			// Swap the vertices if we're on the left side of the linedef
 			let linedef_vertices = match side {
@@ -164,9 +157,7 @@ pub fn make_meshes(
 
 			// Two-sided or one-sided sidedef?
 			if let Some(back_sidedef) = &linedef.sidedefs[!side as usize] {
-				let back_sector_dynamic = sector_dynamic_component
-					.get(map_dynamic.sectors[back_sidedef.sector_index])
-					.unwrap();
+				let back_sector_dynamic = &map_dynamic.sectors[back_sidedef.sector_index];
 				let spans = [
 					front_sector_dynamic.ceiling_height,
 					f32::min(
@@ -321,9 +312,7 @@ pub fn make_meshes(
 
 	// Flats
 	for (i, sector) in map.sectors.iter().enumerate() {
-		let sector_dynamic = sector_dynamic_component
-			.get(map_dynamic.sectors[i])
-			.unwrap();
+		let sector_dynamic = &map_dynamic.sectors[i];
 
 		for vertices in &sector.subsectors {
 			// Floor

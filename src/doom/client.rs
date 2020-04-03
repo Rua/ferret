@@ -4,7 +4,7 @@ use crate::{
 		components::{Transform, Velocity},
 		door::{DoorActive, DoorState, DoorUse},
 		input::{Action, Axis, UserCommand},
-		map::{Map, MapDynamic, SectorDynamic},
+		map::{Map, MapDynamic},
 	},
 	geometry::{Line2, Side},
 	input::{Bindings, InputState},
@@ -97,18 +97,16 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 		let (
 			client,
 			map_storage,
-			mut door_active_component,
 			door_use_component,
 			map_dynamic_component,
-			sector_dynamic_component,
+			mut door_active_component,
 			mut transform_component,
 		) = world.system_data::<(
 			ReadExpect<Client>,
 			ReadExpect<AssetStorage<Map>>,
-			WriteStorage<DoorActive>,
 			ReadStorage<DoorUse>,
 			ReadStorage<MapDynamic>,
-			ReadStorage<SectorDynamic>,
+			WriteStorage<DoorActive>,
 			WriteStorage<Transform>,
 		)>();
 
@@ -147,7 +145,7 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 						return;
 					}
 
-					let linedef_entity = map_dynamic.linedefs[linedef_index];
+					let linedef_entity = map_dynamic.linedefs[linedef_index].entity;
 
 					if let Some(door_use) = door_use_component.get(linedef_entity) {
 						if let Some(back_sidedef) = &linedef.sidedefs[Side::Left as usize] {
@@ -157,18 +155,11 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 							if let Some(open_height) = sector
 								.neighbours
 								.iter()
-								.map(|index| {
-									sector_dynamic_component
-										.get(map_dynamic.sectors[*index])
-										.unwrap()
-										.ceiling_height
-								})
+								.map(|index| map_dynamic.sectors[*index].ceiling_height)
 								.min_by(|x, y| x.partial_cmp(y).unwrap())
 							{
 								let open_height = open_height - 4.0;
-								let sector_entity = map_dynamic.sectors[sector_index];
-								let sector_dynamic =
-									sector_dynamic_component.get(sector_entity).unwrap();
+								let sector_entity = map_dynamic.sectors[sector_index].entity;
 
 								if let Some(door_active) =
 									door_active_component.get_mut(sector_entity)
@@ -195,7 +186,8 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 												open_height: open_height,
 
 												close_sound: door_use.close_sound.clone(),
-												close_height: sector_dynamic.floor_height,
+												close_height: map_dynamic.sectors[sector_index]
+													.floor_height,
 
 												state: DoorState::Closed,
 												speed: door_use.speed,

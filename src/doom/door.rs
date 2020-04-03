@@ -1,7 +1,11 @@
-use crate::{assets::AssetHandle, audio::Sound, doom::map::SectorDynamic};
+use crate::{
+	assets::AssetHandle,
+	audio::Sound,
+	doom::map::{MapDynamic, SectorRef},
+};
 use specs::{
-	Component, DenseVecStorage, Entities, Entity, Join, ReadExpect, RunNow, World, WriteExpect,
-	WriteStorage,
+	Component, DenseVecStorage, Entities, Entity, Join, ReadExpect, ReadStorage, RunNow, World,
+	WriteExpect, WriteStorage,
 };
 use specs_derive::Component;
 use std::time::Duration;
@@ -17,25 +21,28 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 			entities,
 			delta,
 			mut sound_queue,
+			sector_ref_component,
 			mut door_active_component,
-			mut sector_dynamic_component,
+			mut map_dynamic_component,
 		) = world.system_data::<(
 			Entities,
 			ReadExpect<Duration>,
 			WriteExpect<Vec<(AssetHandle<Sound>, Entity)>>,
+			ReadStorage<SectorRef>,
 			WriteStorage<DoorActive>,
-			WriteStorage<SectorDynamic>,
+			WriteStorage<MapDynamic>,
 		)>();
 
 		let mut done = Vec::new();
 
-		for (entity, sector_dynamic, door_active) in (
-			&entities,
-			&mut sector_dynamic_component,
-			&mut door_active_component,
-		)
-			.join()
+		for (entity, sector_ref, door_active) in
+			(&entities, &sector_ref_component, &mut door_active_component).join()
 		{
+			let map_dynamic = map_dynamic_component
+				.get_mut(sector_ref.map_entity)
+				.unwrap();
+			let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
+
 			match door_active.state {
 				DoorState::Closed => {
 					door_active.state = DoorState::Opening;

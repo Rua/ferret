@@ -2,7 +2,7 @@ use crate::{
 	assets::AssetStorage,
 	doom::{
 		components::{Transform, Velocity},
-		map::{Linedef, Map, MapDynamic, SectorDynamic},
+		map::{Linedef, Map, MapDynamic},
 	},
 	geometry::{Line2, Line3, AABB2, AABB3},
 };
@@ -28,7 +28,6 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 			map_storage,
 			box_collider_component,
 			map_dynamic_component,
-			sector_dynamic_component,
 			mut transform_component,
 			mut velocity_component,
 		) = world.system_data::<(
@@ -37,7 +36,6 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 			ReadExpect<AssetStorage<Map>>,
 			ReadStorage<BoxCollider>,
 			ReadStorage<MapDynamic>,
-			ReadStorage<SectorDynamic>,
 			WriteStorage<Transform>,
 			WriteStorage<Velocity>,
 		)>();
@@ -64,7 +62,6 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 				*delta,
 				*&map,
 				&map_dynamic,
-				&sector_dynamic_component,
 				&bbox,
 				transform.position,
 				velocity.velocity,
@@ -76,7 +73,6 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 				*delta,
 				*&map,
 				&map_dynamic,
-				&sector_dynamic_component,
 				&bbox,
 				transform.position,
 				velocity.velocity,
@@ -98,7 +94,6 @@ fn movement_xy(
 	delta: Duration,
 	map: &Map,
 	map_dynamic: &MapDynamic,
-	sector_dynamic_component: &ReadStorage<SectorDynamic>,
 	bbox: &AABB3,
 	mut position: Vector3<f32>,
 	mut velocity: Vector3<f32>,
@@ -113,13 +108,7 @@ fn movement_xy(
 		let mut move_step = Line3::new(position, velocity * time_left.as_secs_f32());
 		move_step.dir[2] = 0.0;
 
-		if let Some(intersect) = trace(
-			&move_step,
-			&bbox,
-			map,
-			map_dynamic,
-			sector_dynamic_component,
-		) {
+		if let Some(intersect) = trace(&move_step, &bbox, map, map_dynamic) {
 			// Push back against the collision
 			let change = intersect.normal * velocity.dot(&intersect.normal) * 1.01;
 			velocity -= change;
@@ -128,13 +117,7 @@ fn movement_xy(
 			let mut move_step = Line3::new(position, velocity * time_left.as_secs_f32());
 			move_step.dir[2] = 0.0;
 
-			if let Some(_intersect) = trace(
-				&move_step,
-				&bbox,
-				map,
-				map_dynamic,
-				sector_dynamic_component,
-			) {
+			if let Some(_intersect) = trace(&move_step, &bbox, map, map_dynamic) {
 				velocity = nalgebra::zero();
 			} else {
 				position += move_step.dir;
@@ -158,7 +141,6 @@ fn trace(
 	entity_bbox: &AABB3,
 	map: &Map,
 	map_dynamic: &MapDynamic,
-	sector_dynamic_component: &ReadStorage<SectorDynamic>,
 ) -> Option<Intersect> {
 	let move_step2 = Line2::from(move_step);
 	let current_bbox = AABB2::from(entity_bbox).offset(move_step2.point);
@@ -178,17 +160,17 @@ fn trace(
 		{
 			if intersect.fraction < ret.as_ref().map_or(1.0, |x| x.fraction) {
 				if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
-					let front_sector = sector_dynamic_component
-						.get(map_dynamic.sectors[front_sidedef.sector_index])
-						.unwrap();
-					let back_sector = sector_dynamic_component
-						.get(map_dynamic.sectors[back_sidedef.sector_index])
-						.unwrap();
+					let front_sector_dynamic = &map_dynamic.sectors[front_sidedef.sector_index];
+					let back_sector_dynamic = &map_dynamic.sectors[back_sidedef.sector_index];
 
-					if !(front_sector.floor_height <= move_step.point[2] + entity_bbox.min[2]
-						&& back_sector.floor_height <= move_step.point[2] + entity_bbox.min[2]
-						&& front_sector.ceiling_height >= move_step.point[2] + entity_bbox.max[2]
-						&& back_sector.ceiling_height >= move_step.point[2] + entity_bbox.max[2])
+					if !(front_sector_dynamic.floor_height
+						<= move_step.point[2] + entity_bbox.min[2]
+						&& back_sector_dynamic.floor_height
+							<= move_step.point[2] + entity_bbox.min[2]
+						&& front_sector_dynamic.ceiling_height
+							>= move_step.point[2] + entity_bbox.max[2]
+						&& back_sector_dynamic.ceiling_height
+							>= move_step.point[2] + entity_bbox.max[2])
 					{
 						ret = Some(intersect);
 					}
@@ -274,7 +256,6 @@ fn movement_z(
 	delta: Duration,
 	map: &Map,
 	map_dynamic: &MapDynamic,
-	sector_dynamic_component: &ReadStorage<SectorDynamic>,
 	bbox: &AABB3,
 	mut position: Vector3<f32>,
 	mut velocity: Vector3<f32>,
@@ -284,28 +265,22 @@ fn movement_z(
 	}
 
 	let ssect = map.find_subsector(Vector2::new(position[0], position[1]));
-	let sector = sector_dynamic_component
-		.get(map_dynamic.sectors[ssect.sector_index])
-		.unwrap();
+	let sector_dynamic = &map_dynamic.sectors[ssect.sector_index];
 
-	let mut min = sector.floor_height;
-	let mut max = sector.ceiling_height;
+	let mut min = sector_dynamic.floor_height;
+	let mut max = sector_dynamic.ceiling_height;
 	let bbox2 = (&bbox.offset(position)).into();
 
 	for linedef in map.linedefs.iter() {
 		if linedef.touches_bbox(&bbox2) {
 			if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
-				let front_sector = sector_dynamic_component
-					.get(map_dynamic.sectors[front_sidedef.sector_index])
-					.unwrap();
-				let back_sector = sector_dynamic_component
-					.get(map_dynamic.sectors[back_sidedef.sector_index])
-					.unwrap();
+				let front_sector_dynamic = &map_dynamic.sectors[front_sidedef.sector_index];
+				let back_sector_dynamic = &map_dynamic.sectors[back_sidedef.sector_index];
 
-				min = f32::max(min, front_sector.floor_height);
-				min = f32::max(min, back_sector.floor_height);
-				max = f32::min(max, front_sector.ceiling_height);
-				max = f32::min(max, back_sector.ceiling_height);
+				min = f32::max(min, front_sector_dynamic.floor_height);
+				min = f32::max(min, back_sector_dynamic.floor_height);
+				max = f32::min(max, front_sector_dynamic.ceiling_height);
+				max = f32::min(max, back_sector_dynamic.ceiling_height);
 			}
 		}
 	}

@@ -129,9 +129,9 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	world.register::<doom::door::DoorUse>();
 	world.register::<doom::light::LightFlash>();
 	world.register::<doom::light::LightGlow>();
-	world.register::<doom::map::LinedefDynamic>();
+	world.register::<doom::map::LinedefRef>();
 	world.register::<doom::map::MapDynamic>();
-	world.register::<doom::map::SectorDynamic>();
+	world.register::<doom::map::SectorRef>();
 	world.register::<doom::physics::BoxCollider>();
 	world.register::<doom::render::SpriteRender>();
 	world.register::<doom::sound::SoundPlaying>();
