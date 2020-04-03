@@ -1,11 +1,8 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
-	doom::{
-		components::{LinedefDynamic, MapDynamic, SectorDynamic},
-		map::{
-			textures::{Flat, TextureType, WallTexture},
-			LinedefFlags, Map, Side,
-		},
+	doom::map::{
+		textures::{Flat, TextureType, WallTexture},
+		LinedefDynamic, LinedefFlags, Map, MapDynamic, SectorDynamic, Side,
 	},
 };
 use nalgebra::Vector2;

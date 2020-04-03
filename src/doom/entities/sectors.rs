@@ -1,7 +1,7 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
-	doom::components::{LightFlash, LightFlashType, LightGlow},
+	doom::light::{LightFlash, LightFlashType, LightGlow},
 };
 use specs::{World, WriteExpect};
 use std::collections::HashMap;

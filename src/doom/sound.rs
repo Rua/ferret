@@ -1,18 +1,17 @@
 use crate::{
 	assets::{Asset, AssetHandle, AssetStorage, DataSource},
 	audio::{Sound, SoundController, SoundSource},
-	doom::{
-		client::Client,
-		components::{SoundPlaying, Transform},
-	},
+	doom::{client::Client, components::Transform},
 	geometry::Angle,
 };
 use byteorder::{ReadBytesExt, LE};
 use nalgebra::Vector2;
 use rodio::Source;
 use specs::{
-	Entities, Entity, Join, ReadExpect, ReadStorage, RunNow, World, WriteExpect, WriteStorage,
+	Component, DenseVecStorage, Entities, Entity, Join, ReadExpect, ReadStorage, RunNow, World,
+	WriteExpect, WriteStorage,
 };
+use specs_derive::Component;
 use std::{
 	error::Error,
 	io::{Cursor, Read},
@@ -166,4 +165,9 @@ fn calculate_volumes(client_transform: &Transform, entity_transform: &Transform)
 
 	// Final result
 	volumes * distance_factor
+}
+
+#[derive(Component)]
+pub struct SoundPlaying {
+	pub controller: SoundController,
 }

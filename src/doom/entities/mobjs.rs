@@ -3,7 +3,9 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
 	doom::{
-		components::{BoxCollider, SpawnOnCeiling, SpawnPoint, SpriteRender, Velocity},
+		components::{SpawnOnCeiling, SpawnPoint, Velocity},
+		physics::BoxCollider,
+		render::SpriteRender,
 		sprite::Sprite,
 		wad::WadLoader,
 	},

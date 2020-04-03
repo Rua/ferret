@@ -1,11 +1,10 @@
 use crate::{
 	assets::AssetStorage,
 	doom::{
-		components::{
-			DoorActive, DoorState, DoorUse, MapDynamic, SectorDynamic, Transform, Velocity,
-		},
+		components::{Transform, Velocity},
+		door::{DoorActive, DoorState, DoorUse},
 		input::{Action, Axis, UserCommand},
-		map::Map,
+		map::{Map, MapDynamic, SectorDynamic},
 	},
 	geometry::{Line2, Side},
 	input::{Bindings, InputState},

@@ -120,21 +120,21 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	let mut world = World::new();
 
 	// Register components
-	world.register::<doom::components::BoxCollider>();
-	world.register::<doom::components::DoorActive>();
-	world.register::<doom::components::DoorUse>();
-	world.register::<doom::components::LightFlash>();
-	world.register::<doom::components::LightGlow>();
-	world.register::<doom::components::LinedefDynamic>();
-	world.register::<doom::components::MapDynamic>();
-	world.register::<doom::components::SectorDynamic>();
-	world.register::<doom::components::SoundPlaying>();
 	world.register::<doom::components::SpawnOnCeiling>();
 	world.register::<doom::components::SpawnPoint>();
-	world.register::<doom::components::SpriteRender>();
 	world.register::<doom::components::TextureScroll>();
 	world.register::<doom::components::Transform>();
 	world.register::<doom::components::Velocity>();
+	world.register::<doom::door::DoorActive>();
+	world.register::<doom::door::DoorUse>();
+	world.register::<doom::light::LightFlash>();
+	world.register::<doom::light::LightGlow>();
+	world.register::<doom::map::LinedefDynamic>();
+	world.register::<doom::map::MapDynamic>();
+	world.register::<doom::map::SectorDynamic>();
+	world.register::<doom::physics::BoxCollider>();
+	world.register::<doom::render::SpriteRender>();
+	world.register::<doom::sound::SoundPlaying>();
 
 	// Insert asset storages
 	world.insert(AssetStorage::<EntityTemplate>::default());

@@ -1,11 +1,11 @@
 use crate::{
-	assets::AssetStorage,
+	assets::{AssetHandle, AssetStorage},
 	doom::{
 		client::Client,
-		components::{MapDynamic, SectorDynamic, SpriteRender, Transform},
+		components::Transform,
 		map::{
 			textures::{Flat, WallTexture},
-			Map,
+			Map, MapDynamic, SectorDynamic,
 		},
 		sprite::{Sprite, SpriteImage},
 	},
@@ -16,7 +16,8 @@ use crate::{
 	},
 };
 use nalgebra::{Matrix4, Vector2, Vector3};
-use specs::{Entities, Join, ReadExpect, ReadStorage, RunNow, World};
+use specs::{Component, DenseVecStorage, Entities, Join, ReadExpect, ReadStorage, RunNow, World};
+use specs_derive::Component;
 use std::{
 	collections::{hash_map::Entry, HashMap},
 	error::Error,
@@ -743,6 +744,13 @@ impl SpriteRenderSystem {
 
 		Ok(command_buffer_builder)
 	}
+}
+
+#[derive(Clone, Component, Debug)]
+pub struct SpriteRender {
+	pub sprite: AssetHandle<Sprite>,
+	pub frame: usize,
+	pub full_bright: bool,
 }
 
 // A projection matrix that creates a world coordinate system with

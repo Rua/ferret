@@ -1,14 +1,18 @@
 use crate::{
 	assets::AssetStorage,
 	doom::{
-		components::{BoxCollider, MapDynamic, SectorDynamic, Transform, Velocity},
-		map::{Linedef, Map},
+		components::{Transform, Velocity},
+		map::{Linedef, Map, MapDynamic, SectorDynamic},
 	},
 	geometry::{Line2, Line3, AABB2, AABB3},
 };
 use lazy_static::lazy_static;
 use nalgebra::{Vector2, Vector3};
-use specs::{Entities, Join, ReadExpect, ReadStorage, RunNow, World, WriteStorage};
+use specs::{
+	Component, DenseVecStorage, Entities, Join, ReadExpect, ReadStorage, RunNow, World,
+	WriteStorage,
+};
+use specs_derive::Component;
 use std::time::Duration;
 
 #[derive(Default)]
@@ -82,6 +86,12 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 			velocity.velocity = new_velocity;
 		}
 	}
+}
+
+#[derive(Clone, Component, Copy, Debug)]
+pub struct BoxCollider {
+	pub height: f32,
+	pub radius: f32,
 }
 
 fn movement_xy(

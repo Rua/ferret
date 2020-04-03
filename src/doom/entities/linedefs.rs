@@ -2,10 +2,7 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	audio::Sound,
 	component::EntityTemplate,
-	doom::{
-		components::{DoorUse, TextureScroll},
-		wad::WadLoader,
-	},
+	doom::{components::TextureScroll, door::DoorUse, wad::WadLoader},
 };
 use nalgebra::Vector2;
 use specs::{World, WriteExpect};

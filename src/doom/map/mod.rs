@@ -6,9 +6,7 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
 	doom::{
-		components::{
-			LinedefDynamic, MapDynamic, SectorDynamic, SpawnOnCeiling, SpawnPoint, Transform,
-		},
+		components::{SpawnOnCeiling, SpawnPoint, Transform},
 		entities::{LinedefTypes, MobjTypes, SectorTypes},
 		map::{
 			load::{LinedefFlags, ThingData},
@@ -19,8 +17,10 @@ use crate::{
 };
 use nalgebra::{Vector2, Vector3};
 use specs::{
-	storage::StorageEntry, Entity, Join, ReadExpect, ReadStorage, World, WorldExt, WriteStorage,
+	storage::StorageEntry, Component, DenseVecStorage, Entity, Join, ReadExpect, ReadStorage,
+	World, WorldExt, WriteStorage,
 };
+use specs_derive::Component;
 use std::{error::Error, fmt::Debug};
 
 #[derive(Clone, Debug)]
@@ -355,4 +355,29 @@ pub fn spawn_map_entities(
 	map_dynamic_component.insert(map_entity, map_dynamic)?;
 
 	Ok(())
+}
+
+#[derive(Clone, Component, Copy, Debug)]
+pub struct LinedefDynamic {
+	pub map_entity: Entity,
+	pub index: usize,
+
+	pub texture_offset: Vector2<f32>,
+}
+
+#[derive(Clone, Component, Debug)]
+pub struct MapDynamic {
+	pub map: AssetHandle<Map>,
+	pub linedefs: Vec<Entity>,
+	pub sectors: Vec<Entity>,
+}
+
+#[derive(Clone, Component, Copy, Debug)]
+pub struct SectorDynamic {
+	pub map_entity: Entity,
+	pub index: usize,
+
+	pub light_level: f32,
+	pub floor_height: f32,
+	pub ceiling_height: f32,
 }
