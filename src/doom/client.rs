@@ -2,7 +2,7 @@ use crate::{
 	assets::AssetStorage,
 	doom::{
 		components::{Transform, Velocity},
-		door::{DoorActive, DoorState, DoorUse},
+		door::DoorUse,
 		input::{Action, Axis, UserCommand},
 		map::{Map, MapDynamic},
 	},
@@ -10,8 +10,12 @@ use crate::{
 	input::{Bindings, InputState},
 };
 use nalgebra::Vector2;
-use specs::{Entity, Join, ReadExpect, ReadStorage, RunNow, World, WriteExpect, WriteStorage};
-use std::time::Duration;
+use shrev::EventChannel;
+use specs::{
+	Component, DenseVecStorage, Entity, Join, ReadExpect, ReadStorage, RunNow, World, WriteExpect,
+	WriteStorage,
+};
+use specs_derive::Component;
 
 #[derive(Default)]
 pub struct Client {
@@ -96,17 +100,17 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 	fn run_now(&mut self, world: &'a World) {
 		let (
 			client,
-			map_storage,
-			door_use_component,
+			map_asset_storage,
+			mut use_event_channel,
 			map_dynamic_component,
-			mut door_active_component,
+			use_action_component,
 			mut transform_component,
 		) = world.system_data::<(
 			ReadExpect<Client>,
 			ReadExpect<AssetStorage<Map>>,
-			ReadStorage<DoorUse>,
+			WriteExpect<EventChannel<UseEvent>>,
 			ReadStorage<MapDynamic>,
-			WriteStorage<DoorActive>,
+			ReadStorage<UseAction>,
 			WriteStorage<Transform>,
 		)>();
 
@@ -114,7 +118,7 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 			if client.command.action_use && !client.previous_command.action_use {
 				let transform = transform_component.get_mut(entity).unwrap();
 				let map_dynamic = map_dynamic_component.join().next().unwrap();
-				let map = map_storage.get(&map_dynamic.map).unwrap();
+				let map = map_asset_storage.get(&map_dynamic.map).unwrap();
 
 				const USERANGE: f32 = 64.0;
 				let yaw = transform.rotation[2].to_radians() as f32;
@@ -147,68 +151,21 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 
 					let linedef_entity = map_dynamic.linedefs[linedef_index].entity;
 
-					if let Some(door_use) = door_use_component.get(linedef_entity) {
-						if let Some(back_sidedef) = &linedef.sidedefs[Side::Left as usize] {
-							let sector_index = back_sidedef.sector_index;
-							let sector = &map.sectors[sector_index];
-
-							if let Some(open_height) = sector
-								.neighbours
-								.iter()
-								.map(|index| map_dynamic.sectors[*index].ceiling_height)
-								.min_by(|x, y| x.partial_cmp(y).unwrap())
-							{
-								let open_height = open_height - 4.0;
-								let sector_entity = map_dynamic.sectors[sector_index].entity;
-
-								if let Some(door_active) =
-									door_active_component.get_mut(sector_entity)
-								{
-									match door_active.state {
-										DoorState::Closing => {
-											// Re-open the door
-											door_active.state = DoorState::Closed;
-											door_active.time_left = door_use.wait_time;
-										}
-										DoorState::Opening | DoorState::Open => {
-											// Close the door early
-											door_active.state = DoorState::Open;
-											door_active.time_left = Duration::default();
-										}
-										DoorState::Closed => unreachable!(),
-									}
-								} else {
-									door_active_component
-										.insert(
-											sector_entity,
-											DoorActive {
-												open_sound: door_use.open_sound.clone(),
-												open_height: open_height,
-
-												close_sound: door_use.close_sound.clone(),
-												close_height: map_dynamic.sectors[sector_index]
-													.floor_height,
-
-												state: DoorState::Closed,
-												speed: door_use.speed,
-												time_left: door_use.wait_time,
-											},
-										)
-										.unwrap();
-								}
-							} else {
-								log::error!(
-									"Used door linedef {}, sector {}, has no neighbouring sectors",
-									linedef_index,
-									sector_index
-								);
-							}
-						} else {
-							log::error!("Used door linedef {} has no back sector", linedef_index);
-						}
+					if use_action_component.get(linedef_entity).is_some() {
+						use_event_channel.single_write(UseEvent { linedef_entity });
 					}
 				}
 			}
 		}
 	}
+}
+
+#[derive(Clone, Component, Debug)]
+pub enum UseAction {
+	DoorUse(DoorUse),
+}
+
+#[derive(Clone, Debug)]
+pub struct UseEvent {
+	pub linedef_entity: Entity,
 }

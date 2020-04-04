@@ -5,6 +5,7 @@ use crate::{
 	geometry::Angle,
 };
 use byteorder::{ReadBytesExt, LE};
+use crossbeam_channel::Sender;
 use nalgebra::Vector2;
 use rodio::Source;
 use specs::{
@@ -15,7 +16,6 @@ use specs_derive::Component;
 use std::{
 	error::Error,
 	io::{Cursor, Read},
-	sync::mpsc::SyncSender,
 };
 
 impl Asset for Sound {
@@ -79,7 +79,7 @@ impl<'a> RunNow<'a> for SoundSystem {
 		) = world.system_data::<(
 			Entities,
 			ReadExpect<Client>,
-			ReadExpect<SyncSender<Box<dyn Source<Item = f32> + Send>>>,
+			ReadExpect<Sender<Box<dyn Source<Item = f32> + Send>>>,
 			ReadExpect<AssetStorage<Sound>>,
 			ReadStorage<Transform>,
 			WriteExpect<Vec<(AssetHandle<Sound>, Entity)>>,

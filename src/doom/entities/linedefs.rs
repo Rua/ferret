@@ -2,7 +2,7 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	audio::Sound,
 	component::EntityTemplate,
-	doom::{components::TextureScroll, door::DoorUse, wad::WadLoader},
+	doom::{client::UseAction, door::DoorUse, update::TextureScroll, wad::WadLoader},
 };
 use nalgebra::Vector2;
 use specs::{World, WriteExpect};
@@ -25,12 +25,12 @@ impl LinedefTypes {
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
-				.with_component(DoorUse {
+				.with_component(UseAction::DoorUse(DoorUse {
 					open_sound: sound_storage.load("DSDOROPN", &mut *loader),
 					close_sound: sound_storage.load("DSDORCLS", &mut *loader),
 					speed: 2.0 / crate::doom::FRAME_TIME.as_secs_f32(),
 					wait_time: 150 * crate::doom::FRAME_TIME,
-				})
+				}))
         });
         doomednums.insert(1, handle.clone());
 

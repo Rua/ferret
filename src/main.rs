@@ -22,10 +22,10 @@ use nalgebra::{Matrix4, Vector3};
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
 use rodio::Source;
-use specs::{Entity, ReadExpect, RunNow, World, WorldExt, WriteExpect};
+use shrev::EventChannel;
+use specs::{DispatcherBuilder, Entity, ReadExpect, RunNow, World, WorldExt, WriteExpect};
 use std::{
 	error::Error,
-	sync::mpsc,
 	time::{Duration, Instant},
 };
 use vulkano::{
@@ -41,7 +41,7 @@ use winit::{
 fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	Logger::init().unwrap();
 
-	let (command_sender, command_receiver) = mpsc::channel();
+	let (command_sender, command_receiver) = crossbeam_channel::unbounded();
 
 	match stdin::spawn(command_sender.clone()) {
 		Ok(_) => (),
@@ -63,7 +63,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	};
 
 	let (sound_sender, sound_receiver) =
-		std::sync::mpsc::sync_channel::<Box<dyn Source<Item = f32> + Send>>(10);
+		crossbeam_channel::unbounded::<Box<dyn Source<Item = f32> + Send>>();
 
 	std::thread::spawn(move || {
 		let device = rodio::default_output_device().unwrap();
@@ -120,13 +120,12 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	let mut world = World::new();
 
 	// Register components
+	world.register::<doom::client::UseAction>();
 	world.register::<doom::components::SpawnOnCeiling>();
 	world.register::<doom::components::SpawnPoint>();
-	world.register::<doom::components::TextureScroll>();
 	world.register::<doom::components::Transform>();
 	world.register::<doom::components::Velocity>();
 	world.register::<doom::door::DoorActive>();
-	world.register::<doom::door::DoorUse>();
 	world.register::<doom::light::LightFlash>();
 	world.register::<doom::light::LightGlow>();
 	world.register::<doom::map::LinedefRef>();
@@ -135,6 +134,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	world.register::<doom::physics::BoxCollider>();
 	world.register::<doom::render::SpriteRender>();
 	world.register::<doom::sound::SoundPlaying>();
+	world.register::<doom::update::TextureScroll>();
 
 	// Insert asset storages
 	world.insert(AssetStorage::<EntityTemplate>::default());
@@ -156,11 +156,25 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 	world.insert(Vec::<(AssetHandle<Sound>, Entity)>::new());
 	world.insert(doom::client::Client::default());
 	world.insert(doom::FRAME_TIME);
+	world.insert(EventChannel::<doom::client::UseEvent>::new());
 
 	// Create systems
 	let mut render_system = doom::render::RenderSystem::new(&world)?;
 	let mut sound_system = doom::sound::SoundSystem;
-	let mut update_system = doom::update::UpdateSystem::default();
+	let mut update_dispatcher = DispatcherBuilder::new()
+		.with_thread_local(doom::client::PlayerCommandSystem::default())
+		.with_thread_local(doom::client::PlayerMoveSystem::default())
+		.with_thread_local(doom::client::PlayerUseSystem::default())
+		.with_thread_local(doom::physics::PhysicsSystem::default())
+		.with_thread_local(doom::door::DoorUpdateSystem::new(
+			world
+				.get_mut::<EventChannel<doom::client::UseEvent>>()
+				.unwrap()
+				.register_reader(),
+		))
+		.with_thread_local(doom::light::LightUpdateSystem::default())
+		.with_thread_local(doom::update::TextureScrollSystem::default())
+		.build();
 
 	command_sender.send("map E1M1".to_owned()).ok();
 
@@ -473,7 +487,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 		if leftover_time >= doom::FRAME_TIME {
 			leftover_time -= doom::FRAME_TIME;
 
-			update_system.run_now(&world);
+			update_dispatcher.dispatch(&world);
 
 			// Reset input delta state
 			{

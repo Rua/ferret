@@ -1,5 +1,5 @@
 use crate::geometry::Angle;
-use nalgebra::{Vector2, Vector3};
+use nalgebra::Vector3;
 use specs::{Component, DenseVecStorage};
 use specs_derive::Component;
 
@@ -11,11 +11,6 @@ pub struct SpawnOnCeiling {
 #[derive(Clone, Component, Copy, Debug)]
 pub struct SpawnPoint {
 	pub player_num: usize,
-}
-
-#[derive(Clone, Component, Copy, Debug)]
-pub struct TextureScroll {
-	pub speed: Vector2<f32>,
 }
 
 #[derive(Clone, Component, Copy, Debug)]

@@ -1,6 +1,6 @@
+use crossbeam_channel::Sender;
 use std::{
 	io::{self, BufRead},
-	sync::mpsc::Sender,
 	thread::Builder,
 };
 
