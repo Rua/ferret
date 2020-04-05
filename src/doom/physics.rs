@@ -214,21 +214,31 @@ fn trace(
 			Interval::new(
 				(bbox.min[i] - current_bbox.max[i]) / move_step.dir[i],
 				(bbox.max[i] - current_bbox.min[i]) / move_step.dir[i],
-			).normalize()
+			)
+			.normalize()
 		}));
 
 		let intersection = intervals[0].intersection(intervals[1]);
 
-		if !intersection.is_empty() && intersection.min < ret.as_ref().map_or(1.0, |x| x.fraction) {
+		if !intersection.is_empty()
+			&& intersection.min >= 0.0
+			&& intersection.min < ret.as_ref().map_or(1.0, |x| x.fraction)
+		{
 			ret = Some(Intersect {
 				fraction: intersection.min,
-				normal: BBOX_NORMALS[
-					if intersection.min == intervals[0].min {
-						if move_step.dir[0] > 0.0 { 2 } else { 0 }
+				normal: BBOX_NORMALS[if intersection.min == intervals[0].min {
+					if move_step.dir[0] > 0.0 {
+						2
 					} else {
-						if move_step.dir[1] > 0.0 { 3 } else { 1 }
+						0
 					}
-				],
+				} else {
+					if move_step.dir[1] > 0.0 {
+						3
+					} else {
+						1
+					}
+				}],
 			});
 		}
 	}
