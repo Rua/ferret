@@ -15,14 +15,6 @@ use specs::{
 use specs_derive::Component;
 use std::time::Duration;
 
-#[derive(Clone, Debug)]
-pub struct DoorUse {
-	pub open_sound: AssetHandle<Sound>,
-	pub close_sound: AssetHandle<Sound>,
-	pub speed: f32,
-	pub wait_time: Duration,
-}
-
 pub struct DoorUpdateSystem {
 	use_event_reader: ReaderId<UseEvent>,
 }
@@ -178,6 +170,14 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 			door_active_component.remove(entity);
 		}
 	}
+}
+
+#[derive(Clone, Debug)]
+pub struct DoorUse {
+	pub open_sound: AssetHandle<Sound>,
+	pub close_sound: AssetHandle<Sound>,
+	pub speed: f32,
+	pub wait_time: Duration,
 }
 
 #[derive(Clone, Component, Debug)]

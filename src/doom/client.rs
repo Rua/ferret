@@ -134,8 +134,21 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 				for (i, linedef) in map.linedefs.iter().enumerate() {
 					if let Some((linedef_p, use_p)) = linedef.line.intersect(&use_line) {
 						if linedef_p >= 0.0 && linedef_p <= 1.0 && use_p >= 0.0 && use_p < pmax {
-							pmax = use_p;
-							closest_linedef = Some(i);
+							// Always hit a usable linedef
+							if use_action_component
+								.get(map_dynamic.linedefs[i].entity)
+								.is_some()
+							{
+								pmax = use_p;
+								closest_linedef = Some(i);
+							} else if let [Some(_front_sidedef), Some(_back_sidedef)] =
+								&linedef.sidedefs
+							{
+								// Skip two-sided linedefs
+							} else {
+								pmax = use_p;
+								closest_linedef = Some(i);
+							}
 						}
 					}
 				}
