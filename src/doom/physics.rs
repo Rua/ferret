@@ -4,7 +4,7 @@ use crate::{
 		components::{Transform, Velocity},
 		map::{Linedef, Map, MapDynamic},
 	},
-	geometry::{Line2, Line3, AABB2, AABB3},
+	geometry::{Interval, Line2, Line3, AABB2, AABB3},
 };
 use lazy_static::lazy_static;
 use nalgebra::{Vector2, Vector3};
@@ -54,7 +54,6 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 		)
 			.join()
 		{
-			let transform = transform_component.get_mut(entity).unwrap();
 			//transform.position += velocity.velocity * delta.as_secs_f32();
 			let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
 
@@ -62,10 +61,13 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 				*delta,
 				*&map,
 				&map_dynamic,
+				&transform_component,
+				&box_collider_component,
 				&bbox,
-				transform.position,
+				transform_component.get(entity).unwrap().position,
 				velocity.velocity,
 			);
+			let transform = transform_component.get_mut(entity).unwrap();
 			transform.position = new_position;
 			velocity.velocity = new_velocity;
 
@@ -94,6 +96,8 @@ fn movement_xy(
 	delta: Duration,
 	map: &Map,
 	map_dynamic: &MapDynamic,
+	transform_component: &WriteStorage<Transform>,
+	box_collider_component: &ReadStorage<BoxCollider>,
 	bbox: &AABB3,
 	mut position: Vector3<f32>,
 	mut velocity: Vector3<f32>,
@@ -108,7 +112,14 @@ fn movement_xy(
 		let mut move_step = Line3::new(position, velocity * time_left.as_secs_f32());
 		move_step.dir[2] = 0.0;
 
-		if let Some(intersect) = trace(&move_step, &bbox, map, map_dynamic) {
+		if let Some(intersect) = trace(
+			&move_step,
+			&bbox,
+			map,
+			map_dynamic,
+			transform_component,
+			box_collider_component,
+		) {
 			// Push back against the collision
 			let change = intersect.normal * velocity.dot(&intersect.normal) * 1.01;
 			velocity -= change;
@@ -117,7 +128,14 @@ fn movement_xy(
 			let mut move_step = Line3::new(position, velocity * time_left.as_secs_f32());
 			move_step.dir[2] = 0.0;
 
-			if let Some(_intersect) = trace(&move_step, &bbox, map, map_dynamic) {
+			if let Some(_intersect) = trace(
+				&move_step,
+				&bbox,
+				map,
+				map_dynamic,
+				transform_component,
+				box_collider_component,
+			) {
 				velocity = nalgebra::zero();
 			} else {
 				position += move_step.dir;
@@ -141,6 +159,8 @@ fn trace(
 	entity_bbox: &AABB3,
 	map: &Map,
 	map_dynamic: &MapDynamic,
+	transform_component: &WriteStorage<Transform>,
+	box_collider_component: &ReadStorage<BoxCollider>,
 ) -> Option<Intersect> {
 	let move_step2 = Line2::from(move_step);
 	let current_bbox = AABB2::from(entity_bbox).offset(move_step2.point);
@@ -181,15 +201,47 @@ fn trace(
 		}
 	}
 
+	for (transform, box_collider) in (transform_component, box_collider_component).join() {
+		let position = Vector2::new(transform.position[0], transform.position[1]);
+
+		// Don't collide against self
+		if position == move_step2.point {
+			continue;
+		}
+
+		let bbox = AABB2::from_radius(box_collider.radius).offset(position);
+		let intervals = Vector2::from_iterator((0..2).map(|i| {
+			Interval::new(
+				(bbox.min[i] - current_bbox.max[i]) / move_step.dir[i],
+				(bbox.max[i] - current_bbox.min[i]) / move_step.dir[i],
+			).normalize()
+		}));
+
+		let intersection = intervals[0].intersection(intervals[1]);
+
+		if !intersection.is_empty() && intersection.min < ret.as_ref().map_or(1.0, |x| x.fraction) {
+			ret = Some(Intersect {
+				fraction: intersection.min,
+				normal: BBOX_NORMALS[
+					if intersection.min == intervals[0].min {
+						if move_step.dir[0] > 0.0 { 2 } else { 0 }
+					} else {
+						if move_step.dir[1] > 0.0 { 3 } else { 1 }
+					}
+				],
+			});
+		}
+	}
+
 	ret
 }
 
 lazy_static! {
 	static ref BBOX_NORMALS: [Vector3<f32>; 4] = [
-		Vector3::new(-1.0, 0.0, 0.0),
-		Vector3::new(0.0, 1.0, 0.0),
-		Vector3::new(1.0, 0.0, 0.0),
-		Vector3::new(0.0, -1.0, 0.0),
+		Vector3::new(1.0, 0.0, 0.0),   // right
+		Vector3::new(0.0, 1.0, 0.0),   // up
+		Vector3::new(-1.0, 0.0, 0.0),  // left
+		Vector3::new(0.0, -1.0, 0.0),  // down
 	];
 }
 

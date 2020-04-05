@@ -90,7 +90,45 @@ pub struct Plane {
 	pub distance: f32,
 }*/
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Interval {
+	pub min: f32,
+	pub max: f32,
+}
+
+impl Interval {
+	#[inline]
+	pub fn new(min: f32, max: f32) -> Interval {
+		Interval { min, max }
+	}
+
+	#[inline]
+	pub fn is_empty(&self) -> bool {
+		self.min > self.max
+	}
+
+	#[inline]
+	pub fn normalize(&self) -> Interval {
+		if self.is_empty() {
+			Interval {
+				min: self.max,
+				max: self.min,
+			}
+		} else {
+			*self
+		}
+	}
+
+	#[inline]
+	pub fn intersection(&self, other: Interval) -> Interval {
+		Interval {
+			min: f32::max(self.min, other.min),
+			max: f32::min(self.max, other.max),
+		}
+	}
+}
+
+#[derive(Clone, Debug)]
 pub struct AABB<D>
 where
 	D: DimName,
@@ -153,9 +191,9 @@ where
 }
 
 impl AABB2 {
-	/*pub fn from_radius(radius: f32) -> AABB2 {
+	pub fn from_radius(radius: f32) -> AABB2 {
 		AABB2::new(Vector2::new(-radius, -radius), Vector2::new(radius, radius))
-	}*/
+	}
 
 	#[inline]
 	pub fn from_extents(top: f32, bottom: f32, left: f32, right: f32) -> AABB2 {
