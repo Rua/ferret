@@ -103,6 +103,22 @@ impl Interval {
 	}
 
 	#[inline]
+	pub fn empty() -> Interval {
+		Interval {
+			min: std::f32::INFINITY,
+			max: std::f32::NEG_INFINITY,
+		}
+	}
+
+	/*#[inline]
+	pub fn full() -> Interval {
+		Interval {
+			min: std::f32::NEG_INFINITY,
+			max: std::f32::INFINITY,
+		}
+	}*/
+
+	#[inline]
 	pub fn is_empty(&self) -> bool {
 		self.min > self.max
 	}
@@ -119,6 +135,18 @@ impl Interval {
 		}
 	}
 
+	pub fn add(&self, value: f32) -> Interval {
+		Interval {
+			min: f32::min(self.min, value),
+			max: f32::max(self.max, value),
+		}
+	}
+
+	/*#[inline]
+	pub fn contains(&self, value: f32) -> bool {
+		self.min <= value && self.max >= value
+	}*/
+
 	#[inline]
 	pub fn intersection(&self, other: Interval) -> Interval {
 		Interval {
@@ -126,18 +154,35 @@ impl Interval {
 			max: f32::min(self.max, other.max),
 		}
 	}
+
+	#[inline]
+	pub fn offset(&self, value: f32) -> Interval {
+		Interval {
+			min: self.min + value,
+			max: self.max + value,
+		}
+	}
+
+	#[inline]
+	pub fn overlaps(&self, other: Interval) -> bool {
+		self.min <= other.max && self.max >= other.min
+	}
+
+	#[inline]
+	pub fn union(&self, other: Interval) -> Interval {
+		Interval {
+			min: f32::min(self.min, other.min),
+			max: f32::max(self.max, other.max),
+		}
+	}
 }
 
 #[derive(Clone, Debug)]
-pub struct AABB<D>
+pub struct AABB<D>(VectorN<Interval, D>)
 where
 	D: DimName,
-	DefaultAllocator: Allocator<f32, D>,
-	Owned<f32, D>: Copy,
-{
-	pub min: VectorN<f32, D>,
-	pub max: VectorN<f32, D>,
-}
+	DefaultAllocator: Allocator<Interval, D>,
+	Owned<Interval, D>: Copy;
 
 pub type AABB2 = AABB<U2>;
 pub type AABB3 = AABB<U3>;
@@ -145,79 +190,112 @@ pub type AABB3 = AABB<U3>;
 impl<D> AABB<D>
 where
 	D: DimName,
-	DefaultAllocator: Allocator<f32, D>,
-	Owned<f32, D>: Copy,
+	DefaultAllocator: Allocator<Interval, D>,
+	Owned<Interval, D>: Copy,
 {
 	#[inline]
-	pub fn new(min: VectorN<f32, D>, max: VectorN<f32, D>) -> AABB<D> {
+	/*pub fn new(min: VectorN<f32, D>, max: VectorN<f32, D>) -> AABB<D> {
 		assert!((0..D::dim()).all(|i| min[i] <= max[i]));
 		AABB { min, max }
+	}*/
+	#[inline]
+	pub fn empty() -> AABB<D> {
+		AABB(VectorN::repeat(Interval::empty()))
 	}
 
 	#[inline]
-	pub fn zero() -> AABB<D> {
-		AABB {
-			min: VectorN::repeat(std::f32::INFINITY),
-			max: VectorN::repeat(std::f32::NEG_INFINITY),
-		}
+	pub fn add_point(&mut self, point: VectorN<f32, D>)
+	where
+		DefaultAllocator: Allocator<f32, D>,
+		Owned<f32, D>: Copy,
+	{
+		self.0.zip_apply(&point, |s, p| s.add(p));
 	}
 
 	#[inline]
-	pub fn add_point(&mut self, point: VectorN<f32, D>) {
-		self.min = VectorN::from_iterator((0..D::dim()).map(|i| f32::min(self.min[i], point[i])));
-		self.max = VectorN::from_iterator((0..D::dim()).map(|i| f32::max(self.max[i], point[i])));
+	pub fn max(&self) -> VectorN<f32, D>
+	where
+		DefaultAllocator: Allocator<f32, D>,
+		Owned<f32, D>: Copy,
+	{
+		self.0.map(|i| i.max)
 	}
 
 	#[inline]
-	pub fn offset(&self, offset: VectorN<f32, D>) -> AABB<D> {
-		AABB {
-			min: self.min + offset,
-			max: self.max + offset,
-		}
+	pub fn min(&self) -> VectorN<f32, D>
+	where
+		DefaultAllocator: Allocator<f32, D>,
+		Owned<f32, D>: Copy,
+	{
+		self.0.map(|i| i.min)
+	}
+
+	#[inline]
+	pub fn offset(&self, offset: VectorN<f32, D>) -> AABB<D>
+	where
+		DefaultAllocator: Allocator<f32, D>,
+		Owned<f32, D>: Copy,
+	{
+		AABB(self.0.zip_map(&offset, |s, o| s.offset(o)))
 	}
 
 	#[inline]
 	pub fn overlaps(&self, other: &AABB<D>) -> bool {
-		(0..D::dim()).all(|i| self.min[i] <= other.max[i] && self.max[i] >= other.min[i])
+		(0..D::dim()).all(|i| self.0[i].overlaps(other.0[i]))
 	}
 
 	#[inline]
 	pub fn union(&self, other: &AABB<D>) -> AABB<D> {
-		AABB {
-			min: VectorN::from_iterator((0..D::dim()).map(|i| f32::min(self.min[i], other.min[i]))),
-			max: VectorN::from_iterator((0..D::dim()).map(|i| f32::max(self.max[i], other.max[i]))),
-		}
+		AABB(self.0.zip_map(&other.0, |s, o| s.union(o)))
+	}
+}
+
+impl<D> std::ops::Index<usize> for AABB<D>
+where
+	D: DimName,
+	DefaultAllocator: Allocator<Interval, D>,
+	Owned<Interval, D>: Copy,
+{
+	type Output = Interval;
+
+	#[inline]
+	fn index(&self, index: usize) -> &Self::Output {
+		&self.0[index]
 	}
 }
 
 impl AABB2 {
 	pub fn from_radius(radius: f32) -> AABB2 {
-		AABB2::new(Vector2::new(-radius, -radius), Vector2::new(radius, radius))
+		AABB(Vector2::new(
+			Interval::new(-radius, radius),
+			Interval::new(-radius, radius),
+		))
 	}
 
 	#[inline]
 	pub fn from_extents(top: f32, bottom: f32, left: f32, right: f32) -> AABB2 {
-		AABB2::new(Vector2::new(bottom, left), Vector2::new(top, right))
+		AABB(Vector2::new(
+			Interval::new(left, right),
+			Interval::new(bottom, top),
+		))
 	}
 }
 
 impl From<&AABB3> for AABB2 {
 	#[inline]
 	fn from(bbox: &AABB3) -> AABB2 {
-		AABB2::new(
-			Vector2::new(bbox.min[0], bbox.min[1]),
-			Vector2::new(bbox.max[0], bbox.max[1]),
-		)
+		AABB(Vector2::new(bbox.0[0], bbox.0[1]))
 	}
 }
 
 impl AABB3 {
 	#[inline]
 	pub fn from_radius_height(radius: f32, height: f32) -> AABB3 {
-		AABB3::new(
-			Vector3::new(-radius, -radius, 0.0),
-			Vector3::new(radius, radius, height),
-		)
+		AABB(Vector3::new(
+			Interval::new(-radius, radius),
+			Interval::new(-radius, radius),
+			Interval::new(0.0, height),
+		))
 	}
 }
 

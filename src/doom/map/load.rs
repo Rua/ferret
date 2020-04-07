@@ -321,7 +321,7 @@ pub fn build_map(
 				line: Line2::new(vertexes_data[data.vertex_indices[0]], dir),
 				normal: Vector2::new(dir[1], -dir[0]).normalize(),
 				bbox: {
-					let mut bbox = AABB2::zero();
+					let mut bbox = AABB2::empty();
 					bbox.add_point(vertexes_data[data.vertex_indices[0]]);
 					bbox.add_point(vertexes_data[data.vertex_indices[1]]);
 					bbox

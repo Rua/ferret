@@ -70,10 +70,10 @@ impl Linedef {
 		}
 
 		let sides = [
-			self.line.point_side(Vector2::new(bbox.min[0], bbox.min[1])),
-			self.line.point_side(Vector2::new(bbox.min[0], bbox.max[1])),
-			self.line.point_side(Vector2::new(bbox.max[0], bbox.min[1])),
-			self.line.point_side(Vector2::new(bbox.max[0], bbox.max[1])),
+			self.line.point_side(Vector2::new(bbox[0].min, bbox[1].min)),
+			self.line.point_side(Vector2::new(bbox[0].min, bbox[1].max)),
+			self.line.point_side(Vector2::new(bbox[0].max, bbox[1].min)),
+			self.line.point_side(Vector2::new(bbox[0].max, bbox[1].max)),
 		];
 
 		!(sides.iter().all(|x| *x < 0.0) || sides.iter().all(|x| *x > 0.0))
@@ -317,7 +317,7 @@ pub fn spawn_map_entities(
 		)?;
 
 		// Find midpoint of sector for sound purposes
-		let mut bbox = AABB2::zero();
+		let mut bbox = AABB2::empty();
 
 		for linedef in map.linedefs.iter() {
 			for sidedef in linedef.sidedefs.iter().flatten() {
@@ -328,7 +328,7 @@ pub fn spawn_map_entities(
 			}
 		}
 
-		let midpoint = (bbox.min + bbox.max) / 2.0;
+		let midpoint = (bbox.min() + bbox.max()) / 2.0;
 
 		transform_component.insert(
 			entity,

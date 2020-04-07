@@ -167,36 +167,39 @@ fn trace(
 	let move_bbox = current_bbox.union(&current_bbox.offset(move_step2.dir));
 
 	let bbox_corners = [
-		Vector2::new(current_bbox.min[0], current_bbox.min[1]),
-		Vector2::new(current_bbox.min[0], current_bbox.max[1]),
-		Vector2::new(current_bbox.max[0], current_bbox.max[1]),
-		Vector2::new(current_bbox.max[0], current_bbox.min[1]),
+		Vector2::new(current_bbox[0].min, current_bbox[1].min),
+		Vector2::new(current_bbox[0].min, current_bbox[1].max),
+		Vector2::new(current_bbox[0].max, current_bbox[1].max),
+		Vector2::new(current_bbox[0].max, current_bbox[1].min),
 	];
 
 	let mut ret: Option<Intersect> = None;
 
 	for linedef in map.linedefs.iter() {
-		if let Some(intersect) = intersect_linedef(&move_step2, &move_bbox, &bbox_corners, linedef)
-		{
-			if intersect.fraction < ret.as_ref().map_or(1.0, |x| x.fraction) {
-				if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
-					let front_sector_dynamic = &map_dynamic.sectors[front_sidedef.sector_index];
-					let back_sector_dynamic = &map_dynamic.sectors[back_sidedef.sector_index];
+		if !move_bbox.overlaps(&linedef.bbox) {
+			continue;
+		}
 
-					if !(front_sector_dynamic.floor_height
-						<= move_step.point[2] + entity_bbox.min[2]
-						&& back_sector_dynamic.floor_height
-							<= move_step.point[2] + entity_bbox.min[2]
-						&& front_sector_dynamic.ceiling_height
-							>= move_step.point[2] + entity_bbox.max[2]
-						&& back_sector_dynamic.ceiling_height
-							>= move_step.point[2] + entity_bbox.max[2])
-					{
-						ret = Some(intersect);
-					}
-				} else {
+		if let Some(intersect) = intersect_linedef(&move_step2, &bbox_corners, linedef) {
+			if intersect.fraction >= ret.as_ref().map_or(1.0, |x| x.fraction) {
+				continue;
+			}
+
+			if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
+				let front_sector_dynamic = &map_dynamic.sectors[front_sidedef.sector_index];
+				let back_sector_dynamic = &map_dynamic.sectors[back_sidedef.sector_index];
+
+				if !(front_sector_dynamic.floor_height <= move_step.point[2] + entity_bbox[2].min
+					&& back_sector_dynamic.floor_height <= move_step.point[2] + entity_bbox[2].min
+					&& front_sector_dynamic.ceiling_height
+						>= move_step.point[2] + entity_bbox[2].max
+					&& back_sector_dynamic.ceiling_height
+						>= move_step.point[2] + entity_bbox[2].max)
+				{
 					ret = Some(intersect);
 				}
+			} else {
+				ret = Some(intersect);
 			}
 		}
 	}
@@ -212,8 +215,8 @@ fn trace(
 		let bbox = AABB2::from_radius(box_collider.radius).offset(position);
 		let intervals = Vector2::from_iterator((0..2).map(|i| {
 			Interval::new(
-				(bbox.min[i] - current_bbox.max[i]) / move_step.dir[i],
-				(bbox.max[i] - current_bbox.min[i]) / move_step.dir[i],
+				(bbox[i].min - current_bbox[i].max) / move_step.dir[i],
+				(bbox[i].max - current_bbox[i].min) / move_step.dir[i],
 			)
 			.normalize()
 		}));
@@ -257,14 +260,9 @@ lazy_static! {
 
 fn intersect_linedef(
 	move_step: &Line2,
-	move_bbox: &AABB2,
 	bbox_corners: &[Vector2<f32>; 4],
 	linedef: &Linedef,
 ) -> Option<Intersect> {
-	if !move_bbox.overlaps(&linedef.bbox) {
-		return None;
-	}
-
 	let mut ret: Option<Intersect> = None;
 
 	for i in 0..4 {
@@ -349,14 +347,14 @@ fn movement_z(
 
 	position[2] += velocity[2] * delta.as_secs_f32();
 
-	if position[2] <= min - bbox.min[2] {
-		position[2] = min - bbox.min[2];
+	if position[2] <= min - bbox[2].min {
+		position[2] = min - bbox[2].min;
 
 		if velocity[2] < 0.0 {
 			velocity[2] = 0.0;
 		}
-	} else if position[2] >= max - bbox.max[2] {
-		position[2] = max - bbox.max[2];
+	} else if position[2] >= max - bbox[2].max {
+		position[2] = max - bbox[2].max;
 
 		if velocity[2] > 0.0 {
 			velocity[2] = 0.0;
