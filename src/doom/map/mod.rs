@@ -27,18 +27,22 @@ use std::{error::Error, fmt::Debug};
 pub struct Map {
 	pub linedefs: Vec<Linedef>,
 	pub sectors: Vec<Sector>,
-	pub gl_nodes: Vec<GLNode>,
+	pub subsectors: Vec<GLSSect>,
+	pub nodes: Vec<GLNode>,
 	pub sky: AssetHandle<WallTexture>,
 }
 
 impl Map {
-	pub fn find_subsector(&self, point: Vector2<f32>) -> &LeafNode {
-		let mut node = 0;
+	pub fn find_subsector(&self, point: Vector2<f32>) -> &GLSSect {
+		let mut child = NodeChild::Node(0);
 
 		loop {
-			node = match &self.gl_nodes[node] {
-				GLNode::Leaf(leaf) => return &leaf,
-				GLNode::Branch(branch) => branch.child_indices[branch.point_side(point) as usize],
+			child = match child {
+				NodeChild::Subsector(index) => return &self.subsectors[index],
+				NodeChild::Node(index) => {
+					let node = &self.nodes[index];
+					node.child_indices[node.point_side(point) as usize]
+				},
 			};
 		}
 	}
@@ -98,8 +102,14 @@ pub struct Sector {
 	pub light_level: f32,
 	pub special_type: u16,
 	pub sector_tag: u16,
-	pub subsectors: Vec<Vec<Vector2<f32>>>,
+	pub subsectors: Vec<usize>,
 	pub neighbours: Vec<usize>,
+}
+
+#[derive(Clone, Debug)]
+pub struct GLSSect {
+	pub segs: Vec<GLSeg>,
+	pub sector_index: usize,
 }
 
 #[derive(Clone, Debug)]
@@ -111,19 +121,13 @@ pub struct GLSeg {
 }
 
 #[derive(Clone, Debug)]
-pub struct LeafNode {
-	pub segs: Vec<GLSeg>,
-	pub sector_index: usize,
-}
-
-#[derive(Clone, Debug)]
-pub struct BranchNode {
+pub struct GLNode {
 	pub partition_line: Line2,
 	pub child_bboxes: [AABB2; 2],
-	pub child_indices: [usize; 2],
+	pub child_indices: [NodeChild; 2],
 }
 
-impl BranchNode {
+impl GLNode {
 	pub fn point_side(&self, point: Vector2<f32>) -> Side {
 		if self.partition_line.point_side(point) < 0.0 {
 			Side::Right
@@ -133,10 +137,10 @@ impl BranchNode {
 	}
 }
 
-#[derive(Clone, Debug)]
-pub enum GLNode {
-	Leaf(LeafNode),
-	Branch(BranchNode),
+#[derive(Copy, Clone, Debug)]
+pub enum NodeChild {
+	Subsector(usize),
+	Node(usize),
 }
 
 pub fn spawn_things(

@@ -3,7 +3,7 @@ use crate::{
 	doom::{
 		map::{
 			textures::{Flat, TextureType, WallTexture},
-			BranchNode, GLNode, GLSeg, LeafNode, Linedef, Map, Sector, Sidedef,
+			GLNode, GLSeg, GLSSect, Linedef, Map, NodeChild, Sector, Sidedef,
 		},
 		wad::WadLoader,
 	},
@@ -135,7 +135,7 @@ impl Asset for Map {
 		for (i, node) in gl_nodes.iter().enumerate() {
 			for child in node.child_indices.iter().copied() {
 				match child {
-					ChildNode::Leaf(index) => {
+					NodeChild::Subsector(index) => {
 						if index as usize >= gl_ssect.len() {
 							return Err(Box::from(format!(
 								"Node {} has invalid subsector index {}",
@@ -143,7 +143,7 @@ impl Asset for Map {
 							)));
 						}
 					}
-					ChildNode::Branch(index) => {
+					NodeChild::Node(index) => {
 						if index as usize >= gl_nodes.len() {
 							return Err(Box::from(format!(
 								"Node {} has invalid child node index {}",
@@ -334,12 +334,12 @@ pub fn build_map(
 		})
 		.collect::<Result<Vec<Linedef>, Box<dyn Error + Send + Sync>>>()?;
 
-	let gl_nodes_len = gl_nodes_data.len();
-	let mut gl_nodes = gl_nodes_data
+	let nodes_len = gl_nodes_data.len();
+	let nodes = gl_nodes_data
 		.into_iter()
 		.rev()
 		.map(|data| {
-			Ok(GLNode::Branch(BranchNode {
+			Ok(GLNode {
 				partition_line: Line2::new(
 					data.partition_point.clone(),
 					data.partition_dir.clone(),
@@ -347,21 +347,19 @@ pub fn build_map(
 				child_bboxes: data.child_bboxes.clone(),
 				child_indices: [
 					match data.child_indices[0] {
-						ChildNode::Leaf(index) => index + gl_nodes_len,
-						ChildNode::Branch(index) => gl_nodes_len - index - 1,
+						NodeChild::Subsector(index) => NodeChild::Subsector(index),
+						NodeChild::Node(index) => NodeChild::Node(nodes_len - index - 1),
 					},
 					match data.child_indices[1] {
-						ChildNode::Leaf(index) => index + gl_nodes_len,
-						ChildNode::Branch(index) => gl_nodes_len - index - 1,
+						NodeChild::Subsector(index) => NodeChild::Subsector(index),
+						NodeChild::Node(index) => NodeChild::Node(nodes_len - index - 1),
 					},
 				],
-			}))
+			})
 		})
 		.collect::<Result<Vec<GLNode>, Box<dyn Error + Send + Sync>>>()?;
 
-	gl_nodes.reserve(gl_ssect_data.len());
-
-	let gl_segs = gl_segs_data
+	let segs = gl_segs_data
 		.into_iter()
 		.map(|data| {
 			Ok(GLSeg {
@@ -382,10 +380,9 @@ pub fn build_map(
 		})
 		.collect::<Result<Vec<GLSeg>, Box<dyn Error + Send + Sync>>>()?;
 
-	for (i, ssect) in gl_ssect_data.into_iter().enumerate() {
-		let segs = &gl_segs[ssect.first_seg_index as usize
+	let subsectors = gl_ssect_data.into_iter().enumerate().map(|(i, ssect)| {
+		let segs = &segs[ssect.first_seg_index as usize
 			..ssect.first_seg_index as usize + ssect.seg_count as usize];
-		let subsector: Vec<Vector2<f32>> = segs.iter().map(|seg| seg.vertices[0]).collect();
 		let sector_index = {
 			if let Some(sidedef) = segs.iter().find_map(|seg| match seg.linedef_index {
 				None => None,
@@ -400,18 +397,20 @@ pub fn build_map(
 			}
 		};
 
-		sectors[sector_index].subsectors.push(subsector);
+		sectors[sector_index].subsectors.push(i);
 
-		gl_nodes.push(GLNode::Leaf(LeafNode {
+		Ok(GLSSect {
 			segs: segs.to_owned(),
 			sector_index,
-		}))
-	}
+		})
+	})
+	.collect::<Result<Vec<GLSSect>, Box<dyn Error + Send + Sync>>>()?;
 
 	Ok(Map {
 		linedefs,
 		sectors,
-		gl_nodes,
+		subsectors,
+		nodes,
 		sky,
 	})
 }
@@ -787,13 +786,7 @@ pub struct GLNodeData {
 	pub partition_point: Vector2<f32>,
 	pub partition_dir: Vector2<f32>,
 	pub child_bboxes: [AABB2; 2],
-	pub child_indices: [ChildNode; 2],
-}
-
-#[derive(Copy, Clone, Debug)]
-pub enum ChildNode {
-	Leaf(usize),
-	Branch(usize),
+	pub child_indices: [NodeChild; 2],
 }
 
 #[derive(Clone, Copy)]
@@ -836,12 +829,12 @@ impl AssetFormat for GLNodesFormat {
 				],
 				child_indices: [
 					match reader.read_u16::<LE>()? as usize {
-						x if x & 0x8000 != 0 => ChildNode::Leaf(x & 0x7FFF),
-						x => ChildNode::Branch(x),
+						x if x & 0x8000 != 0 => NodeChild::Subsector(x & 0x7FFF),
+						x => NodeChild::Node(x),
 					},
 					match reader.read_u16::<LE>()? as usize {
-						x if x & 0x8000 != 0 => ChildNode::Leaf(x & 0x7FFF),
-						x => ChildNode::Branch(x),
+						x if x & 0x8000 != 0 => NodeChild::Subsector(x & 0x7FFF),
+						x => NodeChild::Node(x),
 					},
 				],
 			});

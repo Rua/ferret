@@ -314,9 +314,9 @@ pub fn make_meshes(
 	for (i, sector) in map.sectors.iter().enumerate() {
 		let sector_dynamic = &map_dynamic.sectors[i];
 
-		for vertices in &sector.subsectors {
+		for segs in sector.subsectors.iter().map(|i| &map.subsectors[*i].segs) {
 			// Floor
-			let iter = vertices.iter().rev();
+			let iter = segs.iter().map(|seg| &seg.vertices[0]).rev();
 
 			match &sector.floor_texture {
 				TextureType::None => (),
@@ -344,7 +344,7 @@ pub fn make_meshes(
 			}
 
 			// Ceiling
-			let iter = vertices.iter();
+			let iter = segs.iter().map(|seg| &seg.vertices[0]);
 
 			match &sector.ceiling_texture {
 				TextureType::None => (),
