@@ -380,7 +380,7 @@ pub fn build_map(
 				interval: Interval::empty(),
 				linedef_index: data.linedef_index,
 				linedef_side: data.linedef_side,
-				partner_seg_index: data.partner_seg_index,
+				//partner_seg_index: data.partner_seg_index,
 			})
 		})
 		.collect::<Result<Vec<GLSeg>, Box<dyn Error + Send + Sync>>>()?;
@@ -407,9 +407,11 @@ pub fn build_map(
 
 			// Project the subsector onto each of the seg normals
 			let points: Vec<Vector2<f32>> = segs.iter().map(|seg| seg.line.point).collect();
+			let mut bbox = AABB2::empty();
 			for seg in segs.iter_mut() {
 				for point in points.iter() {
 					seg.interval = seg.interval.add(seg.normal.dot(point));
+					bbox.add_point(*point);
 				}
 			}
 
@@ -418,6 +420,7 @@ pub fn build_map(
 			Ok(GLSSect {
 				segs: segs.to_owned(),
 				sector_index,
+				bbox,
 			})
 		})
 		.collect::<Result<Vec<GLSSect>, Box<dyn Error + Send + Sync>>>()?;

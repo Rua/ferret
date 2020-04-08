@@ -143,6 +143,7 @@ pub struct SectorRef {
 pub struct GLSSect {
 	pub segs: Vec<GLSeg>,
 	pub sector_index: usize,
+	pub bbox: AABB2,
 }
 
 #[derive(Clone, Debug)]
@@ -152,7 +153,7 @@ pub struct GLSeg {
 	pub interval: Interval,
 	pub linedef_index: Option<usize>,
 	pub linedef_side: Side,
-	pub partner_seg_index: Option<usize>,
+	//pub partner_seg_index: Option<usize>,
 }
 
 #[derive(Clone, Debug)]
