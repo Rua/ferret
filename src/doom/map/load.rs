@@ -3,11 +3,11 @@ use crate::{
 	doom::{
 		map::{
 			textures::{Flat, TextureType, WallTexture},
-			GLNode, GLSeg, GLSSect, Linedef, Map, NodeChild, Sector, Sidedef,
+			GLNode, GLSSect, GLSeg, Linedef, Map, NodeChild, Sector, Sidedef,
 		},
 		wad::WadLoader,
 	},
-	geometry::{Angle, Line2, Side, AABB2},
+	geometry::{Angle, Interval, Line2, Side, AABB2},
 };
 use bitflags::bitflags;
 use byteorder::{ReadBytesExt, LE};
@@ -359,20 +359,25 @@ pub fn build_map(
 		})
 		.collect::<Result<Vec<GLNode>, Box<dyn Error + Send + Sync>>>()?;
 
-	let segs = gl_segs_data
+	let mut segs = gl_segs_data
 		.into_iter()
 		.map(|data| {
+			let vertices = [
+				match data.vertex_indices[0] {
+					EitherVertex::GL(index) => gl_vert_data[index],
+					EitherVertex::Normal(index) => vertexes_data[index],
+				},
+				match data.vertex_indices[1] {
+					EitherVertex::GL(index) => gl_vert_data[index],
+					EitherVertex::Normal(index) => vertexes_data[index],
+				},
+			];
+			let dir = vertices[1] - vertices[0];
+
 			Ok(GLSeg {
-				vertices: [
-					match data.vertex_indices[0] {
-						EitherVertex::GL(index) => gl_vert_data[index],
-						EitherVertex::Normal(index) => vertexes_data[index],
-					},
-					match data.vertex_indices[1] {
-						EitherVertex::GL(index) => gl_vert_data[index],
-						EitherVertex::Normal(index) => vertexes_data[index],
-					},
-				],
+				line: Line2::new(vertices[0], dir),
+				normal: Vector2::new(dir[1], -dir[0]).normalize(),
+				interval: Interval::empty(),
 				linedef_index: data.linedef_index,
 				linedef_side: data.linedef_side,
 				partner_seg_index: data.partner_seg_index,
@@ -380,31 +385,42 @@ pub fn build_map(
 		})
 		.collect::<Result<Vec<GLSeg>, Box<dyn Error + Send + Sync>>>()?;
 
-	let subsectors = gl_ssect_data.into_iter().enumerate().map(|(i, ssect)| {
-		let segs = &segs[ssect.first_seg_index as usize
-			..ssect.first_seg_index as usize + ssect.seg_count as usize];
-		let sector_index = {
-			if let Some(sidedef) = segs.iter().find_map(|seg| match seg.linedef_index {
-				None => None,
-				Some(index) => linedefs[index].sidedefs[seg.linedef_side as usize].as_ref(),
-			}) {
-				sidedef.sector_index
-			} else {
-				return Err(Box::from(format!(
-					"No sector could be found for subsector {}",
-					i
-				)));
+	let subsectors = gl_ssect_data
+		.into_iter()
+		.enumerate()
+		.map(|(i, ssect)| {
+			let segs = &mut segs[ssect.first_seg_index as usize
+				..ssect.first_seg_index as usize + ssect.seg_count as usize];
+			let sector_index = {
+				if let Some(sidedef) = segs.iter().find_map(|seg| match seg.linedef_index {
+					None => None,
+					Some(index) => linedefs[index].sidedefs[seg.linedef_side as usize].as_ref(),
+				}) {
+					sidedef.sector_index
+				} else {
+					return Err(Box::from(format!(
+						"No sector could be found for subsector {}",
+						i
+					)));
+				}
+			};
+
+			// Project the subsector onto each of the seg normals
+			let points: Vec<Vector2<f32>> = segs.iter().map(|seg| seg.line.point).collect();
+			for seg in segs.iter_mut() {
+				for point in points.iter() {
+					seg.interval = seg.interval.add(seg.normal.dot(point));
+				}
 			}
-		};
 
-		sectors[sector_index].subsectors.push(i);
+			sectors[sector_index].subsectors.push(i);
 
-		Ok(GLSSect {
-			segs: segs.to_owned(),
-			sector_index,
+			Ok(GLSSect {
+				segs: segs.to_owned(),
+				sector_index,
+			})
 		})
-	})
-	.collect::<Result<Vec<GLSSect>, Box<dyn Error + Send + Sync>>>()?;
+		.collect::<Result<Vec<GLSSect>, Box<dyn Error + Send + Sync>>>()?;
 
 	Ok(Map {
 		linedefs,

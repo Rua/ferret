@@ -316,7 +316,7 @@ pub fn make_meshes(
 
 		for segs in sector.subsectors.iter().map(|i| &map.subsectors[*i].segs) {
 			// Floor
-			let iter = segs.iter().map(|seg| &seg.vertices[0]).rev();
+			let iter = segs.iter().map(|seg| &seg.line.point).rev();
 
 			match &sector.floor_texture {
 				TextureType::None => (),
@@ -344,7 +344,7 @@ pub fn make_meshes(
 			}
 
 			// Ceiling
-			let iter = segs.iter().map(|seg| &seg.vertices[0]);
+			let iter = segs.iter().map(|seg| &seg.line.point);
 
 			match &sector.ceiling_texture {
 				TextureType::None => (),

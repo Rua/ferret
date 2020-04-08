@@ -13,7 +13,7 @@ use crate::{
 			textures::{Flat, TextureType, WallTexture},
 		},
 	},
-	geometry::{Line2, Side, AABB2},
+	geometry::{Interval, Line2, Side, AABB2},
 };
 use nalgebra::{Vector2, Vector3};
 use specs::{
@@ -42,10 +42,17 @@ impl Map {
 				NodeChild::Node(index) => {
 					let node = &self.nodes[index];
 					node.child_indices[node.point_side(point) as usize]
-				},
+				}
 			};
 		}
 	}
+}
+
+#[derive(Clone, Component, Debug)]
+pub struct MapDynamic {
+	pub map: AssetHandle<Map>,
+	pub linedefs: Vec<LinedefDynamic>,
+	pub sectors: Vec<SectorDynamic>,
 }
 
 #[derive(Clone, Debug)]
@@ -94,6 +101,18 @@ pub struct Sidedef {
 }
 
 #[derive(Clone, Debug)]
+pub struct LinedefDynamic {
+	pub entity: Entity,
+	pub texture_offset: Vector2<f32>,
+}
+
+#[derive(Clone, Component, Debug)]
+pub struct LinedefRef {
+	pub map_entity: Entity,
+	pub index: usize,
+}
+
+#[derive(Clone, Debug)]
 pub struct Sector {
 	pub floor_height: f32,
 	pub ceiling_height: f32,
@@ -107,6 +126,20 @@ pub struct Sector {
 }
 
 #[derive(Clone, Debug)]
+pub struct SectorDynamic {
+	pub entity: Entity,
+	pub light_level: f32,
+	pub floor_height: f32,
+	pub ceiling_height: f32,
+}
+
+#[derive(Clone, Component, Debug)]
+pub struct SectorRef {
+	pub map_entity: Entity,
+	pub index: usize,
+}
+
+#[derive(Clone, Debug)]
 pub struct GLSSect {
 	pub segs: Vec<GLSeg>,
 	pub sector_index: usize,
@@ -114,7 +147,9 @@ pub struct GLSSect {
 
 #[derive(Clone, Debug)]
 pub struct GLSeg {
-	pub vertices: [Vector2<f32>; 2],
+	pub line: Line2,
+	pub normal: Vector2<f32>,
+	pub interval: Interval,
 	pub linedef_index: Option<usize>,
 	pub linedef_side: Side,
 	pub partner_seg_index: Option<usize>,
@@ -361,37 +396,4 @@ pub fn spawn_map_entities(
 	map_dynamic_component.insert(map_entity, map_dynamic)?;
 
 	Ok(())
-}
-
-#[derive(Clone, Component, Debug)]
-pub struct MapDynamic {
-	pub map: AssetHandle<Map>,
-	pub linedefs: Vec<LinedefDynamic>,
-	pub sectors: Vec<SectorDynamic>,
-}
-
-#[derive(Clone, Debug)]
-pub struct LinedefDynamic {
-	pub entity: Entity,
-	pub texture_offset: Vector2<f32>,
-}
-
-#[derive(Clone, Component, Debug)]
-pub struct LinedefRef {
-	pub map_entity: Entity,
-	pub index: usize,
-}
-
-#[derive(Clone, Debug)]
-pub struct SectorDynamic {
-	pub entity: Entity,
-	pub light_level: f32,
-	pub floor_height: f32,
-	pub ceiling_height: f32,
-}
-
-#[derive(Clone, Component, Debug)]
-pub struct SectorRef {
-	pub map_entity: Entity,
-	pub index: usize,
 }
