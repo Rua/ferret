@@ -197,7 +197,7 @@ impl Interval {
 	}
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct AABB<D>(VectorN<Interval, D>)
 where
 	D: DimName,
