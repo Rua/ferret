@@ -119,6 +119,17 @@ impl Interval {
 	}*/
 
 	#[inline]
+	pub fn from_iterator(iter: impl IntoIterator<Item = f32>) -> Interval {
+		let mut ret = Interval::empty();
+
+		for value in iter.into_iter() {
+			ret = ret.add(value);
+		}
+
+		ret
+	}
+
+	#[inline]
 	pub fn is_empty(&self) -> bool {
 		self.min > self.max
 	}

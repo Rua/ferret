@@ -2,7 +2,7 @@ use crate::{
 	assets::AssetStorage,
 	doom::{
 		components::{Transform, Velocity},
-		map::{Linedef, Map, MapDynamic},
+		map::{GLSSect, Linedef, Map, MapDynamic, Sector, SectorDynamic},
 	},
 	geometry::{Interval, Line2, Line3, AABB2, AABB3},
 };
@@ -98,7 +98,7 @@ fn movement_xy(
 	map_dynamic: &MapDynamic,
 	transform_component: &WriteStorage<Transform>,
 	box_collider_component: &ReadStorage<BoxCollider>,
-	bbox: &AABB3,
+	entity_bbox: &AABB3,
 	mut position: Vector3<f32>,
 	mut velocity: Vector3<f32>,
 ) -> (Vector3<f32>, Vector3<f32>) {
@@ -114,7 +114,7 @@ fn movement_xy(
 
 		if let Some(intersect) = trace(
 			&move_step,
-			&bbox,
+			&entity_bbox,
 			map,
 			map_dynamic,
 			transform_component,
@@ -130,7 +130,7 @@ fn movement_xy(
 
 			if let Some(_intersect) = trace(
 				&move_step,
-				&bbox,
+				&entity_bbox,
 				map,
 				map_dynamic,
 				transform_component,
@@ -316,7 +316,7 @@ fn movement_z(
 	delta: Duration,
 	map: &Map,
 	map_dynamic: &MapDynamic,
-	bbox: &AABB3,
+	entity_bbox: &AABB3,
 	mut position: Vector3<f32>,
 	mut velocity: Vector3<f32>,
 ) -> (Vector3<f32>, Vector3<f32>) {
@@ -324,42 +324,76 @@ fn movement_z(
 		return (position, velocity);
 	}
 
-	let ssect = map.find_subsector(Vector2::new(position[0], position[1]));
-	let sector_dynamic = &map_dynamic.sectors[ssect.sector_index];
+	let move_step = Line3::new(
+		position,
+		Vector3::new(0.0, 0.0, velocity[2] * delta.as_secs_f32()),
+	);
+	let position_bbox = entity_bbox.offset(move_step.point);
 
-	let mut min = sector_dynamic.floor_height;
-	let mut max = sector_dynamic.ceiling_height;
-	let bbox2 = (&bbox.offset(position)).into();
-
-	for linedef in map.linedefs.iter() {
-		if linedef.touches_bbox(&bbox2) {
-			if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
-				let front_sector_dynamic = &map_dynamic.sectors[front_sidedef.sector_index];
-				let back_sector_dynamic = &map_dynamic.sectors[back_sidedef.sector_index];
-
-				min = f32::max(min, front_sector_dynamic.floor_height);
-				min = f32::max(min, back_sector_dynamic.floor_height);
-				max = f32::min(max, front_sector_dynamic.ceiling_height);
-				max = f32::min(max, back_sector_dynamic.ceiling_height);
-			}
+	for (i, sector) in map.sectors.iter().enumerate() {
+		if let Some(intersect) = trace_sector(
+			&move_step,
+			&position_bbox,
+			sector,
+			&map_dynamic.sectors[i],
+			&map.subsectors,
+		) {
+			velocity[2] = 0.0;
+			return (position, velocity);
 		}
 	}
 
-	position[2] += velocity[2] * delta.as_secs_f32();
-
-	if position[2] <= min - bbox[2].min {
-		position[2] = min - bbox[2].min;
-
-		if velocity[2] < 0.0 {
-			velocity[2] = 0.0;
-		}
-	} else if position[2] >= max - bbox[2].max {
-		position[2] = max - bbox[2].max;
-
-		if velocity[2] > 0.0 {
-			velocity[2] = 0.0;
-		}
-	}
+	position += move_step.dir;
 
 	(position, velocity)
+}
+
+fn trace_sector(
+	move_step: &Line3,
+	position_bbox: &AABB3,
+	sector: &Sector,
+	sector_dynamic: &SectorDynamic,
+	subsectors: &[GLSSect],
+) -> Option<Intersect> {
+	let intersect = if move_step.dir[2] > 0.0 {
+		Intersect {
+			fraction: (sector_dynamic.ceiling_height - position_bbox[2].max) / move_step.dir[2],
+			normal: Vector3::new(0.0, 0.0, -1.0),
+		}
+	} else {
+		Intersect {
+			fraction: (sector_dynamic.floor_height - position_bbox[2].min) / move_step.dir[2],
+			normal: Vector3::new(0.0, 0.0, 1.0),
+		}
+	};
+
+	if intersect.fraction < 0.0 || intersect.fraction > 1.0 {
+		return None;
+	}
+
+	let position_bbox2 = AABB2::from(position_bbox);
+	let bbox_corners = [
+		Vector2::new(position_bbox2[0].min, position_bbox2[1].min),
+		Vector2::new(position_bbox2[0].min, position_bbox2[1].max),
+		Vector2::new(position_bbox2[0].max, position_bbox2[1].max),
+		Vector2::new(position_bbox2[0].max, position_bbox2[1].min),
+	];
+
+	// Separating axis theorem
+	for subsector in sector.subsectors.iter().map(|i| &subsectors[*i]) {
+		if !position_bbox2.overlaps(&subsector.bbox) {
+			continue;
+		}
+
+		if subsector.segs.iter().all(|seg| {
+			Interval::from_iterator(bbox_corners.iter().map(|c| seg.normal.dot(c)))
+				.overlaps(seg.interval)
+		}) {
+			// All axes had overlap, so the subsector as a whole does overlap
+			return Some(intersect);
+		}
+	}
+
+	// No overlapping subsectors were found
+	None
 }
