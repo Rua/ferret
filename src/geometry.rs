@@ -129,9 +129,18 @@ impl Interval {
 		ret
 	}
 
+	pub fn len(&self) -> f32 {
+		self.max - self.min
+	}
+
 	#[inline]
 	pub fn is_empty(&self) -> bool {
 		self.min > self.max
+	}
+
+	#[inline]
+	pub fn is_inside(&self, other: Interval) -> bool {
+		self.min >= other.min && self.max <= other.max
 	}
 
 	#[inline]
@@ -276,12 +285,12 @@ where
 }
 
 impl AABB2 {
-	pub fn from_radius(radius: f32) -> AABB2 {
+	/*pub fn from_radius(radius: f32) -> AABB2 {
 		AABB(Vector2::new(
 			Interval::new(-radius, radius),
 			Interval::new(-radius, radius),
 		))
-	}
+	}*/
 
 	#[inline]
 	pub fn from_extents(top: f32, bottom: f32, left: f32, right: f32) -> AABB2 {

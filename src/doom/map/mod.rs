@@ -75,7 +75,7 @@ impl Linedef {
 		}
 	}
 
-	pub fn touches_bbox(&self, bbox: &AABB2) -> bool {
+	/*pub fn touches_bbox(&self, bbox: &AABB2) -> bool {
 		if !self.bbox.overlaps(bbox) {
 			return false;
 		}
@@ -88,7 +88,7 @@ impl Linedef {
 		];
 
 		!(sides.iter().all(|x| *x < 0.0) || sides.iter().all(|x| *x > 0.0))
-	}
+	}*/
 }
 
 #[derive(Clone, Debug)]
@@ -114,8 +114,7 @@ pub struct LinedefRef {
 
 #[derive(Clone, Debug)]
 pub struct Sector {
-	pub floor_height: f32,
-	pub ceiling_height: f32,
+	pub interval: Interval,
 	pub floor_texture: TextureType<Flat>,
 	pub ceiling_texture: TextureType<Flat>,
 	pub light_level: f32,
@@ -129,8 +128,7 @@ pub struct Sector {
 pub struct SectorDynamic {
 	pub entity: Entity,
 	pub light_level: f32,
-	pub floor_height: f32,
-	pub ceiling_height: f32,
+	pub interval: Interval,
 }
 
 #[derive(Clone, Component, Debug)]
@@ -212,9 +210,9 @@ pub fn spawn_things(
 			let sector = &map.sectors[ssect.sector_index];
 
 			if let StorageEntry::Occupied(entry) = spawn_on_ceiling_storage.entry(entity)? {
-				sector.ceiling_height - entry.remove().offset
+				sector.interval.max - entry.remove().offset
 			} else {
-				sector.floor_height
+				sector.interval.min
 			}
 		};
 
@@ -345,8 +343,7 @@ pub fn spawn_map_entities(
 		map_dynamic.sectors.push(SectorDynamic {
 			entity,
 			light_level: sector.light_level,
-			floor_height: sector.floor_height,
-			ceiling_height: sector.ceiling_height,
+			interval: sector.interval,
 		});
 		sector_ref_component.insert(
 			entity,

@@ -158,17 +158,14 @@ pub fn make_meshes(
 			// Two-sided or one-sided sidedef?
 			if let Some(back_sidedef) = &linedef.sidedefs[!side as usize] {
 				let back_sector_dynamic = &map_dynamic.sectors[back_sidedef.sector_index];
+				let intersection = front_sector_dynamic
+					.interval
+					.intersection(back_sector_dynamic.interval);
 				let spans = [
-					front_sector_dynamic.ceiling_height,
-					f32::min(
-						front_sector_dynamic.ceiling_height,
-						back_sector_dynamic.ceiling_height,
-					),
-					f32::max(
-						back_sector_dynamic.floor_height,
-						front_sector_dynamic.floor_height,
-					),
-					front_sector_dynamic.floor_height,
+					front_sector_dynamic.interval.max,
+					intersection.max,
+					intersection.min,
+					front_sector_dynamic.interval.min,
 				];
 
 				// Top section
@@ -219,8 +216,8 @@ pub fn make_meshes(
 
 						let tex_v = if linedef.flags.contains(LinedefFlags::DONTPEGBOTTOM) {
 							[
-								front_sector_dynamic.ceiling_height - spans[2],
-								front_sector_dynamic.ceiling_height - spans[3],
+								front_sector_dynamic.interval.max - spans[2],
+								front_sector_dynamic.interval.max - spans[3],
 							]
 						} else {
 							[0.0, spans[2] - spans[3]]
@@ -278,17 +275,9 @@ pub fn make_meshes(
 							.or_insert((vec![], vec![]));
 
 						let tex_v = if linedef.flags.contains(LinedefFlags::DONTPEGBOTTOM) {
-							[
-								front_sector_dynamic.floor_height
-									- front_sector_dynamic.ceiling_height,
-								0.0,
-							]
+							[-front_sector_dynamic.interval.len(), 0.0]
 						} else {
-							[
-								0.0,
-								front_sector_dynamic.ceiling_height
-									- front_sector_dynamic.floor_height,
-							]
+							[0.0, front_sector_dynamic.interval.len()]
 						};
 
 						push_wall(
@@ -296,8 +285,8 @@ pub fn make_meshes(
 							indices,
 							linedef_vertices,
 							[
-								front_sector_dynamic.ceiling_height,
-								front_sector_dynamic.floor_height,
+								front_sector_dynamic.interval.max,
+								front_sector_dynamic.interval.min,
 							],
 							tex_v,
 							texture_offset,
@@ -324,7 +313,7 @@ pub fn make_meshes(
 					&mut sky_mesh.0,
 					&mut sky_mesh.1,
 					iter,
-					sector_dynamic.floor_height,
+					sector_dynamic.interval.min,
 				),
 				TextureType::Normal(handle) => {
 					let dimensions = flat_storage.get(handle).unwrap().dimensions();
@@ -336,7 +325,7 @@ pub fn make_meshes(
 						vertices,
 						indices,
 						iter,
-						sector_dynamic.floor_height,
+						sector_dynamic.interval.min,
 						dimensions,
 						sector_dynamic.light_level,
 					);
@@ -352,7 +341,7 @@ pub fn make_meshes(
 					&mut sky_mesh.0,
 					&mut sky_mesh.1,
 					iter,
-					sector_dynamic.ceiling_height,
+					sector_dynamic.interval.max,
 				),
 				TextureType::Normal(handle) => {
 					let dimensions = flat_storage.get(handle).unwrap().dimensions();
@@ -364,7 +353,7 @@ pub fn make_meshes(
 						vertices,
 						indices,
 						iter,
-						sector_dynamic.ceiling_height,
+						sector_dynamic.interval.max,
 						dimensions,
 						sector_dynamic.light_level,
 					);

@@ -194,8 +194,7 @@ pub fn build_map(
 		.into_iter()
 		.map(|data| {
 			Ok(Sector {
-				floor_height: data.floor_height,
-				ceiling_height: data.ceiling_height,
+				interval: Interval::new(data.floor_height, data.ceiling_height),
 				floor_texture: match data.floor_flat_name {
 					None => TextureType::None,
 					Some(name) if name == "F_SKY1" => TextureType::Sky,

@@ -69,7 +69,7 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 					if let Some(open_height) = sector
 						.neighbours
 						.iter()
-						.map(|index| map_dynamic.sectors[*index].ceiling_height)
+						.map(|index| map_dynamic.sectors[*index].interval.max)
 						.min_by(|x, y| x.partial_cmp(y).unwrap())
 					{
 						let open_height = open_height - 4.0;
@@ -99,7 +99,8 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 
 										close_sound: door_use.close_sound.clone(),
 										close_height: map_dynamic.sectors[sector_index]
-											.floor_height,
+											.interval
+											.min,
 
 										state: DoorState::Closed,
 										speed: door_use.speed,
@@ -139,10 +140,10 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 					sound_queue.push((door_active.open_sound.clone(), entity));
 				}
 				DoorState::Opening => {
-					sector_dynamic.ceiling_height += door_active.speed * delta.as_secs_f32();
+					sector_dynamic.interval.max += door_active.speed * delta.as_secs_f32();
 
-					if sector_dynamic.ceiling_height > door_active.open_height {
-						sector_dynamic.ceiling_height = door_active.open_height;
+					if sector_dynamic.interval.max > door_active.open_height {
+						sector_dynamic.interval.max = door_active.open_height;
 						door_active.state = DoorState::Open;
 					}
 				}
@@ -157,9 +158,9 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 					}
 				}
 				DoorState::Closing => {
-					sector_dynamic.ceiling_height -= door_active.speed * delta.as_secs_f32();
+					sector_dynamic.interval.max -= door_active.speed * delta.as_secs_f32();
 
-					if sector_dynamic.ceiling_height < door_active.close_height {
+					if sector_dynamic.interval.max < door_active.close_height {
 						done.push(entity);
 					}
 				}
