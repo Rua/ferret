@@ -12,6 +12,7 @@ use crate::{
 			load::{LinedefFlags, ThingData},
 			textures::{Flat, TextureType, WallTexture},
 		},
+		physics::SolidMask,
 	},
 	geometry::{Interval, Line2, Side, AABB2},
 };
@@ -61,6 +62,7 @@ pub struct Linedef {
 	pub normal: Vector2<f32>,
 	pub bbox: AABB2,
 	pub flags: LinedefFlags,
+	pub solid_mask: SolidMask,
 	pub special_type: u16,
 	pub sector_tag: u16,
 	pub sidedefs: [Option<Sidedef>; 2],

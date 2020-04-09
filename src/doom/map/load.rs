@@ -5,6 +5,7 @@ use crate::{
 			textures::{Flat, TextureType, WallTexture},
 			GLNode, GLSSect, GLSeg, Linedef, Map, NodeChild, Sector, Sidedef,
 		},
+		physics::SolidMask,
 		wad::WadLoader,
 	},
 	geometry::{Angle, Interval, Line2, Side, AABB2},
@@ -326,6 +327,13 @@ pub fn build_map(
 					bbox
 				},
 				flags: data.flags,
+				solid_mask: if data.flags.intersects(LinedefFlags::BLOCKING) {
+					SolidMask::all()
+				} else if data.flags.intersects(LinedefFlags::BLOCKMONSTERS) {
+					SolidMask::MONSTER
+				} else {
+					SolidMask::empty()
+				},
 				special_type: data.special_type,
 				sector_tag: data.sector_tag,
 				sidedefs,

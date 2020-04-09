@@ -6,6 +6,7 @@ use crate::{
 	},
 	geometry::{Interval, Line2, AABB2, AABB3},
 };
+use bitflags::bitflags;
 use lazy_static::lazy_static;
 use nalgebra::{Vector2, Vector3};
 use specs::{
@@ -68,9 +69,11 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 			for _ in 0..4 {
 				let move_step = new_velocity * time_left.as_secs_f32();
 
+				// TODO: variable solid mask
 				if let Some(intersect) = trace(
 					&entity_bbox.offset(new_position),
 					move_step,
+					SolidMask::NON_MONSTER,
 					map,
 					map_dynamic,
 					&transform_component,
@@ -96,17 +99,27 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 pub struct BoxCollider {
 	pub height: f32,
 	pub radius: f32,
+	pub solid_mask: SolidMask,
 }
 
-#[derive(Clone, Copy, Debug)]
+bitflags! {
+	pub struct SolidMask: u16 {
+		const NON_MONSTER = 0b01;
+		const MONSTER = 0b10;
+	}
+}
+
+#[derive(Clone, Debug)]
 struct Intersect {
 	fraction: f32,
 	normal: Vector3<f32>,
+	solid_mask: SolidMask,
 }
 
 fn trace(
 	entity_bbox: &AABB3,
 	move_step: Vector3<f32>,
+	solid_mask: SolidMask,
 	map: &Map,
 	map_dynamic: &MapDynamic,
 	transform_component: &WriteStorage<Transform>,
@@ -116,7 +129,9 @@ fn trace(
 
 	for linedef in map.linedefs.iter() {
 		if let Some(intersect) = trace_linedef(&entity_bbox, move_step, linedef, &map_dynamic) {
-			if intersect.fraction < ret.as_ref().map_or(1.0, |x| x.fraction) {
+			if intersect.fraction < ret.as_ref().map_or(1.0, |x| x.fraction)
+				&& solid_mask.intersects(intersect.solid_mask)
+			{
 				ret = Some(intersect);
 			}
 		}
@@ -130,20 +145,21 @@ fn trace(
 			&map_dynamic.sectors[i],
 			&map.subsectors,
 		) {
-			if intersect.fraction < ret.as_ref().map_or(1.0, |x| x.fraction) {
+			if intersect.fraction < ret.as_ref().map_or(1.0, |x| x.fraction)
+				&& solid_mask.intersects(intersect.solid_mask)
+			{
 				ret = Some(intersect);
 			}
 		}
 	}
 
 	for (transform, box_collider) in (transform_component, box_collider_component).join() {
-		if let Some(intersect) = trace_aabb(
-			&entity_bbox,
-			move_step,
-			&AABB3::from_radius_height(box_collider.radius, box_collider.height)
-				.offset(transform.position),
-		) {
-			if intersect.fraction < ret.as_ref().map_or(1.0, |x| x.fraction) {
+		if let Some(intersect) =
+			trace_aabb(&entity_bbox, move_step, &box_collider, transform.position)
+		{
+			if intersect.fraction < ret.as_ref().map_or(1.0, |x| x.fraction)
+				&& solid_mask.intersects(intersect.solid_mask)
+			{
 				ret = Some(intersect);
 			}
 		}
@@ -202,6 +218,7 @@ fn trace_linedef(
 					} else {
 						Vector3::new(linedef.normal[0], linedef.normal[1], 0.0)
 					},
+					solid_mask: SolidMask::all(),
 				});
 			}
 		}
@@ -225,13 +242,14 @@ fn trace_linedef(
 					ret = Some(Intersect {
 						fraction,
 						normal: -BBOX_NORMALS[i],
+						solid_mask: SolidMask::all(),
 					});
 				}
 			}
 		}
 	}
 
-	if let Some(intersect) = ret {
+	if let Some(ref mut intersect) = ret {
 		if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
 			let front_sector_dynamic = &map_dynamic.sectors[front_sidedef.sector_index];
 			let back_sector_dynamic = &map_dynamic.sectors[back_sidedef.sector_index];
@@ -241,7 +259,7 @@ fn trace_linedef(
 				.intersection(back_sector_dynamic.interval);
 
 			if end_bbox[2].is_inside(interval) {
-				return None;
+				intersect.solid_mask = linedef.solid_mask;
 			}
 		}
 	}
@@ -260,11 +278,13 @@ fn trace_sector(
 		Intersect {
 			fraction: (sector_dynamic.interval.max - entity_bbox[2].max) / move_step[2],
 			normal: Vector3::new(0.0, 0.0, -1.0),
+			solid_mask: SolidMask::all(),
 		}
 	} else {
 		Intersect {
 			fraction: (sector_dynamic.interval.min - entity_bbox[2].min) / move_step[2],
 			normal: Vector3::new(0.0, 0.0, 1.0),
+			solid_mask: SolidMask::all(),
 		}
 	};
 
@@ -302,10 +322,14 @@ fn trace_sector(
 fn trace_aabb(
 	entity_bbox: &AABB3,
 	move_step: Vector3<f32>,
-	other_bbox: &AABB3,
+	box_collider: &BoxCollider,
+	other_position: Vector3<f32>,
 ) -> Option<Intersect> {
+	let other_bbox =
+		AABB3::from_radius_height(box_collider.radius, box_collider.height).offset(other_position);
+
 	// Don't collide against self
-	if entity_bbox == other_bbox {
+	if entity_bbox == &other_bbox {
 		return None;
 	}
 
@@ -348,5 +372,6 @@ fn trace_aabb(
 				Vector3::new(0.0, 0.0, 1.0)
 			}
 		},
+		solid_mask: box_collider.solid_mask,
 	})
 }
