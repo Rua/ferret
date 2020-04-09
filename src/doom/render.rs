@@ -149,7 +149,7 @@ impl RenderSystem {
 			matrix_set_pool,
 			render_pass: render_pass.clone(),
 			sampler,
-			sprites: SpriteRenderSystem::new(render_pass.clone(), &*video)?,
+			sprites: SpriteRenderSystem::new(render_pass, &*video)?,
 			target,
 		})
 	}
@@ -661,7 +661,7 @@ impl SpriteRenderSystem {
 			let frame = &sprite.frames()[sprite_render.frame];
 
 			// This frame has no images, nothing to render
-			if frame.len() == 0 {
+			if frame.is_empty() {
 				continue;
 			}
 

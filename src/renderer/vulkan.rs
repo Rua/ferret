@@ -28,7 +28,7 @@ pub(super) fn create_instance() -> Result<Arc<Instance>, Box<dyn Error + Send + 
 			]
 			.iter()
 			{
-				if let Some(_) = available_layers.iter().find(|l| l.name() == *to_enable) {
+				if available_layers.iter().any(|l| l.name() == *to_enable) {
 					layers.push(*to_enable);
 				}
 			}

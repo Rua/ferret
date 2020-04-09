@@ -49,11 +49,11 @@ impl Asset for Palette {
 			a: 0,
 		}; 256];
 
-		for i in 0..256 {
+		for color in palette.iter_mut() {
 			let r = reader.read_u8()?;
 			let g = reader.read_u8()?;
 			let b = reader.read_u8()?;
-			palette[i] = RGBAColor { r, g, b, a: 0xFF };
+			*color = RGBAColor { r, g, b, a: 0xFF };
 		}
 
 		Ok(Palette(palette))

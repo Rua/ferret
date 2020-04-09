@@ -28,7 +28,7 @@ impl SectorTypes {
                     ..LightFlash::default()
                 })
         });
-        doomednums.insert(1, handle.clone());
+        doomednums.insert(1, handle);
 
         // Fast strobe unsynchronised
         let handle = template_storage.insert({
@@ -40,7 +40,7 @@ impl SectorTypes {
                     ..LightFlash::default()
                 })
         });
-        doomednums.insert(2, handle.clone());
+        doomednums.insert(2, handle);
 
         // Slow strobe unsynchronised
         let handle = template_storage.insert({
@@ -52,7 +52,7 @@ impl SectorTypes {
                     ..LightFlash::default()
                 })
         });
-        doomednums.insert(3, handle.clone());
+        doomednums.insert(3, handle);
 
         // Fast strobe unsynchronised + 20% damage
         let handle = template_storage.insert({
@@ -64,19 +64,19 @@ impl SectorTypes {
                     ..LightFlash::default()
                 })
         });
-        doomednums.insert(4, handle.clone());
+        doomednums.insert(4, handle);
 
         // 10% damage
         let handle = template_storage.insert({
             EntityTemplate::new()
         });
-        doomednums.insert(5, handle.clone());
+        doomednums.insert(5, handle);
 
         // 5% damage
         let handle = template_storage.insert({
             EntityTemplate::new()
         });
-        doomednums.insert(7, handle.clone());
+        doomednums.insert(7, handle);
 
         // Glow
         let handle = template_storage.insert({
@@ -86,25 +86,25 @@ impl SectorTypes {
                     ..LightGlow::default()
                 })
         });
-        doomednums.insert(8, handle.clone());
+        doomednums.insert(8, handle);
 
         // Secret
         let handle = template_storage.insert({
             EntityTemplate::new()
         });
-        doomednums.insert(9, handle.clone());
+        doomednums.insert(9, handle);
 
         // Door close 30 s after level start
         let handle = template_storage.insert({
             EntityTemplate::new()
         });
-        doomednums.insert(10, handle.clone());
+        doomednums.insert(10, handle);
 
         // 20% damage, end map on death
         let handle = template_storage.insert({
             EntityTemplate::new()
         });
-        doomednums.insert(11, handle.clone());
+        doomednums.insert(11, handle);
 
         // Slow strobe
         let handle = template_storage.insert({
@@ -116,7 +116,7 @@ impl SectorTypes {
                     ..LightFlash::default()
                 })
         });
-        doomednums.insert(12, handle.clone());
+        doomednums.insert(12, handle);
 
         // Fast strobe
         let handle = template_storage.insert({
@@ -128,25 +128,25 @@ impl SectorTypes {
                     ..LightFlash::default()
                 })
         });
-        doomednums.insert(13, handle.clone());
+        doomednums.insert(13, handle);
 
         // Door open 300 s after level start
         let handle = template_storage.insert({
             EntityTemplate::new()
         });
-        doomednums.insert(14, handle.clone());
+        doomednums.insert(14, handle);
 
         // 20% damage
         let handle = template_storage.insert({
             EntityTemplate::new()
         });
-        doomednums.insert(16, handle.clone());
+        doomednums.insert(16, handle);
 
         // Random flicker
         let handle = template_storage.insert({
             EntityTemplate::new()
         });
-        doomednums.insert(17, handle.clone());
+        doomednums.insert(17, handle);
 
         SectorTypes { doomednums }
     }

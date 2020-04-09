@@ -85,7 +85,7 @@ pub fn tokenize(mut text: &str) -> Result<Vec<String>, Box<dyn Error + Send + Sy
 
 	let mut tokens = Vec::new();
 
-	while text.len() > 0 {
+	while !text.is_empty() {
 		if let Some(mat) = RE_SPACE.find(text) {
 			text = &text[mat.end()..];
 		} else if let Some(mat) = RE_UNQUOTED.find(text) {
@@ -102,7 +102,7 @@ pub fn tokenize(mut text: &str) -> Result<Vec<String>, Box<dyn Error + Send + Sy
 				});
 			tokens.push(String::from(unescaped));
 			text = &text[mat.end()..];
-		} else if text.starts_with("\"") {
+		} else if text.starts_with('\"') {
 			return Err(Box::from(format!("unclosed quoted string: \"{}", text)));
 		} else if let Some(mat) = RE_SEPARATOR.find(text) {
 			// Ignore separator at the end of the string

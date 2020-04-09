@@ -173,7 +173,7 @@ impl AssetFormat for TexturesFormat {
 					name,
 					TextureInfo {
 						size: [texture.size[0] as usize, texture.size[1] as usize],
-						patches: patches,
+						patches,
 					},
 				))
 			})

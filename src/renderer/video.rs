@@ -118,7 +118,7 @@ impl RenderTarget {
 
 		let (swapchain, images) = Swapchain::new(
 			device,
-			surface.clone(),
+			surface,
 			image_count,
 			surface_format,
 			capabilities.current_extent.unwrap_or(dimensions),

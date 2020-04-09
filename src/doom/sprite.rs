@@ -144,7 +144,7 @@ impl Asset for Sprite {
 		let mut slice = info.as_slice();
 		let mut frames: Vec<Vec<SpriteImageInfoIntermediate>> = vec![Vec::new(); max_frame + 1];
 
-		while slice.len() > 0 {
+		while !slice.is_empty() {
 			let frame = slice[0].0;
 			let next_pos = slice
 				.iter()

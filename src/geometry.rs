@@ -129,33 +129,33 @@ impl Interval {
 		ret
 	}
 
-	pub fn len(&self) -> f32 {
+	pub fn len(self) -> f32 {
 		self.max - self.min
 	}
 
 	#[inline]
-	pub fn is_empty(&self) -> bool {
+	pub fn is_empty(self) -> bool {
 		self.min > self.max
 	}
 
 	#[inline]
-	pub fn is_inside(&self, other: Interval) -> bool {
+	pub fn is_inside(self, other: Interval) -> bool {
 		self.min >= other.min && self.max <= other.max
 	}
 
 	#[inline]
-	pub fn normalize(&self) -> Interval {
+	pub fn normalize(self) -> Interval {
 		if self.is_empty() {
 			Interval {
 				min: self.max,
 				max: self.min,
 			}
 		} else {
-			*self
+			self
 		}
 	}
 
-	pub fn add(&self, value: f32) -> Interval {
+	pub fn add(self, value: f32) -> Interval {
 		Interval {
 			min: f32::min(self.min, value),
 			max: f32::max(self.max, value),
@@ -168,7 +168,7 @@ impl Interval {
 	}*/
 
 	#[inline]
-	pub fn intersection(&self, other: Interval) -> Interval {
+	pub fn intersection(self, other: Interval) -> Interval {
 		Interval {
 			min: f32::max(self.min, other.min),
 			max: f32::min(self.max, other.max),
@@ -176,7 +176,7 @@ impl Interval {
 	}
 
 	#[inline]
-	pub fn offset(&self, value: f32) -> Interval {
+	pub fn offset(self, value: f32) -> Interval {
 		Interval {
 			min: self.min + value,
 			max: self.max + value,
@@ -184,12 +184,12 @@ impl Interval {
 	}
 
 	#[inline]
-	pub fn overlaps(&self, other: Interval) -> bool {
+	pub fn overlaps(self, other: Interval) -> bool {
 		self.min <= other.max && self.max >= other.min
 	}
 
 	#[inline]
-	pub fn union(&self, other: Interval) -> Interval {
+	pub fn union(self, other: Interval) -> Interval {
 		Interval {
 			min: f32::min(self.min, other.min),
 			max: f32::max(self.max, other.max),
@@ -351,22 +351,22 @@ impl Angle {
 	}
 
 	#[inline]
-	pub fn to_units(&self) -> f64 {
+	pub fn to_units(self) -> f64 {
 		self.0 as f64 / MAX_AS_F64
 	}
 
 	#[inline]
-	pub fn to_degrees(&self) -> f64 {
+	pub fn to_degrees(self) -> f64 {
 		self.to_units() * 360.0
 	}
 
 	#[inline]
-	pub fn to_radians(&self) -> f64 {
+	pub fn to_radians(self) -> f64 {
 		self.to_units() * 2.0 * std::f64::consts::PI
 	}
 
 	#[inline]
-	pub fn to_units_unsigned(&self) -> f64 {
+	pub fn to_units_unsigned(self) -> f64 {
 		self.0 as u32 as f64 / MAX_AS_F64
 	}
 

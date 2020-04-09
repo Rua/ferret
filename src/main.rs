@@ -276,7 +276,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 								WriteExpect<AssetStorage<crate::doom::image::Palette>>,
 							)>();
 							let handle = palette_storage.load("PLAYPAL", &mut *loader);
-							palette_storage.build_waiting(|intermediate| Ok(intermediate));
+							palette_storage.build_waiting(Ok);
 							handle
 						};
 
@@ -453,9 +453,8 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
 						// Spawn map entities and things
 						let things = {
-							let mut loader =
-								world.system_data::<WriteExpect<doom::wad::WadLoader>>();
-							doom::map::load::ThingsFormat.import(name, &mut *loader)?
+							let loader = world.system_data::<WriteExpect<doom::wad::WadLoader>>();
+							doom::map::load::ThingsFormat.import(name, &*loader)?
 						};
 						doom::map::spawn_map_entities(&world, &map_handle)?;
 						doom::map::spawn_things(things, &world, &map_handle)?;

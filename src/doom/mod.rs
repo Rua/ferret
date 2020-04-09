@@ -15,4 +15,4 @@ pub mod sprite;
 pub mod update;
 pub mod wad;
 
-pub const FRAME_TIME: Duration = Duration::from_nanos(28571429); // 1/35 sec
+pub const FRAME_TIME: Duration = Duration::from_nanos(28_571_429); // 1/35 sec

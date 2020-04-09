@@ -95,7 +95,7 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 									sector_entity,
 									DoorActive {
 										open_sound: door_use.open_sound.clone(),
-										open_height: open_height,
+										open_height,
 
 										close_sound: door_use.close_sound.clone(),
 										close_height: map_dynamic.sectors[sector_index]

@@ -70,7 +70,7 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 
 			transform.rotation[1] += (client.command.axis_pitch * 1e6) as i32;
 			transform.rotation[1].0 =
-				num_traits::clamp(transform.rotation[1].0, -0x40000000, 0x40000000);
+				num_traits::clamp(transform.rotation[1].0, -0x4000_0000, 0x4000_0000);
 
 			transform.rotation[2] -= (client.command.axis_yaw * 1e6) as i32;
 

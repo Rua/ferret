@@ -28,7 +28,7 @@ impl Log for Logger {
 					eprintln!("{}: {}", "WARNING".bright_yellow(), record.args());
 				}
 				Level::Info => {
-					println!("{}: {}", "INFO", record.args());
+					println!("{}: {}", "INFO".normal(), record.args());
 				}
 				Level::Debug => {
 					println!("{}: {}", "DEBUG".bright_cyan(), record.args());

@@ -32,237 +32,237 @@ impl LinedefTypes {
 					wait_time: 150 * crate::doom::FRAME_TIME,
 				}))
         });
-        doomednums.insert(1, handle.clone());
+        doomednums.insert(1, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(2, handle.clone());
+        doomednums.insert(2, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(3, handle.clone());
+        doomednums.insert(3, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(4, handle.clone());
+        doomednums.insert(4, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(5, handle.clone());
+        doomednums.insert(5, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(6, handle.clone());
+        doomednums.insert(6, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(7, handle.clone());
+        doomednums.insert(7, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(8, handle.clone());
+        doomednums.insert(8, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(9, handle.clone());
+        doomednums.insert(9, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(10, handle.clone());
+        doomednums.insert(10, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(11, handle.clone());
+        doomednums.insert(11, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(12, handle.clone());
+        doomednums.insert(12, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(13, handle.clone());
+        doomednums.insert(13, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(14, handle.clone());
+        doomednums.insert(14, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(15, handle.clone());
+        doomednums.insert(15, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(16, handle.clone());
+        doomednums.insert(16, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(17, handle.clone());
+        doomednums.insert(17, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(18, handle.clone());
+        doomednums.insert(18, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(19, handle.clone());
+        doomednums.insert(19, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(20, handle.clone());
+        doomednums.insert(20, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(21, handle.clone());
+        doomednums.insert(21, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(22, handle.clone());
+        doomednums.insert(22, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(23, handle.clone());
+        doomednums.insert(23, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(24, handle.clone());
+        doomednums.insert(24, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(25, handle.clone());
+        doomednums.insert(25, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(26, handle.clone());
+        doomednums.insert(26, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(27, handle.clone());
+        doomednums.insert(27, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(28, handle.clone());
+        doomednums.insert(28, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(29, handle.clone());
+        doomednums.insert(29, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(30, handle.clone());
+        doomednums.insert(30, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(31, handle.clone());
+        doomednums.insert(31, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(32, handle.clone());
+        doomednums.insert(32, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(33, handle.clone());
+        doomednums.insert(33, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(34, handle.clone());
+        doomednums.insert(34, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(35, handle.clone());
+        doomednums.insert(35, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(36, handle.clone());
+        doomednums.insert(36, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(37, handle.clone());
+        doomednums.insert(37, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(38, handle.clone());
+        doomednums.insert(38, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(39, handle.clone());
+        doomednums.insert(39, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(40, handle.clone());
+        doomednums.insert(40, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(41, handle.clone());
+        doomednums.insert(41, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(42, handle.clone());
+        doomednums.insert(42, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(43, handle.clone());
+        doomednums.insert(43, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(44, handle.clone());
+        doomednums.insert(44, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(45, handle.clone());
+        doomednums.insert(45, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(46, handle.clone());
+        doomednums.insert(46, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(47, handle.clone());
+        doomednums.insert(47, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
@@ -270,462 +270,462 @@ impl LinedefTypes {
 					speed: Vector2::new(35.0, 0.0),
 				})
         });
-        doomednums.insert(48, handle.clone());
+        doomednums.insert(48, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(49, handle.clone());
+        doomednums.insert(49, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(50, handle.clone());
+        doomednums.insert(50, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(51, handle.clone());
+        doomednums.insert(51, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(52, handle.clone());
+        doomednums.insert(52, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(53, handle.clone());
+        doomednums.insert(53, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(54, handle.clone());
+        doomednums.insert(54, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(55, handle.clone());
+        doomednums.insert(55, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(56, handle.clone());
+        doomednums.insert(56, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(57, handle.clone());
+        doomednums.insert(57, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(58, handle.clone());
+        doomednums.insert(58, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(59, handle.clone());
+        doomednums.insert(59, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(60, handle.clone());
+        doomednums.insert(60, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(61, handle.clone());
+        doomednums.insert(61, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(62, handle.clone());
+        doomednums.insert(62, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(63, handle.clone());
+        doomednums.insert(63, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(64, handle.clone());
+        doomednums.insert(64, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(65, handle.clone());
+        doomednums.insert(65, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(66, handle.clone());
+        doomednums.insert(66, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(67, handle.clone());
+        doomednums.insert(67, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(68, handle.clone());
+        doomednums.insert(68, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(69, handle.clone());
+        doomednums.insert(69, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(70, handle.clone());
+        doomednums.insert(70, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(71, handle.clone());
+        doomednums.insert(71, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(72, handle.clone());
+        doomednums.insert(72, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(73, handle.clone());
+        doomednums.insert(73, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(74, handle.clone());
+        doomednums.insert(74, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(75, handle.clone());
+        doomednums.insert(75, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(76, handle.clone());
+        doomednums.insert(76, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(77, handle.clone());
+        doomednums.insert(77, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(79, handle.clone());
+        doomednums.insert(79, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(80, handle.clone());
+        doomednums.insert(80, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(81, handle.clone());
+        doomednums.insert(81, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(82, handle.clone());
+        doomednums.insert(82, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(83, handle.clone());
+        doomednums.insert(83, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(84, handle.clone());
+        doomednums.insert(84, handle);
 
     	let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(86, handle.clone());
+        doomednums.insert(86, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(87, handle.clone());
+        doomednums.insert(87, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(88, handle.clone());
+        doomednums.insert(88, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(89, handle.clone());
+        doomednums.insert(89, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(90, handle.clone());
+        doomednums.insert(90, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(91, handle.clone());
+        doomednums.insert(91, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(92, handle.clone());
+        doomednums.insert(92, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(93, handle.clone());
+        doomednums.insert(93, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(94, handle.clone());
+        doomednums.insert(94, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(95, handle.clone());
+        doomednums.insert(95, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(96, handle.clone());
+        doomednums.insert(96, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(97, handle.clone());
+        doomednums.insert(97, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(98, handle.clone());
+        doomednums.insert(98, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(99, handle.clone());
+        doomednums.insert(99, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(100, handle.clone());
+        doomednums.insert(100, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(101, handle.clone());
+        doomednums.insert(101, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(102, handle.clone());
+        doomednums.insert(102, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(103, handle.clone());
+        doomednums.insert(103, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(104, handle.clone());
+        doomednums.insert(104, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(105, handle.clone());
+        doomednums.insert(105, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(106, handle.clone());
+        doomednums.insert(106, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(107, handle.clone());
+        doomednums.insert(107, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(108, handle.clone());
+        doomednums.insert(108, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(109, handle.clone());
+        doomednums.insert(109, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(110, handle.clone());
+        doomednums.insert(110, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(111, handle.clone());
+        doomednums.insert(111, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(112, handle.clone());
+        doomednums.insert(112, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(113, handle.clone());
+        doomednums.insert(113, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(114, handle.clone());
+        doomednums.insert(114, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(115, handle.clone());
+        doomednums.insert(115, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(116, handle.clone());
+        doomednums.insert(116, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(117, handle.clone());
+        doomednums.insert(117, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(118, handle.clone());
+        doomednums.insert(118, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(119, handle.clone());
+        doomednums.insert(119, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(120, handle.clone());
+        doomednums.insert(120, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(121, handle.clone());
+        doomednums.insert(121, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(122, handle.clone());
+        doomednums.insert(122, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(123, handle.clone());
+        doomednums.insert(123, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(124, handle.clone());
+        doomednums.insert(124, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(125, handle.clone());
+        doomednums.insert(125, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(126, handle.clone());
+        doomednums.insert(126, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(127, handle.clone());
+        doomednums.insert(127, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(128, handle.clone());
+        doomednums.insert(128, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(129, handle.clone());
+        doomednums.insert(129, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(130, handle.clone());
+        doomednums.insert(130, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(131, handle.clone());
+        doomednums.insert(131, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(132, handle.clone());
+        doomednums.insert(132, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(133, handle.clone());
+        doomednums.insert(133, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(134, handle.clone());
+        doomednums.insert(134, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(135, handle.clone());
+        doomednums.insert(135, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(136, handle.clone());
+        doomednums.insert(136, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(137, handle.clone());
+        doomednums.insert(137, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(138, handle.clone());
+        doomednums.insert(138, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(139, handle.clone());
+        doomednums.insert(139, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(140, handle.clone());
+        doomednums.insert(140, handle);
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
         });
-        doomednums.insert(141, handle.clone());
+        doomednums.insert(141, handle);
 
         LinedefTypes { doomednums }
     }

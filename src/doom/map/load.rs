@@ -255,7 +255,7 @@ pub fn build_map(
 				bottom_texture: match data.bottom_texture_name {
 					None => TextureType::None,
 					Some(name) => {
-						let handle = match textures.entry(name.clone()) {
+						let handle = match textures.entry(name) {
 							Entry::Vacant(entry) => {
 								let handle = wall_texture_storage.load(entry.key(), &mut *loader);
 								entry.insert(handle)
@@ -347,10 +347,7 @@ pub fn build_map(
 		.rev()
 		.map(|data| {
 			Ok(GLNode {
-				partition_line: Line2::new(
-					data.partition_point.clone(),
-					data.partition_dir.clone(),
-				),
+				partition_line: Line2::new(data.partition_point, data.partition_dir),
 				child_bboxes: data.child_bboxes.clone(),
 				child_indices: [
 					match data.child_indices[0] {

@@ -239,13 +239,7 @@ pub fn spawn_player(world: &World) -> Result<Entity, Box<dyn Error + Send + Sync
 
 		(&transform, &spawn_point)
 			.join()
-			.find_map(|(t, s)| {
-				if s.player_num == 1 {
-					Some(t.clone())
-				} else {
-					None
-				}
-			})
+			.find_map(|(t, s)| if s.player_num == 1 { Some(*t) } else { None })
 			.unwrap()
 	};
 
