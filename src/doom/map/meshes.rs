@@ -28,12 +28,11 @@ pub fn make_meshes(
 	map: &Map,
 	map_dynamic: &MapDynamic,
 	world: &World,
-) -> anyhow::Result<
-	(
-		HashMap<AssetHandle<Flat>, (Vec<VertexData>, Vec<u32>)>,
-		(Vec<SkyVertexData>, Vec<u32>),
-		HashMap<AssetHandle<WallTexture>, (Vec<VertexData>, Vec<u32>)>,
-	)> {
+) -> anyhow::Result<(
+	HashMap<AssetHandle<Flat>, (Vec<VertexData>, Vec<u32>)>,
+	(Vec<SkyVertexData>, Vec<u32>),
+	HashMap<AssetHandle<WallTexture>, (Vec<VertexData>, Vec<u32>)>,
+)> {
 	#[inline]
 	fn push_wall(
 		vertices: &mut Vec<VertexData>,

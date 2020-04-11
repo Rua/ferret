@@ -1,5 +1,5 @@
-use anyhow::anyhow;
 use crate::assets::DataSource;
+use anyhow::anyhow;
 use byteorder::{ReadBytesExt, LE};
 use std::{
 	collections::HashSet,
@@ -85,14 +85,14 @@ impl DataSource for WadLoader {
 		};
 
 		// Find the index of this lump in the list
-		let index =
-			self.lumps
-				.iter()
-				.enumerate()
-				.rev()
-				.filter_map(|(i, lump)| if lump.name == path { Some(i) } else { None })
-				.next()
-				.ok_or(anyhow!("Lump \"{}\" not found", path))?;
+		let index = self
+			.lumps
+			.iter()
+			.enumerate()
+			.rev()
+			.filter_map(|(i, lump)| if lump.name == path { Some(i) } else { None })
+			.next()
+			.ok_or(anyhow!("Lump \"{}\" not found", path))?;
 
 		let lump = &self.lumps[index + offset];
 

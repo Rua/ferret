@@ -48,10 +48,7 @@ impl Asset for EntityTemplate {
 	type Intermediate = Self;
 	const NAME: &'static str = "EntityTemplate";
 
-	fn import(
-		_name: &str,
-		_source: &impl DataSource,
-	) -> anyhow::Result<Self::Intermediate> {
+	fn import(_name: &str, _source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
 		unimplemented!();
 	}
 }

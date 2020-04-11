@@ -11,10 +11,7 @@ pub trait Asset: Send + Sync + 'static {
 	type Intermediate: Send + Sync + 'static;
 	const NAME: &'static str;
 
-	fn import(
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Intermediate>;
+	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate>;
 }
 
 #[derive(Derivative)]
@@ -100,11 +97,7 @@ pub struct AssetStorage<A: Asset> {
 	handles: Vec<AssetHandle<A>>,
 	highest_id: u32,
 	names: HashMap<String, WeakHandle<A>>,
-	unbuilt: Vec<(
-		AssetHandle<A>,
-		anyhow::Result<A::Intermediate>,
-		String,
-	)>,
+	unbuilt: Vec<(AssetHandle<A>, anyhow::Result<A::Intermediate>, String)>,
 	unused_ids: VecDeque<u32>,
 }
 
@@ -167,9 +160,7 @@ impl<A: Asset> AssetStorage<A> {
 		}
 	}*/
 
-	pub fn build_waiting<
-		F: FnMut(A::Intermediate) -> anyhow::Result<A::Data>,
-	>(
+	pub fn build_waiting<F: FnMut(A::Intermediate) -> anyhow::Result<A::Data>>(
 		&mut self,
 		mut build_func: F,
 	) {
@@ -194,11 +185,7 @@ impl<A: Asset> AssetStorage<A> {
 pub trait AssetFormat: Clone {
 	type Asset;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Asset>;
+	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset>;
 }
 
 pub trait DataSource {

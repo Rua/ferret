@@ -1,8 +1,8 @@
-use anyhow::anyhow;
 use crate::{
 	assets::{Asset, AssetFormat, AssetHandle, DataSource},
 	doom::image::{IAColor, Image, ImageFormat},
 };
+use anyhow::anyhow;
 use byteorder::{ReadBytesExt, LE};
 use derivative::Derivative;
 use std::{
@@ -20,10 +20,7 @@ impl Asset for Flat {
 	type Intermediate = Image;
 	const NAME: &'static str = "Flat";
 
-	fn import(
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Intermediate> {
+	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
 		let mut reader = Cursor::new(source.load(name)?);
 		let mut pixels = [0u8; 64 * 64];
 		reader.read_exact(&mut pixels)?;
@@ -42,11 +39,7 @@ pub struct PNamesFormat;
 impl AssetFormat for PNamesFormat {
 	type Asset = Vec<[u8; 8]>;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(name)?);
 		let count = reader.read_u32::<LE>()? as usize;
 		let mut ret = Vec::with_capacity(count);
@@ -68,10 +61,7 @@ impl Asset for WallTexture {
 	type Intermediate = Image;
 	const NAME: &'static str = "WallTexture";
 
-	fn import(
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Intermediate> {
+	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
 		let pnames = PNamesFormat.import("PNAMES", source)?;
 		let mut texture_info = TexturesFormat.import("TEXTURE1", source)?;
 		texture_info.extend(TexturesFormat.import("TEXTURE2", source)?);
@@ -83,8 +73,10 @@ impl Asset for WallTexture {
 
 		let mut data = vec![IAColor::default(); texture_info.size[0] * texture_info.size[1]];
 
-		texture_info.patches.iter().try_for_each(
-			|patch_info| -> anyhow::Result<()> {
+		texture_info
+			.patches
+			.iter()
+			.try_for_each(|patch_info| -> anyhow::Result<()> {
 				let name =
 					String::from(str::from_utf8(&pnames[patch_info.index])?.trim_end_matches('\0'));
 				let patch = ImageFormat.import(&name, source)?;
@@ -122,8 +114,7 @@ impl Asset for WallTexture {
 				}
 
 				Ok(())
-			},
-		)?;
+			})?;
 
 		Ok(Image {
 			data,
@@ -149,11 +140,7 @@ pub struct TexturesFormat;
 impl AssetFormat for TexturesFormat {
 	type Asset = HashMap<String, TextureInfo>;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
 		RawTexturesFormat
 			.import(name, source)?
 			.into_iter()
@@ -198,11 +185,7 @@ pub struct RawTexturesFormat;
 impl AssetFormat for RawTexturesFormat {
 	type Asset = Vec<(RawTextureInfo, Vec<RawPatchInfo>)>;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(name)?);
 
 		let count = reader.read_u32::<LE>()? as usize;

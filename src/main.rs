@@ -10,7 +10,6 @@ mod logger;
 mod renderer;
 mod stdin;
 
-use anyhow::Context;
 use crate::{
 	assets::{AssetFormat, AssetHandle, AssetStorage},
 	audio::Sound,
@@ -19,6 +18,7 @@ use crate::{
 	logger::Logger,
 	renderer::{video::Video, AsBytes},
 };
+use anyhow::Context;
 use nalgebra::{Matrix4, Vector3};
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
@@ -45,7 +45,8 @@ fn main() -> anyhow::Result<()> {
 
 	let mut event_loop = EventLoop::new();
 
-	let (video, _debug_callback) = Video::new(&event_loop).context("Could not initialise video system")?;
+	let (video, _debug_callback) =
+		Video::new(&event_loop).context("Could not initialise video system")?;
 
 	let (sound_sender, sound_receiver) =
 		crossbeam_channel::unbounded::<Box<dyn Source<Item = f32> + Send>>();

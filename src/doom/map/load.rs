@@ -1,4 +1,3 @@
-use anyhow::{bail, ensure};
 use crate::{
 	assets::{Asset, AssetFormat, AssetStorage, DataSource},
 	doom::{
@@ -11,6 +10,7 @@ use crate::{
 	},
 	geometry::{Angle, Interval, Line2, Side, AABB2},
 };
+use anyhow::{bail, ensure};
 use bitflags::bitflags;
 use byteorder::{ReadBytesExt, LE};
 use nalgebra::Vector2;
@@ -36,10 +36,7 @@ impl Asset for Map {
 	type Intermediate = MapData;
 	const NAME: &'static str = "Map";
 
-	fn import(
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Intermediate> {
+	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
 		let gl_name = format!("GL_{}", name);
 
 		let linedefs = LinedefsFormat.import(name, source)?;
@@ -55,42 +52,92 @@ impl Asset for Map {
 		// Verify all the cross-references
 
 		for (i, sidedef) in sidedefs.iter().enumerate() {
-			ensure!(sidedef.sector_index < sectors.len(), "Sidedef {} has invalid sector index {}", i, sidedef.sector_index);
+			ensure!(
+				sidedef.sector_index < sectors.len(),
+				"Sidedef {} has invalid sector index {}",
+				i,
+				sidedef.sector_index
+			);
 		}
 
 		for (i, linedef) in linedefs.iter().enumerate() {
 			for index in linedef.sidedef_indices.iter().flatten() {
-				ensure!(*index < sidedefs.len(), "Linedef {} has invalid sidedef index {}", i, index);
+				ensure!(
+					*index < sidedefs.len(),
+					"Linedef {} has invalid sidedef index {}",
+					i,
+					index
+				);
 			}
 		}
 
 		for (i, seg) in gl_segs.iter().enumerate() {
 			if let Some(index) = seg.linedef_index {
-				ensure!(index < linedefs.len(), "Seg {} has invalid linedef index {}", i, index);
+				ensure!(
+					index < linedefs.len(),
+					"Seg {} has invalid linedef index {}",
+					i,
+					index
+				);
 			}
 
 			for index in seg.vertex_indices.iter() {
 				match *index {
-					EitherVertex::GL(index) => ensure!(index < gl_vert.len(), "Seg {} has invalid vertex index {}", i, index),
-					EitherVertex::Normal(index) => ensure!(index < vertexes.len(), "Seg {} has invalid vertex index {}", i, index),
+					EitherVertex::GL(index) => ensure!(
+						index < gl_vert.len(),
+						"Seg {} has invalid vertex index {}",
+						i,
+						index
+					),
+					EitherVertex::Normal(index) => ensure!(
+						index < vertexes.len(),
+						"Seg {} has invalid vertex index {}",
+						i,
+						index
+					),
 				}
 			}
 
 			if let Some(index) = seg.partner_seg_index {
-				ensure!(index < gl_segs.len(), "Seg {} has invalid partner seg index {}", i, index);
+				ensure!(
+					index < gl_segs.len(),
+					"Seg {} has invalid partner seg index {}",
+					i,
+					index
+				);
 			}
 		}
 
 		for (i, ssect) in gl_ssect.iter().enumerate() {
-			ensure!(ssect.first_seg_index < gl_segs.len(), "Subsector {} has invalid first seg index {}", i, ssect.first_seg_index);
-			ensure!(ssect.first_seg_index + ssect.seg_count <= gl_segs.len(), "Subsector {} has overflowing seg count {}", i, ssect.seg_count);
+			ensure!(
+				ssect.first_seg_index < gl_segs.len(),
+				"Subsector {} has invalid first seg index {}",
+				i,
+				ssect.first_seg_index
+			);
+			ensure!(
+				ssect.first_seg_index + ssect.seg_count <= gl_segs.len(),
+				"Subsector {} has overflowing seg count {}",
+				i,
+				ssect.seg_count
+			);
 		}
 
 		for (i, node) in gl_nodes.iter().enumerate() {
 			for child in node.child_indices.iter().copied() {
 				match child {
-					NodeChild::Subsector(index) => ensure!((index as usize) < gl_ssect.len(), "Node {} has invalid subsector index {}", i, index),
-					NodeChild::Node(index) => ensure!((index as usize) < gl_nodes.len(), "Node {} has invalid child node index {}", i, index),
+					NodeChild::Subsector(index) => ensure!(
+						(index as usize) < gl_ssect.len(),
+						"Node {} has invalid subsector index {}",
+						i,
+						index
+					),
+					NodeChild::Node(index) => ensure!(
+						(index as usize) < gl_nodes.len(),
+						"Node {} has invalid child node index {}",
+						i,
+						index
+					),
 				}
 			}
 		}
@@ -397,11 +444,7 @@ pub struct ThingsFormat;
 impl AssetFormat for ThingsFormat {
 	type Asset = Vec<ThingData>;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 1))?);
 		let mut ret = Vec::new();
 
@@ -449,11 +492,7 @@ pub struct LinedefsFormat;
 impl AssetFormat for LinedefsFormat {
 	type Asset = Vec<LinedefData>;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 2))?);
 		let mut ret = Vec::new();
 
@@ -497,11 +536,7 @@ pub struct SidedefsFormat;
 impl AssetFormat for SidedefsFormat {
 	type Asset = Vec<SidedefData>;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 3))?);
 		let mut ret = Vec::new();
 
@@ -548,11 +583,7 @@ pub struct VertexesFormat;
 impl AssetFormat for VertexesFormat {
 	type Asset = Vec<Vector2<f32>>;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 4))?);
 		let mut ret = Vec::new();
 
@@ -583,11 +614,7 @@ pub struct SectorsFormat;
 impl AssetFormat for SectorsFormat {
 	type Asset = Vec<SectorData>;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 8))?);
 		let mut ret = Vec::new();
 
@@ -627,11 +654,7 @@ pub struct GLVertFormat;
 impl AssetFormat for GLVertFormat {
 	type Asset = Vec<Vector2<f32>>;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 1))?);
 
 		let mut buf = [0u8; 4];
@@ -670,11 +693,7 @@ pub struct GLSegsFormat;
 impl AssetFormat for GLSegsFormat {
 	type Asset = Vec<GLSegData>;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 2))?);
 		let mut ret = Vec::new();
 
@@ -720,11 +739,7 @@ pub struct GLSSectFormat;
 impl AssetFormat for GLSSectFormat {
 	type Asset = Vec<GLSSectData>;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 3))?);
 		let mut ret = Vec::new();
 
@@ -752,11 +767,7 @@ pub struct GLNodesFormat;
 impl AssetFormat for GLNodesFormat {
 	type Asset = Vec<GLNodeData>;
 
-	fn import(
-		&self,
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 4))?);
 		let mut ret = Vec::new();
 

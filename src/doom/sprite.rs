@@ -1,8 +1,8 @@
-use anyhow::bail;
 use crate::{
 	assets::{Asset, AssetFormat, AssetHandle, AssetStorage, DataSource},
 	doom::image::{Image, ImageFormat},
 };
+use anyhow::bail;
 use lazy_static::lazy_static;
 use nalgebra::Matrix4;
 use regex::Regex;
@@ -88,10 +88,7 @@ impl Asset for Sprite {
 	type Intermediate = SpriteBuilder;
 	const NAME: &'static str = "Sprite";
 
-	fn import(
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Intermediate> {
+	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
 		lazy_static! {
 			static ref SPRITENAME: Regex =
 				Regex::new(r#"^....[A-Z][0-9](?:[A-Z][0-9])?$"#).unwrap();
@@ -188,10 +185,7 @@ impl Asset for SpriteImage {
 	type Intermediate = Image;
 	const NAME: &'static str = "SpriteImage";
 
-	fn import(
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Intermediate> {
+	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
 		ImageFormat.import(name, source)
 	}
 }

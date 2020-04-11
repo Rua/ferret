@@ -2,7 +2,6 @@ pub mod load;
 pub mod meshes;
 pub mod textures;
 
-use anyhow::anyhow;
 use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
@@ -17,6 +16,7 @@ use crate::{
 	},
 	geometry::{Interval, Line2, Side, AABB2},
 };
+use anyhow::anyhow;
 use nalgebra::{Vector2, Vector3};
 use specs::{
 	storage::StorageEntry, Component, DenseVecStorage, Entity, Join, ReadExpect, ReadStorage,
@@ -263,10 +263,7 @@ pub fn spawn_player(world: &World) -> anyhow::Result<Entity> {
 	Ok(entity)
 }
 
-pub fn spawn_map_entities(
-	world: &World,
-	map_handle: &AssetHandle<Map>,
-) -> anyhow::Result<()> {
+pub fn spawn_map_entities(world: &World, map_handle: &AssetHandle<Map>) -> anyhow::Result<()> {
 	let (
 		map_storage,
 		mut map_dynamic_component,
@@ -317,11 +314,13 @@ pub fn spawn_map_entities(
 		}
 
 		// Fetch and add entity template
-		let handle =
-			linedef_types
-				.doomednums
-				.get(&linedef.special_type)
-				.ok_or(anyhow!("Linedef special type not found: {}", linedef.special_type))?;
+		let handle = linedef_types
+			.doomednums
+			.get(&linedef.special_type)
+			.ok_or(anyhow!(
+				"Linedef special type not found: {}",
+				linedef.special_type
+			))?;
 		let template = template_storage.get(handle).unwrap();
 		template.add_to_entity(entity, world)?;
 	}
@@ -373,7 +372,10 @@ pub fn spawn_map_entities(
 		let handle = sector_types
 			.doomednums
 			.get(&sector.special_type)
-			.ok_or(anyhow!("Sector special type not found: {}", sector.special_type))?;
+			.ok_or(anyhow!(
+				"Sector special type not found: {}",
+				sector.special_type
+			))?;
 		let template = template_storage.get(handle).unwrap();
 		template.add_to_entity(entity, world)?;
 	}

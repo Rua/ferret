@@ -1,7 +1,7 @@
-use anyhow::anyhow;
 use crate::renderer::vulkan;
 pub use crate::renderer::vulkan::Queues;
-use std::{sync::Arc};
+use anyhow::anyhow;
+use std::sync::Arc;
 use vulkano::{
 	device::{Device, DeviceOwned},
 	format::Format,
@@ -27,9 +27,7 @@ pub struct Video {
 }
 
 impl Video {
-	pub fn new(
-		event_loop: &EventLoop<()>,
-	) -> anyhow::Result<(Video, Option<DebugCallback>)> {
+	pub fn new(event_loop: &EventLoop<()>) -> anyhow::Result<(Video, Option<DebugCallback>)> {
 		// Load the Vulkan library
 		vulkano::instance::loader::auto_loader()?;
 
@@ -151,10 +149,7 @@ impl RenderTarget {
 		self.swapchain.format()
 	}
 
-	pub fn recreate(
-		&mut self,
-		dimensions: [u32; 2],
-	) -> anyhow::Result<RenderTarget> {
+	pub fn recreate(&mut self, dimensions: [u32; 2]) -> anyhow::Result<RenderTarget> {
 		let capabilities = self
 			.swapchain()
 			.surface()

@@ -1,4 +1,3 @@
-use anyhow::anyhow;
 use crate::{
 	assets::{AssetHandle, AssetStorage},
 	doom::{
@@ -16,6 +15,7 @@ use crate::{
 		vulkan, AsBytes,
 	},
 };
+use anyhow::anyhow;
 use nalgebra::{Matrix4, Vector2, Vector3};
 use specs::{Component, DenseVecStorage, Entities, Join, ReadExpect, ReadStorage, RunNow, World};
 use specs_derive::Component;
@@ -360,7 +360,8 @@ impl MapRenderSystem {
 		let normal_pipeline = Arc::new(
 			GraphicsPipeline::start()
 				.render_pass(
-					Subpass::from(render_pass.clone(), 0).ok_or(anyhow!("Subpass index out of range"))?,
+					Subpass::from(render_pass.clone(), 0)
+						.ok_or(anyhow!("Subpass index out of range"))?,
 				)
 				.vertex_input_single_buffer::<super::map::meshes::VertexData>()
 				.vertex_shader(normal_vert.main_entry_point(), ())
@@ -380,7 +381,8 @@ impl MapRenderSystem {
 		let sky_pipeline = Arc::new(
 			GraphicsPipeline::start()
 				.render_pass(
-					Subpass::from(render_pass.clone(), 0).ok_or(anyhow!("Subpass index out of range"))?,
+					Subpass::from(render_pass.clone(), 0)
+						.ok_or(anyhow!("Subpass index out of range"))?,
 				)
 				.vertex_input_single_buffer::<super::map::meshes::SkyVertexData>()
 				.vertex_shader(sky_vert.main_entry_point(), ())
@@ -559,7 +561,8 @@ impl SpriteRenderSystem {
 		let pipeline = Arc::new(
 			GraphicsPipeline::start()
 				.render_pass(
-					Subpass::from(render_pass.clone(), 0).ok_or(anyhow!("Subpass index out of range"))?,
+					Subpass::from(render_pass.clone(), 0)
+						.ok_or(anyhow!("Subpass index out of range"))?,
 				)
 				.vertex_input(OneVertexOneInstanceDefinition::<VertexData, InstanceData>::new())
 				.vertex_shader(vert.main_entry_point(), ())

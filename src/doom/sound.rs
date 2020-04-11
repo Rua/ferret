@@ -1,10 +1,10 @@
-use anyhow::ensure;
 use crate::{
 	assets::{Asset, AssetHandle, AssetStorage, DataSource},
 	audio::{Sound, SoundController, SoundSource},
 	doom::{client::Client, components::Transform},
 	geometry::Angle,
 };
+use anyhow::ensure;
 use byteorder::{ReadBytesExt, LE};
 use crossbeam_channel::Sender;
 use nalgebra::Vector2;
@@ -21,10 +21,7 @@ impl Asset for Sound {
 	type Intermediate = Vec<u8>;
 	const NAME: &'static str = "Sound";
 
-	fn import(
-		name: &str,
-		source: &impl DataSource,
-	) -> anyhow::Result<Self::Intermediate> {
+	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
 		source.load(name)
 	}
 }
