@@ -1,4 +1,5 @@
-use std::{error::Error, sync::Arc, u32};
+use anyhow::anyhow;
+use std::{sync::Arc, u32};
 use vulkano::{
 	app_info_from_cargo_toml,
 	device::{Device, DeviceExtensions, Features, Queue},
@@ -9,7 +10,7 @@ use vulkano::{
 };
 use winit::window::Window;
 
-pub(super) fn create_instance() -> Result<Arc<Instance>, Box<dyn Error + Send + Sync>> {
+pub(super) fn create_instance() -> anyhow::Result<Arc<Instance>> {
 	let mut instance_extensions = vulkano_win::required_extensions();
 	let supported_extensions = InstanceExtensions::supported_by_core()?;
 
@@ -54,7 +55,7 @@ pub(super) fn create_instance() -> Result<Arc<Instance>, Box<dyn Error + Send + 
 fn find_suitable_physical_device<'a>(
 	instance: &'a Arc<Instance>,
 	surface: &Surface<Window>,
-) -> Result<Option<(PhysicalDevice<'a>, QueueFamily<'a>)>, Box<dyn Error + Send + Sync>> {
+) -> anyhow::Result<Option<(PhysicalDevice<'a>, QueueFamily<'a>)>> {
 	for physical_device in PhysicalDevice::enumerate(&instance) {
 		let family = {
 			let mut val = None;
@@ -100,10 +101,10 @@ pub struct Queues {
 pub(super) fn create_device(
 	instance: &Arc<Instance>,
 	surface: &Arc<Surface<Window>>,
-) -> Result<(Arc<Device>, Queues), Box<dyn Error + Send + Sync>> {
+) -> anyhow::Result<(Arc<Device>, Queues)> {
 	// Select physical device
 	let (physical_device, family) = find_suitable_physical_device(&instance, &surface)?
-		.ok_or("No suitable physical device found")?;
+		.ok_or(anyhow!("No suitable physical device found"))?;
 
 	let features = Features::none();
 	let extensions = DeviceExtensions {
@@ -125,7 +126,7 @@ pub(super) fn create_device(
 pub fn create_depth_buffer(
 	device: &Arc<Device>,
 	extent: [u32; 2],
-) -> Result<Arc<AttachmentImage>, Box<dyn Error + Send + Sync>> {
+) -> anyhow::Result<Arc<AttachmentImage>> {
 	let allowed_formats = [
 		Format::D32Sfloat,
 		Format::D32Sfloat_S8Uint,
@@ -138,9 +139,9 @@ pub fn create_depth_buffer(
 		match AttachmentImage::transient(device.clone(), extent, format) {
 			Ok(buf) => return Ok(buf),
 			Err(ImageCreationError::FormatNotSupported) => continue,
-			Err(any) => return Err(Box::from(any)),
+			Err(any) => Err(any)?,
 		}
 	}
 
-	Err(Box::from("No suitable depth buffer format found."))
+	Err(anyhow!("No suitable depth buffer format found"))
 }

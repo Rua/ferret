@@ -1,6 +1,6 @@
+use anyhow::bail;
 use lazy_static::lazy_static;
 use regex::{Captures, Regex};
-use std::{error::Error, string::String};
 
 /*pub struct CommandList<T> {
 	commands: HashMap<String, Command<T>>,
@@ -59,7 +59,7 @@ impl<T> Command<T> {
 	}
 }*/
 
-pub fn tokenize(mut text: &str) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
+pub fn tokenize(mut text: &str) -> anyhow::Result<Vec<String>> {
 	lazy_static! {
 		// Whitespace, except newlines
 		static ref RE_SPACE    : Regex = Regex::new(r#"^[^\S\n]+"#).unwrap();
@@ -103,7 +103,7 @@ pub fn tokenize(mut text: &str) -> Result<Vec<String>, Box<dyn Error + Send + Sy
 			tokens.push(String::from(unescaped));
 			text = &text[mat.end()..];
 		} else if text.starts_with('\"') {
-			return Err(Box::from(format!("unclosed quoted string: \"{}", text)));
+			bail!("unclosed quoted string: \"{}", text);
 		} else if let Some(mat) = RE_SEPARATOR.find(text) {
 			// Ignore separator at the end of the string
 			if mat.end() < text.len() {
@@ -120,13 +120,9 @@ pub fn tokenize(mut text: &str) -> Result<Vec<String>, Box<dyn Error + Send + Sy
 		} else if let Some(mat) = RE_CMT_BLOCK.find(text) {
 			text = &text[mat.end()..];
 		} else if text.starts_with("/*") {
-			return Err(Box::from(format!("unclosed multiline comment: {}", text)));
+			bail!("unclosed multiline comment: {}", text);
 		} else {
-			println!("{:?}", tokens);
-			return Err(Box::from(format!(
-				"unexpected character: {}",
-				text.chars().next().unwrap()
-			)));
+			bail!("unexpected character: {}", text.chars().next().unwrap());
 		}
 	}
 

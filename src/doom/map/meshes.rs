@@ -7,7 +7,7 @@ use crate::{
 };
 use nalgebra::Vector2;
 use specs::{ReadExpect, World};
-use std::{collections::HashMap, error::Error};
+use std::collections::HashMap;
 use vulkano::{image::Dimensions, impl_vertex};
 
 #[derive(Clone, Debug, Default)]
@@ -28,14 +28,12 @@ pub fn make_meshes(
 	map: &Map,
 	map_dynamic: &MapDynamic,
 	world: &World,
-) -> Result<
+) -> anyhow::Result<
 	(
 		HashMap<AssetHandle<Flat>, (Vec<VertexData>, Vec<u32>)>,
 		(Vec<SkyVertexData>, Vec<u32>),
 		HashMap<AssetHandle<WallTexture>, (Vec<VertexData>, Vec<u32>)>,
-	),
-	Box<dyn Error + Send + Sync>,
-> {
+	)> {
 	#[inline]
 	fn push_wall(
 		vertices: &mut Vec<VertexData>,

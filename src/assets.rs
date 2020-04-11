@@ -2,7 +2,6 @@ use derivative::Derivative;
 use std::{
 	clone::Clone,
 	collections::{HashMap, VecDeque},
-	error::Error,
 	marker::PhantomData,
 	sync::{Arc, Weak},
 };
@@ -15,7 +14,7 @@ pub trait Asset: Send + Sync + 'static {
 	fn import(
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>>;
+	) -> anyhow::Result<Self::Intermediate>;
 }
 
 #[derive(Derivative)]
@@ -103,7 +102,7 @@ pub struct AssetStorage<A: Asset> {
 	names: HashMap<String, WeakHandle<A>>,
 	unbuilt: Vec<(
 		AssetHandle<A>,
-		Result<A::Intermediate, Box<dyn Error + Send + Sync>>,
+		anyhow::Result<A::Intermediate>,
 		String,
 	)>,
 	unused_ids: VecDeque<u32>,
@@ -169,7 +168,7 @@ impl<A: Asset> AssetStorage<A> {
 	}*/
 
 	pub fn build_waiting<
-		F: FnMut(A::Intermediate) -> Result<A::Data, Box<dyn Error + Send + Sync>>,
+		F: FnMut(A::Intermediate) -> anyhow::Result<A::Data>,
 	>(
 		&mut self,
 		mut build_func: F,
@@ -199,10 +198,10 @@ pub trait AssetFormat: Clone {
 		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>>;
+	) -> anyhow::Result<Self::Asset>;
 }
 
 pub trait DataSource {
-	fn load(&self, path: &str) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>>;
+	fn load(&self, path: &str) -> anyhow::Result<Vec<u8>>;
 	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a>;
 }

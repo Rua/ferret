@@ -1,6 +1,6 @@
 use crate::assets::{Asset, DataSource};
 use specs::{Component, Entity, World, WorldExt};
-use std::{any::TypeId, collections::HashMap, error::Error};
+use std::{any::TypeId, collections::HashMap};
 
 pub trait DynComponent: Send + Sync {
 	fn add_to_entity(&self, entity: Entity, world: &World) -> Result<(), specs::error::Error>;
@@ -51,7 +51,7 @@ impl Asset for EntityTemplate {
 	fn import(
 		_name: &str,
 		_source: &impl DataSource,
-	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Intermediate> {
 		unimplemented!();
 	}
 }

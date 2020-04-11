@@ -1,3 +1,4 @@
+use anyhow::bail;
 use crate::{
 	assets::{Asset, AssetFormat, AssetHandle, AssetStorage, DataSource},
 	doom::image::{Image, ImageFormat},
@@ -5,7 +6,7 @@ use crate::{
 use lazy_static::lazy_static;
 use nalgebra::Matrix4;
 use regex::Regex;
-use std::{error::Error, sync::Arc};
+use std::sync::Arc;
 use vulkano::{image::ImageViewAccess, impl_vertex};
 
 pub struct Sprite {
@@ -57,7 +58,7 @@ impl SpriteBuilder {
 		self,
 		sprite_image_storage: &mut AssetStorage<SpriteImage>,
 		source: &mut impl DataSource,
-	) -> Result<Sprite, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Sprite> {
 		let handles: Vec<_> = self
 			.image_names
 			.into_iter()
@@ -90,7 +91,7 @@ impl Asset for Sprite {
 	fn import(
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Intermediate> {
 		lazy_static! {
 			static ref SPRITENAME: Regex =
 				Regex::new(r#"^....[A-Z][0-9](?:[A-Z][0-9])?$"#).unwrap();
@@ -167,10 +168,7 @@ impl Asset for Sprite {
 					})
 					.collect();
 			} else {
-				return Err(Box::from(format!(
-					"Frame {} has an invalid number of rotations",
-					frame
-				)));
+				bail!("Frame {} has an invalid number of rotations", frame);
 			}
 		}
 
@@ -193,7 +191,7 @@ impl Asset for SpriteImage {
 	fn import(
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Intermediate> {
 		ImageFormat.import(name, source)
 	}
 }

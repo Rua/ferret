@@ -2,6 +2,7 @@ pub mod load;
 pub mod meshes;
 pub mod textures;
 
+use anyhow::anyhow;
 use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
@@ -22,7 +23,7 @@ use specs::{
 	World, WorldExt, WriteStorage,
 };
 use specs_derive::Component;
-use std::{error::Error, fmt::Debug};
+use std::fmt::Debug;
 
 #[derive(Clone, Debug)]
 pub struct Map {
@@ -183,7 +184,7 @@ pub fn spawn_things(
 	things: Vec<ThingData>,
 	world: &World,
 	map_handle: &AssetHandle<Map>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+) -> anyhow::Result<()> {
 	for thing in things {
 		// Fetch entity template
 		let (entity_types, template_storage) = world.system_data::<(
@@ -193,10 +194,7 @@ pub fn spawn_things(
 		let handle = entity_types
 			.doomednums
 			.get(&thing.doomednum)
-			.ok_or(
-				Box::from(format!("Doomednum not found: {}", thing.doomednum))
-					as Box<dyn Error + Send + Sync>,
-			)?;
+			.ok_or(anyhow!("Doomednum not found: {}", thing.doomednum))?;
 		let template = template_storage.get(handle).unwrap();
 
 		// Create entity and add components
@@ -231,7 +229,7 @@ pub fn spawn_things(
 	Ok(())
 }
 
-pub fn spawn_player(world: &World) -> Result<Entity, Box<dyn Error + Send + Sync>> {
+pub fn spawn_player(world: &World) -> anyhow::Result<Entity> {
 	// Get spawn point transform
 	let transform = {
 		let (transform, spawn_point) =
@@ -251,8 +249,7 @@ pub fn spawn_player(world: &World) -> Result<Entity, Box<dyn Error + Send + Sync
 	let handle = entity_types
 		.names
 		.get("PLAYER")
-		.ok_or(Box::from(format!("Entity type not found: {}", "PLAYER"))
-			as Box<dyn Error + Send + Sync>)?;
+		.ok_or(anyhow!("Entity type not found: {}", "PLAYER"))?;
 	let template = template_storage.get(handle).unwrap();
 
 	// Create entity and add components
@@ -269,7 +266,7 @@ pub fn spawn_player(world: &World) -> Result<Entity, Box<dyn Error + Send + Sync
 pub fn spawn_map_entities(
 	world: &World,
 	map_handle: &AssetHandle<Map>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+) -> anyhow::Result<()> {
 	let (
 		map_storage,
 		mut map_dynamic_component,
@@ -324,10 +321,7 @@ pub fn spawn_map_entities(
 			linedef_types
 				.doomednums
 				.get(&linedef.special_type)
-				.ok_or(Box::from(format!(
-					"Linedef special type not found: {}",
-					linedef.special_type
-				)) as Box<dyn Error + Send + Sync>)?;
+				.ok_or(anyhow!("Linedef special type not found: {}", linedef.special_type))?;
 		let template = template_storage.get(handle).unwrap();
 		template.add_to_entity(entity, world)?;
 	}
@@ -379,10 +373,7 @@ pub fn spawn_map_entities(
 		let handle = sector_types
 			.doomednums
 			.get(&sector.special_type)
-			.ok_or(Box::from(format!(
-				"Sector special type not found: {}",
-				sector.special_type
-			)) as Box<dyn Error + Send + Sync>)?;
+			.ok_or(anyhow!("Sector special type not found: {}", sector.special_type))?;
 		let template = template_storage.get(handle).unwrap();
 		template.add_to_entity(entity, world)?;
 	}

@@ -98,7 +98,7 @@ impl ConfigVariables {
 		}
 	}
 
-	fn set_string(&mut self, key: &str, string: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+	fn set_string(&mut self, key: &str, string: &str) -> anyhow::Result<()> {
 		match self.variables.get_mut(key) {
 			Some(variable) => variable.set_string(string),
 			None => Ok(()),

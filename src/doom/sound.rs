@@ -1,3 +1,4 @@
+use anyhow::ensure;
 use crate::{
 	assets::{Asset, AssetHandle, AssetStorage, DataSource},
 	audio::{Sound, SoundController, SoundSource},
@@ -13,10 +14,7 @@ use specs::{
 	WriteExpect, WriteStorage,
 };
 use specs_derive::Component;
-use std::{
-	error::Error,
-	io::{Cursor, Read},
-};
+use std::io::{Cursor, Read};
 
 impl Asset for Sound {
 	type Data = Self;
@@ -26,18 +24,16 @@ impl Asset for Sound {
 	fn import(
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Intermediate> {
 		source.load(name)
 	}
 }
 
-pub fn build_sound(data: Vec<u8>) -> Result<Sound, Box<dyn Error + Send + Sync>> {
+pub fn build_sound(data: Vec<u8>) -> anyhow::Result<Sound> {
 	let mut reader = Cursor::new(data);
 	let signature = reader.read_u16::<LE>()?;
 
-	if signature != 3 {
-		return Err(Box::from("No Doom sound file signature found"));
-	}
+	ensure!(signature == 3, "No Doom sound file signature found");
 
 	let sample_rate = reader.read_u16::<LE>()? as u32;
 	let sample_count = reader.read_u32::<LE>()? as usize;

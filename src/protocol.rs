@@ -1,3 +1,4 @@
+use anyhow::ensure;
 use byteorder::{NetworkEndian as NE, ReadBytesExt, WriteBytesExt};
 use std::{
 	convert::TryFrom,
@@ -21,9 +22,9 @@ impl<T> From<SequencedPacket> for Packet<T> {
 }
 
 impl<T: TryRead<T>> TryFrom<Vec<u8>> for Packet<T> {
-	type Error = Box<dyn Error + Send + Sync>;
+	type Error = anyhow::Error;
 
-	fn try_from(data: Vec<u8>) -> Result<Packet<T>, Box<dyn Error + Send + Sync>> {
+	fn try_from(data: Vec<u8>) -> anyhow::Result<Packet<T>> {
 		let mut reader = Cursor::new(data);
 		let sequence = reader.read_u32::<NE>()?;
 
@@ -66,15 +67,13 @@ pub struct SequencedPacket {
 }
 
 impl TryFrom<Vec<u8>> for SequencedPacket {
-	type Error = Box<dyn Error + Send + Sync>;
+	type Error = anyhow::Error;
 
-	fn try_from(buf: Vec<u8>) -> Result<SequencedPacket, Box<dyn Error + Send + Sync>> {
+	fn try_from(buf: Vec<u8>) -> anyhow::Result<SequencedPacket> {
 		let mut reader = Cursor::new(buf);
 		let sequence = reader.read_u32::<NE>()?;
 
-		if sequence == 0xFFFFFFFF {
-			return Err(Box::from("not a sequenced packet"))
-		}
+		ensure!(sequence != 0xFFFFFFFF, "not a sequenced packet");
 
 		Ok(SequencedPacket {
 			sequence,
@@ -93,7 +92,7 @@ impl From<SequencedPacket> for Vec<u8> {
 }
 
 pub trait TryRead<T> {
-	fn try_read(reader: &mut Cursor<Vec<u8>>) -> Result<T, Box<dyn Error + Send + Sync>>;
+	fn try_read(reader: &mut Cursor<Vec<u8>>) -> anyhow::Result<T>;
 }
 
 
@@ -108,7 +107,7 @@ pub enum ClientMessage {
 }
 
 impl TryRead<ClientMessage> for ClientMessage {
-	fn try_read(reader: &mut Cursor<Vec<u8>>) -> Result<ClientMessage, Box<dyn Error + Send + Sync>> {
+	fn try_read(reader: &mut Cursor<Vec<u8>>) -> anyhow::Result<ClientMessage> {
 		let message_type = reader.read_u8()?;
 
 		Ok(match message_type {
@@ -163,7 +162,7 @@ pub enum ServerMessage {
 }
 
 impl TryRead<ServerMessage> for ServerMessage {
-	fn try_read(reader: &mut Cursor<Vec<u8>>) -> Result<ServerMessage, Box<dyn Error + Send + Sync>> {
+	fn try_read(reader: &mut Cursor<Vec<u8>>) -> anyhow::Result<ServerMessage> {
 		let message_type = reader.read_u8()?;
 
 		Ok(match message_type {

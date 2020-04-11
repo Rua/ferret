@@ -1,7 +1,6 @@
 use crate::assets::{Asset, AssetFormat, DataSource};
 use byteorder::{ReadBytesExt, LE};
 use std::{
-	error::Error,
 	io::{Cursor, Read, Seek, SeekFrom},
 	ops::Deref,
 };
@@ -40,7 +39,7 @@ impl Asset for Palette {
 	fn import(
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Intermediate> {
 		let mut reader = Cursor::new(source.load(name)?);
 		let mut palette = [RGBAColor {
 			r: 0,
@@ -76,7 +75,7 @@ impl AssetFormat for ImageFormat {
 		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(name)?);
 
 		let size = [

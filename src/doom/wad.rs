@@ -1,8 +1,8 @@
+use anyhow::anyhow;
 use crate::assets::DataSource;
 use byteorder::{ReadBytesExt, LE};
 use std::{
 	collections::HashSet,
-	error::Error,
 	fs::File,
 	io::{BufReader, Read, Seek, SeekFrom},
 	str,
@@ -31,7 +31,7 @@ impl WadLoader {
 		}
 	}
 
-	pub fn add(&mut self, filename: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+	pub fn add(&mut self, filename: &str) -> anyhow::Result<()> {
 		let file = File::open(filename)?;
 		let mut reader = BufReader::new(file);
 
@@ -74,7 +74,7 @@ impl WadLoader {
 }
 
 impl DataSource for WadLoader {
-	fn load(&self, path: &str) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
+	fn load(&self, path: &str) -> anyhow::Result<Vec<u8>> {
 		let path = path.to_ascii_uppercase();
 
 		let (path, offset) = if let Some(index) = path.rfind("/+") {
@@ -92,8 +92,7 @@ impl DataSource for WadLoader {
 				.rev()
 				.filter_map(|(i, lump)| if lump.name == path { Some(i) } else { None })
 				.next()
-				.ok_or(Box::from(format!("Lump \"{}\" not found", path))
-					as Box<dyn Error + Send + Sync>)?;
+				.ok_or(anyhow!("Lump \"{}\" not found", path))?;
 
 		let lump = &self.lumps[index + offset];
 

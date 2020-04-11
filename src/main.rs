@@ -10,6 +10,7 @@ mod logger;
 mod renderer;
 mod stdin;
 
+use anyhow::Context;
 use crate::{
 	assets::{AssetFormat, AssetHandle, AssetStorage},
 	audio::Sound,
@@ -24,10 +25,7 @@ use rand_pcg::Pcg64Mcg;
 use rodio::Source;
 use shrev::EventChannel;
 use specs::{DispatcherBuilder, Entity, ReadExpect, RunNow, World, WorldExt, WriteExpect};
-use std::{
-	error::Error,
-	time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 use vulkano::{
 	format::Format,
 	image::{Dimensions, ImmutableImage},
@@ -38,29 +36,16 @@ use winit::{
 	platform::desktop::EventLoopExtDesktop,
 };
 
-fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+fn main() -> anyhow::Result<()> {
 	Logger::init().unwrap();
 
 	let (command_sender, command_receiver) = crossbeam_channel::unbounded();
 
-	match stdin::spawn(command_sender.clone()) {
-		Ok(_) => (),
-		Err(err) => {
-			return Err(Box::from(format!("Could not start stdin thread: {}", err)));
-		}
-	};
+	stdin::spawn(command_sender.clone()).context("Could not start stdin thread")?;
 
 	let mut event_loop = EventLoop::new();
 
-	let (video, _debug_callback) = match Video::new(&event_loop) {
-		Ok(val) => val,
-		Err(err) => {
-			return Err(Box::from(format!(
-				"Could not initialise video system: {}",
-				err
-			)));
-		}
-	};
+	let (video, _debug_callback) = Video::new(&event_loop).context("Could not initialise video system")?;
 
 	let (sound_sender, sound_receiver) =
 		crossbeam_channel::unbounded::<Box<dyn Source<Item = f32> + Send>>();

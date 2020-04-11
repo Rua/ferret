@@ -1,3 +1,4 @@
+use anyhow::{bail, ensure};
 use crate::{
 	assets::{Asset, AssetFormat, AssetStorage, DataSource},
 	doom::{
@@ -16,7 +17,6 @@ use nalgebra::Vector2;
 use serde::Deserialize;
 use std::{
 	collections::hash_map::{Entry, HashMap},
-	error::Error,
 	io::{Cursor, Read},
 };
 
@@ -39,7 +39,7 @@ impl Asset for Map {
 	fn import(
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Intermediate> {
 		let gl_name = format!("GL_{}", name);
 
 		let linedefs = LinedefsFormat.import(name, source)?;
@@ -55,103 +55,42 @@ impl Asset for Map {
 		// Verify all the cross-references
 
 		for (i, sidedef) in sidedefs.iter().enumerate() {
-			let index = sidedef.sector_index;
-			if index >= sectors.len() {
-				return Err(Box::from(format!(
-					"Sidedef {} has invalid sector index {}",
-					i, index
-				)));
-			}
+			ensure!(sidedef.sector_index < sectors.len(), "Sidedef {} has invalid sector index {}", i, sidedef.sector_index);
 		}
 
 		for (i, linedef) in linedefs.iter().enumerate() {
 			for index in linedef.sidedef_indices.iter().flatten() {
-				if *index >= sidedefs.len() {
-					return Err(Box::from(format!(
-						"Linedef {} has invalid sidedef index {}",
-						i, index
-					)));
-				}
+				ensure!(*index < sidedefs.len(), "Linedef {} has invalid sidedef index {}", i, index);
 			}
 		}
 
 		for (i, seg) in gl_segs.iter().enumerate() {
 			if let Some(index) = seg.linedef_index {
-				if index >= linedefs.len() {
-					return Err(Box::from(format!(
-						"Seg {} has invalid linedef index {}",
-						i, index
-					)));
-				}
+				ensure!(index < linedefs.len(), "Seg {} has invalid linedef index {}", i, index);
 			}
 
 			for index in seg.vertex_indices.iter() {
 				match *index {
-					EitherVertex::GL(index) => {
-						if index >= gl_vert.len() {
-							return Err(Box::from(format!(
-								"Seg {} has invalid vertex index {}",
-								i, index
-							)));
-						}
-					}
-					EitherVertex::Normal(index) => {
-						if index >= vertexes.len() {
-							return Err(Box::from(format!(
-								"Seg {} has invalid vertex index {}",
-								i, index
-							)));
-						}
-					}
+					EitherVertex::GL(index) => ensure!(index < gl_vert.len(), "Seg {} has invalid vertex index {}", i, index),
+					EitherVertex::Normal(index) => ensure!(index < vertexes.len(), "Seg {} has invalid vertex index {}", i, index),
 				}
 			}
 
 			if let Some(index) = seg.partner_seg_index {
-				if index >= gl_segs.len() {
-					return Err(Box::from(format!(
-						"Seg {} has invalid partner seg index {}",
-						i, index
-					)));
-				}
+				ensure!(index < gl_segs.len(), "Seg {} has invalid partner seg index {}", i, index);
 			}
 		}
 
 		for (i, ssect) in gl_ssect.iter().enumerate() {
-			let index = ssect.first_seg_index;
-			if index >= gl_segs.len() {
-				return Err(Box::from(format!(
-					"Subsector {} has invalid first seg index {}",
-					i, ssect.first_seg_index
-				)));
-			}
-
-			if ssect.first_seg_index + ssect.seg_count > gl_segs.len() {
-				return Err(Box::from(format!(
-					"Subsector {} has overflowing seg count {}",
-					i, ssect.seg_count,
-				)));
-			}
+			ensure!(ssect.first_seg_index < gl_segs.len(), "Subsector {} has invalid first seg index {}", i, ssect.first_seg_index);
+			ensure!(ssect.first_seg_index + ssect.seg_count <= gl_segs.len(), "Subsector {} has overflowing seg count {}", i, ssect.seg_count);
 		}
 
 		for (i, node) in gl_nodes.iter().enumerate() {
 			for child in node.child_indices.iter().copied() {
 				match child {
-					NodeChild::Subsector(index) => {
-						if index as usize >= gl_ssect.len() {
-							return Err(Box::from(format!(
-								"Node {} has invalid subsector index {}",
-								i, index
-							)));
-						}
-					}
-					NodeChild::Node(index) => {
-						if index as usize >= gl_nodes.len() {
-							return Err(Box::from(format!(
-								"Node {} has invalid child node index {}",
-								i, index
-							)));
-						}
-					}
+					NodeChild::Subsector(index) => ensure!((index as usize) < gl_ssect.len(), "Node {} has invalid subsector index {}", i, index),
+					NodeChild::Node(index) => ensure!((index as usize) < gl_nodes.len(), "Node {} has invalid child node index {}", i, index),
 				}
 			}
 		}
@@ -175,7 +114,7 @@ pub fn build_map(
 	loader: &mut WadLoader,
 	flat_storage: &mut AssetStorage<Flat>,
 	wall_texture_storage: &mut AssetStorage<WallTexture>,
-) -> Result<Map, Box<dyn Error + Send + Sync>> {
+) -> anyhow::Result<Map> {
 	let mut textures = HashMap::new();
 	let mut flats = HashMap::new();
 	let sky = wall_texture_storage.load(sky_name, loader);
@@ -231,7 +170,7 @@ pub fn build_map(
 				neighbours: Vec::new(),
 			})
 		})
-		.collect::<Result<Vec<Sector>, Box<dyn Error + Send + Sync>>>()?;
+		.collect::<anyhow::Result<Vec<Sector>>>()?;
 
 	let mut sidedefs = sidedefs_data
 		.into_iter()
@@ -281,7 +220,7 @@ pub fn build_map(
 				sector_index: data.sector_index,
 			}))
 		})
-		.collect::<Result<Vec<Option<Sidedef>>, Box<dyn Error + Send + Sync>>>()?;
+		.collect::<anyhow::Result<Vec<Option<Sidedef>>>>()?;
 
 	let linedefs = linedefs_data
 		.into_iter()
@@ -339,7 +278,7 @@ pub fn build_map(
 				sidedefs,
 			})
 		})
-		.collect::<Result<Vec<Linedef>, Box<dyn Error + Send + Sync>>>()?;
+		.collect::<anyhow::Result<Vec<Linedef>>>()?;
 
 	let nodes_len = gl_nodes_data.len();
 	let nodes = gl_nodes_data
@@ -361,7 +300,7 @@ pub fn build_map(
 				],
 			})
 		})
-		.collect::<Result<Vec<GLNode>, Box<dyn Error + Send + Sync>>>()?;
+		.collect::<anyhow::Result<Vec<GLNode>>>()?;
 
 	let mut segs = gl_segs_data
 		.into_iter()
@@ -387,7 +326,7 @@ pub fn build_map(
 				//partner_seg_index: data.partner_seg_index,
 			})
 		})
-		.collect::<Result<Vec<GLSeg>, Box<dyn Error + Send + Sync>>>()?;
+		.collect::<anyhow::Result<Vec<GLSeg>>>()?;
 
 	let subsectors = gl_ssect_data
 		.into_iter()
@@ -402,10 +341,7 @@ pub fn build_map(
 				}) {
 					sidedef.sector_index
 				} else {
-					return Err(Box::from(format!(
-						"No sector could be found for subsector {}",
-						i
-					)));
+					bail!("No sector could be found for subsector {}", i);
 				}
 			};
 
@@ -427,7 +363,7 @@ pub fn build_map(
 				bbox,
 			})
 		})
-		.collect::<Result<Vec<GLSSect>, Box<dyn Error + Send + Sync>>>()?;
+		.collect::<anyhow::Result<Vec<GLSSect>>>()?;
 
 	Ok(Map {
 		linedefs,
@@ -465,7 +401,7 @@ impl AssetFormat for ThingsFormat {
 		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 1))?);
 		let mut ret = Vec::new();
 
@@ -517,7 +453,7 @@ impl AssetFormat for LinedefsFormat {
 		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 2))?);
 		let mut ret = Vec::new();
 
@@ -565,7 +501,7 @@ impl AssetFormat for SidedefsFormat {
 		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 3))?);
 		let mut ret = Vec::new();
 
@@ -616,7 +552,7 @@ impl AssetFormat for VertexesFormat {
 		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 4))?);
 		let mut ret = Vec::new();
 
@@ -651,7 +587,7 @@ impl AssetFormat for SectorsFormat {
 		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 8))?);
 		let mut ret = Vec::new();
 
@@ -695,15 +631,13 @@ impl AssetFormat for GLVertFormat {
 		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 1))?);
 
 		let mut buf = [0u8; 4];
 		reader.read_exact(&mut buf)?;
 
-		if &buf != b"gNd2" {
-			return Err(Box::from("No gNd2 signature found"));
-		}
+		ensure!(&buf == b"gNd2", "No gNd2 signature found");
 
 		let mut ret = Vec::new();
 
@@ -740,7 +674,7 @@ impl AssetFormat for GLSegsFormat {
 		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 2))?);
 		let mut ret = Vec::new();
 
@@ -790,7 +724,7 @@ impl AssetFormat for GLSSectFormat {
 		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 3))?);
 		let mut ret = Vec::new();
 
@@ -822,7 +756,7 @@ impl AssetFormat for GLNodesFormat {
 		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(&format!("{}/+{}", name, 4))?);
 		let mut ret = Vec::new();
 

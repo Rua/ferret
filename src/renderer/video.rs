@@ -1,6 +1,7 @@
+use anyhow::anyhow;
 use crate::renderer::vulkan;
 pub use crate::renderer::vulkan::Queues;
-use std::{error::Error, sync::Arc};
+use std::{sync::Arc};
 use vulkano::{
 	device::{Device, DeviceOwned},
 	format::Format,
@@ -28,7 +29,7 @@ pub struct Video {
 impl Video {
 	pub fn new(
 		event_loop: &EventLoop<()>,
-	) -> Result<(Video, Option<DebugCallback>), Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<(Video, Option<DebugCallback>)> {
 		// Load the Vulkan library
 		vulkano::instance::loader::auto_loader()?;
 
@@ -95,10 +96,10 @@ impl RenderTarget {
 		surface: Arc<Surface<Window>>,
 		device: Arc<Device>,
 		dimensions: [u32; 2],
-	) -> Result<RenderTarget, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<RenderTarget> {
 		let capabilities = surface.capabilities(device.physical_device())?;
 		let surface_format =
-			choose_format(&capabilities).ok_or("No suitable swapchain format found.")?;
+			choose_format(&capabilities).ok_or(anyhow!("No suitable swapchain format found"))?;
 		let present_mode = [PresentMode::Mailbox, PresentMode::Fifo]
 			.iter()
 			.copied()
@@ -153,13 +154,13 @@ impl RenderTarget {
 	pub fn recreate(
 		&mut self,
 		dimensions: [u32; 2],
-	) -> Result<RenderTarget, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<RenderTarget> {
 		let capabilities = self
 			.swapchain()
 			.surface()
 			.capabilities(self.swapchain.device().physical_device())?;
 		let surface_format =
-			choose_format(&capabilities).ok_or("No suitable swapchain format found.")?;
+			choose_format(&capabilities).ok_or(anyhow!("No suitable swapchain format found"))?;
 
 		let image_usage = ImageUsage {
 			color_attachment: true,

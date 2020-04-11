@@ -13,7 +13,7 @@ use std::{
 /*pub struct Audio {}
 
 impl Audio {
-	pub fn new() -> Result<Audio, Box<dyn Error + Send + Sync>> {
+	pub fn new() -> anyhow::Result<Audio> {
 		Ok(Audio {})
 	}
 }

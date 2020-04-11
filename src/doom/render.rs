@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use crate::{
 	assets::{AssetHandle, AssetStorage},
 	doom::{
@@ -20,7 +21,6 @@ use specs::{Component, DenseVecStorage, Entities, Join, ReadExpect, ReadStorage,
 use specs_derive::Component;
 use std::{
 	collections::{hash_map::Entry, HashMap},
-	error::Error,
 	sync::Arc,
 };
 use vulkano::{
@@ -59,7 +59,7 @@ pub struct RenderSystem {
 }
 
 impl RenderSystem {
-	pub fn new(world: &World) -> Result<RenderSystem, Box<dyn Error + Send + Sync>> {
+	pub fn new(world: &World) -> anyhow::Result<RenderSystem> {
 		let video = world.fetch::<Video>();
 
 		// Create texture sampler
@@ -154,7 +154,7 @@ impl RenderSystem {
 		})
 	}
 
-	pub fn recreate(&mut self) -> Result<(), Box<dyn Error + Send + Sync>> {
+	pub fn recreate(&mut self) -> anyhow::Result<()> {
 		let size = self
 			.target
 			.swapchain()
@@ -182,7 +182,7 @@ impl RenderSystem {
 		Ok(())
 	}
 
-	pub fn draw(&mut self, world: &World) -> Result<(), Box<dyn Error + Send + Sync>> {
+	pub fn draw(&mut self, world: &World) -> anyhow::Result<()> {
 		let video = world.fetch::<Video>();
 		let queues = video.queues();
 
@@ -350,7 +350,7 @@ pub struct MapRenderSystem {
 impl MapRenderSystem {
 	fn new(
 		render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
-	) -> Result<MapRenderSystem, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<MapRenderSystem> {
 		let device = render_pass.device();
 
 		// Create pipeline for normal parts of the map
@@ -360,7 +360,7 @@ impl MapRenderSystem {
 		let normal_pipeline = Arc::new(
 			GraphicsPipeline::start()
 				.render_pass(
-					Subpass::from(render_pass.clone(), 0).ok_or("Subpass index out of range")?,
+					Subpass::from(render_pass.clone(), 0).ok_or(anyhow!("Subpass index out of range"))?,
 				)
 				.vertex_input_single_buffer::<super::map::meshes::VertexData>()
 				.vertex_shader(normal_vert.main_entry_point(), ())
@@ -380,7 +380,7 @@ impl MapRenderSystem {
 		let sky_pipeline = Arc::new(
 			GraphicsPipeline::start()
 				.render_pass(
-					Subpass::from(render_pass.clone(), 0).ok_or("Subpass index out of range")?,
+					Subpass::from(render_pass.clone(), 0).ok_or(anyhow!("Subpass index out of range"))?,
 				)
 				.vertex_input_single_buffer::<super::map::meshes::SkyVertexData>()
 				.vertex_shader(sky_vert.main_entry_point(), ())
@@ -418,7 +418,7 @@ impl MapRenderSystem {
 		sampler: Arc<Sampler>,
 		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
 		rotation: Vector3<Angle>,
-	) -> Result<AutoCommandBufferBuilder, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<AutoCommandBufferBuilder> {
 		let (flat_storage, map_storage, wall_texture_storage, map_component) = world
 			.system_data::<(
 				ReadExpect<AssetStorage<Flat>>,
@@ -549,7 +549,7 @@ impl SpriteRenderSystem {
 	fn new(
 		render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
 		video: &Video,
-	) -> Result<SpriteRenderSystem, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<SpriteRenderSystem> {
 		let device = render_pass.device();
 
 		// Create pipeline
@@ -559,7 +559,7 @@ impl SpriteRenderSystem {
 		let pipeline = Arc::new(
 			GraphicsPipeline::start()
 				.render_pass(
-					Subpass::from(render_pass.clone(), 0).ok_or("Subpass index out of range")?,
+					Subpass::from(render_pass.clone(), 0).ok_or(anyhow!("Subpass index out of range"))?,
 				)
 				.vertex_input(OneVertexOneInstanceDefinition::<VertexData, InstanceData>::new())
 				.vertex_shader(vert.main_entry_point(), ())
@@ -619,7 +619,7 @@ impl SpriteRenderSystem {
 		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
 		yaw: Angle,
 		view_pos: Vector3<f32>,
-	) -> Result<AutoCommandBufferBuilder, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<AutoCommandBufferBuilder> {
 		let (
 			entities,
 			client,

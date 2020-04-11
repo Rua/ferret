@@ -20,7 +20,7 @@ pub struct Socket {
 }
 
 impl Socket {
-	pub fn new(ipv4_addr: Ipv4Addr, ipv6_addr: Ipv6Addr, port: u16, sender: Sender<Vec<u8>>, receiver: Receiver<Vec<u8>>) -> Result<Rc<Socket>, Box<dyn Error + Send + Sync>> {
+	pub fn new(ipv4_addr: Ipv4Addr, ipv6_addr: Ipv6Addr, port: u16, sender: Sender<Vec<u8>>, receiver: Receiver<Vec<u8>>) -> anyhow::Result<Rc<Socket>> {
 		let ipv4_addr_port = SocketAddrV4::new(ipv4_addr, port);
 		let v4 = bind_v4(ipv4_addr_port);
 

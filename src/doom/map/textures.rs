@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use crate::{
 	assets::{Asset, AssetFormat, AssetHandle, DataSource},
 	doom::image::{IAColor, Image, ImageFormat},
@@ -6,7 +7,6 @@ use byteorder::{ReadBytesExt, LE};
 use derivative::Derivative;
 use std::{
 	collections::HashMap,
-	error::Error,
 	io::{Cursor, Read, Seek, SeekFrom},
 	str,
 	sync::Arc,
@@ -23,7 +23,7 @@ impl Asset for Flat {
 	fn import(
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Intermediate> {
 		let mut reader = Cursor::new(source.load(name)?);
 		let mut pixels = [0u8; 64 * 64];
 		reader.read_exact(&mut pixels)?;
@@ -46,7 +46,7 @@ impl AssetFormat for PNamesFormat {
 		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(name)?);
 		let count = reader.read_u32::<LE>()? as usize;
 		let mut ret = Vec::with_capacity(count);
@@ -71,7 +71,7 @@ impl Asset for WallTexture {
 	fn import(
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Intermediate, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Intermediate> {
 		let pnames = PNamesFormat.import("PNAMES", source)?;
 		let mut texture_info = TexturesFormat.import("TEXTURE1", source)?;
 		texture_info.extend(TexturesFormat.import("TEXTURE2", source)?);
@@ -79,12 +79,12 @@ impl Asset for WallTexture {
 		let name = name.to_ascii_uppercase();
 		let texture_info = texture_info
 			.get(&name)
-			.ok_or(format!("Texture {} does not exist", name))?;
+			.ok_or(anyhow!("Texture {} does not exist", name))?;
 
 		let mut data = vec![IAColor::default(); texture_info.size[0] * texture_info.size[1]];
 
 		texture_info.patches.iter().try_for_each(
-			|patch_info| -> Result<(), Box<dyn Error + Send + Sync>> {
+			|patch_info| -> anyhow::Result<()> {
 				let name =
 					String::from(str::from_utf8(&pnames[patch_info.index])?.trim_end_matches('\0'));
 				let patch = ImageFormat.import(&name, source)?;
@@ -153,7 +153,7 @@ impl AssetFormat for TexturesFormat {
 		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Asset> {
 		RawTexturesFormat
 			.import(name, source)?
 			.into_iter()
@@ -202,7 +202,7 @@ impl AssetFormat for RawTexturesFormat {
 		&self,
 		name: &str,
 		source: &impl DataSource,
-	) -> Result<Self::Asset, Box<dyn Error + Send + Sync>> {
+	) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(name)?);
 
 		let count = reader.read_u32::<LE>()? as usize;
