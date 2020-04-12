@@ -1,18 +1,90 @@
-use anyhow::anyhow;
-use std::{sync::Arc, u32};
+use anyhow::Context;
+use std::sync::Arc;
 use vulkano::{
 	app_info_from_cargo_toml,
 	device::{Device, DeviceExtensions, Features, Queue},
-	format::Format,
-	image::{AttachmentImage, ImageCreationError},
-	instance::{Instance, InstanceExtensions, PhysicalDevice, QueueFamily},
+	instance::{debug::DebugCallback, Instance, InstanceExtensions, PhysicalDevice, QueueFamily},
 	swapchain::Surface,
 };
-use winit::window::Window;
+use vulkano_win::VkSurfaceBuild;
+use winit::{
+	dpi::Size,
+	event_loop::EventLoop,
+	window::{Window, WindowBuilder},
+};
 
-pub(super) fn create_instance() -> anyhow::Result<Arc<Instance>> {
+pub struct RenderContext {
+	device: Arc<Device>,
+	queues: Queues,
+	surface: Arc<Surface<Window>>,
+}
+
+impl RenderContext {
+	pub fn new(
+		event_loop: &EventLoop<()>,
+	) -> anyhow::Result<(RenderContext, Option<DebugCallback>)> {
+		// Load the Vulkan library
+		vulkano::instance::loader::auto_loader().context("Couldn't load the Vulkan library")?;
+
+		// Create Vulkan instance
+		let instance = create_instance().context("Couldn't create Vulkan instance")?;
+
+		let surface = WindowBuilder::new()
+			.with_min_inner_size(Size::Physical([320, 240].into()))
+			.with_inner_size(Size::Physical([800, 600].into()))
+			.with_title("Ferret")
+			.build_vk_surface(event_loop, instance.clone())
+			.context("Couldn't create Vulkan rendering window")?;
+
+		// Setup debug callback for validation layers
+		#[cfg(debug_assertions)]
+		let debug_callback = DebugCallback::errors_and_warnings(&instance, |ref message| {
+			if message.ty.validation {
+				log::error!("{}: {}", message.layer_prefix, message.description);
+			} else {
+				log::warn!("{}: {}", message.layer_prefix, message.description);
+			}
+		})
+		.ok();
+
+		#[cfg(not(debug_assertions))]
+		let debug_callback = None;
+
+		// Create Vulkan device
+		let (device, queues) =
+			create_device(&instance, &surface).context("Couldn't create Vulkan device")?;
+		log::info!(
+			"Selected Vulkan device: {}",
+			device.physical_device().name()
+		);
+
+		// All done!
+		Ok((
+			RenderContext {
+				device,
+				queues,
+				surface,
+			},
+			debug_callback,
+		))
+	}
+
+	pub fn device(&self) -> &Arc<Device> {
+		&self.device
+	}
+
+	pub fn queues(&self) -> &Queues {
+		&self.queues
+	}
+
+	pub fn surface(&self) -> &Arc<Surface<Window>> {
+		&self.surface
+	}
+}
+
+fn create_instance() -> anyhow::Result<Arc<Instance>> {
 	let mut instance_extensions = vulkano_win::required_extensions();
-	let supported_extensions = InstanceExtensions::supported_by_core()?;
+	let supported_extensions = InstanceExtensions::supported_by_core().unwrap();
 
 	let mut layers = Vec::new();
 
@@ -98,13 +170,13 @@ pub struct Queues {
 	pub graphics: Arc<Queue>,
 }
 
-pub(super) fn create_device(
+fn create_device(
 	instance: &Arc<Instance>,
 	surface: &Arc<Surface<Window>>,
 ) -> anyhow::Result<(Arc<Device>, Queues)> {
 	// Select physical device
 	let (physical_device, family) = find_suitable_physical_device(&instance, &surface)?
-		.ok_or(anyhow!("No suitable physical device found"))?;
+		.context("No suitable physical device found")?;
 
 	let features = Features::none();
 	let extensions = DeviceExtensions {
@@ -121,27 +193,4 @@ pub(super) fn create_device(
 			graphics: queues.next().unwrap(),
 		},
 	))
-}
-
-pub fn create_depth_buffer(
-	device: &Arc<Device>,
-	extent: [u32; 2],
-) -> anyhow::Result<Arc<AttachmentImage>> {
-	let allowed_formats = [
-		Format::D32Sfloat,
-		Format::D32Sfloat_S8Uint,
-		Format::D24Unorm_S8Uint,
-		Format::D16Unorm,
-		Format::D16Unorm_S8Uint,
-	];
-
-	for format in allowed_formats.iter().cloned() {
-		match AttachmentImage::transient(device.clone(), extent, format) {
-			Ok(buf) => return Ok(buf),
-			Err(ImageCreationError::FormatNotSupported) => continue,
-			Err(any) => Err(any)?,
-		}
-	}
-
-	Err(anyhow!("No suitable depth buffer format found"))
 }

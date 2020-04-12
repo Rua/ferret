@@ -1,5 +1,7 @@
-pub mod video;
-pub mod vulkan;
+mod context;
+mod target;
+
+pub use {context::RenderContext, target::RenderTarget};
 
 pub trait AsBytes {
 	fn as_bytes(&self) -> &[u8];

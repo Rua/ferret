@@ -10,12 +10,9 @@ use crate::{
 		sprite::{Sprite, SpriteImage},
 	},
 	geometry::Angle,
-	renderer::{
-		video::{RenderTarget, Video},
-		vulkan, AsBytes,
-	},
+	renderer::{AsBytes, RenderContext, RenderTarget},
 };
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use nalgebra::{Matrix4, Vector2, Vector3};
 use specs::{Component, DenseVecStorage, Entities, Join, ReadExpect, ReadStorage, RunNow, World};
 use specs_derive::Component;
@@ -60,11 +57,11 @@ pub struct RenderSystem {
 
 impl RenderSystem {
 	pub fn new(world: &World) -> anyhow::Result<RenderSystem> {
-		let video = world.fetch::<Video>();
+		let render_context = world.fetch::<RenderContext>();
 
 		// Create texture sampler
 		let sampler = Sampler::new(
-			video.device().clone(),
+			render_context.device().clone(),
 			Filter::Nearest,
 			Filter::Nearest,
 			MipmapMode::Nearest,
@@ -75,36 +72,43 @@ impl RenderSystem {
 			1.0,
 			0.0,
 			0.0,
-		)?;
+		)
+		.context("Couldn't create sampler")?;
 
 		// Create render target
-		let size = video.surface().window().inner_size().into();
-		let target = RenderTarget::new(video.surface().clone(), video.device().clone(), size)?;
-
-		// Create depth buffer
-		let depth_buffer = vulkan::create_depth_buffer(&video.device(), size)?;
+		let size = render_context.surface().window().inner_size().into();
+		let target = RenderTarget::new(
+			render_context.surface().clone(),
+			render_context.device().clone(),
+			size,
+			true,
+		)
+		.context("Couldn't create render target")?;
 
 		// Create render pass
-		let render_pass = Arc::new(single_pass_renderpass!(video.device().clone(),
-			attachments: {
-				color: {
-					load: Clear,
-					store: Store,
-					format: target.format(),
-					samples: 1,
+		let render_pass = Arc::new(
+			single_pass_renderpass!(render_context.device().clone(),
+				attachments: {
+					color: {
+						load: Clear,
+						store: Store,
+						format: target.image_format(),
+						samples: 1,
+					},
+					depth: {
+						load: Clear,
+						store: DontCare,
+						format: target.depth_format().unwrap(),
+						samples: 1,
+					}
 				},
-				depth: {
-					load: Clear,
-					store: DontCare,
-					format: ImageViewAccess::inner(&depth_buffer).format(),
-					samples: 1,
+				pass: {
+					color: [color],
+					depth_stencil: {depth}
 				}
-			},
-			pass: {
-				color: [color],
-				depth_stencil: {depth}
-			}
-		)?);
+			)
+			.context("Couldn't create render pass")?,
+		);
 
 		// Create framebuffers
 		let images = target.images();
@@ -114,8 +118,9 @@ impl RenderSystem {
 			framebuffers.push(Arc::new(
 				Framebuffer::start(render_pass.clone())
 					.add(image.clone())?
-					.add(depth_buffer.clone())?
-					.build()?,
+					.add(target.depth_buffer().unwrap().clone())?
+					.build()
+					.context("Couldn't create framebuffers")?,
 			) as Arc<dyn FramebufferAbstract + Send + Sync>);
 		}
 
@@ -133,23 +138,28 @@ impl RenderSystem {
 			readonly: true,
 		})];
 
-		let layout = Arc::new(UnsafeDescriptorSetLayout::new(
-			video.device().clone(),
-			descriptors.iter().cloned(),
-		)?);
+		let layout = Arc::new(
+			UnsafeDescriptorSetLayout::new(
+				render_context.device().clone(),
+				descriptors.iter().cloned(),
+			)
+			.context("Couldn't create descriptor set layout")?,
+		);
 		let matrix_set_pool = FixedSizeDescriptorSetsPool::new(layout);
 
 		Ok(RenderSystem {
 			framebuffers,
-			map: MapRenderSystem::new(render_pass.clone())?,
+			map: MapRenderSystem::new(render_pass.clone())
+				.context("Couldn't create MapRenderSystem")?,
 			matrix_uniform_pool: CpuBufferPool::new(
-				video.device().clone(),
+				render_context.device().clone(),
 				BufferUsage::uniform_buffer(),
 			),
 			matrix_set_pool,
 			render_pass: render_pass.clone(),
 			sampler,
-			sprites: SpriteRenderSystem::new(render_pass, &*video)?,
+			sprites: SpriteRenderSystem::new(render_pass, &*render_context)
+				.context("Couldn't create SpriteRenderSystem")?,
 			target,
 		})
 	}
@@ -162,10 +172,13 @@ impl RenderSystem {
 			.window()
 			.inner_size()
 			.into();
-		self.target = self.target.recreate(size)?;
-		let depth_buffer = vulkan::create_depth_buffer(self.target.device(), size)?;
+		self.target = self
+			.target
+			.recreate(size)
+			.context("Couldn't recreate render target")?;
 
 		let images = self.target.images();
+		let depth_buffer = self.target.depth_buffer().unwrap();
 		let mut framebuffers = Vec::with_capacity(images.len());
 
 		for image in images.iter() {
@@ -173,7 +186,8 @@ impl RenderSystem {
 				Framebuffer::start(self.render_pass.clone())
 					.add(image.clone())?
 					.add(depth_buffer.clone())?
-					.build()?,
+					.build()
+					.context("Couldn't recreate framebuffers")?,
 			) as Arc<dyn FramebufferAbstract + Send + Sync>);
 		}
 
@@ -183,15 +197,15 @@ impl RenderSystem {
 	}
 
 	pub fn draw(&mut self, world: &World) -> anyhow::Result<()> {
-		let video = world.fetch::<Video>();
-		let queues = video.queues();
+		let render_context = world.fetch::<RenderContext>();
+		let queues = render_context.queues();
 
 		// Prepare for drawing
 		let (image_num, future) = match self.target.acquire_next_image() {
 			Ok((_, true, _)) => return self.recreate(),
 			Ok((image_num, false, future)) => (image_num, future),
 			Err(AcquireError::OutOfDate) => return self.recreate(),
-			Err(x) => Err(x)?,
+			Err(x) => Err(x).context("Couldn't acquire swapchain framebuffer")?,
 		};
 
 		let framebuffer = self.framebuffers[image_num].clone();
@@ -213,7 +227,8 @@ impl RenderSystem {
 			self.target.device().clone(),
 			queues.graphics.family(),
 		)?
-		.begin_render_pass(framebuffer, false, clear_value)?;
+		.begin_render_pass(framebuffer, false, clear_value)
+		.context("Couldn't begin render pass")?;
 
 		// Projection matrix
 		// Doom had non-square pixels, with a resolution of 320x200 (16:10) running on a 4:3
@@ -261,39 +276,48 @@ impl RenderSystem {
 			);
 
 			// Draw the map
-			command_buffer_builder = self.map.draw(
-				world,
-				command_buffer_builder,
-				dynamic_state.clone(),
-				self.sampler.clone(),
-				matrix_set.clone(),
-				rotation,
-			)?;
+			command_buffer_builder = self
+				.map
+				.draw(
+					world,
+					command_buffer_builder,
+					dynamic_state.clone(),
+					self.sampler.clone(),
+					matrix_set.clone(),
+					rotation,
+				)
+				.context("Draw error")?;
 
 			// Draw sprites
-			command_buffer_builder = self.sprites.draw(
-				world,
-				command_buffer_builder,
-				dynamic_state,
-				self.sampler.clone(),
-				matrix_set,
-				rotation[2],
-				position,
-			)?;
+			command_buffer_builder = self
+				.sprites
+				.draw(
+					world,
+					command_buffer_builder,
+					dynamic_state,
+					self.sampler.clone(),
+					matrix_set,
+					rotation[2],
+					position,
+				)
+				.context("Draw error")?;
 		}
 
 		// Finalise
 		let command_buffer = Arc::new(command_buffer_builder.end_render_pass()?.build()?);
 
 		future
-			.then_execute(queues.graphics.clone(), command_buffer)?
+			.then_execute(queues.graphics.clone(), command_buffer)
+			.context("Couldn't execute command buffer")?
 			.then_swapchain_present(
 				queues.graphics.clone(),
 				self.target.swapchain().clone(),
 				image_num,
 			)
-			.then_signal_fence_and_flush()?
-			.wait(None)?;
+			.then_signal_fence_and_flush()
+			.context("Couldn't flush command buffer")?
+			.wait(None)
+			.context("Couldn't flush command buffer")?;
 
 		Ok(())
 	}
@@ -304,7 +328,7 @@ impl<'a> RunNow<'a> for RenderSystem {
 
 	fn run_now(&mut self, world: &'a World) {
 		self.draw(world).unwrap_or_else(|e| {
-			panic!("Error while rendering: {}", e);
+			panic!("{:?}", e.context("Error while rendering"));
 		});
 	}
 }
@@ -354,8 +378,10 @@ impl MapRenderSystem {
 		let device = render_pass.device();
 
 		// Create pipeline for normal parts of the map
-		let normal_vert = map_normal_vert::Shader::load(device.clone())?;
-		let normal_frag = normal_frag::Shader::load(device.clone())?;
+		let normal_vert =
+			map_normal_vert::Shader::load(device.clone()).context("Couldn't load shader")?;
+		let normal_frag =
+			normal_frag::Shader::load(device.clone()).context("Couldn't load shader")?;
 
 		let normal_pipeline = Arc::new(
 			GraphicsPipeline::start()
@@ -371,7 +397,8 @@ impl MapRenderSystem {
 				.viewports_dynamic_scissors_irrelevant(1)
 				.cull_mode_back()
 				.depth_stencil_simple_depth()
-				.build(device.clone())?,
+				.build(device.clone())
+				.context("Couldn't create pipeline")?,
 		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
 		// Create pipeline for sky
@@ -381,8 +408,7 @@ impl MapRenderSystem {
 		let sky_pipeline = Arc::new(
 			GraphicsPipeline::start()
 				.render_pass(
-					Subpass::from(render_pass.clone(), 0)
-						.ok_or(anyhow!("Subpass index out of range"))?,
+					Subpass::from(render_pass.clone(), 0).context("Subpass index out of range")?,
 				)
 				.vertex_input_single_buffer::<super::map::meshes::SkyVertexData>()
 				.vertex_shader(sky_vert.main_entry_point(), ())
@@ -392,7 +418,8 @@ impl MapRenderSystem {
 				.viewports_dynamic_scissors_irrelevant(1)
 				.cull_mode_back()
 				.depth_stencil_simple_depth()
-				.build(device.clone())?,
+				.build(device.clone())
+				.context("Couldn't create pipeline")?,
 		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
 		Ok(MapRenderSystem {
@@ -432,7 +459,8 @@ impl MapRenderSystem {
 		for map_dynamic in map_component.join() {
 			let map = map_storage.get(&map_dynamic.map).unwrap();
 			let (flat_meshes, sky_mesh, wall_meshes) =
-				crate::doom::map::meshes::make_meshes(map, map_dynamic, world)?;
+				crate::doom::map::meshes::make_meshes(map, map_dynamic, world)
+					.context("Couldn't generate map mesh")?;
 
 			// Draw the walls
 			for (handle, mesh) in wall_meshes {
@@ -474,14 +502,16 @@ impl MapRenderSystem {
 						.build()?,
 				);
 
-				command_buffer_builder = command_buffer_builder.draw_indexed(
-					self.normal_pipeline.clone(),
-					&dynamic_state,
-					vec![Arc::new(vertex_buffer)],
-					index_buffer,
-					(matrix_set.clone(), texture_set.clone()),
-					(),
-				)?;
+				command_buffer_builder = command_buffer_builder
+					.draw_indexed(
+						self.normal_pipeline.clone(),
+						&dynamic_state,
+						vec![Arc::new(vertex_buffer)],
+						index_buffer,
+						(matrix_set.clone(), texture_set.clone()),
+						(),
+					)
+					.context("Draw error")?;
 			}
 
 			// Draw the sky
@@ -504,14 +534,16 @@ impl MapRenderSystem {
 					.build()?,
 			);
 
-			command_buffer_builder = command_buffer_builder.draw_indexed(
-				self.sky_pipeline.clone(),
-				&dynamic_state,
-				vec![Arc::new(vertex_buffer)],
-				index_buffer,
-				(matrix_set.clone(), texture_params_set.clone()),
-				(),
-			)?;
+			command_buffer_builder = command_buffer_builder
+				.draw_indexed(
+					self.sky_pipeline.clone(),
+					&dynamic_state,
+					vec![Arc::new(vertex_buffer)],
+					index_buffer,
+					(matrix_set.clone(), texture_params_set.clone()),
+					(),
+				)
+				.context("Draw error")?;
 		}
 
 		Ok(command_buffer_builder)
@@ -550,19 +582,18 @@ pub struct SpriteRenderSystem {
 impl SpriteRenderSystem {
 	fn new(
 		render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
-		video: &Video,
+		render_context: &RenderContext,
 	) -> anyhow::Result<SpriteRenderSystem> {
 		let device = render_pass.device();
 
 		// Create pipeline
-		let vert = sprite_vert::Shader::load(device.clone())?;
-		let frag = normal_frag::Shader::load(device.clone())?;
+		let vert = sprite_vert::Shader::load(device.clone()).context("Couldn't load shader")?;
+		let frag = normal_frag::Shader::load(device.clone()).context("Couldn't load shader")?;
 
 		let pipeline = Arc::new(
 			GraphicsPipeline::start()
 				.render_pass(
-					Subpass::from(render_pass.clone(), 0)
-						.ok_or(anyhow!("Subpass index out of range"))?,
+					Subpass::from(render_pass.clone(), 0).context("Subpass index out of range")?,
 				)
 				.vertex_input(OneVertexOneInstanceDefinition::<VertexData, InstanceData>::new())
 				.vertex_shader(vert.main_entry_point(), ())
@@ -572,7 +603,8 @@ impl SpriteRenderSystem {
 				.viewports_dynamic_scissors_irrelevant(1)
 				.cull_mode_disabled()
 				.depth_stencil_simple_depth()
-				.build(device.clone())?,
+				.build(device.clone())
+				.context("Couldn't create pipeline")?,
 		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
 		// Create mesh
@@ -599,7 +631,7 @@ impl SpriteRenderSystem {
 			.iter()
 			.copied(),
 			BufferUsage::vertex_buffer(),
-			video.queues().graphics.clone(),
+			render_context.queues().graphics.clone(),
 		)?;
 
 		Ok(SpriteRenderSystem {
@@ -731,13 +763,15 @@ impl SpriteRenderSystem {
 
 			let instance_buffer = self.instance_buffer_pool.chunk(instance_data)?;
 
-			command_buffer_builder = command_buffer_builder.draw(
-				self.pipeline.clone(),
-				&dynamic_state,
-				vec![self.vertex_buffer.clone(), Arc::new(instance_buffer)],
-				(matrix_set.clone(), texture_set.clone()),
-				(),
-			)?;
+			command_buffer_builder = command_buffer_builder
+				.draw(
+					self.pipeline.clone(),
+					&dynamic_state,
+					vec![self.vertex_buffer.clone(), Arc::new(instance_buffer)],
+					(matrix_set.clone(), texture_set.clone()),
+					(),
+				)
+				.context("Draw error")?;
 		}
 
 		Ok(command_buffer_builder)

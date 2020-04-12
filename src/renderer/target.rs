@@ -1,90 +1,21 @@
-use crate::renderer::vulkan;
-pub use crate::renderer::vulkan::Queues;
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use std::sync::Arc;
 use vulkano::{
 	device::{Device, DeviceOwned},
 	format::Format,
-	image::{swapchain::SwapchainImage, ImageUsage},
-	instance::debug::DebugCallback,
+	image::{
+		swapchain::SwapchainImage, AttachmentImage, ImageCreationError, ImageUsage, ImageViewAccess,
+	},
 	swapchain::{
 		AcquireError, Capabilities, ColorSpace, CompositeAlpha, FullscreenExclusive, PresentMode,
 		Surface, Swapchain, SwapchainAcquireFuture,
 	},
 	sync::SharingMode,
 };
-use vulkano_win::VkSurfaceBuild;
-use winit::{
-	dpi::Size,
-	event_loop::EventLoop,
-	window::{Window, WindowBuilder},
-};
-
-pub struct Video {
-	device: Arc<Device>,
-	queues: Queues,
-	surface: Arc<Surface<Window>>,
-}
-
-impl Video {
-	pub fn new(event_loop: &EventLoop<()>) -> anyhow::Result<(Video, Option<DebugCallback>)> {
-		// Load the Vulkan library
-		vulkano::instance::loader::auto_loader()?;
-
-		// Create Vulkan instance
-		let instance = vulkan::create_instance()?;
-
-		let surface = WindowBuilder::new()
-			.with_min_inner_size(Size::Physical([320, 240].into()))
-			.with_inner_size(Size::Physical([800, 600].into()))
-			.with_title("Ferret")
-			.build_vk_surface(event_loop, instance.clone())?;
-
-		// Setup debug callback for validation layers
-		#[cfg(debug_assertions)]
-		let debug_callback = DebugCallback::errors_and_warnings(&instance, |ref message| {
-			if message.ty.validation {
-				log::error!("{}: {}", message.layer_prefix, message.description);
-			} else {
-				log::warn!("{}: {}", message.layer_prefix, message.description);
-			}
-		})
-		.ok();
-
-		#[cfg(not(debug_assertions))]
-		let debug_callback = None;
-
-		// Create Vulkan device
-		let (device, queues) = vulkan::create_device(&instance, &surface)?;
-		log::info!(
-			"Selected Vulkan device: {}",
-			device.physical_device().name()
-		);
-
-		// All done!
-		let video = Video {
-			device,
-			queues,
-			surface,
-		};
-
-		Ok((video, debug_callback))
-	}
-
-	pub fn device(&self) -> &Arc<Device> {
-		&self.device
-	}
-
-	pub fn queues(&self) -> &Queues {
-		&self.queues
-	}
-
-	pub fn surface(&self) -> &Arc<Surface<Window>> {
-		&self.surface
-	}
-}
+use winit::window::Window;
 
 pub struct RenderTarget {
+	depth_buffer: Option<Arc<AttachmentImage>>,
 	images: Vec<Arc<SwapchainImage<Window>>>,
 	swapchain: Arc<Swapchain<Window>>,
 }
@@ -94,10 +25,11 @@ impl RenderTarget {
 		surface: Arc<Surface<Window>>,
 		device: Arc<Device>,
 		dimensions: [u32; 2],
+		with_depth_buffer: bool,
 	) -> anyhow::Result<RenderTarget> {
 		let capabilities = surface.capabilities(device.physical_device())?;
 		let surface_format =
-			choose_format(&capabilities).ok_or(anyhow!("No suitable swapchain format found"))?;
+			choose_format(&capabilities).context("No suitable swapchain format found")?;
 		let present_mode = [PresentMode::Mailbox, PresentMode::Fifo]
 			.iter()
 			.copied()
@@ -115,8 +47,19 @@ impl RenderTarget {
 			..ImageUsage::none()
 		};
 
+		// Create depth buffer
+		let depth_buffer = if with_depth_buffer {
+			Some(
+				create_depth_buffer(&device, capabilities.current_extent.unwrap_or(dimensions))
+					.context("Couldn't create depth buffer")?,
+			)
+		} else {
+			None
+		};
+
+		// Create swapchain and images
 		let (swapchain, images) = Swapchain::new(
-			device,
+			device.clone(),
 			surface,
 			image_count,
 			surface_format,
@@ -130,9 +73,14 @@ impl RenderTarget {
 			FullscreenExclusive::Default,
 			true,
 			ColorSpace::SrgbNonLinear,
-		)?;
+		)
+		.context("Couldn't create swapchain")?;
 
-		Ok(RenderTarget { images, swapchain })
+		Ok(RenderTarget {
+			depth_buffer,
+			images,
+			swapchain,
+		})
 	}
 
 	pub fn acquire_next_image(
@@ -145,8 +93,14 @@ impl RenderTarget {
 		self.swapchain.device()
 	}
 
-	pub fn format(&self) -> Format {
+	pub fn image_format(&self) -> Format {
 		self.swapchain.format()
+	}
+
+	pub fn depth_format(&self) -> Option<Format> {
+		self.depth_buffer
+			.as_ref()
+			.map(|b| ImageViewAccess::inner(&*b).format())
 	}
 
 	pub fn recreate(&mut self, dimensions: [u32; 2]) -> anyhow::Result<RenderTarget> {
@@ -155,12 +109,24 @@ impl RenderTarget {
 			.surface()
 			.capabilities(self.swapchain.device().physical_device())?;
 		let surface_format =
-			choose_format(&capabilities).ok_or(anyhow!("No suitable swapchain format found"))?;
+			choose_format(&capabilities).context("No suitable swapchain format found")?;
 
 		let image_usage = ImageUsage {
 			color_attachment: true,
 			transfer_source: true,
 			..ImageUsage::none()
+		};
+
+		let depth_buffer = if self.depth_buffer.is_some() {
+			Some(
+				create_depth_buffer(
+					self.swapchain.device(),
+					capabilities.current_extent.unwrap_or(dimensions),
+				)
+				.context("Couldn't create depth buffer")?,
+			)
+		} else {
+			None
 		};
 
 		let (swapchain, images) = Swapchain::with_old_swapchain(
@@ -179,9 +145,18 @@ impl RenderTarget {
 			true,
 			ColorSpace::SrgbNonLinear,
 			self.swapchain.clone(),
-		)?;
+		)
+		.context("Couldn't create swapchain")?;
 
-		Ok(RenderTarget { images, swapchain })
+		Ok(RenderTarget {
+			depth_buffer,
+			images,
+			swapchain,
+		})
+	}
+
+	pub fn depth_buffer(&self) -> Option<&Arc<AttachmentImage>> {
+		self.depth_buffer.as_ref()
 	}
 
 	pub fn images(&self) -> &Vec<Arc<SwapchainImage<Window>>> {
@@ -216,4 +191,27 @@ fn choose_format(capabilities: &Capabilities) -> Option<Format> {
 		.iter()
 		.cloned()
 		.find(|f| srgb_formats.iter().any(|g| g == f))
+}
+
+pub fn create_depth_buffer(
+	device: &Arc<Device>,
+	extent: [u32; 2],
+) -> anyhow::Result<Arc<AttachmentImage>> {
+	let allowed_formats = [
+		Format::D32Sfloat,
+		Format::D32Sfloat_S8Uint,
+		Format::D24Unorm_S8Uint,
+		Format::D16Unorm,
+		Format::D16Unorm_S8Uint,
+	];
+
+	for format in allowed_formats.iter().cloned() {
+		match AttachmentImage::transient(device.clone(), extent, format) {
+			Ok(buf) => return Ok(buf),
+			Err(ImageCreationError::FormatNotSupported) => continue,
+			Err(any) => Err(any)?,
+		}
+	}
+
+	Err(anyhow!("No suitable depth buffer format found"))
 }

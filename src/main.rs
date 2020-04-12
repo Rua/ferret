@@ -16,7 +16,7 @@ use crate::{
 	component::EntityTemplate,
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
 	logger::Logger,
-	renderer::{video::Video, AsBytes},
+	renderer::{AsBytes, RenderContext},
 };
 use anyhow::Context;
 use nalgebra::{Matrix4, Vector3};
@@ -45,8 +45,8 @@ fn main() -> anyhow::Result<()> {
 
 	let mut event_loop = EventLoop::new();
 
-	let (video, _debug_callback) =
-		Video::new(&event_loop).context("Could not initialise video system")?;
+	let (render_context, _debug_callback) =
+		RenderContext::new(&event_loop).context("Could not create rendering context")?;
 
 	let (sound_sender, sound_receiver) =
 		crossbeam_channel::unbounded::<Box<dyn Source<Item = f32> + Send>>();
@@ -63,8 +63,8 @@ fn main() -> anyhow::Result<()> {
 	});
 
 	let mut loader = doom::wad::WadLoader::new();
-	loader.add("doom.wad")?;
-	loader.add("doom.gwa")?;
+	loader.add("doom.wad").context("Couldn't load doom.wad")?;
+	loader.add("doom.gwa").context("Couldn't load doom.gwa")?;
 
 	let mut bindings = Bindings::new();
 	bindings.bind_action(
@@ -134,7 +134,7 @@ fn main() -> anyhow::Result<()> {
 
 	// Insert other resources
 	world.insert(Pcg64Mcg::from_entropy());
-	world.insert(video);
+	world.insert(render_context);
 	world.insert(sound_sender);
 	world.insert(loader);
 	world.insert(InputState::new());
@@ -145,7 +145,8 @@ fn main() -> anyhow::Result<()> {
 	world.insert(EventChannel::<doom::client::UseEvent>::new());
 
 	// Create systems
-	let mut render_system = doom::render::RenderSystem::new(&world)?;
+	let mut render_system =
+		doom::render::RenderSystem::new(&world).context("Couldn't create RenderSystem")?;
 	let mut sound_system = doom::sound::SoundSystem;
 	let mut update_dispatcher = DispatcherBuilder::new()
 		.with_thread_local(doom::client::PlayerCommandSystem::default())
@@ -184,8 +185,8 @@ fn main() -> anyhow::Result<()> {
 
 		// Process events from the system
 		event_loop.run_return(|event, _, control_flow| {
-			let (mut input_state, video) =
-				world.system_data::<(WriteExpect<InputState>, ReadExpect<Video>)>();
+			let (mut input_state, render_context) =
+				world.system_data::<(WriteExpect<InputState>, ReadExpect<RenderContext>)>();
 			input_state.process_event(&event);
 
 			match event {
@@ -203,7 +204,7 @@ fn main() -> anyhow::Result<()> {
 						state: ElementState::Pressed,
 						..
 					} => {
-						let window = video.surface().window();
+						let window = render_context.surface().window();
 						if let Err(msg) = window.set_cursor_grab(true) {
 							log::warn!("Couldn't grab cursor: {}", msg);
 						}
@@ -220,7 +221,7 @@ fn main() -> anyhow::Result<()> {
 							},
 						..
 					} => {
-						let window = video.surface().window();
+						let window = render_context.surface().window();
 						if let Err(msg) = window.set_cursor_grab(false) {
 							log::warn!("Couldn't release cursor: {}", msg);
 						}
@@ -278,13 +279,13 @@ fn main() -> anyhow::Result<()> {
 								mut sprite_storage,
 								mut sprite_image_storage,
 								mut source,
-								video,
+								render_context,
 							) = world.system_data::<(
 								ReadExpect<AssetStorage<crate::doom::image::Palette>>,
 								WriteExpect<AssetStorage<crate::doom::sprite::Sprite>>,
 								WriteExpect<AssetStorage<crate::doom::sprite::SpriteImage>>,
 								WriteExpect<crate::doom::wad::WadLoader>,
-								ReadExpect<crate::renderer::video::Video>,
+								ReadExpect<crate::renderer::RenderContext>,
 							)>();
 							let palette = palette_storage.get(&palette_handle).unwrap();
 							sprite_storage.build_waiting(|intermediate| {
@@ -322,7 +323,7 @@ fn main() -> anyhow::Result<()> {
 										height: image.size[1] as u32,
 									},
 									Format::R8G8B8A8Unorm,
-									video.queues().graphics.clone(),
+									render_context.queues().graphics.clone(),
 								)?;
 
 								Ok(crate::doom::sprite::SpriteImage { matrix, image })
@@ -368,11 +369,12 @@ fn main() -> anyhow::Result<()> {
 
 						// Build flats and wall textures
 						{
-							let (palette_storage, mut flat_storage, video) = world.system_data::<(
-								ReadExpect<AssetStorage<doom::image::Palette>>,
-								WriteExpect<AssetStorage<doom::map::textures::Flat>>,
-								ReadExpect<Video>,
-							)>();
+							let (palette_storage, mut flat_storage, render_context) = world
+								.system_data::<(
+									ReadExpect<AssetStorage<doom::image::Palette>>,
+									WriteExpect<AssetStorage<doom::map::textures::Flat>>,
+									ReadExpect<RenderContext>,
+								)>();
 							let palette = palette_storage.get(&palette_handle).unwrap();
 							flat_storage.build_waiting(|image| {
 								let data: Vec<_> = image
@@ -395,7 +397,7 @@ fn main() -> anyhow::Result<()> {
 										height: image.size[1] as u32,
 									},
 									Format::R8G8B8A8Unorm,
-									video.queues().graphics.clone(),
+									render_context.queues().graphics.clone(),
 								)?;
 
 								Ok(image)
@@ -403,11 +405,11 @@ fn main() -> anyhow::Result<()> {
 						}
 
 						{
-							let (palette_storage, mut wall_texture_storage, video) = world
+							let (palette_storage, mut wall_texture_storage, render_context) = world
 								.system_data::<(
 									ReadExpect<AssetStorage<doom::image::Palette>>,
 									WriteExpect<AssetStorage<doom::map::textures::WallTexture>>,
-									ReadExpect<Video>,
+									ReadExpect<RenderContext>,
 								)>();
 							let palette = palette_storage.get(&palette_handle).unwrap();
 							wall_texture_storage.build_waiting(|image| {
@@ -430,7 +432,7 @@ fn main() -> anyhow::Result<()> {
 										height: image.size[1] as u32,
 									},
 									Format::R8G8B8A8Unorm,
-									video.queues().graphics.clone(),
+									render_context.queues().graphics.clone(),
 								)?;
 
 								Ok(image)
