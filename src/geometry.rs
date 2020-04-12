@@ -129,6 +129,7 @@ impl Interval {
 		ret
 	}
 
+	#[inline]
 	pub fn len(self) -> f32 {
 		self.max - self.min
 	}
@@ -155,6 +156,7 @@ impl Interval {
 		}
 	}
 
+	#[inline]
 	pub fn add(self, value: f32) -> Interval {
 		Interval {
 			min: f32::min(self.min, value),

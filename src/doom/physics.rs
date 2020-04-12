@@ -84,6 +84,12 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 					// Push back against the collision
 					let change = intersect.normal * new_velocity.dot(&intersect.normal) * 1.01;
 					new_velocity -= change;
+
+					// Avoid bouncing too much
+					if new_velocity.dot(&velocity.velocity) <= 0.0 {
+						new_velocity = nalgebra::zero();
+						break;
+					}
 				} else {
 					new_position += move_step;
 					break;
