@@ -2,7 +2,7 @@ use crate::{
 	assets::AssetStorage,
 	doom::{
 		components::{Transform, Velocity},
-		map::{Map, MapDynamic},
+		map::{GLSSect, Map, MapDynamic},
 	},
 	geometry::{Interval, Line2, AABB2, AABB3},
 };
@@ -66,7 +66,7 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 			let mut new_position = transform_component.get(entity).unwrap().position;
 			let mut new_velocity = velocity.velocity;
 
-			if new_velocity == nalgebra::zero::<Vector3<f32>>() {
+			if new_velocity == Vector3::zeros() {
 				continue;
 			}
 
@@ -87,7 +87,7 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 
 					// Avoid bouncing too much
 					if new_velocity.dot(&velocity.velocity) <= 0.0 {
-						new_velocity = nalgebra::zero();
+						new_velocity = Vector3::zeros();
 						break;
 					}
 				} else {
@@ -131,6 +131,8 @@ struct MoveTracer<'a> {
 	box_collider_component: &'a ReadStorage<'a, BoxCollider>,
 }
 
+const DISTANCE_EPSILON: f32 = 0.03125;
+
 impl<'a> MoveTracer<'a> {
 	fn trace(
 		&self,
@@ -153,13 +155,28 @@ impl<'a> MoveTracer<'a> {
 			}
 		}
 
-		if move_step[2] != 0.0 {
-			for sector_index in 0..self.map.sectors.len() {
-				if let Some(intersect) = self.trace_sector(&entity_bbox, move_step, sector_index) {
-					if intersect.fraction < ret.as_ref().map_or(1.0, |x| x.fraction)
-						&& solid_mask.intersects(intersect.solid_mask)
-					{
-						ret = Some(intersect);
+		for sector_index in 0..self.map.sectors.len() {
+			let sector = &self.map.sectors[sector_index];
+			let sector_dynamic = &self.map_dynamic.sectors[sector_index];
+
+			for subsector in sector.subsectors.iter().map(|i| &self.map.subsectors[*i]) {
+				for (sector_z, bbox_z, normal) in &[
+					(sector_dynamic.interval.max, entity_bbox[2].max, -1.0),
+					(sector_dynamic.interval.min, entity_bbox[2].min, 1.0),
+				] {
+					if let Some(intersect) = self.trace_subsector(
+						&entity_bbox,
+						move_step,
+						subsector,
+						*sector_z,
+						*bbox_z,
+						*normal,
+					) {
+						if intersect.fraction < ret.as_ref().map_or(1.0, |x| x.fraction)
+							&& solid_mask.intersects(intersect.solid_mask)
+						{
+							ret = Some(intersect);
+						}
 					}
 				}
 			}
@@ -273,58 +290,83 @@ impl<'a> MoveTracer<'a> {
 		ret
 	}
 
-	fn trace_sector(
+	fn trace_subsector(
 		&self,
 		entity_bbox: &AABB3,
 		move_step: Vector3<f32>,
-		sector_index: usize,
+		subsector: &GLSSect,
+		sector_z: f32,
+		bbox_z: f32,
+		normal: f32,
 	) -> Option<Intersect> {
-		let sector = &self.map.sectors[sector_index];
-		let sector_dynamic = &self.map_dynamic.sectors[sector_index];
+		let mut interval = Interval::new(-1.0, 1.0);
+		let mut ret = None;
 
-		let intersect = if move_step[2] > 0.0 {
-			Intersect {
-				fraction: (sector_dynamic.interval.max - entity_bbox[2].max) / move_step[2],
-				normal: Vector3::new(0.0, 0.0, -1.0),
-				solid_mask: SolidMask::all(),
+		let start_dist = (bbox_z - sector_z) * normal;
+		let move_dist = move_step[2] * normal;
+
+		if move_dist < 0.0 {
+			let fraction = (start_dist - DISTANCE_EPSILON) / -move_dist;
+
+			if fraction > interval.min {
+				interval.min = fraction;
+				ret = Some(Intersect {
+					fraction: f32::max(0.0, fraction),
+					normal: Vector3::new(0.0, 0.0, normal),
+					solid_mask: SolidMask::all(),
+				});
 			}
 		} else {
-			Intersect {
-				fraction: (sector_dynamic.interval.min - entity_bbox[2].min) / move_step[2],
-				normal: Vector3::new(0.0, 0.0, 1.0),
-				solid_mask: SolidMask::all(),
+			if start_dist > 0.0 {
+				return None;
 			}
-		};
 
-		if intersect.fraction < 0.0 || intersect.fraction > 1.0 {
-			return None;
+			let fraction = (start_dist + DISTANCE_EPSILON) / -move_dist;
+
+			if fraction < interval.max {
+				interval.max = fraction;
+			}
 		}
 
-		let entity_bbox2 = AABB2::from(&(entity_bbox.offset(move_step * intersect.fraction)));
-		let entity_bbox_corners = [
-			Vector2::new(entity_bbox2[0].min, entity_bbox2[1].min),
-			Vector2::new(entity_bbox2[0].min, entity_bbox2[1].max),
-			Vector2::new(entity_bbox2[0].max, entity_bbox2[1].max),
-			Vector2::new(entity_bbox2[0].max, entity_bbox2[1].min),
-		];
+		let entity_bbox2 = AABB2::from(entity_bbox);
+		let move_step2 = Vector2::new(move_step[0], move_step[1]);
 
-		// Separating axis theorem
-		for subsector in sector.subsectors.iter().map(|i| &self.map.subsectors[*i]) {
-			if !entity_bbox2.overlaps(&subsector.bbox) {
+		for seg in subsector.segs.iter() {
+			let closest_points =
+				entity_bbox2
+					.vector()
+					.zip_map(&seg.normal, |b, n| if n < 0.0 { b.max } else { b.min });
+			let start_dist = (closest_points - seg.line.point).dot(&seg.normal);
+			let move_dist = move_step2.dot(&seg.normal);
+
+			if start_dist <= 0.0 && start_dist + move_dist <= 0.0 {
 				continue;
 			}
 
-			if subsector.segs.iter().all(|seg| {
-				Interval::from_iterator(entity_bbox_corners.iter().map(|c| seg.normal.dot(c)))
-					.overlaps(seg.interval)
-			}) {
-				// All axes had overlap, so the subsector as a whole does overlap
-				return Some(intersect);
+			if move_dist < 0.0 {
+				let fraction = (start_dist - DISTANCE_EPSILON) / -move_dist;
+
+				if fraction > interval.min {
+					interval.min = fraction;
+				}
+			} else {
+				if start_dist > 0.0 {
+					return None;
+				}
+
+				let fraction = (start_dist + DISTANCE_EPSILON) / -move_dist;
+
+				if fraction < interval.max {
+					interval.max = fraction;
+				}
 			}
 		}
 
-		// No overlapping subsectors were found
-		None
+		if !interval.is_empty() {
+			ret
+		} else {
+			None
+		}
 	}
 
 	fn trace_aabb(
@@ -342,47 +384,57 @@ impl<'a> MoveTracer<'a> {
 			return None;
 		}
 
-		let intervals = Vector3::from_iterator((0..3).map(|i| {
-			Interval::new(
-				// TODO: handle case where move_step.dir[i] == 0.0
-				(other_bbox[i].min - entity_bbox[i].max) / move_step[i],
-				(other_bbox[i].max - entity_bbox[i].min) / move_step[i],
-			)
-			.normalize()
-		}));
+		let mut interval = Interval::new(-1.0, 1.0);
+		let mut ret = None;
 
-		let intersection = intervals[0]
-			.intersection(intervals[1])
-			.intersection(intervals[2]);
+		for i in 0..3 {
+			for (entity, other, normal) in [
+				(entity_bbox[i].max, other_bbox[i].min, -1.0),
+				(entity_bbox[i].min, other_bbox[i].max, 1.0),
+			]
+			.iter()
+			{
+				let start_dist = (entity - other) * normal;
+				let move_dist = move_step[i] * normal;
 
-		if intersection.is_empty() || intersection.min < 0.0 || intersection.min > 1.0 {
-			return None;
+				if start_dist <= 0.0 && start_dist + move_dist <= 0.0 {
+					continue;
+				}
+
+				if move_dist < 0.0 {
+					let fraction = (start_dist - DISTANCE_EPSILON) / -move_dist;
+
+					if fraction > interval.min {
+						interval.min = fraction;
+						ret = Some(Intersect {
+							fraction: f32::max(0.0, interval.min),
+							normal: {
+								let mut n = Vector3::zeros();
+								n[i] = *normal;
+								n
+							},
+							solid_mask: box_collider.solid_mask,
+						});
+					}
+				} else {
+					if start_dist > 0.0 {
+						return None;
+					}
+
+					let fraction = (start_dist + DISTANCE_EPSILON) / -move_dist;
+
+					if fraction < interval.max {
+						interval.max = fraction;
+					}
+				}
+			}
 		}
 
-		Some(Intersect {
-			fraction: intersection.min,
-			// TODO: make less ugly/more generic
-			normal: if intersection.min == intervals[0].min {
-				if move_step[0] > 0.0 {
-					Vector3::new(-1.0, 0.0, 0.0)
-				} else {
-					Vector3::new(1.0, 0.0, 0.0)
-				}
-			} else if intersection.min == intervals[1].min {
-				if move_step[1] > 0.0 {
-					Vector3::new(0.0, -1.0, 0.0)
-				} else {
-					Vector3::new(0.0, 1.0, 0.0)
-				}
-			} else {
-				if move_step[2] > 0.0 {
-					Vector3::new(0.0, 0.0, -1.0)
-				} else {
-					Vector3::new(0.0, 0.0, 1.0)
-				}
-			},
-			solid_mask: box_collider.solid_mask,
-		})
+		if !interval.is_empty() {
+			ret
+		} else {
+			None
+		}
 	}
 }
 

@@ -366,7 +366,7 @@ pub fn build_map(
 
 			Ok(GLSeg {
 				line: Line2::new(vertices[0], dir),
-				normal: Vector2::new(dir[1], -dir[0]).normalize(),
+				normal: Vector2::new(-dir[1], dir[0]).normalize(),
 				interval: Interval::empty(),
 				linedef_index: data.linedef_index,
 				linedef_side: data.linedef_side,

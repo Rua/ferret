@@ -25,7 +25,7 @@ where
 {
 	#[inline]
 	pub fn new(point: VectorN<f32, D>, dir: VectorN<f32, D>) -> Line<D> {
-		assert_ne!(dir, nalgebra::zero());
+		assert_ne!(dir, VectorN::zeros());
 		Line { point, dir }
 	}
 }
@@ -118,7 +118,7 @@ impl Interval {
 		}
 	}*/
 
-	#[inline]
+	/*#[inline]
 	pub fn from_iterator(iter: impl IntoIterator<Item = f32>) -> Interval {
 		let mut ret = Interval::empty();
 
@@ -127,7 +127,7 @@ impl Interval {
 		}
 
 		ret
-	}
+	}*/
 
 	#[inline]
 	pub fn len(self) -> f32 {
@@ -144,7 +144,7 @@ impl Interval {
 		self.min >= other.min && self.max <= other.max
 	}
 
-	#[inline]
+	/*#[inline]
 	pub fn normalize(self) -> Interval {
 		if self.is_empty() {
 			Interval {
@@ -154,7 +154,7 @@ impl Interval {
 		} else {
 			self
 		}
-	}
+	}*/
 
 	#[inline]
 	pub fn add(self, value: f32) -> Interval {
@@ -250,6 +250,15 @@ where
 		Owned<f32, D>: Copy,
 	{
 		self.0.map(|i| i.min)
+	}
+
+	#[inline]
+	pub fn vector(&self) -> &VectorN<Interval, D>
+	where
+		DefaultAllocator: Allocator<Interval, D>,
+		Owned<Interval, D>: Copy,
+	{
+		&self.0
 	}
 
 	#[inline]
