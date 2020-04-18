@@ -6,6 +6,7 @@ use crate::{
 	},
 	geometry::{Interval, Line2, AABB2, AABB3},
 };
+use arrayvec::ArrayVec;
 use bitflags::bitflags;
 use lazy_static::lazy_static;
 use nalgebra::{Vector2, Vector3};
@@ -160,18 +161,15 @@ impl<'a> MoveTracer<'a> {
 			let sector_dynamic = &self.map_dynamic.sectors[sector_index];
 
 			for subsector in sector.subsectors.iter().map(|i| &self.map.subsectors[*i]) {
-				for (sector_z, bbox_z, normal) in &[
-					(sector_dynamic.interval.max, entity_bbox[2].max, -1.0),
-					(sector_dynamic.interval.min, entity_bbox[2].min, 1.0),
-				] {
-					if let Some(intersect) = self.trace_subsector(
-						&entity_bbox,
-						move_step,
-						subsector,
-						*sector_z,
-						*bbox_z,
-						*normal,
-					) {
+				for (distance, normal) in ArrayVec::from([
+					(-sector_dynamic.interval.max, Vector3::new(0.0, 0.0, -1.0)),
+					(sector_dynamic.interval.min, Vector3::new(0.0, 0.0, 1.0)),
+				])
+				.into_iter()
+				{
+					if let Some(intersect) =
+						self.trace_subsector(&entity_bbox, move_step, subsector, distance, normal)
+					{
 						if intersect.fraction < ret.as_ref().map_or(1.0, |x| x.fraction)
 							&& solid_mask.intersects(intersect.solid_mask)
 						{
@@ -295,78 +293,28 @@ impl<'a> MoveTracer<'a> {
 		entity_bbox: &AABB3,
 		move_step: Vector3<f32>,
 		subsector: &GLSSect,
-		sector_z: f32,
-		bbox_z: f32,
-		normal: f32,
+		distance: f32,
+		normal: Vector3<f32>,
 	) -> Option<Intersect> {
-		let mut interval = Interval::new(-1.0, 1.0);
-		let mut ret = None;
+		let planes = subsector
+			.segs
+			.iter()
+			.map(|seg| Plane {
+				distance: seg.line.point.dot(&seg.normal),
+				normal: Vector3::new(seg.normal[0], seg.normal[1], 0.0),
+				collides: false,
+			})
+			.chain(Some(Plane {
+				distance,
+				normal,
+				collides: true,
+			}));
 
-		let start_dist = (bbox_z - sector_z) * normal;
-		let move_dist = move_step[2] * normal;
-
-		if move_dist < 0.0 {
-			let fraction = (start_dist - DISTANCE_EPSILON) / -move_dist;
-
-			if fraction > interval.min {
-				interval.min = fraction;
-				ret = Some(Intersect {
-					fraction: f32::max(0.0, fraction),
-					normal: Vector3::new(0.0, 0.0, normal),
-					solid_mask: SolidMask::all(),
-				});
-			}
-		} else {
-			if start_dist > 0.0 {
-				return None;
-			}
-
-			let fraction = (start_dist + DISTANCE_EPSILON) / -move_dist;
-
-			if fraction < interval.max {
-				interval.max = fraction;
-			}
-		}
-
-		let entity_bbox2 = AABB2::from(entity_bbox);
-		let move_step2 = Vector2::new(move_step[0], move_step[1]);
-
-		for seg in subsector.segs.iter() {
-			let closest_points =
-				entity_bbox2
-					.vector()
-					.zip_map(&seg.normal, |b, n| if n < 0.0 { b.max } else { b.min });
-			let start_dist = (closest_points - seg.line.point).dot(&seg.normal);
-			let move_dist = move_step2.dot(&seg.normal);
-
-			if start_dist <= 0.0 && start_dist + move_dist <= 0.0 {
-				continue;
-			}
-
-			if move_dist < 0.0 {
-				let fraction = (start_dist - DISTANCE_EPSILON) / -move_dist;
-
-				if fraction > interval.min {
-					interval.min = fraction;
-				}
-			} else {
-				if start_dist > 0.0 {
-					return None;
-				}
-
-				let fraction = (start_dist + DISTANCE_EPSILON) / -move_dist;
-
-				if fraction < interval.max {
-					interval.max = fraction;
-				}
-			}
-		}
-
-		if !interval.is_empty() {
-			ret
-		} else {
-			None
-		}
+		trace_planes(&entity_bbox, move_step, planes).map(|(fraction, normal)| Intersect {
+			fraction,
+			normal,
+			solid_mask: SolidMask::all(),
+		})
 	}
 
 	fn trace_aabb(
@@ -384,57 +332,81 @@ impl<'a> MoveTracer<'a> {
 			return None;
 		}
 
-		let mut interval = Interval::new(-1.0, 1.0);
-		let mut ret = None;
-
-		for i in 0..3 {
-			for (entity, other, normal) in [
-				(entity_bbox[i].max, other_bbox[i].min, -1.0),
-				(entity_bbox[i].min, other_bbox[i].max, 1.0),
-			]
-			.iter()
-			{
-				let start_dist = (entity - other) * normal;
-				let move_dist = move_step[i] * normal;
-
-				if start_dist <= 0.0 && start_dist + move_dist <= 0.0 {
-					continue;
+		let dirs = [(-other_bbox.min(), -1.0), (other_bbox.max(), 1.0)];
+		let planes = dirs.iter().flat_map(|&(distance, n)| {
+			(0..3).map(move |i| {
+				let mut normal = Vector3::zeros();
+				normal[i] = n;
+				Plane {
+					distance: distance[i],
+					normal,
+					collides: true,
 				}
+			})
+		});
 
-				if move_dist < 0.0 {
-					let fraction = (start_dist - DISTANCE_EPSILON) / -move_dist;
+		trace_planes(&entity_bbox, move_step, planes).map(|(fraction, normal)| Intersect {
+			fraction,
+			normal,
+			solid_mask: box_collider.solid_mask,
+		})
+	}
+}
 
-					if fraction > interval.min {
-						interval.min = fraction;
-						ret = Some(Intersect {
-							fraction: f32::max(0.0, interval.min),
-							normal: {
-								let mut n = Vector3::zeros();
-								n[i] = *normal;
-								n
-							},
-							solid_mask: box_collider.solid_mask,
-						});
-					}
-				} else {
-					if start_dist > 0.0 {
-						return None;
-					}
+#[derive(Clone, Debug)]
+struct Plane {
+	distance: f32,
+	normal: Vector3<f32>,
+	collides: bool,
+}
 
-					let fraction = (start_dist + DISTANCE_EPSILON) / -move_dist;
+fn trace_planes(
+	entity_bbox: &AABB3,
+	move_step: Vector3<f32>,
+	planes: impl IntoIterator<Item = Plane>,
+) -> Option<(f32, Vector3<f32>)> {
+	let mut interval = Interval::new(-1.0, 1.0);
+	let mut ret = None;
 
-					if fraction < interval.max {
-						interval.max = fraction;
-					}
+	for plane in planes.into_iter() {
+		let closest_point =
+			entity_bbox
+				.vector()
+				.zip_map(&plane.normal, |b, n| if n < 0.0 { b.max } else { b.min });
+		let start_dist = closest_point.dot(&plane.normal) - plane.distance;
+		let move_dist = move_step.dot(&plane.normal);
+
+		if start_dist < 0.0 && start_dist + move_dist < 0.0 {
+			continue;
+		}
+
+		if move_dist < 0.0 {
+			let fraction = (start_dist - DISTANCE_EPSILON) / -move_dist;
+
+			if fraction > interval.min {
+				interval.min = fraction;
+
+				if plane.collides {
+					ret = Some((f32::max(0.0, interval.min), plane.normal));
 				}
 			}
-		}
-
-		if !interval.is_empty() {
-			ret
 		} else {
-			None
+			if start_dist > 0.0 {
+				return None;
+			}
+
+			let fraction = (start_dist + DISTANCE_EPSILON) / -move_dist;
+
+			if fraction < interval.max {
+				interval.max = fraction;
+			}
 		}
+	}
+
+	if !interval.is_empty() {
+		ret
+	} else {
+		None
 	}
 }
 
