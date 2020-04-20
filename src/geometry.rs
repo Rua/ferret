@@ -139,10 +139,10 @@ impl Interval {
 		self.min > self.max
 	}
 
-	#[inline]
+	/*#[inline]
 	pub fn is_inside(self, other: Interval) -> bool {
 		self.min >= other.min && self.max <= other.max
-	}
+	}*/
 
 	/*#[inline]
 	pub fn normalize(self) -> Interval {
