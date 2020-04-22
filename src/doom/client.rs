@@ -9,7 +9,7 @@ use crate::{
 	geometry::{Line2, Side},
 	input::{Bindings, InputState},
 };
-use nalgebra::Vector2;
+use nalgebra::{Vector2, Vector3};
 use shrev::EventChannel;
 use specs::{
 	Component, DenseVecStorage, Entity, Join, ReadExpect, ReadStorage, RunNow, World, WriteExpect,
@@ -59,7 +59,7 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 
 	fn run_now(&mut self, world: &'a World) {
 		let (client, mut transform_component, mut velocity_component) = world.system_data::<(
-			WriteExpect<Client>,
+			ReadExpect<Client>,
 			WriteStorage<Transform>,
 			WriteStorage<Velocity>,
 		)>();
@@ -76,17 +76,20 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 
 			let mut move_dir =
 				Vector2::new(client.command.axis_forward, client.command.axis_strafe);
+
 			let len = move_dir.norm();
 
 			if len > 1.0 {
 				move_dir /= len;
 			}
 
-			move_dir *= 20.0 / crate::doom::FRAME_TIME.as_secs_f32();
+			move_dir *= 20.0 * crate::doom::FRAME_RATE;
 
-			let angles = transform.rotation; //Vector3::new(0.into(), 0.into(), transform.rotation[2]);
+			let angles = Vector3::new(0.into(), 0.into(), transform.rotation[2]); //transform.rotation;
 			let axes = crate::geometry::angles_to_axes(angles);
-			velocity.velocity = axes[0] * move_dir[0] + axes[1] * move_dir[1];
+			let vel = axes[0] * move_dir[0] + axes[1] * move_dir[1];
+			velocity.velocity[0] = vel[0];
+			velocity.velocity[1] = vel[1];
 		}
 	}
 }

@@ -99,6 +99,16 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 				}
 			}
 
+			if let None = tracer.trace(
+				&entity_bbox.offset(new_position),
+				Vector3::new(0.0, 0.0, -0.25),
+				SolidMask::NON_MONSTER, // TODO solid mask
+			) {
+				// Entity isn't on ground, apply gravity
+				const GRAVITY: f32 = 1.0 * crate::doom::FRAME_RATE * crate::doom::FRAME_RATE;
+				new_velocity[2] -= GRAVITY * delta.as_secs_f32();
+			}
+
 			let transform = transform_component.get_mut(entity).unwrap();
 			transform.position = new_position;
 			velocity.velocity = new_velocity;

@@ -28,7 +28,7 @@ impl LinedefTypes {
 				.with_component(UseAction::DoorUse(DoorUse {
 					open_sound: sound_storage.load("DSDOROPN", &mut *loader),
 					close_sound: sound_storage.load("DSDORCLS", &mut *loader),
-					speed: 2.0 / crate::doom::FRAME_TIME.as_secs_f32(),
+					speed: 2.0 * crate::doom::FRAME_RATE,
 					wait_time: 150 * crate::doom::FRAME_TIME,
 				}))
         });
