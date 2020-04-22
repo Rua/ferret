@@ -71,33 +71,9 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 				continue;
 			}
 
-			let time_left = *delta;
-
-			for _ in 0..4 {
-				let move_step = new_velocity * time_left.as_secs_f32();
-
-				// TODO: variable solid mask
-				if let Some(intersect) = tracer.trace(
-					&entity_bbox.offset(new_position),
-					move_step,
-					SolidMask::NON_MONSTER,
-				) {
-					new_position += move_step * intersect.fraction;
-
-					// Push back against the collision
-					let change = intersect.normal * new_velocity.dot(&intersect.normal) * 1.01;
-					new_velocity -= change;
-
-					// Avoid bouncing too much
-					if new_velocity.dot(&velocity.velocity) <= 0.0 {
-						new_velocity = Vector3::zeros();
-						break;
-					}
-				} else {
-					new_position += move_step;
-					break;
-				}
-			}
+			let new = slide_move(&entity_bbox, new_position, new_velocity, *delta, &tracer);
+			new_position = new.0;
+			new_velocity = new.1;
 
 			if let None = tracer.trace(
 				&entity_bbox.offset(new_position),
@@ -114,6 +90,50 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 			velocity.velocity = new_velocity;
 		}
 	}
+}
+
+fn slide_move(
+	entity_bbox: &AABB3,
+	mut position: Vector3<f32>,
+	mut velocity: Vector3<f32>,
+	mut time_left: Duration,
+	tracer: &EntityTracer,
+) -> (Vector3<f32>, Vector3<f32>) {
+	let original_velocity = velocity;
+
+	for _ in 0..4 {
+		let move_step = velocity * time_left.as_secs_f32();
+
+		// TODO: variable solid mask
+		if let Some(intersect) = tracer.trace(
+			&entity_bbox.offset(position),
+			move_step,
+			SolidMask::NON_MONSTER,
+		) {
+			if let Some(t) = time_left.checked_sub(time_left.mul_f32(intersect.fraction)) {
+				time_left = t;
+			} else {
+				break;
+			}
+
+			position += move_step * intersect.fraction;
+
+			// Push back against the collision
+			let change = intersect.normal * velocity.dot(&intersect.normal) * 1.01;
+			velocity -= change;
+
+			// Avoid bouncing too much
+			if velocity.dot(&original_velocity) <= 0.0 {
+				velocity = Vector3::zeros();
+				break;
+			}
+		} else {
+			position += move_step;
+			break;
+		}
+	}
+
+	(position, velocity)
 }
 
 #[derive(Clone, Component, Copy, Debug)]
