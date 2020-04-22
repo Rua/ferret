@@ -2,7 +2,7 @@ use crate::{
 	assets::AssetStorage,
 	doom::{
 		components::{Transform, Velocity},
-		map::{Map, MapDynamic},
+		map::{GLSSect, Map, MapDynamic},
 	},
 	geometry::{Interval, AABB2, AABB3},
 };
@@ -56,7 +56,7 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 		)
 			.join()
 		{
-			let move_tracer = MoveTracer {
+			let tracer = EntityTracer {
 				map,
 				map_dynamic,
 				transform_component: &transform_component,
@@ -77,7 +77,7 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 				let move_step = new_velocity * time_left.as_secs_f32();
 
 				// TODO: variable solid mask
-				if let Some(intersect) = move_tracer.trace(
+				if let Some(intersect) = tracer.trace(
 					&entity_bbox.offset(new_position),
 					move_step,
 					SolidMask::NON_MONSTER,
@@ -121,22 +121,22 @@ bitflags! {
 }
 
 #[derive(Clone, Debug)]
-struct Intersect {
+pub struct Intersect {
 	fraction: f32,
 	normal: Vector3<f32>,
 }
 
-struct MoveTracer<'a> {
-	map: &'a Map,
-	map_dynamic: &'a MapDynamic,
-	transform_component: &'a WriteStorage<'a, Transform>,
-	box_collider_component: &'a ReadStorage<'a, BoxCollider>,
+pub struct EntityTracer<'a> {
+	pub map: &'a Map,
+	pub map_dynamic: &'a MapDynamic,
+	pub transform_component: &'a WriteStorage<'a, Transform>,
+	pub box_collider_component: &'a ReadStorage<'a, BoxCollider>,
 }
 
 const DISTANCE_EPSILON: f32 = 0.03125;
 
-impl<'a> MoveTracer<'a> {
-	fn trace(
+impl<'a> EntityTracer<'a> {
+	pub fn trace(
 		&self,
 		entity_bbox: &AABB3,
 		move_step: Vector3<f32>,
@@ -247,17 +247,17 @@ impl<'a> MoveTracer<'a> {
 		for (sector_index, sector) in self.map.sectors.iter().enumerate() {
 			let sector_dynamic = &self.map_dynamic.sectors[sector_index];
 
-			for subsector in sector
-				.subsectors
-				.iter()
-				.map(|i| &self.map.subsectors[*i])
-				.filter(|s| move_bbox2.overlaps(&s.bbox))
+			for (distance, normal) in ArrayVec::from([
+				(-sector_dynamic.interval.max, Vector3::new(0.0, 0.0, -1.0)),
+				(sector_dynamic.interval.min, Vector3::new(0.0, 0.0, 1.0)),
+			])
+			.into_iter()
 			{
-				for (distance, normal) in ArrayVec::from([
-					(-sector_dynamic.interval.max, Vector3::new(0.0, 0.0, -1.0)),
-					(sector_dynamic.interval.min, Vector3::new(0.0, 0.0, 1.0)),
-				])
-				.into_iter()
+				for subsector in sector
+					.subsectors
+					.iter()
+					.map(|i| &self.map.subsectors[*i])
+					.filter(|s| move_bbox2.overlaps(&s.bbox))
 				{
 					let iter = subsector
 						.segs
@@ -315,6 +315,60 @@ impl<'a> MoveTracer<'a> {
 					&& entity_solid_mask.intersects(box_collider.solid_mask)
 				{
 					ret = Some(Intersect { fraction, normal });
+				}
+			}
+		}
+
+		ret
+	}
+}
+
+pub struct SectorTracer<'a> {
+	pub transform_component: &'a ReadStorage<'a, Transform>,
+	pub box_collider_component: &'a ReadStorage<'a, BoxCollider>,
+}
+
+impl<'a> SectorTracer<'a> {
+	pub fn trace<'b>(
+		&self,
+		distance: f32,
+		normal: f32,
+		move_step: f32,
+		subsectors: impl Iterator<Item = &'b GLSSect> + Clone,
+	) -> Option<f32> {
+		let normal = Vector3::new(0.0, 0.0, normal);
+		let move_step = Vector3::new(0.0, 0.0, -move_step);
+		let mut ret: Option<f32> = None;
+
+		for (transform, box_collider) in
+			(self.transform_component, self.box_collider_component).join()
+		{
+			let entity_bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height)
+				.offset(transform.position);
+			let entity_bbox2 = AABB2::from(&entity_bbox);
+
+			for subsector in subsectors
+				.clone()
+				.filter(|s| entity_bbox2.overlaps(&s.bbox))
+			{
+				let iter = subsector
+					.segs
+					.iter()
+					.map(|seg| Plane {
+						distance: seg.line.point.dot(&seg.normal),
+						normal: Vector3::new(seg.normal[0], seg.normal[1], 0.0),
+						collides: false,
+					})
+					.chain(Some(Plane {
+						distance,
+						normal,
+						collides: true,
+					}));
+
+				if let Some((fraction, _)) = trace_planes(&entity_bbox, move_step, iter) {
+					if fraction < ret.unwrap_or(1.0) {
+						ret = Some(fraction);
+					}
 				}
 			}
 		}

@@ -3,7 +3,9 @@ use crate::{
 	audio::Sound,
 	doom::{
 		client::{UseAction, UseEvent},
+		components::Transform,
 		map::{LinedefRef, Map, MapDynamic, SectorRef},
+		physics::{BoxCollider, SectorTracer},
 	},
 	geometry::Side,
 };
@@ -35,8 +37,10 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 			use_event_channel,
 			map_asset_storage,
 			mut sound_queue,
+			box_collider_component,
 			linedef_ref_component,
 			sector_ref_component,
+			transform_component,
 			use_action_component,
 			mut door_active_component,
 			mut map_dynamic_component,
@@ -46,12 +50,19 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 			ReadExpect<EventChannel<UseEvent>>,
 			ReadExpect<AssetStorage<Map>>,
 			WriteExpect<Vec<(AssetHandle<Sound>, Entity)>>,
+			ReadStorage<BoxCollider>,
 			ReadStorage<LinedefRef>,
 			ReadStorage<SectorRef>,
+			ReadStorage<Transform>,
 			ReadStorage<UseAction>,
 			WriteStorage<DoorActive>,
 			WriteStorage<MapDynamic>,
 		)>();
+
+		let tracer = SectorTracer {
+			transform_component: &transform_component,
+			box_collider_component: &box_collider_component,
+		};
 
 		for use_event in use_event_channel.read(&mut self.use_event_reader) {
 			if let Some(UseAction::DoorUse(door_use)) =
@@ -80,7 +91,6 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 								DoorState::Closing => {
 									// Re-open the door
 									door_active.state = DoorState::Closed;
-									door_active.time_left = door_use.wait_time;
 								}
 								DoorState::Opening | DoorState::Open => {
 									// Close the door early
@@ -105,6 +115,7 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 										state: DoorState::Closed,
 										speed: door_use.speed,
 										time_left: door_use.wait_time,
+										wait_time: door_use.wait_time,
 									},
 								)
 								.unwrap();
@@ -130,7 +141,9 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 			let map_dynamic = map_dynamic_component
 				.get_mut(sector_ref.map_entity)
 				.unwrap();
+			let map = map_asset_storage.get(&map_dynamic.map).unwrap();
 			let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
+			let sector = &map.sectors[sector_ref.index];
 
 			match door_active.state {
 				DoorState::Closed => {
@@ -140,11 +153,13 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 					sound_queue.push((door_active.open_sound.clone(), entity));
 				}
 				DoorState::Opening => {
-					sector_dynamic.interval.max += door_active.speed * delta.as_secs_f32();
+					let move_step = door_active.speed * delta.as_secs_f32();
+					sector_dynamic.interval.max += move_step;
 
 					if sector_dynamic.interval.max > door_active.open_height {
 						sector_dynamic.interval.max = door_active.open_height;
 						door_active.state = DoorState::Open;
+						door_active.time_left = door_active.wait_time;
 					}
 				}
 				DoorState::Open => {
@@ -158,10 +173,23 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 					}
 				}
 				DoorState::Closing => {
-					sector_dynamic.interval.max -= door_active.speed * delta.as_secs_f32();
+					let move_step = -door_active.speed * delta.as_secs_f32();
 
-					if sector_dynamic.interval.max < door_active.close_height {
-						done.push(entity);
+					// TODO use fraction
+					if let Some(_fraction) = tracer.trace(
+						-sector_dynamic.interval.max,
+						-1.0,
+						move_step,
+						sector.subsectors.iter().map(|i| &map.subsectors[*i]),
+					) {
+						// Hit something on the way down, re-open the door
+						door_active.state = DoorState::Closed;
+					} else {
+						sector_dynamic.interval.max += move_step;
+
+						if sector_dynamic.interval.max < door_active.close_height {
+							done.push(entity);
+						}
 					}
 				}
 			}
@@ -192,6 +220,7 @@ pub struct DoorActive {
 	pub state: DoorState,
 	pub speed: f32,
 	pub time_left: Duration,
+	pub wait_time: Duration,
 }
 
 #[derive(Clone, Copy, Debug)]
