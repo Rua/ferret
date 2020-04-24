@@ -71,7 +71,14 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 				continue;
 			}
 
-			slide_move(&mut new_position, &mut new_velocity, &entity_bbox, *delta, &tracer);
+			step_slide_move(
+				&tracer,
+				&mut new_position,
+				&mut new_velocity,
+				&entity_bbox,
+				SolidMask::NON_MONSTER, // TODO solid mask
+				*delta,
+			);
 
 			let trace = tracer.trace(
 				&entity_bbox.offset(new_position),
@@ -92,21 +99,20 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 	}
 }
 
-fn slide_move(
+fn step_slide_move(
+	tracer: &EntityTracer,
 	position: &mut Vector3<f32>,
 	velocity: &mut Vector3<f32>,
 	entity_bbox: &AABB3,
+	solid_mask: SolidMask,
 	mut time_left: Duration,
-	tracer: &EntityTracer,
 ) {
 	let original_velocity = *velocity;
 
 	// Slide-move
 	for _ in 0..4 {
 		let move_step = *velocity * time_left.as_secs_f32();
-
-		// TODO: variable solid mask
-		let trace = tracer.trace(&entity_bbox.offset(*position), move_step, SolidMask::NON_MONSTER);
+		let trace = tracer.trace(&entity_bbox.offset(*position), move_step, solid_mask);
 
 		if let Some(collision) = trace.collision {
 			if let Some(t) = time_left.checked_sub(time_left.mul_f32(trace.fraction)) {
@@ -116,6 +122,20 @@ fn slide_move(
 			}
 
 			*position += move_step * trace.fraction;
+
+			if let Some(step_z) = collision.step_z {
+				// Try to step up
+				let move_step = Vector3::new(0.0, 0.0, step_z - position[2]);
+
+				if move_step[2] > 0.0 && move_step[2] < 24.5 {
+					let trace = tracer.trace(&entity_bbox.offset(*position), move_step, solid_mask);
+
+					if trace.collision.is_none() {
+						*position += trace.move_step;
+						continue;
+					}
+				}
+			}
 
 			// Push back against the collision
 			*velocity -= collision.normal * velocity.dot(&collision.normal) * 1.01;
@@ -156,6 +176,7 @@ pub struct Trace {
 #[derive(Clone, Debug)]
 pub struct TraceCollision {
 	pub normal: Vector3<f32>,
+	pub step_z: Option<f32>,
 }
 
 pub struct EntityTracer<'a> {
@@ -174,7 +195,11 @@ impl<'a> EntityTracer<'a> {
 		move_step: Vector3<f32>,
 		entity_solid_mask: SolidMask,
 	) -> Trace {
-		let mut ret = Trace { fraction: 1.0, move_step, collision: None };
+		let mut ret = Trace {
+			fraction: 1.0,
+			move_step,
+			collision: None,
+		};
 		let move_bbox = entity_bbox.union(&entity_bbox.offset(move_step));
 		let move_bbox2 = AABB2::from(&move_bbox);
 
@@ -215,15 +240,24 @@ impl<'a> EntityTracer<'a> {
 				let intersection = front_interval.intersection(*back_interval);
 				let union = front_interval.union(*back_interval);
 				let intervals = ArrayVec::from([
-					(Interval::new(union.min, intersection.min), SolidMask::all()),
+					(
+						Interval::new(union.min, intersection.min),
+						SolidMask::all(),
+						true,
+					),
 					(
 						Interval::new(intersection.min, intersection.max),
 						linedef.solid_mask,
+						false,
 					),
-					(Interval::new(intersection.max, union.max), SolidMask::all()),
+					(
+						Interval::new(intersection.max, union.max),
+						SolidMask::all(),
+						false,
+					),
 				]);
 
-				for (interval, solid_mask) in intervals.into_iter() {
+				for (interval, solid_mask, step) in intervals.into_iter() {
 					if interval.is_empty() {
 						continue;
 					}
@@ -248,7 +282,16 @@ impl<'a> EntityTracer<'a> {
 							ret = Trace {
 								fraction,
 								move_step: move_step * fraction,
-								collision: Some(TraceCollision { normal }),
+								collision: Some(TraceCollision {
+									normal,
+									step_z: if step
+										&& !entity_solid_mask.intersects(linedef.solid_mask)
+									{
+										Some(interval.max + DISTANCE_EPSILON)
+									} else {
+										None
+									},
+								}),
 							};
 						}
 					}
@@ -275,7 +318,10 @@ impl<'a> EntityTracer<'a> {
 						ret = Trace {
 							fraction,
 							move_step: move_step * fraction,
-							collision: Some(TraceCollision { normal }),
+							collision: Some(TraceCollision {
+								normal,
+								step_z: None,
+							}),
 						};
 					}
 				}
@@ -316,7 +362,10 @@ impl<'a> EntityTracer<'a> {
 							ret = Trace {
 								fraction,
 								move_step: move_step * fraction,
-								collision: Some(TraceCollision { normal }),
+								collision: Some(TraceCollision {
+									normal,
+									step_z: None,
+								}),
 							};
 						}
 					}
@@ -353,11 +402,15 @@ impl<'a> EntityTracer<'a> {
 			});
 
 			if let Some((fraction, normal)) = trace_planes(&entity_bbox, move_step, planes) {
-				if fraction < ret.fraction && entity_solid_mask.intersects(box_collider.solid_mask) {
+				if fraction < ret.fraction && entity_solid_mask.intersects(box_collider.solid_mask)
+				{
 					ret = Trace {
 						fraction,
 						move_step: move_step * fraction,
-						collision: Some(TraceCollision { normal }),
+						collision: Some(TraceCollision {
+							normal,
+							step_z: Some(other_bbox[2].max + DISTANCE_EPSILON),
+						}),
 					};
 				}
 			}
@@ -382,7 +435,11 @@ impl<'a> SectorTracer<'a> {
 	) -> Trace {
 		let normal = Vector3::new(0.0, 0.0, normal);
 		let move_step = Vector3::new(0.0, 0.0, move_step);
-		let mut ret = Trace { fraction: 1.0, move_step, collision: None };
+		let mut ret = Trace {
+			fraction: 1.0,
+			move_step,
+			collision: None,
+		};
 
 		for (transform, box_collider) in
 			(self.transform_component, self.box_collider_component).join()
@@ -414,7 +471,10 @@ impl<'a> SectorTracer<'a> {
 						ret = Trace {
 							fraction,
 							move_step: move_step * fraction,
-							collision: Some(TraceCollision { normal: -normal }),
+							collision: Some(TraceCollision {
+								normal: -normal,
+								step_z: None,
+							}),
 						};
 					}
 				}
