@@ -71,15 +71,15 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 				continue;
 			}
 
-			let new = slide_move(&entity_bbox, new_position, new_velocity, *delta, &tracer);
-			new_position = new.0;
-			new_velocity = new.1;
+			slide_move(&mut new_position, &mut new_velocity, &entity_bbox, *delta, &tracer);
 
-			if let None = tracer.trace(
+			let trace = tracer.trace(
 				&entity_bbox.offset(new_position),
 				Vector3::new(0.0, 0.0, -0.25),
 				SolidMask::NON_MONSTER, // TODO solid mask
-			) {
+			);
+
+			if trace.collision.is_none() {
 				// Entity isn't on ground, apply gravity
 				const GRAVITY: f32 = 1.0 * crate::doom::FRAME_RATE * crate::doom::FRAME_RATE;
 				new_velocity[2] -= GRAVITY * delta.as_secs_f32();
@@ -93,47 +93,43 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 }
 
 fn slide_move(
+	position: &mut Vector3<f32>,
+	velocity: &mut Vector3<f32>,
 	entity_bbox: &AABB3,
-	mut position: Vector3<f32>,
-	mut velocity: Vector3<f32>,
 	mut time_left: Duration,
 	tracer: &EntityTracer,
-) -> (Vector3<f32>, Vector3<f32>) {
-	let original_velocity = velocity;
+) {
+	let original_velocity = *velocity;
 
+	// Slide-move
 	for _ in 0..4 {
-		let move_step = velocity * time_left.as_secs_f32();
+		let move_step = *velocity * time_left.as_secs_f32();
 
 		// TODO: variable solid mask
-		if let Some(intersect) = tracer.trace(
-			&entity_bbox.offset(position),
-			move_step,
-			SolidMask::NON_MONSTER,
-		) {
-			if let Some(t) = time_left.checked_sub(time_left.mul_f32(intersect.fraction)) {
+		let trace = tracer.trace(&entity_bbox.offset(*position), move_step, SolidMask::NON_MONSTER);
+
+		if let Some(collision) = trace.collision {
+			if let Some(t) = time_left.checked_sub(time_left.mul_f32(trace.fraction)) {
 				time_left = t;
 			} else {
 				break;
 			}
 
-			position += move_step * intersect.fraction;
+			*position += move_step * trace.fraction;
 
 			// Push back against the collision
-			let change = intersect.normal * velocity.dot(&intersect.normal) * 1.01;
-			velocity -= change;
+			*velocity -= collision.normal * velocity.dot(&collision.normal) * 1.01;
 
 			// Avoid bouncing too much
 			if velocity.dot(&original_velocity) <= 0.0 {
-				velocity = Vector3::zeros();
+				*velocity = Vector3::zeros();
 				break;
 			}
 		} else {
-			position += move_step;
+			*position += move_step;
 			break;
 		}
 	}
-
-	(position, velocity)
 }
 
 #[derive(Clone, Component, Copy, Debug)]
@@ -151,9 +147,15 @@ bitflags! {
 }
 
 #[derive(Clone, Debug)]
-pub struct Intersect {
-	fraction: f32,
-	normal: Vector3<f32>,
+pub struct Trace {
+	pub fraction: f32,
+	pub move_step: Vector3<f32>,
+	pub collision: Option<TraceCollision>,
+}
+
+#[derive(Clone, Debug)]
+pub struct TraceCollision {
+	pub normal: Vector3<f32>,
 }
 
 pub struct EntityTracer<'a> {
@@ -171,8 +173,8 @@ impl<'a> EntityTracer<'a> {
 		entity_bbox: &AABB3,
 		move_step: Vector3<f32>,
 		entity_solid_mask: SolidMask,
-	) -> Option<Intersect> {
-		let mut ret: Option<Intersect> = None;
+	) -> Trace {
+		let mut ret = Trace { fraction: 1.0, move_step, collision: None };
 		let move_bbox = entity_bbox.union(&entity_bbox.offset(move_step));
 		let move_bbox2 = AABB2::from(&move_bbox);
 
@@ -242,10 +244,12 @@ impl<'a> EntityTracer<'a> {
 					let iter = planes.iter().cloned().chain(z_planes.into_iter());
 
 					if let Some((fraction, normal)) = trace_planes(&entity_bbox, move_step, iter) {
-						if fraction < ret.as_ref().map_or(1.0, |x| x.fraction)
-							&& entity_solid_mask.intersects(solid_mask)
-						{
-							ret = Some(Intersect { fraction, normal });
+						if fraction < ret.fraction && entity_solid_mask.intersects(solid_mask) {
+							ret = Trace {
+								fraction,
+								move_step: move_step * fraction,
+								collision: Some(TraceCollision { normal }),
+							};
 						}
 					}
 				}
@@ -267,8 +271,12 @@ impl<'a> EntityTracer<'a> {
 				let iter = planes.into_iter().chain(z_planes.into_iter());
 
 				if let Some((fraction, normal)) = trace_planes(&entity_bbox, move_step, iter) {
-					if fraction < ret.as_ref().map_or(1.0, |x| x.fraction) {
-						ret = Some(Intersect { fraction, normal });
+					if fraction < ret.fraction {
+						ret = Trace {
+							fraction,
+							move_step: move_step * fraction,
+							collision: Some(TraceCollision { normal }),
+						};
 					}
 				}
 			}
@@ -304,8 +312,12 @@ impl<'a> EntityTracer<'a> {
 						}));
 
 					if let Some((fraction, normal)) = trace_planes(&entity_bbox, move_step, iter) {
-						if fraction < ret.as_ref().map_or(1.0, |x| x.fraction) {
-							ret = Some(Intersect { fraction, normal });
+						if fraction < ret.fraction {
+							ret = Trace {
+								fraction,
+								move_step: move_step * fraction,
+								collision: Some(TraceCollision { normal }),
+							};
 						}
 					}
 				}
@@ -341,10 +353,12 @@ impl<'a> EntityTracer<'a> {
 			});
 
 			if let Some((fraction, normal)) = trace_planes(&entity_bbox, move_step, planes) {
-				if fraction < ret.as_ref().map_or(1.0, |x| x.fraction)
-					&& entity_solid_mask.intersects(box_collider.solid_mask)
-				{
-					ret = Some(Intersect { fraction, normal });
+				if fraction < ret.fraction && entity_solid_mask.intersects(box_collider.solid_mask) {
+					ret = Trace {
+						fraction,
+						move_step: move_step * fraction,
+						collision: Some(TraceCollision { normal }),
+					};
 				}
 			}
 		}
@@ -365,10 +379,10 @@ impl<'a> SectorTracer<'a> {
 		normal: f32,
 		move_step: f32,
 		subsectors: impl Iterator<Item = &'b GLSSect> + Clone,
-	) -> Option<f32> {
+	) -> Trace {
 		let normal = Vector3::new(0.0, 0.0, normal);
-		let move_step = Vector3::new(0.0, 0.0, -move_step);
-		let mut ret: Option<f32> = None;
+		let move_step = Vector3::new(0.0, 0.0, move_step);
+		let mut ret = Trace { fraction: 1.0, move_step, collision: None };
 
 		for (transform, box_collider) in
 			(self.transform_component, self.box_collider_component).join()
@@ -395,9 +409,13 @@ impl<'a> SectorTracer<'a> {
 						collides: true,
 					}));
 
-				if let Some((fraction, _)) = trace_planes(&entity_bbox, move_step, iter) {
-					if fraction < ret.unwrap_or(1.0) {
-						ret = Some(fraction);
+				if let Some((fraction, _)) = trace_planes(&entity_bbox, -move_step, iter) {
+					if fraction < ret.fraction {
+						ret = Trace {
+							fraction,
+							move_step: move_step * fraction,
+							collision: Some(TraceCollision { normal: -normal }),
+						};
 					}
 				}
 			}

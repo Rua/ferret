@@ -174,14 +174,15 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 				}
 				DoorState::Closing => {
 					let move_step = -door_active.speed * delta.as_secs_f32();
-
-					// TODO use fraction
-					if let Some(_fraction) = tracer.trace(
+					let trace = tracer.trace(
 						-sector_dynamic.interval.max,
 						-1.0,
 						move_step,
 						sector.subsectors.iter().map(|i| &map.subsectors[*i]),
-					) {
+					);
+
+					// TODO use fraction
+					if trace.collision.is_some() {
 						// Hit something on the way down, re-open the door
 						door_active.state = DoorState::Closed;
 					} else {
