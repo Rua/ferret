@@ -134,8 +134,8 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 					(40.0 * 2048.0 / 65536.0) * crate::doom::FRAME_RATE * crate::doom::FRAME_RATE;
 
 				let move_dir = Vector2::new(
-					client.command.axis_forward * FORWARD_ACCEL,
-					client.command.axis_strafe * STRAFE_ACCEL,
+					client.command.axis_forward.max(-1.0).min(1.0) * FORWARD_ACCEL,
+					client.command.axis_strafe.max(-1.0).min(1.0) * STRAFE_ACCEL,
 				);
 
 				let angles = Vector3::new(0.into(), 0.into(), transform.rotation[2]);
