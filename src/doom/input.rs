@@ -5,6 +5,7 @@ pub enum Action {
 	Attack,
 	SwitchWeapon(u8),
 	Use,
+	Walk,
 }
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]

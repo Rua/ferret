@@ -73,6 +73,14 @@ fn main() -> anyhow::Result<()> {
 	);
 	bindings.bind_action(doom::input::Action::Use, Button::Key(VirtualKeyCode::Space));
 	bindings.bind_action(doom::input::Action::Use, Button::Mouse(MouseButton::Middle));
+	bindings.bind_action(
+		doom::input::Action::Walk,
+		Button::Key(VirtualKeyCode::LShift),
+	);
+	bindings.bind_action(
+		doom::input::Action::Walk,
+		Button::Key(VirtualKeyCode::RShift),
+	);
 	bindings.bind_axis(
 		doom::input::Axis::Forward,
 		Axis::Emulated {
