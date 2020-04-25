@@ -5,8 +5,9 @@ use crate::{
 		door::DoorUse,
 		input::{Action, Axis, UserCommand},
 		map::{Map, MapDynamic},
+		physics::{BoxCollider, EntityTracer, SolidMask},
 	},
-	geometry::{Line2, Side},
+	geometry::{Line2, Side, AABB3},
 	input::{Bindings, InputState},
 };
 use nalgebra::{Vector2, Vector3};
@@ -16,6 +17,7 @@ use specs::{
 	WriteStorage,
 };
 use specs_derive::Component;
+use std::time::Duration;
 
 #[derive(Default)]
 pub struct Client {
@@ -58,38 +60,84 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 	fn setup(&mut self, _world: &mut World) {}
 
 	fn run_now(&mut self, world: &'a World) {
-		let (client, mut transform_component, mut velocity_component) = world.system_data::<(
+		let (
+			client,
+			delta,
+			map_storage,
+			box_collider_component,
+			map_dynamic_component,
+			mut transform_component,
+			mut velocity_component,
+		) = world.system_data::<(
 			ReadExpect<Client>,
+			ReadExpect<Duration>,
+			ReadExpect<AssetStorage<Map>>,
+			ReadStorage<BoxCollider>,
+			ReadStorage<MapDynamic>,
 			WriteStorage<Transform>,
 			WriteStorage<Velocity>,
 		)>();
 
 		if let Some(entity) = client.entity {
-			let transform = transform_component.get_mut(entity).unwrap();
-			let velocity = velocity_component.get_mut(entity).unwrap();
+			// Apply rotation
+			{
+				let transform = transform_component.get_mut(entity).unwrap();
 
-			transform.rotation[1] += (client.command.axis_pitch * 1e6) as i32;
-			transform.rotation[1].0 =
-				num_traits::clamp(transform.rotation[1].0, -0x4000_0000, 0x4000_0000);
+				transform.rotation[1] += (client.command.axis_pitch * 1e6) as i32;
+				transform.rotation[1].0 =
+					num_traits::clamp(transform.rotation[1].0, -0x4000_0000, 0x4000_0000);
 
-			transform.rotation[2] -= (client.command.axis_yaw * 1e6) as i32;
-
-			let mut move_dir =
-				Vector2::new(client.command.axis_forward, client.command.axis_strafe);
-
-			let len = move_dir.norm();
-
-			if len > 1.0 {
-				move_dir /= len;
+				transform.rotation[2] -= (client.command.axis_yaw * 1e6) as i32;
 			}
 
-			move_dir *= 20.0 * crate::doom::FRAME_RATE;
+			// Apply acceleration
+			{
+				if client.command.axis_forward == 0.0 && client.command.axis_strafe == 0.0 {
+					return;
+				}
 
-			let angles = Vector3::new(0.into(), 0.into(), transform.rotation[2]); //transform.rotation;
-			let axes = crate::geometry::angles_to_axes(angles);
-			let vel = axes[0] * move_dir[0] + axes[1] * move_dir[1];
-			velocity.velocity[0] = vel[0];
-			velocity.velocity[1] = vel[1];
+				let velocity = velocity_component.get_mut(entity).unwrap();
+				let transform = transform_component.get(entity).unwrap();
+				let map_dynamic = map_dynamic_component.join().next().unwrap();
+				let map = map_storage.get(&map_dynamic.map).unwrap();
+				let box_collider = box_collider_component.get(entity).unwrap();
+
+				let tracer = EntityTracer {
+					map,
+					map_dynamic,
+					transform_component: &transform_component,
+					box_collider_component: &box_collider_component,
+				};
+
+				let entity_bbox =
+					AABB3::from_radius_height(box_collider.radius, box_collider.height);
+
+				let trace = tracer.trace(
+					&entity_bbox.offset(transform.position),
+					Vector3::new(0.0, 0.0, -0.25),
+					SolidMask::NON_MONSTER, // TODO solid mask
+				);
+
+				if trace.collision.is_none() {
+					// Player is not on ground
+					return;
+				}
+
+				const FORWARD_ACCEL: f32 =
+					(50.0 * 2048.0 / 65536.0) * crate::doom::FRAME_RATE * crate::doom::FRAME_RATE;
+				const STRAFE_ACCEL: f32 =
+					(40.0 * 2048.0 / 65536.0) * crate::doom::FRAME_RATE * crate::doom::FRAME_RATE;
+
+				let move_dir = Vector2::new(
+					client.command.axis_forward * FORWARD_ACCEL,
+					client.command.axis_strafe * STRAFE_ACCEL,
+				);
+
+				let angles = Vector3::new(0.into(), 0.into(), transform.rotation[2]);
+				let axes = crate::geometry::angles_to_axes(angles);
+				let accel = (axes[0] * move_dir[0] + axes[1] * move_dir[1]) * delta.as_secs_f32();
+				velocity.velocity += accel;
+			}
 		}
 	}
 }
