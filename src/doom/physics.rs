@@ -122,15 +122,10 @@ fn step_slide_move(
 		let move_step = *velocity * time_left.as_secs_f32();
 		let trace = tracer.trace(&entity_bbox.offset(*position), move_step, solid_mask);
 
+		*position += trace.move_step;
+		time_left = time_left.checked_sub(time_left.mul_f32(trace.fraction)).unwrap_or_default();
+
 		if let Some(collision) = trace.collision {
-			if let Some(t) = time_left.checked_sub(time_left.mul_f32(trace.fraction)) {
-				time_left = t;
-			} else {
-				break;
-			}
-
-			*position += move_step * trace.fraction;
-
 			if let Some(step_z) = collision.step_z {
 				// Try to step up
 				let move_step = Vector3::new(0.0, 0.0, step_z - position[2]);
@@ -153,8 +148,9 @@ fn step_slide_move(
 				*velocity = Vector3::zeros();
 				break;
 			}
-		} else {
-			*position += move_step;
+		}
+
+		if time_left == Duration::default() {
 			break;
 		}
 	}
@@ -450,7 +446,7 @@ fn trace_planes<'a>(
 	move_step: Vector3<f32>,
 	planes: impl IntoIterator<Item = &'a Plane>,
 ) -> Option<(f32, Vector3<f32>)> {
-	let mut interval = Interval::new(-1.0, 1.0);
+	let mut interval = Interval::new(f32::NEG_INFINITY, 1.0);
 	let mut ret = None;
 
 	for plane in planes.into_iter() {
