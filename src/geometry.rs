@@ -309,6 +309,28 @@ impl AABB2 {
 			Interval::new(bottom, top),
 		))
 	}
+
+	#[inline]
+	pub fn planes(&self) -> [Plane; 4] {
+		[
+			Plane {
+				distance: -self[0].min,
+				normal: Vector3::new(-1.0, 0.0, 0.0),
+			},
+			Plane {
+				distance: self[0].max,
+				normal: Vector3::new(1.0, 0.0, 0.0),
+			},
+			Plane {
+				distance: -self[1].min,
+				normal: Vector3::new(0.0, -1.0, 0.0),
+			},
+			Plane {
+				distance: self[1].max,
+				normal: Vector3::new(0.0, 1.0, 0.0),
+			},
+		]
+	}
 }
 
 impl From<&AABB3> for AABB2 {
@@ -336,20 +358,20 @@ impl AABB3 {
 				normal: Vector3::new(-1.0, 0.0, 0.0),
 			},
 			Plane {
-				distance: -self[1].min,
-				normal: Vector3::new(0.0, -1.0, 0.0),
-			},
-			Plane {
-				distance: -self[2].min,
-				normal: Vector3::new(0.0, 0.0, -1.0),
-			},
-			Plane {
 				distance: self[0].max,
 				normal: Vector3::new(1.0, 0.0, 0.0),
 			},
 			Plane {
+				distance: -self[1].min,
+				normal: Vector3::new(0.0, -1.0, 0.0),
+			},
+			Plane {
 				distance: self[1].max,
 				normal: Vector3::new(0.0, 1.0, 0.0),
+			},
+			Plane {
+				distance: -self[2].min,
+				normal: Vector3::new(0.0, 0.0, -1.0),
 			},
 			Plane {
 				distance: self[2].max,

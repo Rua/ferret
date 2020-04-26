@@ -304,37 +304,31 @@ pub fn build_map(
 			let dir = vertexes_data[data.vertex_indices[1]] - vertexes_data[data.vertex_indices[0]];
 			let line = Line2::new(vertexes_data[data.vertex_indices[0]], dir);
 			let normal = Vector2::new(dir[1], -dir[0]).normalize();
-			let along = Vector2::new(-normal[1], normal[0]);
+			let bbox = {
+				let mut bbox = AABB2::empty();
+				bbox.add_point(vertexes_data[data.vertex_indices[0]]);
+				bbox.add_point(vertexes_data[data.vertex_indices[1]]);
+				bbox
+			};
 
-			let planes = vec![
-				Plane {
+			let mut planes = Vec::from(&bbox.planes()[..]);
+
+			if normal[0] != 0.0 && normal[1] != 0.0 {
+				planes.push(Plane {
 					distance: line.point.dot(&normal),
 					normal: Vector3::new(normal[0], normal[1], 0.0),
-				},
-				Plane {
+				});
+				planes.push(Plane {
 					distance: -line.point.dot(&normal),
 					normal: Vector3::new(-normal[0], -normal[1], 0.0),
-				},
-				Plane {
-					distance: -line.point.dot(&along),
-					normal: Vector3::new(-along[0], -along[1], 0.0),
-				},
-				Plane {
-					distance: (line.point + line.dir).dot(&along),
-					normal: Vector3::new(along[0], along[1], 0.0),
-				},
-			];
+				});
+			}
 
 			Ok(Linedef {
 				line,
 				normal,
 				planes,
-				bbox: {
-					let mut bbox = AABB2::empty();
-					bbox.add_point(vertexes_data[data.vertex_indices[0]]);
-					bbox.add_point(vertexes_data[data.vertex_indices[1]]);
-					bbox
-				},
+				bbox,
 				flags: data.flags,
 				solid_mask: if data.flags.intersects(LinedefFlags::BLOCKING) {
 					SolidMask::all()
@@ -416,18 +410,26 @@ pub fn build_map(
 				}
 			};
 
-			let planes = segs
-				.iter()
-				.map(|seg| Plane {
-					distance: seg.line.point.dot(&-seg.normal),
-					normal: Vector3::new(-seg.normal[0], -seg.normal[1], 0.0),
-				})
-				.collect();
+			let bbox = {
+				let mut bbox = AABB2::empty();
+				for seg in segs.iter() {
+					bbox.add_point(seg.line.point);
+				}
+				bbox
+			};
 
-			let mut bbox = AABB2::empty();
-			for seg in segs.iter() {
-				bbox.add_point(seg.line.point);
-			}
+			let mut planes = Vec::from(&bbox.planes()[..]);
+
+			planes.extend(segs.iter().filter_map(|seg| {
+				if seg.normal[0] != 0.0 && seg.normal[1] != 0.0 {
+					Some(Plane {
+						distance: seg.line.point.dot(&-seg.normal),
+						normal: Vector3::new(-seg.normal[0], -seg.normal[1], 0.0),
+					})
+				} else {
+					None
+				}
+			}));
 
 			sectors[sector_index].subsectors.push(i);
 
