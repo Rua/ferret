@@ -8,12 +8,12 @@ use crate::{
 		physics::SolidMask,
 		wad::WadLoader,
 	},
-	geometry::{Angle, Interval, Line2, Side, AABB2},
+	geometry::{Angle, Interval, Line2, Plane, Side, AABB2},
 };
 use anyhow::{bail, ensure};
 use bitflags::bitflags;
 use byteorder::{ReadBytesExt, LE};
-use nalgebra::Vector2;
+use nalgebra::{Vector2, Vector3};
 use serde::Deserialize;
 use std::{
 	collections::hash_map::{Entry, HashMap},
@@ -302,10 +302,33 @@ pub fn build_map(
 			}
 
 			let dir = vertexes_data[data.vertex_indices[1]] - vertexes_data[data.vertex_indices[0]];
+			let line = Line2::new(vertexes_data[data.vertex_indices[0]], dir);
+			let normal = Vector2::new(dir[1], -dir[0]).normalize();
+			let along = Vector2::new(-normal[1], normal[0]);
+
+			let planes = vec![
+				Plane {
+					distance: line.point.dot(&normal),
+					normal: Vector3::new(normal[0], normal[1], 0.0),
+				},
+				Plane {
+					distance: -line.point.dot(&normal),
+					normal: Vector3::new(-normal[0], -normal[1], 0.0),
+				},
+				Plane {
+					distance: -line.point.dot(&along),
+					normal: Vector3::new(-along[0], -along[1], 0.0),
+				},
+				Plane {
+					distance: (line.point + line.dir).dot(&along),
+					normal: Vector3::new(along[0], along[1], 0.0),
+				},
+			];
 
 			Ok(Linedef {
-				line: Line2::new(vertexes_data[data.vertex_indices[0]], dir),
-				normal: Vector2::new(dir[1], -dir[0]).normalize(),
+				line,
+				normal,
+				planes,
 				bbox: {
 					let mut bbox = AABB2::empty();
 					bbox.add_point(vertexes_data[data.vertex_indices[0]]);
@@ -334,6 +357,7 @@ pub fn build_map(
 		.map(|data| {
 			Ok(GLNode {
 				partition_line: Line2::new(data.partition_point, data.partition_dir),
+				normal: Vector2::new(data.partition_dir[1], -data.partition_dir[0]).normalize(),
 				child_bboxes: data.child_bboxes.clone(),
 				child_indices: [
 					match data.child_indices[0] {
@@ -366,8 +390,7 @@ pub fn build_map(
 
 			Ok(GLSeg {
 				line: Line2::new(vertices[0], dir),
-				normal: Vector2::new(-dir[1], dir[0]).normalize(),
-				interval: Interval::empty(),
+				normal: Vector2::new(dir[1], -dir[0]).normalize(),
 				linedef_index: data.linedef_index,
 				linedef_side: data.linedef_side,
 				//partner_seg_index: data.partner_seg_index,
@@ -381,6 +404,7 @@ pub fn build_map(
 		.map(|(i, ssect)| {
 			let segs = &mut segs[ssect.first_seg_index as usize
 				..ssect.first_seg_index as usize + ssect.seg_count as usize];
+
 			let sector_index = {
 				if let Some(sidedef) = segs.iter().find_map(|seg| match seg.linedef_index {
 					None => None,
@@ -392,20 +416,24 @@ pub fn build_map(
 				}
 			};
 
-			// Project the subsector onto each of the seg normals
-			let points: Vec<Vector2<f32>> = segs.iter().map(|seg| seg.line.point).collect();
+			let planes = segs
+				.iter()
+				.map(|seg| Plane {
+					distance: seg.line.point.dot(&-seg.normal),
+					normal: Vector3::new(-seg.normal[0], -seg.normal[1], 0.0),
+				})
+				.collect();
+
 			let mut bbox = AABB2::empty();
-			for seg in segs.iter_mut() {
-				for point in points.iter() {
-					seg.interval = seg.interval.add(seg.normal.dot(point));
-					bbox.add_point(*point);
-				}
+			for seg in segs.iter() {
+				bbox.add_point(seg.line.point);
 			}
 
 			sectors[sector_index].subsectors.push(i);
 
 			Ok(GLSSect {
 				segs: segs.to_owned(),
+				planes,
 				sector_index,
 				bbox,
 			})

@@ -14,7 +14,7 @@ use crate::{
 		},
 		physics::SolidMask,
 	},
-	geometry::{Interval, Line2, Side, AABB2},
+	geometry::{Interval, Line2, Plane, Side, AABB2},
 };
 use anyhow::anyhow;
 use nalgebra::{Vector2, Vector3};
@@ -43,7 +43,8 @@ impl Map {
 				NodeChild::Subsector(index) => return &self.subsectors[index],
 				NodeChild::Node(index) => {
 					let node = &self.nodes[index];
-					node.child_indices[node.point_side(point) as usize]
+					let dot = (point - node.partition_line.point).dot(&node.normal);
+					node.child_indices[(dot <= 0.0) as usize]
 				}
 			};
 		}
@@ -61,37 +62,13 @@ pub struct MapDynamic {
 pub struct Linedef {
 	pub line: Line2,
 	pub normal: Vector2<f32>,
+	pub planes: Vec<Plane>,
 	pub bbox: AABB2,
 	pub flags: LinedefFlags,
 	pub solid_mask: SolidMask,
 	pub special_type: u16,
 	pub sector_tag: u16,
 	pub sidedefs: [Option<Sidedef>; 2],
-}
-
-impl Linedef {
-	pub fn point_side(&self, point: Vector2<f32>) -> Side {
-		if self.line.point_side(point) < 0.0 {
-			Side::Right
-		} else {
-			Side::Left
-		}
-	}
-
-	/*pub fn touches_bbox(&self, bbox: &AABB2) -> bool {
-		if !self.bbox.overlaps(bbox) {
-			return false;
-		}
-
-		let sides = [
-			self.line.point_side(Vector2::new(bbox[0].min, bbox[1].min)),
-			self.line.point_side(Vector2::new(bbox[0].min, bbox[1].max)),
-			self.line.point_side(Vector2::new(bbox[0].max, bbox[1].min)),
-			self.line.point_side(Vector2::new(bbox[0].max, bbox[1].max)),
-		];
-
-		!(sides.iter().all(|x| *x < 0.0) || sides.iter().all(|x| *x > 0.0))
-	}*/
 }
 
 #[derive(Clone, Debug)]
@@ -143,6 +120,7 @@ pub struct SectorRef {
 #[derive(Clone, Debug)]
 pub struct GLSSect {
 	pub segs: Vec<GLSeg>,
+	pub planes: Vec<Plane>,
 	pub sector_index: usize,
 	pub bbox: AABB2,
 }
@@ -151,7 +129,6 @@ pub struct GLSSect {
 pub struct GLSeg {
 	pub line: Line2,
 	pub normal: Vector2<f32>,
-	pub interval: Interval,
 	pub linedef_index: Option<usize>,
 	pub linedef_side: Side,
 	//pub partner_seg_index: Option<usize>,
@@ -160,18 +137,9 @@ pub struct GLSeg {
 #[derive(Clone, Debug)]
 pub struct GLNode {
 	pub partition_line: Line2,
+	pub normal: Vector2<f32>,
 	pub child_bboxes: [AABB2; 2],
 	pub child_indices: [NodeChild; 2],
-}
-
-impl GLNode {
-	pub fn point_side(&self, point: Vector2<f32>) -> Side {
-		if self.partition_line.point_side(point) < 0.0 {
-			Side::Right
-		} else {
-			Side::Left
-		}
-	}
 }
 
 #[derive(Copy, Clone, Debug)]

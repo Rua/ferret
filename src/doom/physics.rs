@@ -4,12 +4,12 @@ use crate::{
 		components::{Transform, Velocity},
 		map::{GLSSect, Map, MapDynamic},
 	},
-	geometry::{Interval, AABB2, AABB3},
+	geometry::{Interval, Plane, AABB2, AABB3},
 };
 use arrayvec::ArrayVec;
 use bitflags::bitflags;
 use lazy_static::lazy_static;
-use nalgebra::{Vector2, Vector3};
+use nalgebra::Vector3;
 use specs::{
 	Component, DenseVecStorage, Entities, Join, ReadExpect, ReadStorage, RunNow, World,
 	WriteStorage,
@@ -87,6 +87,7 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 			);
 
 			if trace.collision.is_some() {
+				// Entity is on ground, apply friction
 				lazy_static! {
 					static ref FRICTION: f32 = 0.90625f32.powf(crate::doom::FRAME_RATE);
 				}
@@ -216,30 +217,6 @@ impl<'a> EntityTracer<'a> {
 			.iter()
 			.filter(|l| move_bbox2.overlaps(&l.bbox))
 		{
-			let along = Vector2::new(-linedef.normal[1], linedef.normal[0]);
-			let planes = ArrayVec::from([
-				Plane {
-					distance: linedef.line.point.dot(&linedef.normal),
-					normal: Vector3::new(linedef.normal[0], linedef.normal[1], 0.0),
-					collides: true,
-				},
-				Plane {
-					distance: -linedef.line.point.dot(&linedef.normal),
-					normal: Vector3::new(-linedef.normal[0], -linedef.normal[1], 0.0),
-					collides: true,
-				},
-				Plane {
-					distance: -linedef.line.point.dot(&along),
-					normal: Vector3::new(-along[0], -along[1], 0.0),
-					collides: false,
-				},
-				Plane {
-					distance: (linedef.line.point + linedef.line.dir).dot(&along),
-					normal: Vector3::new(along[0], along[1], 0.0),
-					collides: false,
-				},
-			]);
-
 			if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
 				let front_interval = &self.map_dynamic.sectors[front_sidedef.sector_index].interval;
 				let back_interval = &self.map_dynamic.sectors[back_sidedef.sector_index].interval;
@@ -269,20 +246,17 @@ impl<'a> EntityTracer<'a> {
 						continue;
 					}
 
-					let z_planes = ArrayVec::from([
+					let z_planes = [
 						Plane {
 							distance: -interval.min,
 							normal: Vector3::new(0.0, 0.0, -1.0),
-							collides: false,
 						},
 						Plane {
 							distance: interval.max,
 							normal: Vector3::new(0.0, 0.0, 1.0),
-							collides: false,
 						},
-					]);
-
-					let iter = planes.iter().cloned().chain(z_planes.into_iter());
+					];
+					let iter = linedef.planes.iter().chain(z_planes.iter());
 
 					if let Some((fraction, normal)) = trace_planes(&entity_bbox, move_step, iter) {
 						if fraction < ret.fraction && entity_solid_mask.intersects(solid_mask) {
@@ -305,20 +279,17 @@ impl<'a> EntityTracer<'a> {
 				}
 			} else if let [Some(front_sidedef), None] = &linedef.sidedefs {
 				let front_interval = &self.map_dynamic.sectors[front_sidedef.sector_index].interval;
-				let z_planes = ArrayVec::from([
+				let z_planes = [
 					Plane {
 						distance: -front_interval.min,
 						normal: Vector3::new(0.0, 0.0, -1.0),
-						collides: false,
 					},
 					Plane {
 						distance: front_interval.max,
 						normal: Vector3::new(0.0, 0.0, 1.0),
-						collides: false,
 					},
-				]);
-
-				let iter = planes.into_iter().chain(z_planes.into_iter());
+				];
+				let iter = linedef.planes.iter().chain(z_planes.iter());
 
 				if let Some((fraction, normal)) = trace_planes(&entity_bbox, move_step, iter) {
 					if fraction < ret.fraction {
@@ -344,25 +315,21 @@ impl<'a> EntityTracer<'a> {
 			])
 			.into_iter()
 			{
+				let z_planes = [
+					Plane { distance, normal },
+					Plane {
+						distance: -distance,
+						normal: -normal,
+					},
+				];
+
 				for subsector in sector
 					.subsectors
 					.iter()
 					.map(|i| &self.map.subsectors[*i])
 					.filter(|s| move_bbox2.overlaps(&s.bbox))
 				{
-					let iter = subsector
-						.segs
-						.iter()
-						.map(|seg| Plane {
-							distance: seg.line.point.dot(&seg.normal),
-							normal: Vector3::new(seg.normal[0], seg.normal[1], 0.0),
-							collides: false,
-						})
-						.chain(Some(Plane {
-							distance,
-							normal,
-							collides: true,
-						}));
+					let iter = subsector.planes.iter().chain(z_planes.iter());
 
 					if let Some((fraction, normal)) = trace_planes(&entity_bbox, move_step, iter) {
 						if fraction < ret.fraction {
@@ -395,20 +362,9 @@ impl<'a> EntityTracer<'a> {
 				continue;
 			}
 
-			let dirs = [(-other_bbox.min(), -1.0), (other_bbox.max(), 1.0)];
-			let planes = dirs.iter().flat_map(|&(distance, n)| {
-				(0..3).map(move |i| {
-					let mut normal = Vector3::zeros();
-					normal[i] = n;
-					Plane {
-						distance: distance[i],
-						normal,
-						collides: true,
-					}
-				})
-			});
-
-			if let Some((fraction, normal)) = trace_planes(&entity_bbox, move_step, planes) {
+			if let Some((fraction, normal)) =
+				trace_planes(&entity_bbox, move_step, &other_bbox.planes())
+			{
 				if fraction < ret.fraction && entity_solid_mask.intersects(box_collider.solid_mask)
 				{
 					ret = Trace {
@@ -442,6 +398,15 @@ impl<'a> SectorTracer<'a> {
 	) -> Trace {
 		let normal = Vector3::new(0.0, 0.0, normal);
 		let move_step = Vector3::new(0.0, 0.0, move_step);
+
+		let z_planes = [
+			Plane { distance, normal },
+			Plane {
+				distance: -distance,
+				normal: -normal,
+			},
+		];
+
 		let mut ret = Trace {
 			fraction: 1.0,
 			move_step,
@@ -459,19 +424,7 @@ impl<'a> SectorTracer<'a> {
 				.clone()
 				.filter(|s| entity_bbox2.overlaps(&s.bbox))
 			{
-				let iter = subsector
-					.segs
-					.iter()
-					.map(|seg| Plane {
-						distance: seg.line.point.dot(&seg.normal),
-						normal: Vector3::new(seg.normal[0], seg.normal[1], 0.0),
-						collides: false,
-					})
-					.chain(Some(Plane {
-						distance,
-						normal,
-						collides: true,
-					}));
+				let iter = subsector.planes.iter().chain(z_planes.iter());
 
 				if let Some((fraction, _)) = trace_planes(&entity_bbox, -move_step, iter) {
 					if fraction < ret.fraction {
@@ -492,17 +445,10 @@ impl<'a> SectorTracer<'a> {
 	}
 }
 
-#[derive(Clone, Debug)]
-struct Plane {
-	distance: f32,
-	normal: Vector3<f32>,
-	collides: bool,
-}
-
-fn trace_planes(
+fn trace_planes<'a>(
 	entity_bbox: &AABB3,
 	move_step: Vector3<f32>,
-	planes: impl IntoIterator<Item = Plane>,
+	planes: impl IntoIterator<Item = &'a Plane>,
 ) -> Option<(f32, Vector3<f32>)> {
 	let mut interval = Interval::new(-1.0, 1.0);
 	let mut ret = None;
@@ -524,10 +470,7 @@ fn trace_planes(
 
 			if fraction > interval.min {
 				interval.min = fraction;
-
-				if plane.collides {
-					ret = Some((f32::max(0.0, interval.min), plane.normal));
-				}
+				ret = Some((f32::max(0.0, interval.min), plane.normal));
 			}
 		} else {
 			if start_dist > 0.0 {

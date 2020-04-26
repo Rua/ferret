@@ -7,7 +7,7 @@ use crate::{
 		map::{Map, MapDynamic},
 		physics::{BoxCollider, EntityTracer, SolidMask},
 	},
-	geometry::{Line2, Side, AABB3},
+	geometry::{Line2, AABB3},
 	input::{Bindings, InputState},
 };
 use nalgebra::{Vector2, Vector3};
@@ -214,7 +214,7 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 					let linedef = &map.linedefs[linedef_index];
 
 					// Used from the back, ignore
-					if linedef.point_side(use_line.point) != Side::Right {
+					if (use_line.point - linedef.line.point).dot(&linedef.normal) <= 0.0 {
 						return;
 					}
 

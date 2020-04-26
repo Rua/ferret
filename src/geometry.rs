@@ -47,13 +47,6 @@ impl Line2 {
 
 		Some((self_param, other_param))
 	}
-
-	// == 0: on line, < 0: right of line, > 0: left of line
-	#[inline]
-	pub fn point_side(&self, point: Vector2<f32>) -> f32 {
-		let d = point - self.point;
-		self.dir[0] * d[1] - self.dir[1] * d[0]
-	}
 }
 
 impl From<&Line3> for Line2 {
@@ -64,6 +57,12 @@ impl From<&Line3> for Line2 {
 			Vector2::new(line.dir[0], line.dir[1]),
 		)
 	}
+}
+
+#[derive(Clone, Debug)]
+pub struct Plane {
+	pub distance: f32,
+	pub normal: Vector3<f32>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -327,6 +326,36 @@ impl AABB3 {
 			Interval::new(-radius, radius),
 			Interval::new(0.0, height),
 		))
+	}
+
+	#[inline]
+	pub fn planes(&self) -> [Plane; 6] {
+		[
+			Plane {
+				distance: -self[0].min,
+				normal: Vector3::new(-1.0, 0.0, 0.0),
+			},
+			Plane {
+				distance: -self[1].min,
+				normal: Vector3::new(0.0, -1.0, 0.0),
+			},
+			Plane {
+				distance: -self[2].min,
+				normal: Vector3::new(0.0, 0.0, -1.0),
+			},
+			Plane {
+				distance: self[0].max,
+				normal: Vector3::new(1.0, 0.0, 0.0),
+			},
+			Plane {
+				distance: self[1].max,
+				normal: Vector3::new(0.0, 1.0, 0.0),
+			},
+			Plane {
+				distance: self[2].max,
+				normal: Vector3::new(0.0, 0.0, 1.0),
+			},
+		]
 	}
 }
 
