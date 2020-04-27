@@ -11,7 +11,7 @@ mod renderer;
 mod stdin;
 
 use crate::{
-	assets::{AssetFormat, AssetHandle, AssetStorage},
+	assets::{AssetHandle, AssetStorage, DataSource},
 	audio::Sound,
 	component::EntityTemplate,
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
@@ -450,7 +450,9 @@ fn main() -> anyhow::Result<()> {
 						// Spawn map entities and things
 						let things = {
 							let loader = world.system_data::<WriteExpect<doom::wad::WadLoader>>();
-							doom::map::load::ThingsFormat.import(name, &*loader)?
+							doom::map::load::build_things(
+								&loader.load(&format!("{}/+{}", name, 1))?,
+							)?
 						};
 						doom::map::spawn_map_entities(&world, &map_handle)?;
 						doom::map::spawn_things(things, &world, &map_handle)?;

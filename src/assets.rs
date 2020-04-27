@@ -28,14 +28,14 @@ pub struct AssetHandle<A: ?Sized> {
 }
 
 impl<A> AssetHandle<A> {
-	/*pub fn downgrade(&self) -> WeakHandle<A> {
+	pub fn downgrade(&self) -> WeakHandle<A> {
 		let id = Arc::downgrade(&self.id);
 
 		WeakHandle {
 			id,
 			marker: PhantomData,
 		}
-	}*/
+	}
 
 	fn id(&self) -> u32 {
 		*self.id.as_ref()
@@ -129,8 +129,9 @@ impl<A: Asset> AssetStorage<A> {
 		if let Some(handle) = self.names.get(name).and_then(WeakHandle::upgrade) {
 			handle
 		} else {
-			let intermediate = A::import(name, source);
 			let handle = self.allocate_handle();
+			self.names.insert(name.to_owned(), handle.downgrade());
+			let intermediate = A::import(name, source);
 			self.unbuilt
 				.push((handle.clone(), intermediate, name.to_owned()));
 

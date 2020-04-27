@@ -123,7 +123,9 @@ fn step_slide_move(
 		let trace = tracer.trace(&entity_bbox.offset(*position), move_step, solid_mask);
 
 		*position += trace.move_step;
-		time_left = time_left.checked_sub(time_left.mul_f32(trace.fraction)).unwrap_or_default();
+		time_left = time_left
+			.checked_sub(time_left.mul_f32(trace.fraction))
+			.unwrap_or_default();
 
 		if let Some(collision) = trace.collision {
 			if let Some(step_z) = collision.step_z {

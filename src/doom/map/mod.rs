@@ -9,7 +9,7 @@ use crate::{
 		components::{SpawnOnCeiling, SpawnPoint, Transform},
 		entities::{LinedefTypes, MobjTypes, SectorTypes},
 		map::{
-			load::{LinedefFlags, ThingData},
+			load::{LinedefFlags, Thing},
 			textures::{Flat, TextureType, WallTexture},
 		},
 		physics::SolidMask,
@@ -149,7 +149,7 @@ pub enum NodeChild {
 }
 
 pub fn spawn_things(
-	things: Vec<ThingData>,
+	things: Vec<Thing>,
 	world: &World,
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
