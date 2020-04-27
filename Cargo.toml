@@ -20,7 +20,7 @@ num-traits = "0.2.10"
 rand = "0.7"
 rand_pcg = "0.2.1"
 regex = "1.3"
-rodio = "0.11.0"
+rodio = {version = "0.11.0", default-features = false}
 serde = {version = "1.0", features = ["derive"]}
 serde_json = "1.0"
 shrev = "1.1"
@@ -30,3 +30,6 @@ vulkano = "0.18"
 vulkano-shaders = "0.18"
 vulkano-win = "0.18"
 winit = {version = "0.22.0", features = ["serde"]}
+
+[profile.release]
+lto = true
