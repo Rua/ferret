@@ -296,7 +296,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
-	log::info!("Starting new game...");
+	log::info!("Starting map {}...", name);
 	let start_time = Instant::now();
 
 	// Load palette
@@ -311,7 +311,7 @@ fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
 	};
 
 	// Load entity type data
-	log::info!("Loading entities");
+	log::info!("Loading entity data...");
 	world.insert(doom::entities::MobjTypes::new(&world));
 	world.insert(doom::entities::SectorTypes::new(&world));
 	world.insert(doom::entities::LinedefTypes::new(&world));
@@ -382,7 +382,7 @@ fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
 	}
 
 	// Load map
-	log::info!("Loading map {}...", name);
+	log::info!("Loading map...");
 	let map_handle = {
 		let (mut loader, mut map_storage, mut flat_storage, mut wall_texture_storage) = world
 			.system_data::<(
@@ -476,6 +476,7 @@ fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
 	}
 
 	// Spawn map entities and things
+	log::info!("Spawning entities...");
 	let things = {
 		let loader = world.system_data::<WriteExpect<doom::wad::WadLoader>>();
 		doom::map::load::build_things(&loader.load(&format!("{}/+{}", name, 1))?)?

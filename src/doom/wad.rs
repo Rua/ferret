@@ -1,17 +1,18 @@
 use crate::assets::DataSource;
-use anyhow::anyhow;
+use anyhow::{anyhow, ensure, Context};
 use byteorder::{ReadBytesExt, LE};
 use std::{
 	collections::HashSet,
 	fs::File,
 	io::{BufReader, Read, Seek, SeekFrom},
+	path::{Path, PathBuf},
 	str,
 	string::String,
 	vec::Vec,
 };
 
 struct Lump {
-	file: String,
+	path: PathBuf,
 	name: String,
 	offset: u64,
 	size: usize,
@@ -31,16 +32,18 @@ impl WadLoader {
 		}
 	}
 
-	pub fn add(&mut self, filename: &str) -> anyhow::Result<()> {
-		let file = File::open(filename)?;
+	pub fn add<P: AsRef<Path>>(&mut self, path: P) -> anyhow::Result<()> {
+		let path = path.as_ref();
+		let file = File::open(path)?;
 		let mut reader = BufReader::new(file);
 
+		log::info!("Adding {}", path.display());
 		let mut signature = [0u8; 4];
 		reader.read_exact(&mut signature)?;
-
-		if !(signature == *b"IWAD" || signature == *b"PWAD") {
-			panic!("No IWAD or PWAD signature found.");
-		}
+		ensure!(
+			signature == *b"IWAD" || signature == *b"PWAD",
+			"No IWAD or PWAD signature found."
+		);
 
 		let dir_length = reader.read_u32::<LE>()? as usize;
 		let dir_offset = reader.read_u32::<LE>()? as u64;
@@ -62,11 +65,30 @@ impl WadLoader {
 
 			self.names.insert(name.clone());
 			self.lumps.push(Lump {
-				file: filename.to_owned(),
+				path: path.into(),
 				name,
 				offset,
 				size,
 			});
+		}
+
+		// Try to load the .gwa file as well if present
+		if let Some(extension) = path.extension() {
+			if extension.to_str().unwrap().to_ascii_uppercase() == "WAD" {
+				let path = path.with_extension("gwa");
+
+				if path.is_file() {
+					self.add(&path)
+						.context(format!("Couldn't load {}", path.display()))?;
+				} else {
+					let path = path.with_extension("GWA");
+
+					if path.is_file() {
+						self.add(&path)
+							.context(format!("Couldn't load {}", path.display()))?;
+					}
+				}
+			}
 		}
 
 		Ok(())
@@ -97,7 +119,7 @@ impl DataSource for WadLoader {
 		let lump = &self.lumps[index + offset];
 
 		// Read lump
-		let mut file = BufReader::new(File::open(&lump.file)?);
+		let mut file = BufReader::new(File::open(&lump.path)?);
 		let mut data = vec![0; lump.size];
 		file.seek(SeekFrom::Start(lump.offset))?;
 		file.read_exact(&mut data)?;
