@@ -1,5 +1,5 @@
 use crate::assets::DataSource;
-use anyhow::{anyhow, ensure, Context};
+use anyhow::{anyhow, ensure};
 use byteorder::{ReadBytesExt, LE};
 use std::{
 	collections::HashSet,
@@ -70,25 +70,6 @@ impl WadLoader {
 				offset,
 				size,
 			});
-		}
-
-		// Try to load the .gwa file as well if present
-		if let Some(extension) = path.extension() {
-			if extension.to_str().unwrap().to_ascii_uppercase() == "WAD" {
-				let path = path.with_extension("gwa");
-
-				if path.is_file() {
-					self.add(&path)
-						.context(format!("Couldn't load {}", path.display()))?;
-				} else {
-					let path = path.with_extension("GWA");
-
-					if path.is_file() {
-						self.add(&path)
-							.context(format!("Couldn't load {}", path.display()))?;
-					}
-				}
-			}
 		}
 
 		Ok(())

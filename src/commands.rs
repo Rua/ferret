@@ -1,6 +1,36 @@
-use anyhow::bail;
+use anyhow::{bail, Context};
+use crossbeam_channel::{Receiver, Sender};
 use lazy_static::lazy_static;
 use regex::{Captures, Regex};
+use std::{io::BufRead, thread::Builder};
+
+pub fn init() -> anyhow::Result<(Sender<String>, Receiver<String>)> {
+	let (sender, receiver) = crossbeam_channel::unbounded();
+	let sender2 = sender.clone();
+
+	// Spawns a thread to read commands from stdin asynchronously
+	Builder::new()
+		.name("stdin".to_owned())
+		.spawn(move || {
+			let stdin = std::io::stdin();
+			let stdin_buf = stdin.lock();
+
+			for line_result in stdin_buf.lines() {
+				match line_result {
+					Ok(line) => {
+						sender2.send(line).ok();
+					}
+					Err(e) => {
+						log::error!("Error: {}", e);
+						break;
+					}
+				};
+			}
+		})
+		.context("Could not start stdin thread")?;
+
+	Ok((sender, receiver))
+}
 
 /*pub struct CommandList<T> {
 	commands: HashMap<String, Command<T>>,

@@ -8,7 +8,6 @@ mod geometry;
 mod input;
 mod logger;
 mod renderer;
-mod stdin;
 
 use crate::{
 	assets::{AssetHandle, AssetStorage, DataSource},
@@ -22,10 +21,12 @@ use anyhow::Context;
 use nalgebra::{Matrix4, Vector3};
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
-use rodio::Source;
 use shrev::EventChannel;
 use specs::{DispatcherBuilder, Entity, ReadExpect, RunNow, World, WorldExt, WriteExpect};
-use std::time::{Duration, Instant};
+use std::{
+	path::Path,
+	time::{Duration, Instant},
+};
 use vulkano::{
 	format::Format,
 	image::{Dimensions, ImmutableImage},
@@ -39,77 +40,15 @@ use winit::{
 fn main() -> anyhow::Result<()> {
 	Logger::init().unwrap();
 
-	let (command_sender, command_receiver) = crossbeam_channel::unbounded();
-
-	stdin::spawn(command_sender.clone()).context("Could not start stdin thread")?;
-
+	let (command_sender, command_receiver) = commands::init()?;
 	let mut event_loop = EventLoop::new();
-
 	let (render_context, _debug_callback) =
 		RenderContext::new(&event_loop).context("Could not create rendering context")?;
-
-	let (sound_sender, sound_receiver) =
-		crossbeam_channel::unbounded::<Box<dyn Source<Item = f32> + Send>>();
-
-	std::thread::spawn(move || {
-		let device = rodio::default_output_device().unwrap();
-
-		// Play a dummy sound to force the sound engine to initialise itself
-		rodio::play_raw(&device, rodio::source::Empty::new());
-
-		for source in sound_receiver {
-			rodio::play_raw(&device, source);
-		}
-	});
+	let sound_sender = audio::init()?;
+	let bindings = get_bindings();
 
 	let mut loader = doom::wad::WadLoader::new();
-	loader.add("doom.wad").context("Couldn't load doom.wad")?;
-	//loader.add("doom.gwa").context("Couldn't load doom.gwa")?;
-
-	let mut bindings = Bindings::new();
-	bindings.bind_action(
-		doom::input::Action::Attack,
-		Button::Mouse(MouseButton::Left),
-	);
-	bindings.bind_action(doom::input::Action::Use, Button::Key(VirtualKeyCode::Space));
-	bindings.bind_action(doom::input::Action::Use, Button::Mouse(MouseButton::Middle));
-	bindings.bind_action(
-		doom::input::Action::Walk,
-		Button::Key(VirtualKeyCode::LShift),
-	);
-	bindings.bind_action(
-		doom::input::Action::Walk,
-		Button::Key(VirtualKeyCode::RShift),
-	);
-	bindings.bind_axis(
-		doom::input::Axis::Forward,
-		Axis::Emulated {
-			pos: Button::Key(VirtualKeyCode::W),
-			neg: Button::Key(VirtualKeyCode::S),
-		},
-	);
-	bindings.bind_axis(
-		doom::input::Axis::Strafe,
-		Axis::Emulated {
-			pos: Button::Key(VirtualKeyCode::A),
-			neg: Button::Key(VirtualKeyCode::D),
-		},
-	);
-	bindings.bind_axis(
-		doom::input::Axis::Yaw,
-		Axis::Mouse {
-			axis: MouseAxis::X,
-			scale: 3.0,
-		},
-	);
-	bindings.bind_axis(
-		doom::input::Axis::Pitch,
-		Axis::Mouse {
-			axis: MouseAxis::Y,
-			scale: 3.0,
-		},
-	);
-	//println!("{}", serde_json::to_string(&bindings)?);
+	load_wads(&mut loader)?;
 
 	let mut world = World::new();
 
@@ -293,6 +232,85 @@ fn main() -> anyhow::Result<()> {
 	}
 
 	Ok(())
+}
+
+fn load_wads(loader: &mut doom::wad::WadLoader) -> anyhow::Result<()> {
+	let path = Path::new("doom.wad");
+	loader
+		.add(path)
+		.context(format!("Couldn't load {}", path.display()))?;
+
+	// Try to load the .gwa file as well if present
+	if let Some(extension) = path.extension() {
+		if extension.to_str().unwrap().to_ascii_uppercase() == "WAD" {
+			let path = path.with_extension("gwa");
+
+			if path.is_file() {
+				loader
+					.add(&path)
+					.context(format!("Couldn't load {}", path.display()))?;
+			} else {
+				let path = path.with_extension("GWA");
+
+				if path.is_file() {
+					loader
+						.add(&path)
+						.context(format!("Couldn't load {}", path.display()))?;
+				}
+			}
+		}
+	}
+
+	Ok(())
+}
+
+fn get_bindings() -> Bindings<doom::input::Action, doom::input::Axis> {
+	let mut bindings = Bindings::new();
+	bindings.bind_action(
+		doom::input::Action::Attack,
+		Button::Mouse(MouseButton::Left),
+	);
+	bindings.bind_action(doom::input::Action::Use, Button::Key(VirtualKeyCode::Space));
+	bindings.bind_action(doom::input::Action::Use, Button::Mouse(MouseButton::Middle));
+	bindings.bind_action(
+		doom::input::Action::Walk,
+		Button::Key(VirtualKeyCode::LShift),
+	);
+	bindings.bind_action(
+		doom::input::Action::Walk,
+		Button::Key(VirtualKeyCode::RShift),
+	);
+	bindings.bind_axis(
+		doom::input::Axis::Forward,
+		Axis::Emulated {
+			pos: Button::Key(VirtualKeyCode::W),
+			neg: Button::Key(VirtualKeyCode::S),
+		},
+	);
+	bindings.bind_axis(
+		doom::input::Axis::Strafe,
+		Axis::Emulated {
+			pos: Button::Key(VirtualKeyCode::A),
+			neg: Button::Key(VirtualKeyCode::D),
+		},
+	);
+	bindings.bind_axis(
+		doom::input::Axis::Yaw,
+		Axis::Mouse {
+			axis: MouseAxis::X,
+			scale: 3.0,
+		},
+	);
+	bindings.bind_axis(
+		doom::input::Axis::Pitch,
+		Axis::Mouse {
+			axis: MouseAxis::Y,
+			scale: 3.0,
+		},
+	);
+	//println!("{}", serde_json::to_string(&bindings)?);
+
+	bindings
 }
 
 fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
