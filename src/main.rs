@@ -16,7 +16,7 @@ use crate::{
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
 	renderer::{AsBytes, RenderContext},
 };
-use anyhow::Context;
+use anyhow::{bail, Context};
 use clap::{App, Arg, ArgMatches};
 use nalgebra::{Matrix4, Vector3};
 use rand::SeedableRng;
@@ -24,7 +24,7 @@ use rand_pcg::Pcg64Mcg;
 use shrev::EventChannel;
 use specs::{DispatcherBuilder, Entity, ReadExpect, RunNow, World, WorldExt, WriteExpect};
 use std::{
-	path::Path,
+	path::PathBuf,
 	time::{Duration, Instant},
 };
 use vulkano::{
@@ -42,6 +42,11 @@ fn main() -> anyhow::Result<()> {
 		.about(clap::crate_description!())
 		.version(clap::crate_version!())
 		.arg(
+			Arg::with_name("PWADS")
+				.help("PWAD files to add")
+				.multiple(true),
+		)
+		.arg(
 			Arg::with_name("iwad")
 				.help("IWAD file to use instead of the default")
 				.short("i")
@@ -49,9 +54,11 @@ fn main() -> anyhow::Result<()> {
 				.value_name("FILE"),
 		)
 		.arg(
-			Arg::with_name("PWADS")
-				.help("PWAD files to add")
-				.multiple(true),
+			Arg::with_name("map")
+				.help("Map to load at startup")
+				.short("m")
+				.long("map")
+				.value_name("NAME"),
 		)
 		.arg(
 			Arg::with_name("log-level")
@@ -74,6 +81,24 @@ fn main() -> anyhow::Result<()> {
 	let sound_sender = audio::init()?;
 	let bindings = get_bindings();
 
+	// Select map
+	let map =
+		if let Some(map) = arg_matches.value_of("map") {
+			map
+		} else {
+			let wad = loader.wads().next().unwrap().file_name().unwrap();
+
+			if wad == "doom.wad" || wad == "doom1.wad" || wad == "doomu.wad" {
+				"E1M1"
+			} else if wad == "doom2.wad" || wad == "tnt.wad" || wad == "plutonia.wad" {
+				"MAP01"
+			} else {
+				bail!("No default map is known for this IWAD. Try specifying one with the \"-m\" option.")
+			}
+		};
+	command_sender.send(format!("map {}", map)).ok();
+
+	// Set up world
 	let mut world = World::new();
 
 	// Register components
@@ -133,8 +158,6 @@ fn main() -> anyhow::Result<()> {
 		.with_thread_local(doom::light::LightUpdateSystem::default())
 		.with_thread_local(doom::update::TextureScrollSystem::default())
 		.build();
-
-	command_sender.send("map E1M1".to_owned()).ok();
 
 	let mut should_quit = false;
 	let mut old_time = Instant::now();
@@ -260,37 +283,40 @@ fn main() -> anyhow::Result<()> {
 
 fn load_wads(loader: &mut doom::wad::WadLoader, arg_matches: &ArgMatches) -> anyhow::Result<()> {
 	let mut wads = Vec::new();
+	const IWADS: [&str; 6] = ["doom2", "plutonia", "tnt", "doomu", "doom", "doom1"];
 
-	let iwad = arg_matches.value_of("iwad").unwrap_or("doom.wad");
+	let iwad = if let Some(iwad) = arg_matches.value_of("iwad") {
+		PathBuf::from(iwad)
+	} else if let Some(iwad) = IWADS
+		.iter()
+		.map(|p| PathBuf::from(format!("{}.wad", p)))
+		.find(|p| p.is_file())
+	{
+		iwad
+	} else {
+		bail!("No iwad file found. Try specifying one with the \"-i\" command line option.")
+	};
+
 	wads.push(iwad);
 
 	if let Some(iter) = arg_matches.values_of("PWADS") {
-		wads.extend(iter);
+		wads.extend(iter.map(PathBuf::from));
 	}
 
-	for wad in wads {
-		let path = Path::new(wad);
+	for path in wads {
 		loader
-			.add(path)
+			.add(&path)
 			.context(format!("Couldn't load {}", path.display()))?;
 
 		// Try to load the .gwa file as well if present
 		if let Some(extension) = path.extension() {
-			if extension.to_str().unwrap().to_ascii_uppercase() == "WAD" {
+			if extension == "wad" {
 				let path = path.with_extension("gwa");
 
 				if path.is_file() {
 					loader
 						.add(&path)
 						.context(format!("Couldn't load {}", path.display()))?;
-				} else {
-					let path = path.with_extension("GWA");
-
-					if path.is_file() {
-						loader
-							.add(&path)
-							.context(format!("Couldn't load {}", path.display()))?;
-					}
 				}
 			}
 		}

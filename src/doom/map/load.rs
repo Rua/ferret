@@ -995,19 +995,20 @@ fn fixup_segs(
 				}
 			}
 
-			ensure!(
-				!interval.is_empty_or_point(),
-				"Subsector {} linedef {} has been reduced to zero length by BSP plane intersections",
-				subsector_index,
-				linedef_index,
-			);
-
-			let line = Line2::new(
-				line.point + line.dir * interval.min,
-				line.dir * (interval.max - interval.min),
-			);
-			seg.line = line;
-			seg.normal = Vector2::new(line.dir[1], -line.dir[0]).normalize();
+			if interval.is_empty_or_point() {
+				log::warn!(
+					"Subsector {} linedef {} has been reduced to zero length by BSP plane intersections",
+					subsector_index,
+					linedef_index,
+				);
+			} else {
+				let line = Line2::new(
+					line.point + line.dir * interval.min,
+					line.dir * (interval.max - interval.min),
+				);
+				seg.line = line;
+				seg.normal = Vector2::new(line.dir[1], -line.dir[0]).normalize();
+			};
 		}
 	}
 

@@ -21,14 +21,16 @@ struct Lump {
 #[derive(Default)]
 pub struct WadLoader {
 	lumps: Vec<Lump>,
-	names: HashSet<String>,
+	lump_names: HashSet<String>,
+	wads: Vec<PathBuf>,
 }
 
 impl WadLoader {
 	pub fn new() -> WadLoader {
 		WadLoader {
 			lumps: Vec::new(),
-			names: HashSet::new(),
+			lump_names: HashSet::new(),
+			wads: Vec::new(),
 		}
 	}
 
@@ -63,7 +65,7 @@ impl WadLoader {
 			let mut name = String::from(str::from_utf8(&lump_name)?.trim_end_matches('\0'));
 			name.make_ascii_uppercase();
 
-			self.names.insert(name.clone());
+			self.lump_names.insert(name.clone());
 			self.lumps.push(Lump {
 				path: path.into(),
 				name,
@@ -72,7 +74,13 @@ impl WadLoader {
 			});
 		}
 
+		self.wads.push(path.into());
+
 		Ok(())
+	}
+
+	pub fn wads(&self) -> impl Iterator<Item = &Path> {
+		self.wads.iter().map(PathBuf::as_path)
 	}
 }
 
@@ -109,6 +117,6 @@ impl DataSource for WadLoader {
 	}
 
 	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a> {
-		Box::from(self.names.iter().map(String::as_str))
+		Box::from(self.lump_names.iter().map(String::as_str))
 	}
 }

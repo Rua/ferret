@@ -64,7 +64,11 @@ impl Asset for WallTexture {
 	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
 		let pnames = PNamesFormat.import("PNAMES", source)?;
 		let mut texture_info = TexturesFormat.import("TEXTURE1", source)?;
-		texture_info.extend(TexturesFormat.import("TEXTURE2", source)?);
+
+		// TODO better error handing
+		if let Ok(info) = TexturesFormat.import("TEXTURE2", source) {
+			texture_info.extend(info);
+		}
 
 		let name = name.to_ascii_uppercase();
 		let texture_info = texture_info
