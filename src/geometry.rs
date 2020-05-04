@@ -3,7 +3,7 @@ use nalgebra::{
 	U3,
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Line<D>
 where
 	D: DimName,
@@ -27,6 +27,14 @@ where
 	pub fn new(point: VectorN<f32, D>, dir: VectorN<f32, D>) -> Line<D> {
 		assert_ne!(dir, VectorN::zeros());
 		Line { point, dir }
+	}
+
+	#[inline]
+	pub fn inverse(&self) -> Line<D> {
+		Line {
+			point: self.point + self.dir,
+			dir: -self.dir,
+		}
 	}
 }
 
@@ -59,10 +67,39 @@ impl From<&Line3> for Line2 {
 	}
 }
 
-#[derive(Clone, Debug)]
-pub struct Plane {
+#[derive(Clone, Copy, Debug)]
+pub struct Plane<D>
+where
+	D: DimName,
+	DefaultAllocator: Allocator<f32, D>,
+	Owned<f32, D>: Copy,
+{
 	pub distance: f32,
-	pub normal: Vector3<f32>,
+	pub normal: VectorN<f32, D>,
+}
+
+pub type Plane2 = Plane<U2>;
+pub type Plane3 = Plane<U3>;
+
+impl<D> Plane<D>
+where
+	D: DimName,
+	DefaultAllocator: Allocator<f32, D>,
+	Owned<f32, D>: Copy,
+{
+	#[inline]
+	pub fn new(distance: f32, normal: VectorN<f32, D>) -> Plane<D> {
+		assert_ne!(normal, VectorN::zeros());
+		Plane { distance, normal }
+	}
+
+	#[inline]
+	pub fn inverse(&self) -> Plane<D> {
+		Plane {
+			distance: -self.distance,
+			normal: -self.normal,
+		}
+	}
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -82,12 +119,6 @@ impl std::ops::Not for Side {
 		}
 	}
 }
-
-/*#[derive(Clone, Debug)]
-pub struct Plane {
-	pub normal: Vector3<f32>,
-	pub distance: f32,
-}*/
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Interval {
@@ -136,6 +167,11 @@ impl Interval {
 	#[inline]
 	pub fn is_empty(self) -> bool {
 		self.min > self.max
+	}
+
+	#[inline]
+	pub fn is_empty_or_point(self) -> bool {
+		self.min >= self.max
 	}
 
 	/*#[inline]
@@ -195,6 +231,12 @@ impl Interval {
 			min: f32::min(self.min, other.min),
 			max: f32::max(self.max, other.max),
 		}
+	}
+}
+
+impl std::fmt::Display for Interval {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "[{}, {}]", self.min, self.max)
 	}
 }
 
@@ -311,24 +353,12 @@ impl AABB2 {
 	}
 
 	#[inline]
-	pub fn planes(&self) -> [Plane; 4] {
+	pub fn planes(&self) -> [Plane3; 4] {
 		[
-			Plane {
-				distance: -self[0].min,
-				normal: Vector3::new(-1.0, 0.0, 0.0),
-			},
-			Plane {
-				distance: self[0].max,
-				normal: Vector3::new(1.0, 0.0, 0.0),
-			},
-			Plane {
-				distance: -self[1].min,
-				normal: Vector3::new(0.0, -1.0, 0.0),
-			},
-			Plane {
-				distance: self[1].max,
-				normal: Vector3::new(0.0, 1.0, 0.0),
-			},
+			Plane3::new(-self[0].min, Vector3::new(-1.0, 0.0, 0.0)),
+			Plane3::new(self[0].max, Vector3::new(1.0, 0.0, 0.0)),
+			Plane3::new(-self[1].min, Vector3::new(0.0, -1.0, 0.0)),
+			Plane3::new(self[1].max, Vector3::new(0.0, 1.0, 0.0)),
 		]
 	}
 }
@@ -351,32 +381,14 @@ impl AABB3 {
 	}
 
 	#[inline]
-	pub fn planes(&self) -> [Plane; 6] {
+	pub fn planes(&self) -> [Plane3; 6] {
 		[
-			Plane {
-				distance: -self[0].min,
-				normal: Vector3::new(-1.0, 0.0, 0.0),
-			},
-			Plane {
-				distance: self[0].max,
-				normal: Vector3::new(1.0, 0.0, 0.0),
-			},
-			Plane {
-				distance: -self[1].min,
-				normal: Vector3::new(0.0, -1.0, 0.0),
-			},
-			Plane {
-				distance: self[1].max,
-				normal: Vector3::new(0.0, 1.0, 0.0),
-			},
-			Plane {
-				distance: -self[2].min,
-				normal: Vector3::new(0.0, 0.0, -1.0),
-			},
-			Plane {
-				distance: self[2].max,
-				normal: Vector3::new(0.0, 0.0, 1.0),
-			},
+			Plane3::new(-self[0].min, Vector3::new(-1.0, 0.0, 0.0)),
+			Plane3::new(self[0].max, Vector3::new(1.0, 0.0, 0.0)),
+			Plane3::new(-self[1].min, Vector3::new(0.0, -1.0, 0.0)),
+			Plane3::new(self[1].max, Vector3::new(0.0, 1.0, 0.0)),
+			Plane3::new(-self[2].min, Vector3::new(0.0, 0.0, -1.0)),
+			Plane3::new(self[2].max, Vector3::new(0.0, 0.0, 1.0)),
 		]
 	}
 }

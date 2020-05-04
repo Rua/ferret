@@ -3,25 +3,32 @@ use crate::{
 	doom::{
 		map::{
 			textures::{Flat, TextureType, WallTexture},
-			GLNode, GLSSect, GLSeg, Linedef, Map, NodeChild, Sector, Sidedef,
+			Linedef, Map, Node, NodeChild, Sector, Seg, Sidedef, Subsector, Thing, ThingFlags,
 		},
 		physics::SolidMask,
 		wad::WadLoader,
 	},
-	geometry::{Angle, Interval, Line2, Plane, Side, AABB2},
+	geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2},
 };
 use anyhow::{bail, ensure};
 use bitflags::bitflags;
 use byteorder::{ReadBytesExt, LE};
 use nalgebra::{Vector2, Vector3};
 use serde::Deserialize;
-use std::io::Read;
+use std::{cmp::Ordering, io::Read};
 
 pub struct MapData {
 	pub linedefs: Vec<u8>,
 	pub sidedefs: Vec<u8>,
 	pub vertexes: Vec<u8>,
+	pub segs: Vec<u8>,
+	pub ssectors: Vec<u8>,
+	pub nodes: Vec<u8>,
 	pub sectors: Vec<u8>,
+	pub gl_data: Option<GLMapData>,
+}
+
+pub struct GLMapData {
 	pub gl_vert: Vec<u8>,
 	pub gl_segs: Vec<u8>,
 	pub gl_ssect: Vec<u8>,
@@ -36,15 +43,24 @@ impl Asset for Map {
 	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
 		let gl_name = format!("GL_{}", name);
 
+		let gl_data = (|| -> Option<GLMapData> {
+			Some(GLMapData {
+				gl_vert: source.load(&format!("{}/+{}", gl_name, 1)).ok()?,
+				gl_segs: source.load(&format!("{}/+{}", gl_name, 2)).ok()?,
+				gl_ssect: source.load(&format!("{}/+{}", gl_name, 3)).ok()?,
+				gl_nodes: source.load(&format!("{}/+{}", gl_name, 4)).ok()?,
+			})
+		})();
+
 		Ok(MapData {
 			linedefs: source.load(&format!("{}/+{}", name, 2))?,
 			sidedefs: source.load(&format!("{}/+{}", name, 3))?,
 			vertexes: source.load(&format!("{}/+{}", name, 4))?,
+			segs: source.load(&format!("{}/+{}", name, 5))?,
+			ssectors: source.load(&format!("{}/+{}", name, 6))?,
+			nodes: source.load(&format!("{}/+{}", name, 7))?,
 			sectors: source.load(&format!("{}/+{}", name, 8))?,
-			gl_vert: source.load(&format!("{}/+{}", gl_name, 1))?,
-			gl_segs: source.load(&format!("{}/+{}", gl_name, 2))?,
-			gl_ssect: source.load(&format!("{}/+{}", gl_name, 3))?,
-			gl_nodes: source.load(&format!("{}/+{}", gl_name, 4))?,
+			gl_data,
 		})
 	}
 }
@@ -62,11 +78,11 @@ pub fn build_map(
 		linedefs: linedefs_data,
 		sidedefs: sidedefs_data,
 		vertexes: vertexes_data,
+		segs: segs_data,
+		ssectors: ssectors_data,
+		nodes: nodes_data,
 		sectors: sectors_data,
-		gl_vert: gl_vert_data,
-		gl_segs: gl_segs_data,
-		gl_ssect: gl_ssect_data,
-		gl_nodes: gl_nodes_data,
+		gl_data,
 	} = map_data;
 
 	let vertexes = build_vertexes(&vertexes_data)?;
@@ -74,16 +90,51 @@ pub fn build_map(
 	let mut sidedefs = build_sidedefs(&sidedefs_data, &sectors, loader, wall_texture_storage)?;
 	let linedefs = build_linedefs(&linedefs_data, &vertexes, &mut sectors, &mut sidedefs)?;
 
-	let gl_vert = build_gl_vert(&gl_vert_data)?;
-	let mut gl_segs = build_gl_segs(&gl_segs_data, &vertexes, &gl_vert, &linedefs)?;
-	let gl_ssect = build_gl_ssect(&gl_ssect_data, &mut gl_segs, &mut sectors, &linedefs)?;
-	let gl_nodes = build_gl_nodes(&gl_nodes_data, &gl_ssect)?;
+	// Load GL nodes if available
+	let (subsectors, nodes) = if let Some(gl_data) = gl_data {
+		let GLMapData {
+			gl_vert: gl_vert_data,
+			gl_segs: gl_segs_data,
+			gl_ssect: gl_ssect_data,
+			gl_nodes: gl_nodes_data,
+		} = gl_data;
+
+		let gl_vert = build_gl_vert(&gl_vert_data)?;
+		let gl_segs = build_gl_segs(&gl_segs_data, &vertexes, &gl_vert, &linedefs)?;
+		let gl_ssect = build_gl_ssect(&gl_ssect_data, &gl_segs, &linedefs)?;
+		let gl_nodes = build_gl_nodes(&gl_nodes_data, &gl_ssect)?;
+
+		(gl_ssect, gl_nodes)
+	} else {
+		log::warn!("GL nodes are not available for map, falling back to standard nodes");
+		// GL nodes are not available, so use the regular nodes
+		let segs = build_segs(&segs_data, &vertexes, &linedefs)?;
+		let mut ssectors = build_ssectors(&ssectors_data, &segs, &linedefs)?;
+		let nodes = build_nodes(&nodes_data, &ssectors)?;
+
+		// Add floating point precision to segs,
+		// and create extra segs to make full convex polygons
+		fixup_nodes(
+			NodeChild::Node(0),
+			&nodes,
+			&linedefs,
+			&mut ssectors,
+			&mut Vec::new(),
+		)?;
+
+		(ssectors, nodes)
+	};
+
+	// Add subsectors to sectors
+	for (i, subsector) in subsectors.iter().enumerate() {
+		sectors[subsector.sector_index].subsectors.push(i);
+	}
 
 	Ok(Map {
 		linedefs,
 		sectors,
-		subsectors: gl_ssect,
-		nodes: gl_nodes,
+		subsectors,
+		nodes,
 		sky,
 	})
 }
@@ -96,25 +147,6 @@ fn build_vertexes(data: &[u8]) -> anyhow::Result<Vec<Vector2<f32>>> {
 		ret.push(Vector2::new(
 			chunk.read_i16::<LE>()? as f32,
 			chunk.read_i16::<LE>()? as f32,
-		));
-	}
-
-	Ok(ret)
-}
-
-fn build_gl_vert(mut data: &[u8]) -> anyhow::Result<Vec<Vector2<f32>>> {
-	let mut buf = [0u8; 4];
-	data.read_exact(&mut buf)?;
-
-	ensure!(&buf == b"gNd2", "No gNd2 signature found in GL_VERT lump");
-
-	let chunks = data.chunks(8);
-	let mut ret = Vec::with_capacity(chunks.len());
-
-	for mut chunk in chunks {
-		ret.push(Vector2::new(
-			chunk.read_i32::<LE>()? as f32 / 65536.0,
-			chunk.read_i32::<LE>()? as f32 / 65536.0,
 		));
 	}
 
@@ -170,6 +202,7 @@ fn build_sectors(
 			light_level: chunk.read_u16::<LE>()? as f32 / 255.0,
 			special_type: chunk.read_u16::<LE>()?,
 			sector_tag: chunk.read_u16::<LE>()?,
+			linedefs: Vec::new(),
 			neighbours: Vec::new(),
 			subsectors: Vec::new(),
 		});
@@ -180,7 +213,7 @@ fn build_sectors(
 
 fn build_sidedefs(
 	data: &[u8],
-	sectors: &Vec<Sector>,
+	sectors: &[Sector],
 	loader: &mut WadLoader,
 	wall_texture_storage: &mut AssetStorage<WallTexture>,
 ) -> anyhow::Result<Vec<Option<Sidedef>>> {
@@ -274,9 +307,9 @@ bitflags! {
 
 fn build_linedefs(
 	data: &[u8],
-	vertexes: &Vec<Vector2<f32>>,
-	sectors: &mut Vec<Sector>,
-	sidedefs: &mut Vec<Option<Sidedef>>,
+	vertexes: &[Vector2<f32>],
+	sectors: &mut [Sector],
+	sidedefs: &mut [Option<Sidedef>],
 ) -> anyhow::Result<Vec<Linedef>> {
 	let chunks = data.chunks(14);
 	let mut ret = Vec::with_capacity(chunks.len());
@@ -328,6 +361,10 @@ fn build_linedefs(
 		];
 
 		if let [Some(ref mut front_sidedef), Some(ref mut back_sidedef)] = &mut sidedefs {
+			// Set sector linedefs
+			sectors[front_sidedef.sector_index].linedefs.push(i);
+			sectors[back_sidedef.sector_index].linedefs.push(i);
+
 			// Set sector neighbours
 			if front_sidedef.sector_index != back_sidedef.sector_index {
 				let front_sector_neighbours = &mut sectors[front_sidedef.sector_index].neighbours;
@@ -348,6 +385,9 @@ fn build_linedefs(
 				front_sidedef.top_texture = TextureType::Sky;
 				back_sidedef.top_texture = TextureType::Sky;
 			}
+		} else if let [Some(ref mut front_sidedef), None] = &mut sidedefs {
+			// Set sector linedefs
+			sectors[front_sidedef.sector_index].linedefs.push(i);
 		}
 
 		let dir = vertexes[vertex_indices[1]] - vertexes[vertex_indices[0]];
@@ -363,14 +403,14 @@ fn build_linedefs(
 		let mut planes = Vec::from(&bbox.planes()[..]);
 
 		if normal[0] != 0.0 && normal[1] != 0.0 {
-			planes.push(Plane {
-				distance: line.point.dot(&normal),
-				normal: Vector3::new(normal[0], normal[1], 0.0),
-			});
-			planes.push(Plane {
-				distance: -line.point.dot(&normal),
-				normal: Vector3::new(-normal[0], -normal[1], 0.0),
-			});
+			planes.push(Plane3::new(
+				line.point.dot(&normal),
+				Vector3::new(normal[0], normal[1], 0.0),
+			));
+			planes.push(Plane3::new(
+				-line.point.dot(&normal),
+				Vector3::new(-normal[0], -normal[1], 0.0),
+			));
 		}
 
 		ret.push(Linedef {
@@ -395,12 +435,225 @@ fn build_linedefs(
 	Ok(ret)
 }
 
+fn build_segs(
+	data: &[u8],
+	vertexes: &[Vector2<f32>],
+	linedefs: &[Linedef],
+) -> anyhow::Result<Vec<Seg>> {
+	let chunks = data.chunks(12);
+	let mut ret = Vec::with_capacity(chunks.len());
+
+	for (i, mut chunk) in chunks.enumerate() {
+		let vertices = [
+			{
+				let index = chunk.read_u16::<LE>()? as usize;
+				ensure!(
+					index < vertexes.len(),
+					"Seg {} has invalid vertex index {}",
+					i,
+					index
+				);
+				vertexes[index]
+			},
+			{
+				let index = chunk.read_u16::<LE>()? as usize;
+				ensure!(
+					index < vertexes.len(),
+					"Seg {} has invalid vertex index {}",
+					i,
+					index
+				);
+				vertexes[index]
+			},
+		];
+
+		let _angle = chunk.read_i16::<LE>()?;
+		let dir = vertices[1] - vertices[0];
+
+		ret.push(Seg {
+			line: Line2::new(vertices[0], dir),
+			normal: Vector2::new(dir[1], -dir[0]).normalize(),
+			linedef: {
+				let index = chunk.read_u16::<LE>()? as usize;
+				let side = match chunk.read_u16::<LE>()? as usize {
+					0 => Side::Right,
+					_ => Side::Left,
+				};
+
+				ensure!(
+					index < linedefs.len(),
+					"Seg {} has invalid linedef index {}",
+					i,
+					index
+				);
+				Some((index, side))
+			},
+		});
+	}
+
+	Ok(ret)
+}
+
+fn build_ssectors(
+	data: &[u8],
+	segs: &[Seg],
+	linedefs: &[Linedef],
+) -> anyhow::Result<Vec<Subsector>> {
+	let chunks = data.chunks(4);
+	let mut ret = Vec::with_capacity(chunks.len());
+
+	for (i, mut chunk) in chunks.enumerate() {
+		let seg_count = chunk.read_u16::<LE>()? as usize;
+		let first_seg_index = chunk.read_u16::<LE>()? as usize;
+
+		ensure!(
+			first_seg_index < segs.len(),
+			"SSECTOR {} has invalid first seg index {}",
+			i,
+			first_seg_index
+		);
+		ensure!(seg_count > 0, "SSECTOR {} has zero seg count", i,);
+		ensure!(
+			first_seg_index + seg_count <= segs.len(),
+			"SSECTOR {} has overflowing seg count {}",
+			i,
+			seg_count
+		);
+
+		let segs = &segs[first_seg_index..first_seg_index + seg_count];
+
+		let sector_index = {
+			if let Some(sidedef) = segs.iter().find_map(|seg| match seg.linedef {
+				None => None,
+				Some((index, side)) => linedefs[index].sidedefs[side as usize].as_ref(),
+			}) {
+				sidedef.sector_index
+			} else {
+				bail!("No sector could be found for subsector {}", i);
+			}
+		};
+
+		ret.push(Subsector {
+			segs: segs.to_owned(),
+			bbox: AABB2::empty(),
+			planes: Vec::new(),
+			sector_index,
+		});
+	}
+
+	Ok(ret)
+}
+
+fn build_nodes(data: &[u8], ssectors: &[Subsector]) -> anyhow::Result<Vec<Node>> {
+	let chunks = data.chunks(28);
+	let mut ret = Vec::with_capacity(chunks.len());
+	let len = chunks.len();
+
+	for (i, mut chunk) in chunks.enumerate() {
+		let partition_point = Vector2::new(
+			chunk.read_i16::<LE>()? as f32,
+			chunk.read_i16::<LE>()? as f32,
+		);
+
+		let partition_dir = Vector2::new(
+			chunk.read_i16::<LE>()? as f32,
+			chunk.read_i16::<LE>()? as f32,
+		);
+
+		let normal = Vector2::new(partition_dir[1], -partition_dir[0]).normalize();
+		let distance = partition_point.dot(&normal);
+
+		ret.push(Node {
+			plane: Plane2::new(distance, normal),
+			child_bboxes: [
+				AABB2::from_extents(
+					chunk.read_i16::<LE>()? as f32,
+					chunk.read_i16::<LE>()? as f32,
+					chunk.read_i16::<LE>()? as f32,
+					chunk.read_i16::<LE>()? as f32,
+				),
+				AABB2::from_extents(
+					chunk.read_i16::<LE>()? as f32,
+					chunk.read_i16::<LE>()? as f32,
+					chunk.read_i16::<LE>()? as f32,
+					chunk.read_i16::<LE>()? as f32,
+				),
+			],
+			child_indices: [
+				match chunk.read_u16::<LE>()? as usize {
+					x if x & 0x8000 != 0 => {
+						let index = x & 0x7FFF;
+						ensure!(
+							(index as usize) < ssectors.len(),
+							"Node {} has invalid subsector index {}",
+							i,
+							index
+						);
+						NodeChild::Subsector(index)
+					}
+					index => {
+						ensure!(
+							index < len,
+							"Node {} has invalid child node index {}",
+							i,
+							index
+						);
+						NodeChild::Node(len - index - 1)
+					}
+				},
+				match chunk.read_u16::<LE>()? as usize {
+					x if x & 0x8000 != 0 => {
+						let index = x & 0x7FFF;
+						ensure!(
+							(index as usize) < ssectors.len(),
+							"Node {} has invalid subsector index {}",
+							i,
+							index
+						);
+						NodeChild::Subsector(index)
+					}
+					index => {
+						ensure!(
+							index < len,
+							"Node {} has invalid child node index {}",
+							i,
+							index
+						);
+						NodeChild::Node(len - index - 1)
+					}
+				},
+			],
+		});
+	}
+
+	Ok(ret.into_iter().rev().collect())
+}
+
+fn build_gl_vert(mut data: &[u8]) -> anyhow::Result<Vec<Vector2<f32>>> {
+	let mut buf = [0u8; 4];
+	data.read_exact(&mut buf)?;
+
+	ensure!(&buf == b"gNd2", "No gNd2 signature found in GL_VERT lump");
+
+	let chunks = data.chunks(8);
+	let mut ret = Vec::with_capacity(chunks.len());
+
+	for mut chunk in chunks {
+		ret.push(Vector2::new(
+			chunk.read_i32::<LE>()? as f32 / 65536.0,
+			chunk.read_i32::<LE>()? as f32 / 65536.0,
+		));
+	}
+
+	Ok(ret)
+}
+
 fn build_gl_segs(
 	data: &[u8],
-	vertexes: &Vec<Vector2<f32>>,
-	gl_vert: &Vec<Vector2<f32>>,
-	linedefs: &Vec<Linedef>,
-) -> anyhow::Result<Vec<GLSeg>> {
+	vertexes: &[Vector2<f32>],
+	gl_vert: &[Vector2<f32>],
+	linedefs: &[Linedef],
+) -> anyhow::Result<Vec<Seg>> {
 	let chunks = data.chunks(10);
 	let mut ret = Vec::with_capacity(chunks.len());
 
@@ -452,24 +705,28 @@ fn build_gl_segs(
 
 		let dir = vertices[1] - vertices[0];
 
-		ret.push(GLSeg {
+		ret.push(Seg {
 			line: Line2::new(vertices[0], dir),
 			normal: Vector2::new(dir[1], -dir[0]).normalize(),
-			linedef_index: match chunk.read_u16::<LE>()? as usize {
-				0xFFFF => None,
-				index => {
-					ensure!(
-						index < linedefs.len(),
-						"Seg {} has invalid linedef index {}",
-						i,
-						index
-					);
-					Some(index)
+			linedef: {
+				let index = chunk.read_u16::<LE>()? as usize;
+				let side = match chunk.read_u16::<LE>()? as usize {
+					0 => Side::Right,
+					_ => Side::Left,
+				};
+
+				match index {
+					0xFFFF => None,
+					index => {
+						ensure!(
+							index < linedefs.len(),
+							"GLSeg {} has invalid linedef index {}",
+							i,
+							index
+						);
+						Some((index, side))
+					}
 				}
-			},
-			linedef_side: match chunk.read_u16::<LE>()? as usize {
-				0 => Side::Right,
-				_ => Side::Left,
 			},
 			//partner_seg_index: data.partner_seg_index,
 		});
@@ -485,10 +742,9 @@ fn build_gl_segs(
 
 fn build_gl_ssect(
 	data: &[u8],
-	gl_segs: &mut Vec<GLSeg>,
-	sectors: &mut Vec<Sector>,
-	linedefs: &Vec<Linedef>,
-) -> anyhow::Result<Vec<GLSSect>> {
+	gl_segs: &[Seg],
+	linedefs: &[Linedef],
+) -> anyhow::Result<Vec<Subsector>> {
 	let chunks = data.chunks(4);
 	let mut ret = Vec::with_capacity(chunks.len());
 
@@ -498,54 +754,34 @@ fn build_gl_ssect(
 
 		ensure!(
 			first_seg_index < gl_segs.len(),
-			"Subsector {} has invalid first seg index {}",
+			"GLSSect {} has invalid first seg index {}",
 			i,
 			first_seg_index
 		);
+		ensure!(seg_count > 0, "GLSSect {} has zero seg count", i,);
 		ensure!(
 			first_seg_index + seg_count <= gl_segs.len(),
-			"Subsector {} has overflowing seg count {}",
+			"GLSSect {} has overflowing seg count {}",
 			i,
 			seg_count
 		);
 
-		let segs = &mut gl_segs[first_seg_index..first_seg_index + seg_count];
+		let segs = &gl_segs[first_seg_index..first_seg_index + seg_count];
 
 		let sector_index = {
-			if let Some(sidedef) = segs.iter().find_map(|seg| match seg.linedef_index {
+			if let Some(sidedef) = segs.iter().find_map(|seg| match seg.linedef {
 				None => None,
-				Some(index) => linedefs[index].sidedefs[seg.linedef_side as usize].as_ref(),
+				Some((index, side)) => linedefs[index].sidedefs[side as usize].as_ref(),
 			}) {
 				sidedef.sector_index
 			} else {
-				bail!("No sector could be found for subsector {}", i);
+				bail!("No sector could be found for GLSSect {}", i);
 			}
 		};
 
-		let bbox = {
-			let mut bbox = AABB2::empty();
-			for seg in segs.iter() {
-				bbox.add_point(seg.line.point);
-			}
-			bbox
-		};
+		let (bbox, planes) = generate_subsector_planes(&segs);
 
-		let mut planes = Vec::from(&bbox.planes()[..]);
-
-		planes.extend(segs.iter().filter_map(|seg| {
-			if seg.normal[0] != 0.0 && seg.normal[1] != 0.0 {
-				Some(Plane {
-					distance: seg.line.point.dot(&-seg.normal),
-					normal: Vector3::new(-seg.normal[0], -seg.normal[1], 0.0),
-				})
-			} else {
-				None
-			}
-		}));
-
-		sectors[sector_index].subsectors.push(i);
-
-		ret.push(GLSSect {
+		ret.push(Subsector {
 			segs: segs.to_owned(),
 			planes,
 			sector_index,
@@ -556,7 +792,7 @@ fn build_gl_ssect(
 	Ok(ret)
 }
 
-fn build_gl_nodes(data: &[u8], gl_ssect: &Vec<GLSSect>) -> anyhow::Result<Vec<GLNode>> {
+fn build_gl_nodes(data: &[u8], gl_ssect: &[Subsector]) -> anyhow::Result<Vec<Node>> {
 	let chunks = data.chunks(28);
 	let mut ret = Vec::with_capacity(chunks.len());
 	let len = chunks.len();
@@ -572,9 +808,11 @@ fn build_gl_nodes(data: &[u8], gl_ssect: &Vec<GLSSect>) -> anyhow::Result<Vec<GL
 			chunk.read_i16::<LE>()? as f32,
 		);
 
-		ret.push(GLNode {
-			partition_line: Line2::new(partition_point, partition_dir),
-			normal: Vector2::new(partition_dir[1], -partition_dir[0]).normalize(),
+		let normal = Vector2::new(partition_dir[1], -partition_dir[0]).normalize();
+		let distance = partition_point.dot(&normal);
+
+		ret.push(Node {
+			plane: Plane2::new(distance, normal),
 			child_bboxes: [
 				AABB2::from_extents(
 					chunk.read_i16::<LE>()? as f32,
@@ -595,7 +833,7 @@ fn build_gl_nodes(data: &[u8], gl_ssect: &Vec<GLSSect>) -> anyhow::Result<Vec<GL
 						let index = x & 0x7FFF;
 						ensure!(
 							(index as usize) < gl_ssect.len(),
-							"Node {} has invalid subsector index {}",
+							"GLNode {} has invalid subsector index {}",
 							i,
 							index
 						);
@@ -604,7 +842,7 @@ fn build_gl_nodes(data: &[u8], gl_ssect: &Vec<GLSSect>) -> anyhow::Result<Vec<GL
 					index => {
 						ensure!(
 							index < len,
-							"Node {} has invalid child node index {}",
+							"GLNode {} has invalid child node index {}",
 							i,
 							index
 						);
@@ -616,7 +854,7 @@ fn build_gl_nodes(data: &[u8], gl_ssect: &Vec<GLSSect>) -> anyhow::Result<Vec<GL
 						let index = x & 0x7FFF;
 						ensure!(
 							(index as usize) < gl_ssect.len(),
-							"Node {} has invalid subsector index {}",
+							"GLNode {} has invalid subsector index {}",
 							i,
 							index
 						);
@@ -625,7 +863,7 @@ fn build_gl_nodes(data: &[u8], gl_ssect: &Vec<GLSSect>) -> anyhow::Result<Vec<GL
 					index => {
 						ensure!(
 							index < len,
-							"Node {} has invalid child node index {}",
+							"GLNode {} has invalid child node index {}",
 							i,
 							index
 						);
@@ -637,23 +875,6 @@ fn build_gl_nodes(data: &[u8], gl_ssect: &Vec<GLSSect>) -> anyhow::Result<Vec<GL
 	}
 
 	Ok(ret.into_iter().rev().collect())
-}
-
-pub struct Thing {
-	pub position: Vector2<f32>,
-	pub angle: Angle,
-	pub doomednum: u16,
-	pub flags: ThingFlags,
-}
-
-bitflags! {
-	#[derive(Deserialize)]
-	pub struct ThingFlags: u16 {
-		const EASY = 0b00000000_00000001;
-		const NORMAL = 0b00000000_00000010;
-		const HARD = 0b00000000_00000100;
-		const MPONLY = 0b00000000_00001000;
-	}
 }
 
 pub fn build_things(data: &[u8]) -> anyhow::Result<Vec<Thing>> {
@@ -673,4 +894,248 @@ pub fn build_things(data: &[u8]) -> anyhow::Result<Vec<Thing>> {
 	}
 
 	Ok(ret)
+}
+
+fn generate_subsector_planes(segs: &[Seg]) -> (AABB2, Vec<Plane3>) {
+	let bbox = {
+		let mut bbox = AABB2::empty();
+		for seg in segs.iter() {
+			bbox.add_point(seg.line.point);
+		}
+		bbox
+	};
+
+	let mut planes = Vec::from(&bbox.planes()[..]);
+
+	planes.extend(segs.iter().filter_map(|seg| {
+		if seg.normal[0] != 0.0 && seg.normal[1] != 0.0 {
+			Some(Plane3::new(
+				seg.line.point.dot(&-seg.normal),
+				Vector3::new(-seg.normal[0], -seg.normal[1], 0.0),
+			))
+		} else {
+			None
+		}
+	}));
+
+	(bbox, planes)
+}
+
+fn fixup_nodes(
+	child: NodeChild,
+	nodes: &[Node],
+	linedefs: &[Linedef],
+	subsectors: &mut [Subsector],
+	planes: &mut Vec<Plane2>,
+) -> anyhow::Result<()> {
+	match child {
+		NodeChild::Node(index) => {
+			let node = &nodes[index];
+
+			planes.push(node.plane);
+			fixup_nodes(
+				node.child_indices[Side::Right as usize],
+				nodes,
+				linedefs,
+				subsectors,
+				planes,
+			)?;
+			planes.pop();
+
+			planes.push(node.plane.inverse());
+			fixup_nodes(
+				node.child_indices[Side::Left as usize],
+				nodes,
+				linedefs,
+				subsectors,
+				planes,
+			)?;
+			planes.pop();
+		}
+		NodeChild::Subsector(index) => {
+			let subsector = &mut subsectors[index];
+			fixup_segs(index, &mut subsector.segs, linedefs, planes)?;
+			rebuild_segs(&mut subsector.segs, &planes)?;
+
+			let (bbox, planes) = generate_subsector_planes(&subsector.segs);
+			subsector.bbox = bbox;
+			subsector.planes = planes;
+		}
+	}
+
+	Ok(())
+}
+
+fn fixup_segs(
+	subsector_index: usize,
+	segs: &mut [Seg],
+	linedefs: &[Linedef],
+	planes: &[Plane2],
+) -> anyhow::Result<()> {
+	for seg in segs.iter_mut() {
+		if let Some((linedef_index, linedef_side)) = seg.linedef {
+			let linedef = &linedefs[linedef_index];
+			let line = match linedef_side {
+				Side::Left => linedef.line.inverse(),
+				Side::Right => linedef.line,
+			};
+			let mut interval = Interval::new(0.0, 1.0);
+
+			for plane in planes.iter() {
+				if let Some(t) = intersect_line_plane(&line, plane) {
+					if line.dir.dot(&plane.normal) > 0.0 {
+						if t > interval.min && t < 1.0 {
+							interval.min = t;
+						}
+					} else {
+						if t < interval.max && t > 0.0 {
+							interval.max = t;
+						}
+					}
+				}
+			}
+
+			ensure!(
+				!interval.is_empty_or_point(),
+				"Subsector {} linedef {} has been reduced to zero length by BSP plane intersections",
+				subsector_index,
+				linedef_index,
+			);
+
+			let line = Line2::new(
+				line.point + line.dir * interval.min,
+				line.dir * (interval.max - interval.min),
+			);
+			seg.line = line;
+			seg.normal = Vector2::new(line.dir[1], -line.dir[0]).normalize();
+		}
+	}
+
+	Ok(())
+}
+
+fn rebuild_segs(segs: &mut Vec<Seg>, planes: &[Plane2]) -> anyhow::Result<()> {
+	let mut points: Vec<(Vector2<f32>, Option<Seg>)> = segs
+		.iter()
+		.map(|seg| (seg.line.point, Some(seg.clone())))
+		.collect();
+
+	// Add seg end points
+	for seg in segs.iter() {
+		let point = seg.line.point + seg.line.dir;
+
+		// Point must not be on an existing point
+		let points_check = |(other, _): &(Vector2<f32>, _)| (other - point).norm() >= 0.01;
+
+		if points.iter().all(&points_check) {
+			points.push((point, None));
+		}
+	}
+
+	// Find implicit points by intersecting planes
+	for i_plane in 0..(planes.len() - 1) {
+		for j_plane in (i_plane + 1)..planes.len() {
+			let p1 = &planes[i_plane];
+			let p2 = &planes[j_plane];
+
+			let point = if let Some(point) = intersect_planes(&p1, p2) {
+				point
+			} else {
+				continue;
+			};
+
+			// Point must be in front of plane
+			let plane_check = |p: &Plane2| point.dot(&p.normal) - p.distance >= -0.1;
+
+			// Point must be in front of seg
+			let seg_check =
+				|seg: &Seg| point.dot(&seg.normal) - seg.line.point.dot(&seg.normal) >= -0.1;
+
+			// Point must not be on an existing point
+			let points_check = |(other, _): &(Vector2<f32>, _)| (other - point).norm() >= 0.01;
+
+			if planes.iter().all(&plane_check)
+				&& segs.iter().all(&seg_check)
+				&& points.iter().all(&points_check)
+			{
+				points.push((point, None));
+			}
+		}
+	}
+
+	// Sort points in anticlockwise order around their center
+	let center = points.iter().map(|(p, _)| p).sum::<Vector2<f32>>() / points.len() as f32;
+	points.sort_unstable_by(|(a, _), (b, _)| {
+		let ac = a - center;
+		let bc = b - center;
+
+		if ac[0] >= 0.0 && bc[0] < 0.0 {
+			Ordering::Greater
+		} else if ac[0] < 0.0 && bc[0] >= 0.0 {
+			Ordering::Less
+		} else if ac[0] == 0.0 && bc[0] == 0.0 {
+			if ac[1] >= 0.0 || bc[1] >= 0.0 {
+				if a[1] > b[1] {
+					Ordering::Greater
+				} else {
+					Ordering::Less
+				}
+			} else if b[1] > a[1] {
+				Ordering::Greater
+			} else {
+				Ordering::Less
+			}
+		} else if ac.perp(&bc) < 0.0 {
+			Ordering::Greater
+		} else {
+			Ordering::Less
+		}
+	});
+
+	// Add segs in reverse order
+	segs.clear();
+	let first_point = points.last().unwrap().0;
+	while let Some((point, seg)) = points.pop() {
+		let next = points.last().map(|(p, _)| p).unwrap_or(&first_point);
+
+		segs.push({
+			if let Some(seg) = seg {
+				//assert_eq!(seg.line.point + seg.line.dir, *next);
+				seg
+			} else {
+				let line = Line2::new(point, next - point);
+
+				Seg {
+					line,
+					normal: Vector2::new(line.dir[1], -line.dir[0]).normalize(),
+					linedef: None,
+				}
+			}
+		});
+	}
+
+	Ok(())
+}
+
+fn intersect_line_plane(line: &Line2, plane: &Plane2) -> Option<f32> {
+	let denom = line.dir.dot(&plane.normal);
+
+	if denom.abs() < 0.01 {
+		return None;
+	}
+
+	Some((plane.distance - line.point.dot(&plane.normal)) / denom)
+}
+
+fn intersect_planes(plane1: &Plane2, plane2: &Plane2) -> Option<nalgebra::Vector2<f32>> {
+	let denom = plane1.normal.perp(&plane2.normal);
+
+	if denom.abs() == 0.010 {
+		return None;
+	}
+
+	let t = (plane2.distance - plane1.distance * plane1.normal.dot(&plane2.normal)) / denom;
+	let matrix = nalgebra::Matrix2::new(plane1.distance, -t, t, plane1.distance);
+
+	Some(matrix * plane1.normal)
 }

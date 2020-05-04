@@ -2,9 +2,9 @@ use crate::{
 	assets::AssetStorage,
 	doom::{
 		components::{Transform, Velocity},
-		map::{GLSSect, Map, MapDynamic},
+		map::{Map, MapDynamic, Subsector},
 	},
-	geometry::{Interval, Plane, AABB2, AABB3},
+	geometry::{Interval, Plane3, AABB2, AABB3},
 };
 use arrayvec::ArrayVec;
 use bitflags::bitflags;
@@ -245,14 +245,8 @@ impl<'a> EntityTracer<'a> {
 					}
 
 					let z_planes = [
-						Plane {
-							distance: -interval.min,
-							normal: Vector3::new(0.0, 0.0, -1.0),
-						},
-						Plane {
-							distance: interval.max,
-							normal: Vector3::new(0.0, 0.0, 1.0),
-						},
+						Plane3::new(-interval.min, Vector3::new(0.0, 0.0, -1.0)),
+						Plane3::new(interval.max, Vector3::new(0.0, 0.0, 1.0)),
 					];
 					let iter = linedef.planes.iter().chain(z_planes.iter());
 
@@ -278,14 +272,8 @@ impl<'a> EntityTracer<'a> {
 			} else if let [Some(front_sidedef), None] = &linedef.sidedefs {
 				let front_interval = &self.map_dynamic.sectors[front_sidedef.sector_index].interval;
 				let z_planes = [
-					Plane {
-						distance: -front_interval.min,
-						normal: Vector3::new(0.0, 0.0, -1.0),
-					},
-					Plane {
-						distance: front_interval.max,
-						normal: Vector3::new(0.0, 0.0, 1.0),
-					},
+					Plane3::new(-front_interval.min, Vector3::new(0.0, 0.0, -1.0)),
+					Plane3::new(front_interval.max, Vector3::new(0.0, 0.0, 1.0)),
 				];
 				let iter = linedef.planes.iter().chain(z_planes.iter());
 
@@ -314,11 +302,8 @@ impl<'a> EntityTracer<'a> {
 			.into_iter()
 			{
 				let z_planes = [
-					Plane { distance, normal },
-					Plane {
-						distance: -distance,
-						normal: -normal,
-					},
+					Plane3::new(distance, normal),
+					Plane3::new(-distance, -normal),
 				];
 
 				for subsector in sector
@@ -392,17 +377,14 @@ impl<'a> SectorTracer<'a> {
 		distance: f32,
 		normal: f32,
 		move_step: f32,
-		subsectors: impl Iterator<Item = &'b GLSSect> + Clone,
+		subsectors: impl Iterator<Item = &'b Subsector> + Clone,
 	) -> Trace {
 		let normal = Vector3::new(0.0, 0.0, normal);
 		let move_step = Vector3::new(0.0, 0.0, move_step);
 
 		let z_planes = [
-			Plane { distance, normal },
-			Plane {
-				distance: -distance,
-				normal: -normal,
-			},
+			Plane3::new(distance, normal),
+			Plane3::new(-distance, -normal),
 		];
 
 		let mut ret = Trace {
@@ -446,7 +428,7 @@ impl<'a> SectorTracer<'a> {
 fn trace_planes<'a>(
 	entity_bbox: &AABB3,
 	move_step: Vector3<f32>,
-	planes: impl IntoIterator<Item = &'a Plane>,
+	planes: impl IntoIterator<Item = &'a Plane3>,
 ) -> Option<(f32, Vector3<f32>)> {
 	let mut interval = Interval::new(f32::NEG_INFINITY, 1.0);
 	let mut ret = None;

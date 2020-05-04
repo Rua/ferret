@@ -9,15 +9,17 @@ use crate::{
 		components::{SpawnOnCeiling, SpawnPoint, Transform},
 		entities::{LinedefTypes, MobjTypes, SectorTypes},
 		map::{
-			load::{LinedefFlags, Thing},
+			load::LinedefFlags,
 			textures::{Flat, TextureType, WallTexture},
 		},
 		physics::SolidMask,
 	},
-	geometry::{Interval, Line2, Plane, Side, AABB2},
+	geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2},
 };
 use anyhow::anyhow;
+use bitflags::bitflags;
 use nalgebra::{Vector2, Vector3};
+use serde::Deserialize;
 use specs::{
 	storage::StorageEntry, Component, DenseVecStorage, Entity, Join, ReadExpect, ReadStorage,
 	World, WorldExt, WriteStorage,
@@ -29,13 +31,13 @@ use std::fmt::Debug;
 pub struct Map {
 	pub linedefs: Vec<Linedef>,
 	pub sectors: Vec<Sector>,
-	pub subsectors: Vec<GLSSect>,
-	pub nodes: Vec<GLNode>,
+	pub subsectors: Vec<Subsector>,
+	pub nodes: Vec<Node>,
 	pub sky: AssetHandle<WallTexture>,
 }
 
 impl Map {
-	pub fn find_subsector(&self, point: Vector2<f32>) -> &GLSSect {
+	pub fn find_subsector(&self, point: Vector2<f32>) -> &Subsector {
 		let mut child = NodeChild::Node(0);
 
 		loop {
@@ -43,7 +45,7 @@ impl Map {
 				NodeChild::Subsector(index) => return &self.subsectors[index],
 				NodeChild::Node(index) => {
 					let node = &self.nodes[index];
-					let dot = (point - node.partition_line.point).dot(&node.normal);
+					let dot = point.dot(&node.plane.normal) - node.plane.distance;
 					node.child_indices[(dot <= 0.0) as usize]
 				}
 			};
@@ -58,11 +60,28 @@ pub struct MapDynamic {
 	pub sectors: Vec<SectorDynamic>,
 }
 
+pub struct Thing {
+	pub position: Vector2<f32>,
+	pub angle: Angle,
+	pub doomednum: u16,
+	pub flags: ThingFlags,
+}
+
+bitflags! {
+	#[derive(Deserialize)]
+	pub struct ThingFlags: u16 {
+		const EASY = 0b00000000_00000001;
+		const NORMAL = 0b00000000_00000010;
+		const HARD = 0b00000000_00000100;
+		const MPONLY = 0b00000000_00001000;
+	}
+}
+
 #[derive(Clone, Debug)]
 pub struct Linedef {
 	pub line: Line2,
 	pub normal: Vector2<f32>,
-	pub planes: Vec<Plane>,
+	pub planes: Vec<Plane3>,
 	pub bbox: AABB2,
 	pub flags: LinedefFlags,
 	pub solid_mask: SolidMask,
@@ -93,6 +112,34 @@ pub struct LinedefRef {
 }
 
 #[derive(Clone, Debug)]
+pub struct Seg {
+	pub line: Line2,
+	pub normal: Vector2<f32>,
+	pub linedef: Option<(usize, Side)>,
+}
+
+#[derive(Clone, Debug)]
+pub struct Subsector {
+	pub segs: Vec<Seg>,
+	pub bbox: AABB2,
+	pub planes: Vec<Plane3>,
+	pub sector_index: usize,
+}
+
+#[derive(Clone, Debug)]
+pub struct Node {
+	pub plane: Plane2,
+	pub child_bboxes: [AABB2; 2],
+	pub child_indices: [NodeChild; 2],
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum NodeChild {
+	Subsector(usize),
+	Node(usize),
+}
+
+#[derive(Clone, Debug)]
 pub struct Sector {
 	pub interval: Interval,
 	pub floor_texture: TextureType<Flat>,
@@ -100,6 +147,7 @@ pub struct Sector {
 	pub light_level: f32,
 	pub special_type: u16,
 	pub sector_tag: u16,
+	pub linedefs: Vec<usize>,
 	pub subsectors: Vec<usize>,
 	pub neighbours: Vec<usize>,
 }
@@ -115,37 +163,6 @@ pub struct SectorDynamic {
 pub struct SectorRef {
 	pub map_entity: Entity,
 	pub index: usize,
-}
-
-#[derive(Clone, Debug)]
-pub struct GLSSect {
-	pub segs: Vec<GLSeg>,
-	pub planes: Vec<Plane>,
-	pub sector_index: usize,
-	pub bbox: AABB2,
-}
-
-#[derive(Clone, Debug)]
-pub struct GLSeg {
-	pub line: Line2,
-	pub normal: Vector2<f32>,
-	pub linedef_index: Option<usize>,
-	pub linedef_side: Side,
-	//pub partner_seg_index: Option<usize>,
-}
-
-#[derive(Clone, Debug)]
-pub struct GLNode {
-	pub partition_line: Line2,
-	pub normal: Vector2<f32>,
-	pub child_bboxes: [AABB2; 2],
-	pub child_indices: [NodeChild; 2],
-}
-
-#[derive(Copy, Clone, Debug)]
-pub enum NodeChild {
-	Subsector(usize),
-	Node(usize),
 }
 
 pub fn spawn_things(

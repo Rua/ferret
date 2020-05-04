@@ -64,7 +64,7 @@ fn main() -> anyhow::Result<()> {
 
 	let mut loader = doom::wad::WadLoader::new();
 	loader.add("doom.wad").context("Couldn't load doom.wad")?;
-	loader.add("doom.gwa").context("Couldn't load doom.gwa")?;
+	//loader.add("doom.gwa").context("Couldn't load doom.gwa")?;
 
 	let mut bindings = Bindings::new();
 	bindings.bind_action(
@@ -259,215 +259,7 @@ fn main() -> anyhow::Result<()> {
 			// Split further into subcommands
 			for args in tokens.split(|tok| tok == ";") {
 				match args[0].as_str() {
-					"map" => {
-						let name = &args[1];
-						log::info!("Loading map {}...", name);
-						let start_time = Instant::now();
-
-						// Load palette
-						let palette_handle = {
-							let (mut loader, mut palette_storage) = world.system_data::<(
-								WriteExpect<doom::wad::WadLoader>,
-								WriteExpect<AssetStorage<crate::doom::image::Palette>>,
-							)>();
-							let handle = palette_storage.load("PLAYPAL", &mut *loader);
-							palette_storage.build_waiting(Ok);
-							handle
-						};
-
-						// Load entity type data
-						world.insert(doom::entities::MobjTypes::new(&world));
-						world.insert(doom::entities::SectorTypes::new(&world));
-						world.insert(doom::entities::LinedefTypes::new(&world));
-
-						// Load sprite images
-						{
-							let (
-								palette_storage,
-								mut sprite_storage,
-								mut sprite_image_storage,
-								mut source,
-								render_context,
-							) = world.system_data::<(
-								ReadExpect<AssetStorage<crate::doom::image::Palette>>,
-								WriteExpect<AssetStorage<crate::doom::sprite::Sprite>>,
-								WriteExpect<AssetStorage<crate::doom::sprite::SpriteImage>>,
-								WriteExpect<crate::doom::wad::WadLoader>,
-								ReadExpect<crate::renderer::RenderContext>,
-							)>();
-							let palette = palette_storage.get(&palette_handle).unwrap();
-							sprite_storage.build_waiting(|intermediate| {
-								Ok(intermediate.build(&mut *sprite_image_storage, &mut *source)?)
-							});
-
-							sprite_image_storage.build_waiting(|image| {
-								let data: Vec<_> = image
-									.data
-									.into_iter()
-									.map(|pixel| {
-										if pixel.a == 0xFF {
-											palette[pixel.i as usize]
-										} else {
-											crate::doom::image::RGBAColor::default()
-										}
-									})
-									.collect();
-
-								// Create the image
-								let matrix = Matrix4::new_translation(&Vector3::new(
-									0.0,
-									image.offset[0] as f32,
-									image.offset[1] as f32,
-								)) * Matrix4::new_nonuniform_scaling(&Vector3::new(
-									0.0,
-									image.size[0] as f32,
-									image.size[1] as f32,
-								));
-
-								let (image, _future) = ImmutableImage::from_iter(
-									data.as_bytes().iter().copied(),
-									Dimensions::Dim2d {
-										width: image.size[0] as u32,
-										height: image.size[1] as u32,
-									},
-									Format::R8G8B8A8Unorm,
-									render_context.queues().graphics.clone(),
-								)?;
-
-								Ok(crate::doom::sprite::SpriteImage { matrix, image })
-							});
-						}
-
-						// Load sounds
-						{
-							let mut sound_storage =
-								world.system_data::<WriteExpect<AssetStorage<Sound>>>();
-
-							sound_storage.build_waiting(|intermediate| {
-								doom::sound::build_sound(intermediate)
-							});
-						}
-
-						// Load map
-						let map_handle = {
-							let (
-								mut loader,
-								mut map_storage,
-								mut flat_storage,
-								mut wall_texture_storage,
-							) = world.system_data::<(
-								WriteExpect<doom::wad::WadLoader>,
-								WriteExpect<AssetStorage<doom::map::Map>>,
-								WriteExpect<AssetStorage<doom::map::textures::Flat>>,
-								WriteExpect<AssetStorage<doom::map::textures::WallTexture>>,
-							)>();
-							let map_handle = map_storage.load(name, &mut *loader);
-							map_storage.build_waiting(|data| {
-								doom::map::load::build_map(
-									data,
-									"SKY1",
-									&mut *loader,
-									&mut *flat_storage,
-									&mut *wall_texture_storage,
-								)
-							});
-
-							map_handle
-						};
-
-						// Build flats and wall textures
-						{
-							let (palette_storage, mut flat_storage, render_context) = world
-								.system_data::<(
-									ReadExpect<AssetStorage<doom::image::Palette>>,
-									WriteExpect<AssetStorage<doom::map::textures::Flat>>,
-									ReadExpect<RenderContext>,
-								)>();
-							let palette = palette_storage.get(&palette_handle).unwrap();
-							flat_storage.build_waiting(|image| {
-								let data: Vec<_> = image
-									.data
-									.into_iter()
-									.map(|pixel| {
-										if pixel.a == 0xFF {
-											palette[pixel.i as usize]
-										} else {
-											crate::doom::image::RGBAColor::default()
-										}
-									})
-									.collect();
-
-								// Create the image
-								let (image, _future) = ImmutableImage::from_iter(
-									data.as_bytes().iter().copied(),
-									Dimensions::Dim2d {
-										width: image.size[0] as u32,
-										height: image.size[1] as u32,
-									},
-									Format::R8G8B8A8Unorm,
-									render_context.queues().graphics.clone(),
-								)?;
-
-								Ok(image)
-							});
-						}
-
-						{
-							let (palette_storage, mut wall_texture_storage, render_context) = world
-								.system_data::<(
-									ReadExpect<AssetStorage<doom::image::Palette>>,
-									WriteExpect<AssetStorage<doom::map::textures::WallTexture>>,
-									ReadExpect<RenderContext>,
-								)>();
-							let palette = palette_storage.get(&palette_handle).unwrap();
-							wall_texture_storage.build_waiting(|image| {
-								let data: Vec<_> = image
-									.data
-									.into_iter()
-									.map(|pixel| {
-										if pixel.a == 0xFF {
-											palette[pixel.i as usize]
-										} else {
-											crate::doom::image::RGBAColor::default()
-										}
-									})
-									.collect();
-
-								let (image, _future) = ImmutableImage::from_iter(
-									data.as_bytes().iter().copied(),
-									Dimensions::Dim2d {
-										width: image.size[0] as u32,
-										height: image.size[1] as u32,
-									},
-									Format::R8G8B8A8Unorm,
-									render_context.queues().graphics.clone(),
-								)?;
-
-								Ok(image)
-							});
-						}
-
-						// Spawn map entities and things
-						let things = {
-							let loader = world.system_data::<WriteExpect<doom::wad::WadLoader>>();
-							doom::map::load::build_things(
-								&loader.load(&format!("{}/+{}", name, 1))?,
-							)?
-						};
-						doom::map::spawn_map_entities(&world, &map_handle)?;
-						doom::map::spawn_things(things, &world, &map_handle)?;
-
-						// Spawn player
-						let entity = doom::map::spawn_player(&world)?;
-						world
-							.system_data::<WriteExpect<doom::client::Client>>()
-							.entity = Some(entity);
-
-						log::debug!(
-							"Loading took {} s",
-							(Instant::now() - start_time).as_secs_f32()
-						);
-					}
+					"map" => load_map(&args[1], &mut world)?,
 					"quit" => should_quit = true,
 					_ => log::error!("Unknown command: {}", args[0]),
 				}
@@ -499,6 +291,208 @@ fn main() -> anyhow::Result<()> {
 		// Draw frame
 		render_system.run_now(&world);
 	}
+
+	Ok(())
+}
+
+fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
+	log::info!("Starting new game...");
+	let start_time = Instant::now();
+
+	// Load palette
+	let palette_handle = {
+		let (mut loader, mut palette_storage) = world.system_data::<(
+			WriteExpect<doom::wad::WadLoader>,
+			WriteExpect<AssetStorage<crate::doom::image::Palette>>,
+		)>();
+		let handle = palette_storage.load("PLAYPAL", &mut *loader);
+		palette_storage.build_waiting(Ok);
+		handle
+	};
+
+	// Load entity type data
+	log::info!("Loading entities");
+	world.insert(doom::entities::MobjTypes::new(&world));
+	world.insert(doom::entities::SectorTypes::new(&world));
+	world.insert(doom::entities::LinedefTypes::new(&world));
+
+	// Load sprite images
+	{
+		let (
+			palette_storage,
+			mut sprite_storage,
+			mut sprite_image_storage,
+			mut source,
+			render_context,
+		) = world.system_data::<(
+			ReadExpect<AssetStorage<crate::doom::image::Palette>>,
+			WriteExpect<AssetStorage<crate::doom::sprite::Sprite>>,
+			WriteExpect<AssetStorage<crate::doom::sprite::SpriteImage>>,
+			WriteExpect<crate::doom::wad::WadLoader>,
+			ReadExpect<crate::renderer::RenderContext>,
+		)>();
+		let palette = palette_storage.get(&palette_handle).unwrap();
+		sprite_storage.build_waiting(|intermediate| {
+			Ok(intermediate.build(&mut *sprite_image_storage, &mut *source)?)
+		});
+
+		sprite_image_storage.build_waiting(|image| {
+			let data: Vec<_> = image
+				.data
+				.into_iter()
+				.map(|pixel| {
+					if pixel.a == 0xFF {
+						palette[pixel.i as usize]
+					} else {
+						crate::doom::image::RGBAColor::default()
+					}
+				})
+				.collect();
+
+			// Create the image
+			let matrix = Matrix4::new_translation(&Vector3::new(
+				0.0,
+				image.offset[0] as f32,
+				image.offset[1] as f32,
+			)) * Matrix4::new_nonuniform_scaling(&Vector3::new(
+				0.0,
+				image.size[0] as f32,
+				image.size[1] as f32,
+			));
+
+			let (image, _future) = ImmutableImage::from_iter(
+				data.as_bytes().iter().copied(),
+				Dimensions::Dim2d {
+					width: image.size[0] as u32,
+					height: image.size[1] as u32,
+				},
+				Format::R8G8B8A8Unorm,
+				render_context.queues().graphics.clone(),
+			)?;
+
+			Ok(crate::doom::sprite::SpriteImage { matrix, image })
+		});
+	}
+
+	// Load sounds
+	{
+		let mut sound_storage = world.system_data::<WriteExpect<AssetStorage<Sound>>>();
+
+		sound_storage.build_waiting(|intermediate| doom::sound::build_sound(intermediate));
+	}
+
+	// Load map
+	log::info!("Loading map {}...", name);
+	let map_handle = {
+		let (mut loader, mut map_storage, mut flat_storage, mut wall_texture_storage) = world
+			.system_data::<(
+				WriteExpect<doom::wad::WadLoader>,
+				WriteExpect<AssetStorage<doom::map::Map>>,
+				WriteExpect<AssetStorage<doom::map::textures::Flat>>,
+				WriteExpect<AssetStorage<doom::map::textures::WallTexture>>,
+			)>();
+		let map_handle = map_storage.load(name, &mut *loader);
+		map_storage.build_waiting(|data| {
+			doom::map::load::build_map(
+				data,
+				"SKY1",
+				&mut *loader,
+				&mut *flat_storage,
+				&mut *wall_texture_storage,
+			)
+		});
+
+		map_handle
+	};
+
+	// Build flats and wall textures
+	{
+		let (palette_storage, mut flat_storage, render_context) = world.system_data::<(
+			ReadExpect<AssetStorage<doom::image::Palette>>,
+			WriteExpect<AssetStorage<doom::map::textures::Flat>>,
+			ReadExpect<RenderContext>,
+		)>();
+		let palette = palette_storage.get(&palette_handle).unwrap();
+		flat_storage.build_waiting(|image| {
+			let data: Vec<_> = image
+				.data
+				.into_iter()
+				.map(|pixel| {
+					if pixel.a == 0xFF {
+						palette[pixel.i as usize]
+					} else {
+						crate::doom::image::RGBAColor::default()
+					}
+				})
+				.collect();
+
+			// Create the image
+			let (image, _future) = ImmutableImage::from_iter(
+				data.as_bytes().iter().copied(),
+				Dimensions::Dim2d {
+					width: image.size[0] as u32,
+					height: image.size[1] as u32,
+				},
+				Format::R8G8B8A8Unorm,
+				render_context.queues().graphics.clone(),
+			)?;
+
+			Ok(image)
+		});
+	}
+
+	{
+		let (palette_storage, mut wall_texture_storage, render_context) = world.system_data::<(
+			ReadExpect<AssetStorage<doom::image::Palette>>,
+			WriteExpect<AssetStorage<doom::map::textures::WallTexture>>,
+			ReadExpect<RenderContext>,
+		)>();
+		let palette = palette_storage.get(&palette_handle).unwrap();
+		wall_texture_storage.build_waiting(|image| {
+			let data: Vec<_> = image
+				.data
+				.into_iter()
+				.map(|pixel| {
+					if pixel.a == 0xFF {
+						palette[pixel.i as usize]
+					} else {
+						crate::doom::image::RGBAColor::default()
+					}
+				})
+				.collect();
+
+			let (image, _future) = ImmutableImage::from_iter(
+				data.as_bytes().iter().copied(),
+				Dimensions::Dim2d {
+					width: image.size[0] as u32,
+					height: image.size[1] as u32,
+				},
+				Format::R8G8B8A8Unorm,
+				render_context.queues().graphics.clone(),
+			)?;
+
+			Ok(image)
+		});
+	}
+
+	// Spawn map entities and things
+	let things = {
+		let loader = world.system_data::<WriteExpect<doom::wad::WadLoader>>();
+		doom::map::load::build_things(&loader.load(&format!("{}/+{}", name, 1))?)?
+	};
+	doom::map::spawn_map_entities(&world, &map_handle)?;
+	doom::map::spawn_things(things, &world, &map_handle)?;
+
+	// Spawn player
+	let entity = doom::map::spawn_player(&world)?;
+	world
+		.system_data::<WriteExpect<doom::client::Client>>()
+		.entity = Some(entity);
+
+	log::debug!(
+		"Loading took {} s",
+		(Instant::now() - start_time).as_secs_f32()
+	);
 
 	Ok(())
 }
