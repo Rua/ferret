@@ -1,5 +1,6 @@
 [package]
 name = "ferret"
+description = "Doom-compatible game engine"
 version = "0.1.0"
 authors = ["Rua <ruawhitepaw@gmail.com>"]
 publish = false
@@ -10,11 +11,12 @@ anyhow = "1.0"
 arrayvec = "0.5.1"
 bitflags = "1.2"
 byteorder = "1.3"
+clap = "2.33"
 colored = "1.9"
 crossbeam-channel = "0.4.2"
 derivative = "1.0"
 lazy_static = "1.4"
-log = {version = "0.4.8", features = ["release_max_level_info"]}
+log = {version = "0.4.8", features = ["std"]}
 nalgebra = "0.20.0"
 num-traits = "0.2.10"
 rand = "0.7"

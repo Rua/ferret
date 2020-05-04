@@ -14,10 +14,10 @@ use crate::{
 	audio::Sound,
 	component::EntityTemplate,
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
-	logger::Logger,
 	renderer::{AsBytes, RenderContext},
 };
 use anyhow::Context;
+use clap::{App, Arg, ArgMatches};
 use nalgebra::{Matrix4, Vector3};
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
@@ -38,7 +38,34 @@ use winit::{
 };
 
 fn main() -> anyhow::Result<()> {
-	Logger::init().unwrap();
+	let arg_matches = App::new(clap::crate_name!())
+		.about(clap::crate_description!())
+		.version(clap::crate_version!())
+		.arg(
+			Arg::with_name("iwad")
+				.help("IWAD file to use instead of the default")
+				.short("i")
+				.long("iwad")
+				.value_name("FILE"),
+		)
+		.arg(
+			Arg::with_name("PWADS")
+				.help("PWAD files to add")
+				.multiple(true),
+		)
+		.arg(
+			Arg::with_name("log-level")
+				.help("Highest log level to display")
+				.long("log-level")
+				.value_name("LEVEL")
+				.possible_values(&["ERROR", "WARN", "INFO", "DEBUG", "TRACE"]),
+		)
+		.get_matches();
+
+	logger::init(&arg_matches)?;
+
+	let mut loader = doom::wad::WadLoader::new();
+	load_wads(&mut loader, &arg_matches)?;
 
 	let (command_sender, command_receiver) = commands::init()?;
 	let mut event_loop = EventLoop::new();
@@ -46,9 +73,6 @@ fn main() -> anyhow::Result<()> {
 		RenderContext::new(&event_loop).context("Could not create rendering context")?;
 	let sound_sender = audio::init()?;
 	let bindings = get_bindings();
-
-	let mut loader = doom::wad::WadLoader::new();
-	load_wads(&mut loader)?;
 
 	let mut world = World::new();
 
@@ -234,28 +258,39 @@ fn main() -> anyhow::Result<()> {
 	Ok(())
 }
 
-fn load_wads(loader: &mut doom::wad::WadLoader) -> anyhow::Result<()> {
-	let path = Path::new("doom.wad");
-	loader
-		.add(path)
-		.context(format!("Couldn't load {}", path.display()))?;
+fn load_wads(loader: &mut doom::wad::WadLoader, arg_matches: &ArgMatches) -> anyhow::Result<()> {
+	let mut wads = Vec::new();
 
-	// Try to load the .gwa file as well if present
-	if let Some(extension) = path.extension() {
-		if extension.to_str().unwrap().to_ascii_uppercase() == "WAD" {
-			let path = path.with_extension("gwa");
+	let iwad = arg_matches.value_of("iwad").unwrap_or("doom.wad");
+	wads.push(iwad);
 
-			if path.is_file() {
-				loader
-					.add(&path)
-					.context(format!("Couldn't load {}", path.display()))?;
-			} else {
-				let path = path.with_extension("GWA");
+	if let Some(iter) = arg_matches.values_of("PWADS") {
+		wads.extend(iter);
+	}
+
+	for wad in wads {
+		let path = Path::new(wad);
+		loader
+			.add(path)
+			.context(format!("Couldn't load {}", path.display()))?;
+
+		// Try to load the .gwa file as well if present
+		if let Some(extension) = path.extension() {
+			if extension.to_str().unwrap().to_ascii_uppercase() == "WAD" {
+				let path = path.with_extension("gwa");
 
 				if path.is_file() {
 					loader
 						.add(&path)
 						.context(format!("Couldn't load {}", path.display()))?;
+				} else {
+					let path = path.with_extension("GWA");
+
+					if path.is_file() {
+						loader
+							.add(&path)
+							.context(format!("Couldn't load {}", path.display()))?;
+					}
 				}
 			}
 		}

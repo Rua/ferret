@@ -1,16 +1,25 @@
+use clap::ArgMatches;
 use colored::Colorize;
-use log::{self, Level, Log, Metadata, Record, SetLoggerError};
+use log::{self, Level, LevelFilter, Log, Metadata, Record};
 
 pub static LOGGER: Logger = Logger;
-
 pub struct Logger;
 
-impl Logger {
-	pub fn init() -> Result<(), SetLoggerError> {
-		log::set_logger(&LOGGER)?;
-		log::set_max_level(log::STATIC_MAX_LEVEL);
-		Ok(())
-	}
+#[cfg(debug_assertions)]
+const LOG_LEVEL: LevelFilter = LevelFilter::Debug;
+
+#[cfg(not(debug_assertions))]
+const LOG_LEVEL: LevelFilter = LevelFilter::Info;
+
+pub fn init(arg_matches: &ArgMatches) -> anyhow::Result<()> {
+	log::set_logger(&LOGGER)?;
+	log::set_max_level(
+		arg_matches
+			.value_of("log-level")
+			.map(|s| s.parse().unwrap())
+			.unwrap_or(LOG_LEVEL),
+	);
+	Ok(())
 }
 
 impl Log for Logger {
