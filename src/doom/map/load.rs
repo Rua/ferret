@@ -1,9 +1,11 @@
 use crate::{
-	assets::{Asset, AssetStorage, DataSource},
+	assets::{Asset, AssetHandle, AssetStorage, DataSource},
 	doom::{
+		data::anims::{AnimData, ANIMS_FLAT, ANIMS_WALL},
 		map::{
-			textures::{Flat, TextureType, WallTexture},
-			Linedef, Map, Node, NodeChild, Sector, Seg, Sidedef, Subsector, Thing, ThingFlags,
+			textures::{Flat, TextureType, Wall},
+			Anim, Linedef, Map, Node, NodeChild, Sector, Seg, Sidedef, Subsector, Thing,
+			ThingFlags,
 		},
 		physics::SolidMask,
 		wad::WadLoader,
@@ -15,7 +17,7 @@ use bitflags::bitflags;
 use byteorder::{ReadBytesExt, LE};
 use nalgebra::{Vector2, Vector3};
 use serde::Deserialize;
-use std::{cmp::Ordering, io::Read};
+use std::{cmp::Ordering, collections::HashMap, io::Read};
 
 pub struct MapData {
 	pub linedefs: Vec<u8>,
@@ -70,9 +72,9 @@ pub fn build_map(
 	sky_name: &str,
 	loader: &mut WadLoader,
 	flat_storage: &mut AssetStorage<Flat>,
-	wall_texture_storage: &mut AssetStorage<WallTexture>,
+	wall_storage: &mut AssetStorage<Wall>,
 ) -> anyhow::Result<Map> {
-	let sky = wall_texture_storage.load(sky_name, loader);
+	let sky = wall_storage.load(sky_name, loader);
 
 	let MapData {
 		linedefs: linedefs_data,
@@ -87,7 +89,7 @@ pub fn build_map(
 
 	let vertexes = build_vertexes(&vertexes_data)?;
 	let mut sectors = build_sectors(&sectors_data, loader, flat_storage)?;
-	let mut sidedefs = build_sidedefs(&sidedefs_data, &sectors, loader, wall_texture_storage)?;
+	let mut sidedefs = build_sidedefs(&sidedefs_data, &sectors, loader, wall_storage)?;
 	let linedefs = build_linedefs(&linedefs_data, &vertexes, &mut sectors, &mut sidedefs)?;
 
 	// Load GL nodes if available
@@ -131,6 +133,8 @@ pub fn build_map(
 	}
 
 	Ok(Map {
+		anims_flat: get_anims(&ANIMS_FLAT, flat_storage, loader),
+		anims_wall: get_anims(&ANIMS_WALL, wall_storage, loader),
 		linedefs,
 		sectors,
 		subsectors,
@@ -215,7 +219,7 @@ fn build_sidedefs(
 	data: &[u8],
 	sectors: &[Sector],
 	loader: &mut WadLoader,
-	wall_texture_storage: &mut AssetStorage<WallTexture>,
+	wall_storage: &mut AssetStorage<Wall>,
 ) -> anyhow::Result<Vec<Option<Sidedef>>> {
 	let chunks = data.chunks(30);
 	let mut ret = Vec::with_capacity(chunks.len());
@@ -239,7 +243,7 @@ fn build_sidedefs(
 					if name == "F_SKY1" {
 						TextureType::Sky
 					} else {
-						TextureType::Normal(wall_texture_storage.load(&name, &mut *loader))
+						TextureType::Normal(wall_storage.load(&name, &mut *loader))
 					}
 				}
 			},
@@ -254,7 +258,7 @@ fn build_sidedefs(
 					if name == "F_SKY1" {
 						TextureType::Sky
 					} else {
-						TextureType::Normal(wall_texture_storage.load(&name, &mut *loader))
+						TextureType::Normal(wall_storage.load(&name, &mut *loader))
 					}
 				}
 			},
@@ -269,7 +273,7 @@ fn build_sidedefs(
 					if name == "F_SKY1" {
 						TextureType::Sky
 					} else {
-						TextureType::Normal(wall_texture_storage.load(&name, &mut *loader))
+						TextureType::Normal(wall_storage.load(&name, &mut *loader))
 					}
 				}
 			},
@@ -1139,4 +1143,32 @@ fn intersect_planes(plane1: &Plane2, plane2: &Plane2) -> Option<nalgebra::Vector
 	let matrix = nalgebra::Matrix2::new(plane1.distance, -t, t, plane1.distance);
 
 	Some(matrix * plane1.normal)
+}
+
+pub fn get_anims<T: Asset>(
+	data: &[AnimData],
+	storage: &mut AssetStorage<T>,
+	loader: &mut WadLoader,
+) -> HashMap<AssetHandle<T>, Anim<T>> {
+	let mut ret = HashMap::new();
+
+	for anim_data in data {
+		assert!(!anim_data.frames.is_empty());
+		let name = anim_data.frames.last().unwrap();
+		if let Some(handle) = storage.handle_for(name) {
+			ret.insert(
+				handle,
+				Anim {
+					frames: anim_data
+						.frames
+						.iter()
+						.map(|name| storage.load(name, loader))
+						.collect(),
+					frame_time: anim_data.frame_time,
+				},
+			);
+		}
+	}
+
+	ret
 }

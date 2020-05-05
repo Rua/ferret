@@ -4,7 +4,7 @@ use crate::{
 		client::Client,
 		components::Transform,
 		map::{
-			textures::{Flat, WallTexture},
+			textures::{Flat, Wall},
 			Map, MapDynamic,
 		},
 		sprite::{Sprite, SpriteImage},
@@ -448,13 +448,12 @@ impl MapRenderSystem {
 		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
 		rotation: Vector3<Angle>,
 	) -> anyhow::Result<AutoCommandBufferBuilder> {
-		let (flat_storage, map_storage, wall_texture_storage, map_component) = world
-			.system_data::<(
-				ReadExpect<AssetStorage<Flat>>,
-				ReadExpect<AssetStorage<Map>>,
-				ReadExpect<AssetStorage<WallTexture>>,
-				ReadStorage<MapDynamic>,
-			)>();
+		let (flat_storage, map_storage, wall_storage, map_component) = world.system_data::<(
+			ReadExpect<AssetStorage<Flat>>,
+			ReadExpect<AssetStorage<Map>>,
+			ReadExpect<AssetStorage<Wall>>,
+			ReadStorage<MapDynamic>,
+		)>();
 
 		for map_dynamic in map_component.join() {
 			let map = map_storage.get(&map_dynamic.map).unwrap();
@@ -468,7 +467,15 @@ impl MapRenderSystem {
 					.vertex_buffer_pool
 					.chunk(mesh.0.as_bytes().iter().copied())?;
 				let index_buffer = self.index_buffer_pool.chunk(mesh.1)?;
-				let image = wall_texture_storage.get(&handle).unwrap();
+
+				// Redirect animation frames
+				let handle = if let Some(anim_state) = map_dynamic.anim_states_wall.get(&handle) {
+					let anim = &map.anims_wall[&handle];
+					&anim.frames[anim_state.frame]
+				} else {
+					&handle
+				};
+				let image = wall_storage.get(&handle).unwrap();
 
 				let texture_set = Arc::new(
 					self.normal_texture_set_pool
@@ -493,7 +500,15 @@ impl MapRenderSystem {
 					.vertex_buffer_pool
 					.chunk(mesh.0.as_bytes().iter().copied())?;
 				let index_buffer = self.index_buffer_pool.chunk(mesh.1)?;
-				let image = flat_storage.get(&handle).unwrap();
+
+				// Redirect animation frames
+				let handle = if let Some(anim_state) = map_dynamic.anim_states_flat.get(&handle) {
+					let anim = &map.anims_flat[&handle];
+					&anim.frames[anim_state.frame]
+				} else {
+					&handle
+				};
+				let image = flat_storage.get(handle).unwrap();
 
 				let texture_set = Arc::new(
 					self.normal_texture_set_pool
@@ -519,7 +534,7 @@ impl MapRenderSystem {
 				.vertex_buffer_pool
 				.chunk(sky_mesh.0.as_bytes().iter().copied())?;
 			let index_buffer = self.index_buffer_pool.chunk(sky_mesh.1)?;
-			let image = wall_texture_storage.get(&map.sky).unwrap();
+			let image = wall_storage.get(&map.sky).unwrap();
 			let sky_buffer = self.sky_uniform_pool.next(sky_frag::ty::FragParams {
 				screenSize: [800.0, 600.0],
 				pitch: rotation[1].to_degrees() as f32,

@@ -1,3 +1,4 @@
+pub mod anims;
 mod linedefs;
 mod mobjs;
 mod sectors;

@@ -123,7 +123,7 @@ fn main() -> anyhow::Result<()> {
 	world.insert(AssetStorage::<Sound>::default());
 	world.insert(AssetStorage::<doom::map::Map>::default());
 	world.insert(AssetStorage::<doom::map::textures::Flat>::default());
-	world.insert(AssetStorage::<doom::map::textures::WallTexture>::default());
+	world.insert(AssetStorage::<doom::map::textures::Wall>::default());
 	world.insert(AssetStorage::<doom::image::Palette>::default());
 	world.insert(AssetStorage::<doom::sprite::Sprite>::default());
 	world.insert(AssetStorage::<doom::sprite::SpriteImage>::default());
@@ -156,7 +156,7 @@ fn main() -> anyhow::Result<()> {
 				.register_reader(),
 		))
 		.with_thread_local(doom::light::LightUpdateSystem::default())
-		.with_thread_local(doom::update::TextureScrollSystem::default())
+		.with_thread_local(doom::update::TextureAnimSystem::default())
 		.build();
 
 	let mut should_quit = false;
@@ -463,12 +463,12 @@ fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
 	// Load map
 	log::info!("Loading map...");
 	let map_handle = {
-		let (mut loader, mut map_storage, mut flat_storage, mut wall_texture_storage) = world
+		let (mut loader, mut map_storage, mut flat_storage, mut wall_storage) = world
 			.system_data::<(
 				WriteExpect<doom::wad::WadLoader>,
 				WriteExpect<AssetStorage<doom::map::Map>>,
 				WriteExpect<AssetStorage<doom::map::textures::Flat>>,
-				WriteExpect<AssetStorage<doom::map::textures::WallTexture>>,
+				WriteExpect<AssetStorage<doom::map::textures::Wall>>,
 			)>();
 		let map_handle = map_storage.load(name, &mut *loader);
 		map_storage.build_waiting(|data| {
@@ -477,7 +477,7 @@ fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
 				"SKY1",
 				&mut *loader,
 				&mut *flat_storage,
-				&mut *wall_texture_storage,
+				&mut *wall_storage,
 			)
 		});
 
@@ -521,13 +521,13 @@ fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
 	}
 
 	{
-		let (palette_storage, mut wall_texture_storage, render_context) = world.system_data::<(
+		let (palette_storage, mut wall_storage, render_context) = world.system_data::<(
 			ReadExpect<AssetStorage<doom::image::Palette>>,
-			WriteExpect<AssetStorage<doom::map::textures::WallTexture>>,
+			WriteExpect<AssetStorage<doom::map::textures::Wall>>,
 			ReadExpect<RenderContext>,
 		)>();
 		let palette = palette_storage.get(&palette_handle).unwrap();
-		wall_texture_storage.build_waiting(|image| {
+		wall_storage.build_waiting(|image| {
 			let data: Vec<_> = image
 				.data
 				.into_iter()

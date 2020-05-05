@@ -10,7 +10,7 @@ use crate::{
 		data::{LinedefTypes, MobjTypes, SectorTypes},
 		map::{
 			load::LinedefFlags,
-			textures::{Flat, TextureType, WallTexture},
+			textures::{Flat, TextureType, Wall},
 		},
 		physics::SolidMask,
 	},
@@ -25,15 +25,17 @@ use specs::{
 	World, WorldExt, WriteStorage,
 };
 use specs_derive::Component;
-use std::fmt::Debug;
+use std::{collections::HashMap, fmt::Debug, time::Duration};
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Map {
+	pub anims_flat: HashMap<AssetHandle<Flat>, Anim<Flat>>,
+	pub anims_wall: HashMap<AssetHandle<Wall>, Anim<Wall>>,
 	pub linedefs: Vec<Linedef>,
 	pub sectors: Vec<Sector>,
 	pub subsectors: Vec<Subsector>,
 	pub nodes: Vec<Node>,
-	pub sky: AssetHandle<WallTexture>,
+	pub sky: AssetHandle<Wall>,
 }
 
 impl Map {
@@ -55,9 +57,23 @@ impl Map {
 
 #[derive(Clone, Component, Debug)]
 pub struct MapDynamic {
+	pub anim_states_flat: HashMap<AssetHandle<Flat>, AnimState>,
+	pub anim_states_wall: HashMap<AssetHandle<Wall>, AnimState>,
 	pub map: AssetHandle<Map>,
 	pub linedefs: Vec<LinedefDynamic>,
 	pub sectors: Vec<SectorDynamic>,
+}
+
+#[derive(Clone, Debug)]
+pub struct Anim<T> {
+	pub frames: Vec<AssetHandle<T>>,
+	pub frame_time: Duration,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct AnimState {
+	pub frame: usize,
+	pub time_left: Duration,
 }
 
 pub struct Thing {
@@ -93,9 +109,9 @@ pub struct Linedef {
 #[derive(Clone, Debug)]
 pub struct Sidedef {
 	pub texture_offset: Vector2<f32>,
-	pub top_texture: TextureType<WallTexture>,
-	pub bottom_texture: TextureType<WallTexture>,
-	pub middle_texture: TextureType<WallTexture>,
+	pub top_texture: TextureType<Wall>,
+	pub bottom_texture: TextureType<Wall>,
+	pub middle_texture: TextureType<Wall>,
 	pub sector_index: usize,
 }
 
@@ -272,7 +288,36 @@ pub fn spawn_map_entities(world: &World, map_handle: &AssetHandle<Map>) -> anyho
 
 	// Create map entity
 	let map_entity = world.entities().create();
+	let anim_states_flat = map
+		.anims_flat
+		.iter()
+		.map(|(k, v)| {
+			(
+				k.clone(),
+				AnimState {
+					frame: 0,
+					time_left: v.frame_time,
+				},
+			)
+		})
+		.collect();
+	let anim_states_wall = map
+		.anims_wall
+		.iter()
+		.map(|(k, v)| {
+			(
+				k.clone(),
+				AnimState {
+					frame: 0,
+					time_left: v.frame_time,
+				},
+			)
+		})
+		.collect();
+
 	let mut map_dynamic = MapDynamic {
+		anim_states_flat,
+		anim_states_wall,
 		map: map_handle.clone(),
 		linedefs: Vec::with_capacity(map.linedefs.len()),
 		sectors: Vec::with_capacity(map.sectors.len()),

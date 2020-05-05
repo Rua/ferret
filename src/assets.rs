@@ -102,10 +102,12 @@ pub struct AssetStorage<A: Asset> {
 }
 
 impl<A: Asset> AssetStorage<A> {
+	#[inline]
 	pub fn get(&self, handle: &AssetHandle<A>) -> Option<&A::Data> {
 		self.assets.get(&handle.id())
 	}
 
+	#[inline]
 	fn allocate_handle(&mut self) -> AssetHandle<A> {
 		let id = self.unused_ids.pop_front().unwrap_or_else(|| {
 			self.highest_id += 1;
@@ -118,6 +120,12 @@ impl<A: Asset> AssetStorage<A> {
 		}
 	}
 
+	#[inline]
+	pub fn handle_for(&self, name: &str) -> Option<AssetHandle<A>> {
+		self.names.get(name).and_then(WeakHandle::upgrade)
+	}
+
+	#[inline]
 	pub fn insert(&mut self, data: A::Data) -> AssetHandle<A> {
 		let handle = self.allocate_handle();
 		self.assets.insert(handle.id(), data);
@@ -126,9 +134,7 @@ impl<A: Asset> AssetStorage<A> {
 	}
 
 	pub fn load(&mut self, name: &str, source: &mut impl DataSource) -> AssetHandle<A> {
-		if let Some(handle) = self.names.get(name).and_then(WeakHandle::upgrade) {
-			handle
-		} else {
+		self.handle_for(name).unwrap_or_else(|| {
 			let handle = self.allocate_handle();
 			self.names.insert(name.to_owned(), handle.downgrade());
 			let intermediate = A::import(name, source);
@@ -136,7 +142,7 @@ impl<A: Asset> AssetStorage<A> {
 				.push((handle.clone(), intermediate, name.to_owned()));
 
 			handle
-		}
+		})
 	}
 
 	/*pub fn clear_unused(&mut self) {

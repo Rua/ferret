@@ -1,7 +1,7 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
 	doom::map::{
-		textures::{Flat, TextureType, WallTexture},
+		textures::{Flat, TextureType, Wall},
 		LinedefFlags, Map, MapDynamic, Side,
 	},
 };
@@ -31,7 +31,7 @@ pub fn make_meshes(
 ) -> anyhow::Result<(
 	HashMap<AssetHandle<Flat>, (Vec<VertexData>, Vec<u32>)>,
 	(Vec<SkyVertexData>, Vec<u32>),
-	HashMap<AssetHandle<WallTexture>, (Vec<VertexData>, Vec<u32>)>,
+	HashMap<AssetHandle<Wall>, (Vec<VertexData>, Vec<u32>)>,
 )> {
 	#[inline]
 	fn push_wall(
@@ -120,12 +120,11 @@ pub fn make_meshes(
 
 	let mut flat_meshes: HashMap<AssetHandle<Flat>, (Vec<VertexData>, Vec<u32>)> = HashMap::new();
 	let mut sky_mesh: (Vec<SkyVertexData>, Vec<u32>) = (Vec::new(), Vec::new());
-	let mut wall_meshes: HashMap<AssetHandle<WallTexture>, (Vec<VertexData>, Vec<u32>)> =
-		HashMap::new();
+	let mut wall_meshes: HashMap<AssetHandle<Wall>, (Vec<VertexData>, Vec<u32>)> = HashMap::new();
 
-	let (flat_storage, wall_texture_storage) = world.system_data::<(
+	let (flat_storage, wall_storage) = world.system_data::<(
 		ReadExpect<AssetStorage<Flat>>,
-		ReadExpect<AssetStorage<WallTexture>>,
+		ReadExpect<AssetStorage<Wall>>,
 	)>();
 
 	// Walls
@@ -177,7 +176,7 @@ pub fn make_meshes(
 						);
 					}
 					TextureType::Normal(handle) => {
-						let dimensions = wall_texture_storage.get(handle).unwrap().dimensions();
+						let dimensions = wall_storage.get(handle).unwrap().dimensions();
 						let (ref mut vertices, ref mut indices) = wall_meshes
 							.entry(handle.clone())
 							.or_insert((vec![], vec![]));
@@ -206,7 +205,7 @@ pub fn make_meshes(
 					TextureType::None => (),
 					TextureType::Sky => unimplemented!(),
 					TextureType::Normal(handle) => {
-						let dimensions = wall_texture_storage.get(handle).unwrap().dimensions();
+						let dimensions = wall_storage.get(handle).unwrap().dimensions();
 						let (ref mut vertices, ref mut indices) = wall_meshes
 							.entry(handle.clone())
 							.or_insert((vec![], vec![]));
@@ -238,7 +237,7 @@ pub fn make_meshes(
 					TextureType::None => (),
 					TextureType::Sky => unimplemented!(),
 					TextureType::Normal(handle) => {
-						let dimensions = wall_texture_storage.get(handle).unwrap().dimensions();
+						let dimensions = wall_storage.get(handle).unwrap().dimensions();
 						let (ref mut vertices, ref mut indices) = wall_meshes
 							.entry(handle.clone())
 							.or_insert((vec![], vec![]));
@@ -266,7 +265,7 @@ pub fn make_meshes(
 					TextureType::None => (),
 					TextureType::Sky => unimplemented!(),
 					TextureType::Normal(handle) => {
-						let dimensions = wall_texture_storage.get(handle).unwrap().dimensions();
+						let dimensions = wall_storage.get(handle).unwrap().dimensions();
 						let (ref mut vertices, ref mut indices) = wall_meshes
 							.entry(handle.clone())
 							.or_insert((vec![], vec![]));

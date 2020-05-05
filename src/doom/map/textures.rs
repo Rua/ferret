@@ -13,6 +13,7 @@ use std::{
 };
 use vulkano::image::ImageViewAccess;
 
+#[derive(Clone, Copy, Debug)]
 pub struct Flat;
 
 impl Asset for Flat {
@@ -33,7 +34,7 @@ impl Asset for Flat {
 	}
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct PNamesFormat;
 
 impl AssetFormat for PNamesFormat {
@@ -54,12 +55,13 @@ impl AssetFormat for PNamesFormat {
 	}
 }
 
-pub struct WallTexture;
+#[derive(Clone, Copy, Debug)]
+pub struct Wall;
 
-impl Asset for WallTexture {
+impl Asset for Wall {
 	type Data = Arc<dyn ImageViewAccess + Send + Sync>;
 	type Intermediate = Image;
-	const NAME: &'static str = "WallTexture";
+	const NAME: &'static str = "Wall";
 
 	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
 		let pnames = PNamesFormat.import("PNAMES", source)?;
@@ -128,17 +130,19 @@ impl Asset for WallTexture {
 	}
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct PatchInfo {
 	pub offset: [isize; 2],
 	pub index: usize,
 }
 
+#[derive(Clone, Debug)]
 pub struct TextureInfo {
 	pub size: [usize; 2],
 	pub patches: Vec<PatchInfo>,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct TexturesFormat;
 
 impl AssetFormat for TexturesFormat {
@@ -172,11 +176,13 @@ impl AssetFormat for TexturesFormat {
 	}
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct RawPatchInfo {
 	pub offset: [i16; 2],
 	pub index: u16,
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct RawTextureInfo {
 	pub name: [u8; 8],
 	pub size: [u16; 2],
