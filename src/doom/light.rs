@@ -1,6 +1,9 @@
 use crate::{
 	assets::AssetStorage,
-	doom::map::{Map, MapDynamic, SectorRef},
+	doom::{
+		data::FRAME_TIME,
+		map::{Map, MapDynamic, SectorRef},
+	},
 };
 use rand::Rng;
 use rand_pcg::Pcg64Mcg;
@@ -61,13 +64,12 @@ impl<'a> RunNow<'a> for LightUpdateSystem {
 				match light_flash.flash_type {
 					LightFlashType::Broken => {
 						if light_flash.state {
-							light_flash.time_left = light_flash.on_time
-								* (rng.gen::<bool>() as u32)
-								+ crate::doom::FRAME_TIME;
+							light_flash.time_left =
+								light_flash.on_time * (rng.gen::<bool>() as u32) + FRAME_TIME;
 							sector_dynamic.light_level = max_light;
 						} else {
-							light_flash.time_left = light_flash.off_time.mul_f64(rng.gen::<f64>())
-								+ crate::doom::FRAME_TIME;
+							light_flash.time_left =
+								light_flash.off_time.mul_f64(rng.gen::<f64>()) + FRAME_TIME;
 							sector_dynamic.light_level = min_light;
 						}
 					}
@@ -85,8 +87,7 @@ impl<'a> RunNow<'a> for LightUpdateSystem {
 						}
 					}
 					LightFlashType::StrobeUnSync(time) => {
-						light_flash.time_left =
-							time.mul_f64(rng.gen::<f64>()) + crate::doom::FRAME_TIME;
+						light_flash.time_left = time.mul_f64(rng.gen::<f64>()) + FRAME_TIME;
 						light_flash.flash_type = LightFlashType::Strobe;
 					}
 				}

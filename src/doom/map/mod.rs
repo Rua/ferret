@@ -7,7 +7,7 @@ use crate::{
 	component::EntityTemplate,
 	doom::{
 		components::{SpawnOnCeiling, SpawnPoint, Transform},
-		entities::{LinedefTypes, MobjTypes, SectorTypes},
+		data::{LinedefTypes, MobjTypes, SectorTypes},
 		map::{
 			load::LinedefFlags,
 			textures::{Flat, TextureType, WallTexture},

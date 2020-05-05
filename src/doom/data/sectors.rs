@@ -1,7 +1,10 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
-	doom::light::{LightFlash, LightFlashType, LightGlow},
+	doom::{
+		data::FRAME_TIME,
+		light::{LightFlash, LightFlashType, LightGlow},
+	},
 };
 use specs::{World, WriteExpect};
 use std::collections::HashMap;
@@ -23,8 +26,8 @@ impl SectorTypes {
         let handle = template_storage.insert({
             EntityTemplate::new()
                 .with_component(LightFlash {
-                    off_time: 8 * crate::doom::FRAME_TIME,
-                    on_time: 64 * crate::doom::FRAME_TIME,
+                    off_time: 8 * FRAME_TIME,
+                    on_time: 64 * FRAME_TIME,
                     ..LightFlash::default()
                 })
         });
@@ -34,9 +37,9 @@ impl SectorTypes {
         let handle = template_storage.insert({
             EntityTemplate::new()
                 .with_component(LightFlash {
-                    flash_type: LightFlashType::StrobeUnSync(8 * crate::doom::FRAME_TIME),
-                    off_time: 15 * crate::doom::FRAME_TIME,
-                    on_time: 5 * crate::doom::FRAME_TIME,
+                    flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
+                    off_time: 15 * FRAME_TIME,
+                    on_time: 5 * FRAME_TIME,
                     ..LightFlash::default()
                 })
         });
@@ -46,9 +49,9 @@ impl SectorTypes {
         let handle = template_storage.insert({
             EntityTemplate::new()
                 .with_component(LightFlash {
-                    flash_type: LightFlashType::StrobeUnSync(8 * crate::doom::FRAME_TIME),
-                    off_time: 35 * crate::doom::FRAME_TIME,
-                    on_time: 5 * crate::doom::FRAME_TIME,
+                    flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
+                    off_time: 35 * FRAME_TIME,
+                    on_time: 5 * FRAME_TIME,
                     ..LightFlash::default()
                 })
         });
@@ -58,9 +61,9 @@ impl SectorTypes {
         let handle = template_storage.insert({
             EntityTemplate::new()
                 .with_component(LightFlash {
-                    flash_type: LightFlashType::StrobeUnSync(8 * crate::doom::FRAME_TIME),
-                    off_time: 15 * crate::doom::FRAME_TIME,
-                    on_time: 5 * crate::doom::FRAME_TIME,
+                    flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
+                    off_time: 15 * FRAME_TIME,
+                    on_time: 5 * FRAME_TIME,
                     ..LightFlash::default()
                 })
         });
@@ -111,8 +114,8 @@ impl SectorTypes {
             EntityTemplate::new()
                 .with_component(LightFlash {
                     flash_type: LightFlashType::Strobe,
-                    off_time: 35 * crate::doom::FRAME_TIME,
-                    on_time: 5 * crate::doom::FRAME_TIME,
+                    off_time: 35 * FRAME_TIME,
+                    on_time: 5 * FRAME_TIME,
                     ..LightFlash::default()
                 })
         });
@@ -123,8 +126,8 @@ impl SectorTypes {
             EntityTemplate::new()
                 .with_component(LightFlash {
                     flash_type: LightFlashType::Strobe,
-                    off_time: 15 * crate::doom::FRAME_TIME,
-                    on_time: 5 * crate::doom::FRAME_TIME,
+                    off_time: 15 * FRAME_TIME,
+                    on_time: 5 * FRAME_TIME,
                     ..LightFlash::default()
                 })
         });

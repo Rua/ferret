@@ -137,7 +137,7 @@ fn main() -> anyhow::Result<()> {
 	world.insert(bindings);
 	world.insert(Vec::<(AssetHandle<Sound>, Entity)>::new());
 	world.insert(doom::client::Client::default());
-	world.insert(doom::FRAME_TIME);
+	world.insert(doom::data::FRAME_TIME);
 	world.insert(EventChannel::<doom::client::UseEvent>::new());
 
 	// Create systems
@@ -259,8 +259,8 @@ fn main() -> anyhow::Result<()> {
 		// Run game frames
 		leftover_time += delta;
 
-		if leftover_time >= doom::FRAME_TIME {
-			leftover_time -= doom::FRAME_TIME;
+		if leftover_time >= doom::data::FRAME_TIME {
+			leftover_time -= doom::data::FRAME_TIME;
 
 			update_dispatcher.dispatch(&world);
 
@@ -391,9 +391,9 @@ fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
 
 	// Load entity type data
 	log::info!("Loading entity data...");
-	world.insert(doom::entities::MobjTypes::new(&world));
-	world.insert(doom::entities::SectorTypes::new(&world));
-	world.insert(doom::entities::LinedefTypes::new(&world));
+	world.insert(doom::data::MobjTypes::new(&world));
+	world.insert(doom::data::SectorTypes::new(&world));
+	world.insert(doom::data::LinedefTypes::new(&world));
 
 	// Load sprite images
 	{

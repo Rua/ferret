@@ -2,6 +2,7 @@ use crate::{
 	assets::AssetStorage,
 	doom::{
 		components::{Transform, Velocity},
+		data::{FORWARD_ACCEL, STRAFE_ACCEL},
 		door::DoorUse,
 		input::{Action, Axis, UserCommand},
 		map::{Map, MapDynamic},
@@ -127,11 +128,6 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 					// Player is not on ground
 					return;
 				}
-
-				const FORWARD_ACCEL: f32 =
-					(50.0 * 2048.0 / 65536.0) * crate::doom::FRAME_RATE * crate::doom::FRAME_RATE;
-				const STRAFE_ACCEL: f32 =
-					(40.0 * 2048.0 / 65536.0) * crate::doom::FRAME_RATE * crate::doom::FRAME_RATE;
 
 				let move_dir = Vector2::new(
 					client.command.axis_forward.max(-1.0).min(1.0) * FORWARD_ACCEL,

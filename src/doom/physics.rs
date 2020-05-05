@@ -2,6 +2,7 @@ use crate::{
 	assets::AssetStorage,
 	doom::{
 		components::{Transform, Velocity},
+		data::{FRICTION, GRAVITY},
 		map::{Map, MapDynamic, Subsector},
 	},
 	geometry::{Interval, Plane3, AABB2, AABB3},
@@ -88,15 +89,11 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 
 			if trace.collision.is_some() {
 				// Entity is on ground, apply friction
-				lazy_static! {
-					static ref FRICTION: f32 = 0.90625f32.powf(crate::doom::FRAME_RATE);
-				}
 				let factor = FRICTION.powf(delta.as_secs_f32());
 				new_velocity[0] *= factor;
 				new_velocity[1] *= factor;
 			} else {
 				// Entity isn't on ground, apply gravity
-				const GRAVITY: f32 = 1.0 * crate::doom::FRAME_RATE * crate::doom::FRAME_RATE;
 				new_velocity[2] -= GRAVITY * delta.as_secs_f32();
 			}
 
