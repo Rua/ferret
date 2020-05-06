@@ -5,7 +5,7 @@ use crate::{
 	doom::{
 		client::UseAction,
 		data::{FRAME_RATE, FRAME_TIME},
-		door::DoorUse,
+		door::{DoorSwitchUse, DoorUse},
 		update::TextureScroll,
 		wad::WadLoader,
 	},
@@ -350,6 +350,14 @@ impl LinedefTypes {
 
         let handle = template_storage.insert({
         	EntityTemplate::new()
+				.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
+					open_sound: sound_storage.load("DSDOROPN", &mut *loader),
+					close_sound: sound_storage.load("DSDORCLS", &mut *loader),
+					speed: 2.0 * FRAME_RATE,
+					switch_sound: sound_storage.load("DSSWTCHN", &mut *loader),
+					switch_time: 35 * FRAME_TIME,
+					wait_time: 150 * FRAME_TIME,
+				}))
         });
         doomednums.insert(63, handle);
 

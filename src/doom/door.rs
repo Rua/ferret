@@ -4,7 +4,10 @@ use crate::{
 	doom::{
 		client::{UseAction, UseEvent},
 		components::Transform,
-		map::{LinedefRef, Map, MapDynamic, SectorRef},
+		map::{
+			textures::{TextureType, Wall},
+			LinedefRef, Map, MapDynamic, SectorRef, SidedefSlot,
+		},
 		physics::{BoxCollider, SectorTracer},
 	},
 	geometry::Side,
@@ -44,6 +47,7 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 			use_action_component,
 			mut door_active_component,
 			mut map_dynamic_component,
+			mut switch_active_component,
 		) = world.system_data::<(
 			Entities,
 			ReadExpect<Duration>,
@@ -57,6 +61,7 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 			ReadStorage<UseAction>,
 			WriteStorage<DoorActive>,
 			WriteStorage<MapDynamic>,
+			WriteStorage<SwitchActive>,
 		)>();
 
 		let tracer = SectorTracer {
@@ -76,36 +81,34 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 				if let Some(back_sidedef) = &linedef.sidedefs[Side::Left as usize] {
 					let sector_index = back_sidedef.sector_index;
 					let sector = &map.sectors[sector_index];
+					let sector_entity = map_dynamic.sectors[sector_index].entity;
 
-					if let Some(open_height) = sector
-						.neighbours
-						.iter()
-						.map(|index| map_dynamic.sectors[*index].interval.max)
-						.min_by(|x, y| x.partial_cmp(y).unwrap())
-					{
-						let open_height = open_height - 4.0;
-						let sector_entity = map_dynamic.sectors[sector_index].entity;
-
-						if let Some(door_active) = door_active_component.get_mut(sector_entity) {
-							match door_active.state {
-								DoorState::Closing => {
-									// Re-open the door
-									door_active.state = DoorState::Closed;
-								}
-								DoorState::Opening | DoorState::Open => {
-									// Close the door early
-									door_active.state = DoorState::Open;
-									door_active.time_left = Duration::default();
-								}
-								DoorState::Closed => unreachable!(),
+					if let Some(door_active) = door_active_component.get_mut(sector_entity) {
+						match door_active.state {
+							DoorState::Closing => {
+								// Re-open the door
+								door_active.state = DoorState::Closed;
 							}
-						} else {
+							DoorState::Opening | DoorState::Open => {
+								// Close the door early
+								door_active.state = DoorState::Open;
+								door_active.time_left = Duration::default();
+							}
+							DoorState::Closed => unreachable!(),
+						}
+					} else {
+						if let Some(open_height) = sector
+							.neighbours
+							.iter()
+							.map(|index| map_dynamic.sectors[*index].interval.max)
+							.min_by(|x, y| x.partial_cmp(y).unwrap())
+						{
 							door_active_component
 								.insert(
 									sector_entity,
 									DoorActive {
 										open_sound: door_use.open_sound.clone(),
-										open_height,
+										open_height: open_height - 4.0,
 
 										close_sound: door_use.close_sound.clone(),
 										close_height: map_dynamic.sectors[sector_index]
@@ -119,16 +122,118 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 									},
 								)
 								.unwrap();
+						} else {
+							log::error!(
+								"Used door sector {} has no neighbouring sectors",
+								sector_index
+							);
 						}
-					} else {
-						log::error!(
-							"Used door linedef {}, sector {}, has no neighbouring sectors",
-							linedef_ref.index,
-							sector_index
-						);
 					}
 				} else {
 					log::error!("Used door linedef {} has no back sector", linedef_ref.index);
+				}
+			} else if let Some(UseAction::DoorSwitchUse(door_use)) =
+				use_action_component.get(use_event.linedef_entity)
+			{
+				// Skip if switch is already in active state
+				if switch_active_component
+					.get(use_event.linedef_entity)
+					.is_some()
+				{
+					continue;
+				}
+
+				let linedef_ref = linedef_ref_component.get(use_event.linedef_entity).unwrap();
+				let map_dynamic = map_dynamic_component
+					.get_mut(linedef_ref.map_entity)
+					.unwrap();
+				let map = map_asset_storage.get(&map_dynamic.map).unwrap();
+				let linedef = &map.linedefs[linedef_ref.index];
+
+				let mut used = false;
+
+				// Activate all the doors with the same tag
+				for (i, sector) in map
+					.sectors
+					.iter()
+					.enumerate()
+					.filter(|(_, s)| s.sector_tag == linedef.sector_tag)
+				{
+					let sector_entity = map_dynamic.sectors[i].entity;
+
+					if door_active_component.get_mut(sector_entity).is_some() {
+						continue;
+					} else {
+						used = true;
+					}
+
+					if let Some(open_height) = sector
+						.neighbours
+						.iter()
+						.map(|index| map_dynamic.sectors[*index].interval.max)
+						.min_by(|x, y| x.partial_cmp(y).unwrap())
+					{
+						door_active_component
+							.insert(
+								sector_entity,
+								DoorActive {
+									open_sound: door_use.open_sound.clone(),
+									open_height: open_height - 4.0,
+
+									close_sound: door_use.close_sound.clone(),
+									close_height: map_dynamic.sectors[i].interval.min,
+
+									state: DoorState::Closed,
+									speed: door_use.speed,
+									time_left: door_use.wait_time,
+									wait_time: door_use.wait_time,
+								},
+							)
+							.unwrap();
+					} else {
+						log::error!("Used door sector {}, has no neighbouring sectors", i);
+					}
+				}
+
+				if used {
+					// Flip the switch texture
+					let sidedef = linedef.sidedefs[0].as_ref().unwrap();
+					let linedef_dynamic = &mut map_dynamic.linedefs[linedef_ref.index];
+					let sidedef_dynamic = linedef_dynamic.sidedefs[0].as_mut().unwrap();
+
+					for slot in [SidedefSlot::Top, SidedefSlot::Middle, SidedefSlot::Bottom]
+						.iter()
+						.copied()
+					{
+						if let TextureType::Normal(texture) =
+							&mut sidedef_dynamic.textures[slot as usize]
+						{
+							if let Some(new) = map.switches.get(texture) {
+								// Change texture
+								let old = std::mem::replace(texture, new.clone());
+
+								// Play sound
+								let sector_entity =
+									map_dynamic.sectors[sidedef.sector_index].entity;
+								sound_queue.push((door_use.switch_sound.clone(), sector_entity));
+
+								// Add SwitchActive component
+								switch_active_component
+									.insert(
+										use_event.linedef_entity,
+										SwitchActive {
+											sound: door_use.switch_sound.clone(),
+											texture: old,
+											texture_slot: slot,
+											time_left: door_use.switch_time,
+										},
+									)
+									.unwrap();
+
+								break;
+							}
+						}
+					}
 				}
 			}
 		}
@@ -196,8 +301,41 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 			}
 		}
 
-		for entity in done {
-			door_active_component.remove(entity);
+		for entity in &done {
+			door_active_component.remove(*entity);
+		}
+
+		done.clear();
+
+		for (entity, linedef_ref, switch_active) in (
+			&entities,
+			&linedef_ref_component,
+			&mut switch_active_component,
+		)
+			.join()
+		{
+			if let Some(new_time) = switch_active.time_left.checked_sub(*delta) {
+				switch_active.time_left = new_time;
+			} else {
+				let map_dynamic = map_dynamic_component
+					.get_mut(linedef_ref.map_entity)
+					.unwrap();
+				let linedef_dynamic = &mut map_dynamic.linedefs[linedef_ref.index];
+				let sidedef_dynamic = linedef_dynamic.sidedefs[0].as_mut().unwrap();
+				let map = map_asset_storage.get(&map_dynamic.map).unwrap();
+				let linedef = &map.linedefs[linedef_ref.index];
+				let sidedef = linedef.sidedefs[0].as_ref().unwrap();
+				let sector_entity = map_dynamic.sectors[sidedef.sector_index].entity;
+
+				sidedef_dynamic.textures[switch_active.texture_slot as usize] =
+					TextureType::Normal(switch_active.texture.clone());
+				sound_queue.push((switch_active.sound.clone(), sector_entity));
+				done.push(entity);
+			}
+		}
+
+		for entity in &done {
+			switch_active_component.remove(*entity);
 		}
 	}
 }
@@ -206,6 +344,16 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 pub struct DoorUse {
 	pub open_sound: AssetHandle<Sound>,
 	pub close_sound: AssetHandle<Sound>,
+	pub speed: f32,
+	pub wait_time: Duration,
+}
+
+#[derive(Clone, Debug)]
+pub struct DoorSwitchUse {
+	pub open_sound: AssetHandle<Sound>,
+	pub close_sound: AssetHandle<Sound>,
+	pub switch_sound: AssetHandle<Sound>,
+	pub switch_time: Duration,
 	pub speed: f32,
 	pub wait_time: Duration,
 }
@@ -222,6 +370,14 @@ pub struct DoorActive {
 	pub speed: f32,
 	pub time_left: Duration,
 	pub wait_time: Duration,
+}
+
+#[derive(Clone, Component, Debug)]
+pub struct SwitchActive {
+	sound: AssetHandle<Sound>,
+	texture: AssetHandle<Wall>,
+	texture_slot: SidedefSlot,
+	time_left: Duration,
 }
 
 #[derive(Clone, Copy, Debug)]

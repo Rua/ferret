@@ -108,6 +108,7 @@ fn main() -> anyhow::Result<()> {
 	world.register::<doom::components::Transform>();
 	world.register::<doom::components::Velocity>();
 	world.register::<doom::door::DoorActive>();
+	world.register::<doom::door::SwitchActive>();
 	world.register::<doom::light::LightFlash>();
 	world.register::<doom::light::LightGlow>();
 	world.register::<doom::map::LinedefRef>();

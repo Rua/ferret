@@ -3,7 +3,7 @@ use crate::{
 	doom::{
 		components::{Transform, Velocity},
 		data::{FORWARD_ACCEL, STRAFE_ACCEL},
-		door::DoorUse,
+		door::{DoorSwitchUse, DoorUse},
 		input::{Action, Axis, UserCommand},
 		map::{Map, MapDynamic},
 		physics::{BoxCollider, EntityTracer, SolidMask},
@@ -228,6 +228,7 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 #[derive(Clone, Component, Debug)]
 pub enum UseAction {
 	DoorUse(DoorUse),
+	DoorSwitchUse(DoorSwitchUse),
 }
 
 #[derive(Clone, Debug)]

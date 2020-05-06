@@ -2,7 +2,7 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	doom::map::{
 		textures::{Flat, TextureType, Wall},
-		LinedefFlags, Map, MapDynamic, Side,
+		LinedefFlags, Map, MapDynamic, SectorSlot, Side, SidedefSlot,
 	},
 };
 use nalgebra::Vector2;
@@ -136,6 +136,7 @@ pub fn make_meshes(
 				Some(x) => x,
 				None => continue,
 			};
+			let front_sidedef_dynamic = linedef_dynamic.sidedefs[side as usize].as_ref().unwrap();
 			let mut texture_offset = front_sidedef.texture_offset;
 
 			// Doom only scrolls the front/right sidedef. Why? Who knows.
@@ -165,7 +166,7 @@ pub fn make_meshes(
 				];
 
 				// Top section
-				match &front_sidedef.top_texture {
+				match &front_sidedef_dynamic.textures[SidedefSlot::Top as usize] {
 					TextureType::None => (),
 					TextureType::Sky => {
 						push_sky_wall(
@@ -201,7 +202,7 @@ pub fn make_meshes(
 				}
 
 				// Bottom section
-				match &front_sidedef.bottom_texture {
+				match &front_sidedef_dynamic.textures[SidedefSlot::Bottom as usize] {
 					TextureType::None => (),
 					TextureType::Sky => unimplemented!(),
 					TextureType::Normal(handle) => {
@@ -233,7 +234,7 @@ pub fn make_meshes(
 				}
 
 				// Middle section
-				match &front_sidedef.middle_texture {
+				match &front_sidedef_dynamic.textures[SidedefSlot::Middle as usize] {
 					TextureType::None => (),
 					TextureType::Sky => unimplemented!(),
 					TextureType::Normal(handle) => {
@@ -261,7 +262,7 @@ pub fn make_meshes(
 					}
 				}
 			} else {
-				match &front_sidedef.middle_texture {
+				match &front_sidedef_dynamic.textures[SidedefSlot::Middle as usize] {
 					TextureType::None => (),
 					TextureType::Sky => unimplemented!(),
 					TextureType::Normal(handle) => {
@@ -303,7 +304,7 @@ pub fn make_meshes(
 			// Floor
 			let iter = segs.iter().map(|seg| &seg.line.point).rev();
 
-			match &sector.floor_texture {
+			match &sector.textures[SectorSlot::Floor as usize] {
 				TextureType::None => (),
 				TextureType::Sky => push_sky_flat(
 					&mut sky_mesh.0,
@@ -331,7 +332,7 @@ pub fn make_meshes(
 			// Ceiling
 			let iter = segs.iter().map(|seg| &seg.line.point);
 
-			match &sector.ceiling_texture {
+			match &sector.textures[SectorSlot::Ceiling as usize] {
 				TextureType::None => (),
 				TextureType::Sky => push_sky_flat(
 					&mut sky_mesh.0,

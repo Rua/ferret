@@ -1,11 +1,11 @@
 use crate::{
 	assets::{Asset, AssetHandle, AssetStorage, DataSource},
 	doom::{
-		data::anims::{AnimData, ANIMS_FLAT, ANIMS_WALL},
+		data::anims::{AnimData, ANIMS_FLAT, ANIMS_WALL, SWITCHES},
 		map::{
 			textures::{Flat, TextureType, Wall},
-			Anim, Linedef, Map, Node, NodeChild, Sector, Seg, Sidedef, Subsector, Thing,
-			ThingFlags,
+			Anim, Linedef, Map, Node, NodeChild, Sector, SectorSlot, Seg, Sidedef, SidedefSlot,
+			Subsector, Thing, ThingFlags,
 		},
 		physics::SolidMask,
 		wad::WadLoader,
@@ -140,6 +140,7 @@ pub fn build_map(
 		subsectors,
 		nodes,
 		sky,
+		switches: get_switches(wall_storage, loader),
 	})
 }
 
@@ -173,36 +174,38 @@ fn build_sectors(
 				chunk.read_i16::<LE>()? as f32,
 				chunk.read_i16::<LE>()? as f32,
 			),
-			floor_texture: {
-				chunk.read_exact(&mut buf)?;
+			textures: [
+				{
+					chunk.read_exact(&mut buf)?;
 
-				if &buf == b"-\0\0\0\0\0\0\0" {
-					TextureType::None
-				} else {
-					let name = std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned();
-
-					if name == "F_SKY1" {
-						TextureType::Sky
+					if &buf == b"-\0\0\0\0\0\0\0" {
+						TextureType::None
 					} else {
-						TextureType::Normal(flat_storage.load(&name, &mut *loader))
+						let name = std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned();
+
+						if name == "F_SKY1" {
+							TextureType::Sky
+						} else {
+							TextureType::Normal(flat_storage.load(&name, &mut *loader))
+						}
 					}
-				}
-			},
-			ceiling_texture: {
-				chunk.read_exact(&mut buf)?;
+				},
+				{
+					chunk.read_exact(&mut buf)?;
 
-				if &buf == b"-\0\0\0\0\0\0\0" {
-					TextureType::None
-				} else {
-					let name = std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned();
-
-					if name == "F_SKY1" {
-						TextureType::Sky
+					if &buf == b"-\0\0\0\0\0\0\0" {
+						TextureType::None
 					} else {
-						TextureType::Normal(flat_storage.load(&name, &mut *loader))
+						let name = std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned();
+
+						if name == "F_SKY1" {
+							TextureType::Sky
+						} else {
+							TextureType::Normal(flat_storage.load(&name, &mut *loader))
+						}
 					}
-				}
-			},
+				},
+			],
 			light_level: chunk.read_u16::<LE>()? as f32 / 255.0,
 			special_type: chunk.read_u16::<LE>()?,
 			sector_tag: chunk.read_u16::<LE>()?,
@@ -232,51 +235,53 @@ fn build_sidedefs(
 				chunk.read_i16::<LE>()? as f32,
 				chunk.read_i16::<LE>()? as f32,
 			),
-			top_texture: {
-				chunk.read_exact(&mut buf)?;
+			textures: [
+				{
+					chunk.read_exact(&mut buf)?;
 
-				if &buf == b"-\0\0\0\0\0\0\0" {
-					TextureType::None
-				} else {
-					let name = std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned();
-
-					if name == "F_SKY1" {
-						TextureType::Sky
+					if &buf == b"-\0\0\0\0\0\0\0" {
+						TextureType::None
 					} else {
-						TextureType::Normal(wall_storage.load(&name, &mut *loader))
+						let name = std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned();
+
+						if name == "F_SKY1" {
+							TextureType::Sky
+						} else {
+							TextureType::Normal(wall_storage.load(&name, &mut *loader))
+						}
 					}
-				}
-			},
-			bottom_texture: {
-				chunk.read_exact(&mut buf)?;
+				},
+				{
+					chunk.read_exact(&mut buf)?;
 
-				if &buf == b"-\0\0\0\0\0\0\0" {
-					TextureType::None
-				} else {
-					let name = std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned();
-
-					if name == "F_SKY1" {
-						TextureType::Sky
+					if &buf == b"-\0\0\0\0\0\0\0" {
+						TextureType::None
 					} else {
-						TextureType::Normal(wall_storage.load(&name, &mut *loader))
+						let name = std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned();
+
+						if name == "F_SKY1" {
+							TextureType::Sky
+						} else {
+							TextureType::Normal(wall_storage.load(&name, &mut *loader))
+						}
 					}
-				}
-			},
-			middle_texture: {
-				chunk.read_exact(&mut buf)?;
+				},
+				{
+					chunk.read_exact(&mut buf)?;
 
-				if &buf == b"-\0\0\0\0\0\0\0" {
-					TextureType::None
-				} else {
-					let name = std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned();
-
-					if name == "F_SKY1" {
-						TextureType::Sky
+					if &buf == b"-\0\0\0\0\0\0\0" {
+						TextureType::None
 					} else {
-						TextureType::Normal(wall_storage.load(&name, &mut *loader))
+						let name = std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned();
+
+						if name == "F_SKY1" {
+							TextureType::Sky
+						} else {
+							TextureType::Normal(wall_storage.load(&name, &mut *loader))
+						}
 					}
-				}
-			},
+				},
+			],
 			sector_index: {
 				let sector_index = chunk.read_u16::<LE>()? as usize;
 
@@ -383,11 +388,12 @@ fn build_linedefs(
 			}
 
 			// If an upper texture is neighboured by two sky flats, make it sky too
-			if sectors[front_sidedef.sector_index].ceiling_texture.is_sky()
-				&& sectors[back_sidedef.sector_index].ceiling_texture.is_sky()
+			if sectors[front_sidedef.sector_index].textures[SectorSlot::Ceiling as usize].is_sky()
+				&& sectors[back_sidedef.sector_index].textures[SectorSlot::Ceiling as usize]
+					.is_sky()
 			{
-				front_sidedef.top_texture = TextureType::Sky;
-				back_sidedef.top_texture = TextureType::Sky;
+				front_sidedef.textures[SidedefSlot::Top as usize] = TextureType::Sky;
+				back_sidedef.textures[SidedefSlot::Top as usize] = TextureType::Sky;
 			}
 		} else if let [Some(ref mut front_sidedef), None] = &mut sidedefs {
 			// Set sector linedefs
@@ -1168,6 +1174,30 @@ pub fn get_anims<T: Asset>(
 				},
 			);
 		}
+	}
+
+	ret
+}
+
+pub fn get_switches(
+	wall_storage: &mut AssetStorage<Wall>,
+	loader: &mut WadLoader,
+) -> HashMap<AssetHandle<Wall>, AssetHandle<Wall>> {
+	let mut ret = HashMap::new();
+
+	for [name1, name2] in SWITCHES.iter() {
+		let handle1 = wall_storage.handle_for(name1);
+		let handle2 = wall_storage.handle_for(name2);
+
+		if handle1.is_none() && handle2.is_none() {
+			continue;
+		}
+
+		let handle1 = handle1.unwrap_or_else(|| wall_storage.load(name1, loader));
+		let handle2 = handle2.unwrap_or_else(|| wall_storage.load(name2, loader));
+
+		ret.insert(handle1.clone(), handle2.clone());
+		ret.insert(handle2, handle1);
 	}
 
 	ret

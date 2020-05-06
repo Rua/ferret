@@ -36,6 +36,7 @@ pub struct Map {
 	pub subsectors: Vec<Subsector>,
 	pub nodes: Vec<Node>,
 	pub sky: AssetHandle<Wall>,
+	pub switches: HashMap<AssetHandle<Wall>, AssetHandle<Wall>>,
 }
 
 impl Map {
@@ -107,18 +108,29 @@ pub struct Linedef {
 }
 
 #[derive(Clone, Debug)]
-pub struct Sidedef {
+pub struct LinedefDynamic {
+	pub entity: Entity,
+	pub sidedefs: [Option<SidedefDynamic>; 2],
 	pub texture_offset: Vector2<f32>,
-	pub top_texture: TextureType<Wall>,
-	pub bottom_texture: TextureType<Wall>,
-	pub middle_texture: TextureType<Wall>,
-	pub sector_index: usize,
 }
 
 #[derive(Clone, Debug)]
-pub struct LinedefDynamic {
-	pub entity: Entity,
+pub struct Sidedef {
 	pub texture_offset: Vector2<f32>,
+	pub textures: [TextureType<Wall>; 3],
+	pub sector_index: usize,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum SidedefSlot {
+	Top = 0,
+	Bottom = 1,
+	Middle = 2,
+}
+
+#[derive(Clone, Debug)]
+pub struct SidedefDynamic {
+	pub textures: [TextureType<Wall>; 3],
 }
 
 #[derive(Clone, Component, Debug)]
@@ -158,14 +170,19 @@ pub enum NodeChild {
 #[derive(Clone, Debug)]
 pub struct Sector {
 	pub interval: Interval,
-	pub floor_texture: TextureType<Flat>,
-	pub ceiling_texture: TextureType<Flat>,
+	pub textures: [TextureType<Flat>; 2],
 	pub light_level: f32,
 	pub special_type: u16,
 	pub sector_tag: u16,
 	pub linedefs: Vec<usize>,
 	pub subsectors: Vec<usize>,
 	pub neighbours: Vec<usize>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum SectorSlot {
+	Floor = 0,
+	Ceiling = 1,
 }
 
 #[derive(Clone, Debug)]
@@ -327,8 +344,17 @@ pub fn spawn_map_entities(world: &World, map_handle: &AssetHandle<Map>) -> anyho
 	for (i, linedef) in map.linedefs.iter().enumerate() {
 		// Create entity and set reference
 		let entity = world.entities().create();
+		let sidedefs = [
+			linedef.sidedefs[0].as_ref().map(|sidedef| SidedefDynamic {
+				textures: sidedef.textures.clone(),
+			}),
+			linedef.sidedefs[1].as_ref().map(|sidedef| SidedefDynamic {
+				textures: sidedef.textures.clone(),
+			}),
+		];
 		map_dynamic.linedefs.push(LinedefDynamic {
 			entity,
+			sidedefs,
 			texture_offset: Vector2::new(0.0, 0.0),
 		});
 		linedef_ref_component.insert(
