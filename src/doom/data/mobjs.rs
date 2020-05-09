@@ -5,7 +5,7 @@ use crate::{
 	doom::{
 		components::{SpawnOnCeiling, SpawnPoint, Velocity},
 		physics::{BoxCollider, SolidMask},
-		render::SpriteRender,
+		render::sprite::SpriteRender,
 		sprite::Sprite,
 		wad::WadLoader,
 	},

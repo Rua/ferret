@@ -115,7 +115,7 @@ fn main() -> anyhow::Result<()> {
 	world.register::<doom::map::MapDynamic>();
 	world.register::<doom::map::SectorRef>();
 	world.register::<doom::physics::BoxCollider>();
-	world.register::<doom::render::SpriteRender>();
+	world.register::<doom::render::sprite::SpriteRender>();
 	world.register::<doom::sound::SoundPlaying>();
 	world.register::<doom::update::TextureScroll>();
 
