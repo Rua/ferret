@@ -65,6 +65,7 @@ impl<'a> RunNow<'a> for DoorUpdateSystem {
 		)>();
 
 		let tracer = SectorTracer {
+			entities: &entities,
 			transform_component: &transform_component,
 			box_collider_component: &box_collider_component,
 		};

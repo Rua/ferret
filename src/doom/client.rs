@@ -14,8 +14,8 @@ use crate::{
 use nalgebra::{Vector2, Vector3};
 use shrev::EventChannel;
 use specs::{
-	Component, DenseVecStorage, Entity, Join, ReadExpect, ReadStorage, RunNow, World, WriteExpect,
-	WriteStorage,
+	Component, DenseVecStorage, Entities, Entity, Join, ReadExpect, ReadStorage, RunNow, World,
+	WriteExpect, WriteStorage,
 };
 use specs_derive::Component;
 use std::time::Duration;
@@ -67,6 +67,7 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 
 	fn run_now(&mut self, world: &'a World) {
 		let (
+			entities,
 			client,
 			delta,
 			map_storage,
@@ -75,6 +76,7 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 			mut transform_component,
 			mut velocity_component,
 		) = world.system_data::<(
+			Entities,
 			ReadExpect<Client>,
 			ReadExpect<Duration>,
 			ReadExpect<AssetStorage<Map>>,
@@ -109,6 +111,7 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 				let box_collider = box_collider_component.get(entity).unwrap();
 
 				let tracer = EntityTracer {
+					entities: &entities,
 					map,
 					map_dynamic,
 					transform_component: &transform_component,
