@@ -39,23 +39,6 @@ pub struct Map {
 	pub switches: HashMap<AssetHandle<Wall>, AssetHandle<Wall>>,
 }
 
-impl Map {
-	pub fn find_subsector(&self, point: Vector2<f32>) -> &Subsector {
-		let mut child = NodeChild::Node(0);
-
-		loop {
-			child = match child {
-				NodeChild::Subsector(index) => return &self.subsectors[index],
-				NodeChild::Node(index) => {
-					let node = &self.nodes[index];
-					let dot = point.dot(&node.plane.normal) - node.plane.distance;
-					node.child_indices[(dot <= 0.0) as usize]
-				}
-			};
-		}
-	}
-}
-
 #[derive(Clone, Component, Debug)]
 pub struct MapDynamic {
 	pub anim_states_flat: HashMap<AssetHandle<Flat>, AnimState>,
@@ -151,12 +134,14 @@ pub struct Subsector {
 	pub segs: Vec<Seg>,
 	pub bbox: AABB2,
 	pub planes: Vec<Plane3>,
+	pub linedefs: Vec<usize>,
 	pub sector_index: usize,
 }
 
 #[derive(Clone, Debug)]
 pub struct Node {
 	pub plane: Plane2,
+	pub linedefs: Vec<usize>,
 	pub child_bboxes: [AABB2; 2],
 	pub child_indices: [NodeChild; 2],
 }
@@ -196,6 +181,45 @@ pub struct SectorDynamic {
 pub struct SectorRef {
 	pub map_entity: Entity,
 	pub index: usize,
+}
+
+impl Map {
+	pub fn find_subsector(&self, point: Vector2<f32>) -> &Subsector {
+		let mut child = NodeChild::Node(0);
+
+		loop {
+			child = match child {
+				NodeChild::Subsector(index) => return &self.subsectors[index],
+				NodeChild::Node(index) => {
+					let node = &self.nodes[index];
+					let dot = point.dot(&node.plane.normal) - node.plane.distance;
+					node.child_indices[(dot <= 0.0) as usize]
+				}
+			};
+		}
+	}
+
+	pub fn traverse_nodes<F: FnMut(NodeChild)>(&self, node: NodeChild, bbox: &AABB2, func: &mut F) {
+		func(node);
+
+		if let NodeChild::Node(index) = node {
+			let node = &self.nodes[index];
+			let sides = [
+				Vector2::new(bbox[0].min, bbox[1].min).dot(&node.plane.normal) - node.plane.distance,
+				Vector2::new(bbox[0].min, bbox[1].max).dot(&node.plane.normal) - node.plane.distance,
+				Vector2::new(bbox[0].max, bbox[1].min).dot(&node.plane.normal) - node.plane.distance,
+				Vector2::new(bbox[0].max, bbox[1].max).dot(&node.plane.normal) - node.plane.distance,
+			];
+
+			if sides.iter().any(|x| *x >= 0.0) {
+				self.traverse_nodes(node.child_indices[Side::Right as usize], bbox, func);
+			}
+
+			if sides.iter().any(|x| *x <= 0.0) {
+				self.traverse_nodes(node.child_indices[Side::Left as usize], bbox, func);
+			}
+		}
+	}
 }
 
 pub fn spawn_things(

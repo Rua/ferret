@@ -93,7 +93,7 @@ pub fn build_map(
 	let linedefs = build_linedefs(&linedefs_data, &vertexes, &mut sectors, &mut sidedefs)?;
 
 	// Load GL nodes if available
-	let (subsectors, nodes) = if let Some(gl_data) = gl_data {
+	let (mut subsectors, mut nodes) = if let Some(gl_data) = gl_data {
 		let GLMapData {
 			gl_vert: gl_vert_data,
 			gl_segs: gl_segs_data,
@@ -131,6 +131,9 @@ pub fn build_map(
 	for (i, subsector) in subsectors.iter().enumerate() {
 		sectors[subsector.sector_index].subsectors.push(i);
 	}
+
+	// Add linedefs to nodes
+	add_node_linedefs(&mut nodes, &mut subsectors, &linedefs);
 
 	Ok(Map {
 		anims_flat: get_anims(&ANIMS_FLAT, flat_storage, loader),
@@ -547,6 +550,7 @@ fn build_ssectors(
 			segs: segs.to_owned(),
 			bbox: AABB2::empty(),
 			planes: Vec::new(),
+			linedefs: segs.iter().filter_map(|seg| seg.linedef.map(|(i, _)| i)).collect(),
 			sector_index,
 		});
 	}
@@ -575,6 +579,7 @@ fn build_nodes(data: &[u8], ssectors: &[Subsector]) -> anyhow::Result<Vec<Node>>
 
 		ret.push(Node {
 			plane: Plane2::new(distance, normal),
+			linedefs: Vec::new(),
 			child_bboxes: [
 				AABB2::from_extents(
 					chunk.read_i16::<LE>()? as f32,
@@ -794,6 +799,7 @@ fn build_gl_ssect(
 		ret.push(Subsector {
 			segs: segs.to_owned(),
 			planes,
+			linedefs: segs.iter().filter_map(|seg| seg.linedef.map(|(i, _)| i)).collect(),
 			sector_index,
 			bbox,
 		});
@@ -823,6 +829,7 @@ fn build_gl_nodes(data: &[u8], gl_ssect: &[Subsector]) -> anyhow::Result<Vec<Nod
 
 		ret.push(Node {
 			plane: Plane2::new(distance, normal),
+			linedefs: Vec::new(),
 			child_bboxes: [
 				AABB2::from_extents(
 					chunk.read_i16::<LE>()? as f32,
@@ -1201,4 +1208,71 @@ pub fn get_switches(
 	}
 
 	ret
+}
+
+fn add_node_linedefs<'a>(
+	nodes: &'a mut [Node],
+	subsectors: &'a mut [Subsector],
+	linedefs: &[Linedef],
+) {
+	fn traverse_nodes(index: usize, path: &mut Vec<usize>, subsector_paths: &mut Vec<Vec<usize>>, nodes: &[Node]) {
+		path.push(index);
+
+		for child in nodes[index].child_indices.iter().copied() {
+			match child {
+				NodeChild::Subsector(index) => subsector_paths[index] = path.clone(),
+				NodeChild::Node(index) => traverse_nodes(index, path, subsector_paths, nodes),
+			}
+		}
+
+		path.pop();
+	}
+
+	// Find the BSP traversal path for each subsector
+	let mut subsector_paths: Vec<Vec<usize>> = vec![Vec::new(); subsectors.len()];
+	traverse_nodes(0, &mut Vec::new(), &mut subsector_paths, nodes);
+
+	// Find and then iterate over the subsectors each linedef appears in
+	let mut linedef_subsectors: Vec<Vec<usize>> = vec![Vec::new(); linedefs.len()];
+
+	for (i, subsector) in subsectors.iter().enumerate() {
+		for index in subsector.linedefs.iter().copied() {
+			linedef_subsectors[index].push(i);
+		}
+	}
+
+	for (linedef_index, subs) in linedef_subsectors.into_iter().enumerate() {
+		// A linedef appearing in only one subsector has itself as its common parent
+		if subs.len() <= 1 {
+			continue;
+		}
+
+		// Find the max common path depth for the subsectors
+		let mut depth = 0;
+
+		loop {
+			let mut steps = subs.iter().map(|i| subsector_paths[*i].get(depth));
+
+			if steps.clone().all(|s| s.is_none()) {
+				break;
+			}
+
+			let first = steps.next().unwrap();
+
+			if steps.all(|s| s == first) {
+				depth += 1;
+			} else {
+				break;
+			}
+		}
+
+		// Add linedef to node
+		let index = subsector_paths[subs[0]][depth - 1];
+		nodes[index].linedefs.push(linedef_index);
+
+		// Remove linedef from subsectors
+		for subsector_index in subs {
+			subsectors[subsector_index].linedefs.retain(|x| *x != linedef_index);
+		}
+	}
 }

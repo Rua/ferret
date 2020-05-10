@@ -3,7 +3,7 @@ use crate::{
 	doom::{
 		components::{Transform, Velocity},
 		data::{FRICTION, GRAVITY},
-		map::{Map, MapDynamic, Subsector},
+		map::{Map, MapDynamic, Subsector, NodeChild},
 	},
 	geometry::{Interval, Plane3, AABB2, AABB3},
 };
@@ -246,63 +246,93 @@ impl<'a> EntityTracer<'a> {
 		let move_bbox = entity_bbox.union(&entity_bbox.offset(move_step));
 		let move_bbox2 = AABB2::from(&move_bbox);
 
-		for (linedef_index, linedef) in self
-			.map
-			.linedefs
-			.iter()
-			.enumerate()
-			.filter(|(_, l)| move_bbox2.overlaps(&l.bbox))
-		{
-			let linedef_dynamic = &self.map_dynamic.linedefs[linedef_index];
+		self.map.traverse_nodes(NodeChild::Node(0), &move_bbox2, &mut |node: NodeChild| {
+			let linedefs = match node {
+				NodeChild::Subsector(index) => &self.map.subsectors[index].linedefs,
+				NodeChild::Node(index) => &self.map.nodes[index].linedefs,
+			};
 
-			if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
-				let front_interval = &self.map_dynamic.sectors[front_sidedef.sector_index].interval;
-				let back_interval = &self.map_dynamic.sectors[back_sidedef.sector_index].interval;
+			for linedef_index in linedefs.iter().copied() {
+				let linedef = &self.map.linedefs[linedef_index];
 
-				let intersection = front_interval.intersection(*back_interval);
-				let union = front_interval.union(*back_interval);
-				let intervals = ArrayVec::from([
-					(
-						Interval::new(union.min, intersection.min),
-						SolidMask::all(),
-						true,
-					),
-					(
-						Interval::new(intersection.min, intersection.max),
-						linedef.solid_mask,
-						false,
-					),
-					(
-						Interval::new(intersection.max, union.max),
-						SolidMask::all(),
-						false,
-					),
-				]);
+				if !move_bbox2.overlaps(&linedef.bbox) {
+					continue;
+				}
 
-				for (interval, solid_mask, step) in intervals.into_iter() {
-					if interval.is_empty() {
-						continue;
+				let linedef_dynamic = &self.map_dynamic.linedefs[linedef_index];
+
+				if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
+					let front_interval = &self.map_dynamic.sectors[front_sidedef.sector_index].interval;
+					let back_interval = &self.map_dynamic.sectors[back_sidedef.sector_index].interval;
+
+					let intersection = front_interval.intersection(*back_interval);
+					let union = front_interval.union(*back_interval);
+					let intervals = ArrayVec::from([
+						(
+							Interval::new(union.min, intersection.min),
+							SolidMask::all(),
+							true,
+						),
+						(
+							Interval::new(intersection.min, intersection.max),
+							linedef.solid_mask,
+							false,
+						),
+						(
+							Interval::new(intersection.max, union.max),
+							SolidMask::all(),
+							false,
+						),
+					]);
+
+					for (interval, solid_mask, step) in intervals.into_iter() {
+						if interval.is_empty() {
+							continue;
+						}
+
+						let z_planes = [
+							Plane3::new(-interval.min, Vector3::new(0.0, 0.0, -1.0)),
+							Plane3::new(interval.max, Vector3::new(0.0, 0.0, 1.0)),
+						];
+						let iter = linedef.planes.iter().chain(z_planes.iter());
+
+						if let Some((fraction, normal)) = trace_planes(&entity_bbox, move_step, iter) {
+							if fraction < trace_fraction && entity_solid_mask.intersects(solid_mask) {
+								trace_fraction = fraction;
+								trace_move_step = move_step * fraction;
+								trace_collision = Some(TraceCollision {
+									entity: linedef_dynamic.entity,
+									normal,
+									step_z: if step && !entity_solid_mask.intersects(linedef.solid_mask)
+									{
+										Some(interval.max + DISTANCE_EPSILON)
+									} else {
+										None
+									},
+								});
+								trace_touched.retain(|(f, _)| *f <= fraction);
+								trace_touched.push((fraction, linedef_dynamic.entity));
+							} else if fraction <= trace_fraction {
+								trace_touched.push((fraction, linedef_dynamic.entity));
+							}
+						}
 					}
-
+				} else if let [Some(front_sidedef), None] = &linedef.sidedefs {
+					let front_interval = &self.map_dynamic.sectors[front_sidedef.sector_index].interval;
 					let z_planes = [
-						Plane3::new(-interval.min, Vector3::new(0.0, 0.0, -1.0)),
-						Plane3::new(interval.max, Vector3::new(0.0, 0.0, 1.0)),
+						Plane3::new(-front_interval.min, Vector3::new(0.0, 0.0, -1.0)),
+						Plane3::new(front_interval.max, Vector3::new(0.0, 0.0, 1.0)),
 					];
 					let iter = linedef.planes.iter().chain(z_planes.iter());
 
 					if let Some((fraction, normal)) = trace_planes(&entity_bbox, move_step, iter) {
-						if fraction < trace_fraction && entity_solid_mask.intersects(solid_mask) {
+						if fraction < trace_fraction {
 							trace_fraction = fraction;
 							trace_move_step = move_step * fraction;
 							trace_collision = Some(TraceCollision {
 								entity: linedef_dynamic.entity,
 								normal,
-								step_z: if step && !entity_solid_mask.intersects(linedef.solid_mask)
-								{
-									Some(interval.max + DISTANCE_EPSILON)
-								} else {
-									None
-								},
+								step_z: None,
 							});
 							trace_touched.retain(|(f, _)| *f <= fraction);
 							trace_touched.push((fraction, linedef_dynamic.entity));
@@ -311,52 +341,27 @@ impl<'a> EntityTracer<'a> {
 						}
 					}
 				}
-			} else if let [Some(front_sidedef), None] = &linedef.sidedefs {
-				let front_interval = &self.map_dynamic.sectors[front_sidedef.sector_index].interval;
-				let z_planes = [
-					Plane3::new(-front_interval.min, Vector3::new(0.0, 0.0, -1.0)),
-					Plane3::new(front_interval.max, Vector3::new(0.0, 0.0, 1.0)),
-				];
-				let iter = linedef.planes.iter().chain(z_planes.iter());
-
-				if let Some((fraction, normal)) = trace_planes(&entity_bbox, move_step, iter) {
-					if fraction < trace_fraction {
-						trace_fraction = fraction;
-						trace_move_step = move_step * fraction;
-						trace_collision = Some(TraceCollision {
-							entity: linedef_dynamic.entity,
-							normal,
-							step_z: None,
-						});
-						trace_touched.retain(|(f, _)| *f <= fraction);
-						trace_touched.push((fraction, linedef_dynamic.entity));
-					} else if fraction <= trace_fraction {
-						trace_touched.push((fraction, linedef_dynamic.entity));
-					}
-				}
 			}
-		}
 
-		for (sector_index, sector) in self.map.sectors.iter().enumerate() {
-			let sector_dynamic = &self.map_dynamic.sectors[sector_index];
+			if let NodeChild::Subsector(subsector_index) = node {
+				let subsector = &self.map.subsectors[subsector_index];
 
-			for (distance, normal) in ArrayVec::from([
-				(-sector_dynamic.interval.max, Vector3::new(0.0, 0.0, -1.0)),
-				(sector_dynamic.interval.min, Vector3::new(0.0, 0.0, 1.0)),
-			])
-			.into_iter()
-			{
-				let z_planes = [
-					Plane3::new(distance, normal),
-					Plane3::new(-distance, -normal),
-				];
+				if !move_bbox2.overlaps(&subsector.bbox) {
+					return;
+				}
 
-				for subsector in sector
-					.subsectors
-					.iter()
-					.map(|i| &self.map.subsectors[*i])
-					.filter(|s| move_bbox2.overlaps(&s.bbox))
+				let sector_dynamic = &self.map_dynamic.sectors[subsector.sector_index];
+
+				for (distance, normal) in ArrayVec::from([
+					(-sector_dynamic.interval.max, Vector3::new(0.0, 0.0, -1.0)),
+					(sector_dynamic.interval.min, Vector3::new(0.0, 0.0, 1.0)),
+				])
+				.into_iter()
 				{
+					let z_planes = [
+						Plane3::new(distance, normal),
+						Plane3::new(-distance, -normal),
+					];
 					let iter = subsector.planes.iter().chain(z_planes.iter());
 
 					if let Some((fraction, normal)) = trace_planes(&entity_bbox, move_step, iter) {
@@ -376,7 +381,7 @@ impl<'a> EntityTracer<'a> {
 					}
 				}
 			}
-		}
+		});
 
 		for (entity, transform, box_collider) in (
 			self.entities,
