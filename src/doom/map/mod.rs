@@ -279,7 +279,7 @@ pub fn spawn_things(
 		if let Some(box_collider) = box_collider_component.get(entity) {
 			let transform = transform_component.get(entity).unwrap();
 			let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
-			quadtree.insert(entity, AABB2::from(&bbox.offset(transform.position)));
+			quadtree.insert(entity, &AABB2::from(&bbox.offset(transform.position)));
 		}
 	}
 
@@ -323,7 +323,7 @@ pub fn spawn_player(world: &World) -> anyhow::Result<Entity> {
 	if let Some(box_collider) = box_collider_component.get(entity) {
 		let transform = transform_component.get(entity).unwrap();
 		let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
-		quadtree.insert(entity, AABB2::from(&bbox.offset(transform.position)));
+		quadtree.insert(entity, &AABB2::from(&bbox.offset(transform.position)));
 	}
 
 	Ok(entity)

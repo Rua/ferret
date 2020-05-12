@@ -123,7 +123,10 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 			let transform = transform_component.get_mut(entity).unwrap();
 			transform.position = new_position;
 			velocity.velocity = new_velocity;
-			quadtree.insert(entity, AABB2::from(&entity_bbox.offset(transform.position)));
+			quadtree.insert(
+				entity,
+				&AABB2::from(&entity_bbox.offset(transform.position)),
+			);
 		}
 	}
 }
@@ -162,10 +165,6 @@ fn step_slide_move(
 
 				if move_step[2] > 0.0 && move_step[2] < 24.5 {
 					let trace = tracer.trace(&entity_bbox.offset(*position), move_step, solid_mask);
-
-					if !trace.touched.is_empty() {
-						println!("{:?}", trace.touched);
-					}
 
 					if trace.collision.is_none() {
 						*position += trace.move_step;
