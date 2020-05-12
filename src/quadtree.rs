@@ -111,26 +111,35 @@ impl Quadtree {
 		}
 	}
 
-	fn check_collapse(&mut self, index: usize) {
-		if self.nodes[index].num_descendants >= Self::NODE_MIN {
-			return;
-		}
-
+	fn collapse(&mut self, index: usize) {
 		if let Some((_, child_nodes)) = self.nodes[index].children {
+			let mut entities = std::mem::replace(&mut self.nodes[index].entities, Vec::new());
 			for &(x, y) in &[(0, 0), (0, 1), (1, 0), (1, 1)] {
-				// Collapse the child nodes first, if needed
-				self.check_collapse(child_nodes[x][y]);
-
 				// Move the entities to the parent
-				while let Some(entity) = self.nodes[child_nodes[x][y]].entities.pop() {
-					self.nodes[index].entities.push(entity);
-				}
-
-				// Put the child node back in the pool
-				self.unused_nodes.push(child_nodes[x][y]);
+				self.collapse_r(&mut entities, child_nodes[x][y]);
 			}
 
 			self.nodes[index].children = None;
+			self.nodes[index].entities = entities;
+		}
+	}
+
+	fn collapse_r(&mut self, dest: &mut Vec<Entity>, index: usize) {
+		let QuadtreeNode {
+			entities,
+			num_descendants: _,
+			bbox: _,
+			children,
+		} = std::mem::replace(&mut self.nodes[index], QuadtreeNode::empty());
+		self.unused_nodes.push(index);
+
+		dest.extend(entities);
+
+		if let Some((_, child_nodes)) = children {
+			for &(x, y) in &[(0, 0), (0, 1), (1, 0), (1, 1)] {
+				// Move the entities to the parent
+				self.collapse_r(dest, child_nodes[x][y]);
+			}
 		}
 	}
 
@@ -166,6 +175,10 @@ impl Quadtree {
 	fn remove_r(&mut self, index: usize, entity: Entity, bbox: &AABB2) {
 		self.nodes[index].num_descendants -= 1;
 
+		if self.nodes[index].num_descendants < Self::NODE_MIN {
+			self.collapse(index);
+		}
+
 		if let Some(child) = self.child_index(index, bbox) {
 			self.remove_r(child, entity, bbox);
 		} else {
@@ -176,8 +189,6 @@ impl Quadtree {
 				.unwrap();
 			self.nodes[index].entities.swap_remove(pos);
 		}
-
-		self.check_collapse(index);
 	}
 
 	#[inline]
@@ -243,6 +254,11 @@ impl QuadtreeNode {
 			bbox,
 			children: None,
 		}
+	}
+
+	#[inline]
+	fn empty() -> QuadtreeNode {
+		QuadtreeNode::new(AABB2::empty())
 	}
 
 	#[inline]
