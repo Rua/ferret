@@ -68,8 +68,8 @@ impl Quadtree {
 			return;
 		}
 
-		// Create child nodes
 		if self.nodes[index].children.is_none() {
+			// Create child nodes
 			let middle = self.nodes[index].bbox.middle();
 			let child_nodes = [
 				[
@@ -199,27 +199,28 @@ impl Quadtree {
 
 			if crosses_split[0] && crosses_split[1] {
 				// Bounding box crosses both splits, recurse into all four children
-				self.traverse_nodes_r(child_nodes[0][0], bbox, func);
-				self.traverse_nodes_r(child_nodes[0][1], bbox, func);
-				self.traverse_nodes_r(child_nodes[1][0], bbox, func);
-				self.traverse_nodes_r(child_nodes[1][1], bbox, func);
+				for &(x, y) in &[(0, 0), (0, 1), (1, 0), (1, 1)] {
+					self.traverse_nodes_r(child_nodes[x][y], bbox, func);
+				}
 			} else if crosses_split[0] {
 				// Bounding box crosses x-axis split only
-				let side = (offset[1].min > 0.0) as usize;
-				self.traverse_nodes_r(child_nodes[side][0], bbox, func);
-				self.traverse_nodes_r(child_nodes[side][1], bbox, func);
+				let y = (offset[1].min > 0.0) as usize;
+				for x in 0..2 {
+					self.traverse_nodes_r(child_nodes[x][y], bbox, func);
+				}
 			} else if crosses_split[1] {
 				// Bounding box crosses y-axis split only
-				let side = (offset[0].min > 0.0) as usize;
-				self.traverse_nodes_r(child_nodes[0][side], bbox, func);
-				self.traverse_nodes_r(child_nodes[1][side], bbox, func);
+				let x = (offset[0].min > 0.0) as usize;
+				for y in 0..2 {
+					self.traverse_nodes_r(child_nodes[x][y], bbox, func);
+				}
 			} else {
 				// Bounding box lies in one of the quadrants, recurse into that quadrant
-				let sides = [
+				let [x, y] = [
 					(offset[0].min > 0.0) as usize,
 					(offset[1].min > 0.0) as usize,
 				];
-				self.traverse_nodes_r(child_nodes[sides[0]][sides[1]], bbox, func);
+				self.traverse_nodes_r(child_nodes[x][y], bbox, func);
 			}
 		}
 	}
