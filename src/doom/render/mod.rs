@@ -223,7 +223,7 @@ impl RenderSystem {
 		// art was made with that in mind.
 		// The 1.2 factor here applies the same stretching as in the original.
 		let aspect_ratio = (dimensions[0] / dimensions[1]) * 1.2;
-		let proj = projection_matrix(90.0, aspect_ratio, 0.1, 10000.0);
+		let proj = projection_matrix(90.0, aspect_ratio, 1.0, 20000.0);
 
 		// View matrix
 		let (client, transform_storage) =
