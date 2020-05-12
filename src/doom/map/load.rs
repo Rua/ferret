@@ -135,13 +135,22 @@ pub fn build_map(
 	// Add linedefs to nodes
 	add_node_linedefs(&mut nodes, &mut subsectors, &linedefs);
 
+	// Create map-wide bounding box
+	let mut bbox = AABB2::empty();
+
+	for linedef in &linedefs {
+		bbox.add_point(linedef.line.point);
+		bbox.add_point(linedef.line.point + linedef.line.dir);
+	}
+
 	Ok(Map {
 		anims_flat: get_anims(&ANIMS_FLAT, flat_storage, loader),
 		anims_wall: get_anims(&ANIMS_WALL, wall_storage, loader),
+		bbox,
 		linedefs,
+		nodes,
 		sectors,
 		subsectors,
-		nodes,
 		sky,
 		switches: get_switches(wall_storage, loader),
 	})
@@ -550,7 +559,10 @@ fn build_ssectors(
 			segs: segs.to_owned(),
 			bbox: AABB2::empty(),
 			planes: Vec::new(),
-			linedefs: segs.iter().filter_map(|seg| seg.linedef.map(|(i, _)| i)).collect(),
+			linedefs: segs
+				.iter()
+				.filter_map(|seg| seg.linedef.map(|(i, _)| i))
+				.collect(),
 			sector_index,
 		});
 	}
@@ -799,7 +811,10 @@ fn build_gl_ssect(
 		ret.push(Subsector {
 			segs: segs.to_owned(),
 			planes,
-			linedefs: segs.iter().filter_map(|seg| seg.linedef.map(|(i, _)| i)).collect(),
+			linedefs: segs
+				.iter()
+				.filter_map(|seg| seg.linedef.map(|(i, _)| i))
+				.collect(),
 			sector_index,
 			bbox,
 		});
@@ -1215,7 +1230,12 @@ fn add_node_linedefs<'a>(
 	subsectors: &'a mut [Subsector],
 	linedefs: &[Linedef],
 ) {
-	fn traverse_nodes(index: usize, path: &mut Vec<usize>, subsector_paths: &mut Vec<Vec<usize>>, nodes: &[Node]) {
+	fn traverse_nodes(
+		index: usize,
+		path: &mut Vec<usize>,
+		subsector_paths: &mut Vec<Vec<usize>>,
+		nodes: &[Node],
+	) {
 		path.push(index);
 
 		for child in nodes[index].child_indices.iter().copied() {
@@ -1272,7 +1292,9 @@ fn add_node_linedefs<'a>(
 
 		// Remove linedef from subsectors
 		for subsector_index in subs {
-			subsectors[subsector_index].linedefs.retain(|x| *x != linedef_index);
+			subsectors[subsector_index]
+				.linedefs
+				.retain(|x| *x != linedef_index);
 		}
 	}
 }

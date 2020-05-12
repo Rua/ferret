@@ -12,9 +12,10 @@ use crate::{
 			load::LinedefFlags,
 			textures::{Flat, TextureType, Wall},
 		},
-		physics::SolidMask,
+		physics::{BoxCollider, SolidMask},
 	},
-	geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2},
+	geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2, AABB3},
+	quadtree::Quadtree,
 };
 use anyhow::anyhow;
 use bitflags::bitflags;
@@ -22,7 +23,7 @@ use nalgebra::{Vector2, Vector3};
 use serde::Deserialize;
 use specs::{
 	storage::StorageEntry, Component, DenseVecStorage, Entity, Join, ReadExpect, ReadStorage,
-	World, WorldExt, WriteStorage,
+	World, WorldExt, WriteExpect, WriteStorage,
 };
 use specs_derive::Component;
 use std::{collections::HashMap, fmt::Debug, time::Duration};
@@ -31,10 +32,11 @@ use std::{collections::HashMap, fmt::Debug, time::Duration};
 pub struct Map {
 	pub anims_flat: HashMap<AssetHandle<Flat>, Anim<Flat>>,
 	pub anims_wall: HashMap<AssetHandle<Wall>, Anim<Wall>>,
+	pub bbox: AABB2,
 	pub linedefs: Vec<Linedef>,
+	pub nodes: Vec<Node>,
 	pub sectors: Vec<Sector>,
 	pub subsectors: Vec<Subsector>,
-	pub nodes: Vec<Node>,
 	pub sky: AssetHandle<Wall>,
 	pub switches: HashMap<AssetHandle<Wall>, AssetHandle<Wall>>,
 }
@@ -205,10 +207,14 @@ impl Map {
 		if let NodeChild::Node(index) = node {
 			let node = &self.nodes[index];
 			let sides = [
-				Vector2::new(bbox[0].min, bbox[1].min).dot(&node.plane.normal) - node.plane.distance,
-				Vector2::new(bbox[0].min, bbox[1].max).dot(&node.plane.normal) - node.plane.distance,
-				Vector2::new(bbox[0].max, bbox[1].min).dot(&node.plane.normal) - node.plane.distance,
-				Vector2::new(bbox[0].max, bbox[1].max).dot(&node.plane.normal) - node.plane.distance,
+				Vector2::new(bbox[0].min, bbox[1].min).dot(&node.plane.normal)
+					- node.plane.distance,
+				Vector2::new(bbox[0].min, bbox[1].max).dot(&node.plane.normal)
+					- node.plane.distance,
+				Vector2::new(bbox[0].max, bbox[1].min).dot(&node.plane.normal)
+					- node.plane.distance,
+				Vector2::new(bbox[0].max, bbox[1].max).dot(&node.plane.normal)
+					- node.plane.distance,
 			];
 
 			if sides.iter().any(|x| *x >= 0.0) {
@@ -227,11 +233,12 @@ pub fn spawn_things(
 	world: &World,
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
-	for thing in things {
+	for (_i, thing) in things.into_iter().enumerate() {
 		// Fetch entity template
-		let (entity_types, template_storage) = world.system_data::<(
+		let (entity_types, template_storage, mut quadtree) = world.system_data::<(
 			ReadExpect<MobjTypes>,
 			ReadExpect<AssetStorage<EntityTemplate>>,
+			WriteExpect<Quadtree>,
 		)>();
 		let handle = entity_types
 			.doomednums
@@ -245,27 +252,35 @@ pub fn spawn_things(
 
 		// Set entity transform
 		let z = {
-			let (map_storage, mut spawn_on_ceiling_storage) = world
+			let (map_storage, mut spawn_on_ceiling_component) = world
 				.system_data::<(ReadExpect<AssetStorage<Map>>, WriteStorage<SpawnOnCeiling>)>();
 			let map = map_storage.get(&map_handle).unwrap();
 			let ssect = map.find_subsector(thing.position);
 			let sector = &map.sectors[ssect.sector_index];
 
-			if let StorageEntry::Occupied(entry) = spawn_on_ceiling_storage.entry(entity)? {
+			if let StorageEntry::Occupied(entry) = spawn_on_ceiling_component.entry(entity)? {
 				sector.interval.max - entry.remove().offset
 			} else {
 				sector.interval.min
 			}
 		};
 
-		let mut transform_storage = world.system_data::<WriteStorage<Transform>>();
-		transform_storage.insert(
+		let (box_collider_component, mut transform_component) =
+			world.system_data::<(ReadStorage<BoxCollider>, WriteStorage<Transform>)>();
+		transform_component.insert(
 			entity,
 			Transform {
 				position: Vector3::new(thing.position[0], thing.position[1], z),
 				rotation: Vector3::new(0.into(), 0.into(), thing.angle),
 			},
 		)?;
+
+		// Add to quadtree
+		if let Some(box_collider) = box_collider_component.get(entity) {
+			let transform = transform_component.get(entity).unwrap();
+			let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
+			quadtree.insert(entity, AABB2::from(&bbox.offset(transform.position)));
+		}
 	}
 
 	Ok(())
@@ -284,9 +299,10 @@ pub fn spawn_player(world: &World) -> anyhow::Result<Entity> {
 	};
 
 	// Fetch entity template
-	let (entity_types, template_storage) = world.system_data::<(
+	let (entity_types, template_storage, mut quadtree) = world.system_data::<(
 		ReadExpect<MobjTypes>,
 		ReadExpect<AssetStorage<EntityTemplate>>,
+		WriteExpect<Quadtree>,
 	)>();
 	let handle = entity_types
 		.names
@@ -299,8 +315,16 @@ pub fn spawn_player(world: &World) -> anyhow::Result<Entity> {
 	template.add_to_entity(entity, world)?;
 
 	// Set entity transform
-	let mut transform_storage = world.system_data::<WriteStorage<Transform>>();
-	transform_storage.insert(entity, transform)?;
+	let (box_collider_component, mut transform_component) =
+		world.system_data::<(ReadStorage<BoxCollider>, WriteStorage<Transform>)>();
+	transform_component.insert(entity, transform)?;
+
+	// Add to quadtree
+	if let Some(box_collider) = box_collider_component.get(entity) {
+		let transform = transform_component.get(entity).unwrap();
+		let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
+		quadtree.insert(entity, AABB2::from(&bbox.offset(transform.position)));
+	}
 
 	Ok(entity)
 }

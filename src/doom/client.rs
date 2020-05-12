@@ -10,6 +10,7 @@ use crate::{
 	},
 	geometry::{Line2, AABB3},
 	input::{Bindings, InputState},
+	quadtree::Quadtree,
 };
 use nalgebra::{Vector2, Vector3};
 use shrev::EventChannel;
@@ -71,6 +72,7 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 			client,
 			delta,
 			map_storage,
+			quadtree,
 			box_collider_component,
 			map_dynamic_component,
 			mut transform_component,
@@ -80,6 +82,7 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 			ReadExpect<Client>,
 			ReadExpect<Duration>,
 			ReadExpect<AssetStorage<Map>>,
+			ReadExpect<Quadtree>,
 			ReadStorage<BoxCollider>,
 			ReadStorage<MapDynamic>,
 			WriteStorage<Transform>,
@@ -114,6 +117,7 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 					entities: &entities,
 					map,
 					map_dynamic,
+					quadtree: &quadtree,
 					transform_component: &transform_component,
 					box_collider_component: &box_collider_component,
 				};

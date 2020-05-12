@@ -1,7 +1,7 @@
 use derivative::Derivative;
 use std::{
 	clone::Clone,
-	collections::{HashMap, VecDeque},
+	collections::HashMap,
 	marker::PhantomData,
 	sync::{Arc, Weak},
 };
@@ -98,7 +98,7 @@ pub struct AssetStorage<A: Asset> {
 	highest_id: u32,
 	names: HashMap<String, WeakHandle<A>>,
 	unbuilt: Vec<(AssetHandle<A>, anyhow::Result<A::Intermediate>, String)>,
-	unused_ids: VecDeque<u32>,
+	unused_ids: Vec<u32>,
 }
 
 impl<A: Asset> AssetStorage<A> {
@@ -109,7 +109,7 @@ impl<A: Asset> AssetStorage<A> {
 
 	#[inline]
 	fn allocate_handle(&mut self) -> AssetHandle<A> {
-		let id = self.unused_ids.pop_front().unwrap_or_else(|| {
+		let id = self.unused_ids.pop().unwrap_or_else(|| {
 			self.highest_id += 1;
 			self.highest_id
 		});
@@ -153,7 +153,7 @@ impl<A: Asset> AssetStorage<A> {
 		self.handles.retain(|handle| {
 			if handle.is_unique() {
 				assets.remove(&handle.id());
-				unused_ids.push_back(handle.id());
+				unused_ids.push(handle.id());
 				false
 			} else {
 				true

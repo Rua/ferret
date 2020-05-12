@@ -213,6 +213,11 @@ impl Interval {
 	}
 
 	#[inline]
+	pub fn middle(self) -> f32 {
+		0.5 * (self.min + self.max)
+	}
+
+	#[inline]
 	pub fn offset(self, value: f32) -> Interval {
 		Interval {
 			min: self.min + value,
@@ -257,13 +262,26 @@ where
 	Owned<Interval, D>: Copy,
 {
 	#[inline]
-	/*pub fn new(min: VectorN<f32, D>, max: VectorN<f32, D>) -> AABB<D> {
-		assert!((0..D::dim()).all(|i| min[i] <= max[i]));
-		AABB { min, max }
-	}*/
-	#[inline]
 	pub fn empty() -> AABB<D> {
 		AABB(VectorN::repeat(Interval::empty()))
+	}
+
+	#[inline]
+	pub fn from_intervals(intervals: VectorN<Interval, D>) -> AABB<D>
+	where
+		DefaultAllocator: Allocator<f32, D>,
+		Owned<f32, D>: Copy,
+	{
+		AABB(intervals)
+	}
+
+	#[inline]
+	pub fn from_minmax(min: VectorN<f32, D>, max: VectorN<f32, D>) -> AABB<D>
+	where
+		DefaultAllocator: Allocator<f32, D>,
+		Owned<f32, D>: Copy,
+	{
+		AABB(min.zip_map(&max, |min, max| Interval { min, max }))
 	}
 
 	#[inline]
@@ -276,12 +294,26 @@ where
 	}
 
 	#[inline]
+	pub fn is_empty(&self) -> bool {
+		self.0.iter().copied().any(Interval::is_empty)
+	}
+
+	#[inline]
 	pub fn max(&self) -> VectorN<f32, D>
 	where
 		DefaultAllocator: Allocator<f32, D>,
 		Owned<f32, D>: Copy,
 	{
 		self.0.map(|i| i.max)
+	}
+
+	#[inline]
+	pub fn middle(&self) -> VectorN<f32, D>
+	where
+		DefaultAllocator: Allocator<f32, D>,
+		Owned<f32, D>: Copy,
+	{
+		self.0.map(|i| i.middle())
 	}
 
 	#[inline]
@@ -333,6 +365,23 @@ where
 	#[inline]
 	fn index(&self, index: usize) -> &Self::Output {
 		&self.0[index]
+	}
+}
+
+impl<D> std::fmt::Display for AABB<D>
+where
+	D: DimName,
+	DefaultAllocator: Allocator<Interval, D>,
+	Owned<Interval, D>: Copy,
+{
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "[")?;
+		for dim in self.0.iter() {
+			write!(f, "{}", dim)?;
+		}
+		write!(f, "]")?;
+
+		Ok(())
 	}
 }
 

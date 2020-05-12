@@ -3,9 +3,10 @@ use crate::{
 	doom::{
 		components::{Transform, Velocity},
 		data::{FRICTION, GRAVITY},
-		map::{Map, MapDynamic, Subsector, NodeChild},
+		map::{Map, MapDynamic, NodeChild, Subsector},
 	},
 	geometry::{Interval, Plane3, AABB2, AABB3},
+	quadtree::Quadtree,
 };
 use arrayvec::ArrayVec;
 use bitflags::bitflags;
@@ -14,7 +15,7 @@ use nalgebra::Vector3;
 use smallvec::SmallVec;
 use specs::{
 	Component, DenseVecStorage, Entities, Entity, Join, ReadExpect, ReadStorage, RunNow, World,
-	WriteStorage,
+	WriteExpect, WriteStorage,
 };
 use specs_derive::Component;
 use std::time::Duration;
@@ -30,6 +31,7 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 			entities,
 			delta,
 			map_storage,
+			mut quadtree,
 			box_collider_component,
 			map_dynamic_component,
 			mut transform_component,
@@ -38,6 +40,7 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 			Entities,
 			ReadExpect<Duration>,
 			ReadExpect<AssetStorage<Map>>,
+			WriteExpect<Quadtree>,
 			ReadStorage<BoxCollider>,
 			ReadStorage<MapDynamic>,
 			WriteStorage<Transform>,
@@ -58,14 +61,6 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 		)
 			.join()
 		{
-			let tracer = EntityTracer {
-				entities: &entities,
-				map,
-				map_dynamic,
-				transform_component: &transform_component,
-				box_collider_component: &box_collider_component,
-			};
-
 			let entity_bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
 			let mut new_position = transform_component.get(entity).unwrap().position;
 			let mut new_velocity = velocity.velocity;
@@ -74,7 +69,17 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 				continue;
 			}
 
+			quadtree.remove(entity);
 			let mut touched: SmallVec<[Entity; 8]> = SmallVec::new();
+
+			let tracer = EntityTracer {
+				entities: &entities,
+				map,
+				map_dynamic,
+				quadtree: &quadtree,
+				transform_component: &transform_component,
+				box_collider_component: &box_collider_component,
+			};
 
 			// Check and touch ground
 			let trace = tracer.trace(
@@ -115,10 +120,10 @@ impl<'a> RunNow<'a> for PhysicsSystem {
 				// Entity isn't on ground, apply gravity
 				new_velocity[2] -= GRAVITY * delta.as_secs_f32();
 			}
-
 			let transform = transform_component.get_mut(entity).unwrap();
 			transform.position = new_position;
 			velocity.velocity = new_velocity;
+			quadtree.insert(entity, AABB2::from(&entity_bbox.offset(transform.position)));
 		}
 	}
 }
@@ -206,6 +211,15 @@ bitflags! {
 	}
 }
 
+pub struct EntityTracer<'a> {
+	pub entities: &'a Entities<'a>,
+	pub map: &'a Map,
+	pub map_dynamic: &'a MapDynamic,
+	pub quadtree: &'a Quadtree,
+	pub transform_component: &'a WriteStorage<'a, Transform>,
+	pub box_collider_component: &'a ReadStorage<'a, BoxCollider>,
+}
+
 #[derive(Clone, Debug)]
 pub struct Trace {
 	pub fraction: f32,
@@ -219,14 +233,6 @@ pub struct TraceCollision {
 	pub entity: Entity,
 	pub normal: Vector3<f32>,
 	pub step_z: Option<f32>,
-}
-
-pub struct EntityTracer<'a> {
-	pub entities: &'a Entities<'a>,
-	pub map: &'a Map,
-	pub map_dynamic: &'a MapDynamic,
-	pub transform_component: &'a WriteStorage<'a, Transform>,
-	pub box_collider_component: &'a ReadStorage<'a, BoxCollider>,
 }
 
 const DISTANCE_EPSILON: f32 = 0.03125;
@@ -246,69 +252,104 @@ impl<'a> EntityTracer<'a> {
 		let move_bbox = entity_bbox.union(&entity_bbox.offset(move_step));
 		let move_bbox2 = AABB2::from(&move_bbox);
 
-		self.map.traverse_nodes(NodeChild::Node(0), &move_bbox2, &mut |node: NodeChild| {
-			let linedefs = match node {
-				NodeChild::Subsector(index) => &self.map.subsectors[index].linedefs,
-				NodeChild::Node(index) => &self.map.nodes[index].linedefs,
-			};
+		self.map
+			.traverse_nodes(NodeChild::Node(0), &move_bbox2, &mut |node: NodeChild| {
+				let linedefs = match node {
+					NodeChild::Subsector(index) => &self.map.subsectors[index].linedefs,
+					NodeChild::Node(index) => &self.map.nodes[index].linedefs,
+				};
 
-			for linedef_index in linedefs.iter().copied() {
-				let linedef = &self.map.linedefs[linedef_index];
+				for linedef_index in linedefs.iter().copied() {
+					let linedef = &self.map.linedefs[linedef_index];
 
-				if !move_bbox2.overlaps(&linedef.bbox) {
-					continue;
-				}
+					if !move_bbox2.overlaps(&linedef.bbox) {
+						continue;
+					}
 
-				let linedef_dynamic = &self.map_dynamic.linedefs[linedef_index];
+					let linedef_dynamic = &self.map_dynamic.linedefs[linedef_index];
 
-				if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
-					let front_interval = &self.map_dynamic.sectors[front_sidedef.sector_index].interval;
-					let back_interval = &self.map_dynamic.sectors[back_sidedef.sector_index].interval;
+					if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
+						let front_interval =
+							&self.map_dynamic.sectors[front_sidedef.sector_index].interval;
+						let back_interval =
+							&self.map_dynamic.sectors[back_sidedef.sector_index].interval;
 
-					let intersection = front_interval.intersection(*back_interval);
-					let union = front_interval.union(*back_interval);
-					let intervals = ArrayVec::from([
-						(
-							Interval::new(union.min, intersection.min),
-							SolidMask::all(),
-							true,
-						),
-						(
-							Interval::new(intersection.min, intersection.max),
-							linedef.solid_mask,
-							false,
-						),
-						(
-							Interval::new(intersection.max, union.max),
-							SolidMask::all(),
-							false,
-						),
-					]);
+						let intersection = front_interval.intersection(*back_interval);
+						let union = front_interval.union(*back_interval);
+						let intervals = ArrayVec::from([
+							(
+								Interval::new(union.min, intersection.min),
+								SolidMask::all(),
+								true,
+							),
+							(
+								Interval::new(intersection.min, intersection.max),
+								linedef.solid_mask,
+								false,
+							),
+							(
+								Interval::new(intersection.max, union.max),
+								SolidMask::all(),
+								false,
+							),
+						]);
 
-					for (interval, solid_mask, step) in intervals.into_iter() {
-						if interval.is_empty() {
-							continue;
+						for (interval, solid_mask, step) in intervals.into_iter() {
+							if interval.is_empty() {
+								continue;
+							}
+
+							let z_planes = [
+								Plane3::new(-interval.min, Vector3::new(0.0, 0.0, -1.0)),
+								Plane3::new(interval.max, Vector3::new(0.0, 0.0, 1.0)),
+							];
+							let iter = linedef.planes.iter().chain(z_planes.iter());
+
+							if let Some((fraction, normal)) =
+								trace_planes(&entity_bbox, move_step, iter)
+							{
+								if fraction < trace_fraction
+									&& entity_solid_mask.intersects(solid_mask)
+								{
+									trace_fraction = fraction;
+									trace_move_step = move_step * fraction;
+									trace_collision = Some(TraceCollision {
+										entity: linedef_dynamic.entity,
+										normal,
+										step_z: if step
+											&& !entity_solid_mask.intersects(linedef.solid_mask)
+										{
+											Some(interval.max + DISTANCE_EPSILON)
+										} else {
+											None
+										},
+									});
+									trace_touched.retain(|(f, _)| *f <= fraction);
+									trace_touched.push((fraction, linedef_dynamic.entity));
+								} else if fraction <= trace_fraction {
+									trace_touched.push((fraction, linedef_dynamic.entity));
+								}
+							}
 						}
-
+					} else if let [Some(front_sidedef), None] = &linedef.sidedefs {
+						let front_interval =
+							&self.map_dynamic.sectors[front_sidedef.sector_index].interval;
 						let z_planes = [
-							Plane3::new(-interval.min, Vector3::new(0.0, 0.0, -1.0)),
-							Plane3::new(interval.max, Vector3::new(0.0, 0.0, 1.0)),
+							Plane3::new(-front_interval.min, Vector3::new(0.0, 0.0, -1.0)),
+							Plane3::new(front_interval.max, Vector3::new(0.0, 0.0, 1.0)),
 						];
 						let iter = linedef.planes.iter().chain(z_planes.iter());
 
-						if let Some((fraction, normal)) = trace_planes(&entity_bbox, move_step, iter) {
-							if fraction < trace_fraction && entity_solid_mask.intersects(solid_mask) {
+						if let Some((fraction, normal)) =
+							trace_planes(&entity_bbox, move_step, iter)
+						{
+							if fraction < trace_fraction {
 								trace_fraction = fraction;
 								trace_move_step = move_step * fraction;
 								trace_collision = Some(TraceCollision {
 									entity: linedef_dynamic.entity,
 									normal,
-									step_z: if step && !entity_solid_mask.intersects(linedef.solid_mask)
-									{
-										Some(interval.max + DISTANCE_EPSILON)
-									} else {
-										None
-									},
+									step_z: None,
 								});
 								trace_touched.retain(|(f, _)| *f <= fraction);
 								trace_touched.push((fraction, linedef_dynamic.entity));
@@ -317,111 +358,99 @@ impl<'a> EntityTracer<'a> {
 							}
 						}
 					}
-				} else if let [Some(front_sidedef), None] = &linedef.sidedefs {
-					let front_interval = &self.map_dynamic.sectors[front_sidedef.sector_index].interval;
-					let z_planes = [
-						Plane3::new(-front_interval.min, Vector3::new(0.0, 0.0, -1.0)),
-						Plane3::new(front_interval.max, Vector3::new(0.0, 0.0, 1.0)),
-					];
-					let iter = linedef.planes.iter().chain(z_planes.iter());
+				}
 
-					if let Some((fraction, normal)) = trace_planes(&entity_bbox, move_step, iter) {
-						if fraction < trace_fraction {
-							trace_fraction = fraction;
-							trace_move_step = move_step * fraction;
-							trace_collision = Some(TraceCollision {
-								entity: linedef_dynamic.entity,
-								normal,
-								step_z: None,
-							});
-							trace_touched.retain(|(f, _)| *f <= fraction);
-							trace_touched.push((fraction, linedef_dynamic.entity));
-						} else if fraction <= trace_fraction {
-							trace_touched.push((fraction, linedef_dynamic.entity));
+				if let NodeChild::Subsector(subsector_index) = node {
+					let subsector = &self.map.subsectors[subsector_index];
+
+					if !move_bbox2.overlaps(&subsector.bbox) {
+						return;
+					}
+
+					let sector_dynamic = &self.map_dynamic.sectors[subsector.sector_index];
+
+					for (distance, normal) in ArrayVec::from([
+						(-sector_dynamic.interval.max, Vector3::new(0.0, 0.0, -1.0)),
+						(sector_dynamic.interval.min, Vector3::new(0.0, 0.0, 1.0)),
+					])
+					.into_iter()
+					{
+						let z_planes = [
+							Plane3::new(distance, normal),
+							Plane3::new(-distance, -normal),
+						];
+						let iter = subsector.planes.iter().chain(z_planes.iter());
+
+						if let Some((fraction, normal)) =
+							trace_planes(&entity_bbox, move_step, iter)
+						{
+							if fraction < trace_fraction {
+								trace_fraction = fraction;
+								trace_move_step = move_step * fraction;
+								trace_collision = Some(TraceCollision {
+									entity: sector_dynamic.entity,
+									normal,
+									step_z: None,
+								});
+								trace_touched.retain(|(f, _)| *f <= fraction);
+								trace_touched.push((fraction, sector_dynamic.entity));
+							} else if fraction <= trace_fraction {
+								trace_touched.push((fraction, sector_dynamic.entity));
+							}
 						}
 					}
 				}
-			}
+			});
 
-			if let NodeChild::Subsector(subsector_index) = node {
-				let subsector = &self.map.subsectors[subsector_index];
+		self.quadtree
+			.traverse_nodes(&move_bbox2, &mut |entities: &[Entity]| {
+				for &entity in entities {
+					let transform = if let Some(val) = self.transform_component.get(entity) {
+						val
+					} else {
+						continue;
+					};
 
-				if !move_bbox2.overlaps(&subsector.bbox) {
-					return;
-				}
+					let box_collider = if let Some(val) = self.box_collider_component.get(entity) {
+						val
+					} else {
+						continue;
+					};
 
-				let sector_dynamic = &self.map_dynamic.sectors[subsector.sector_index];
+					let other_bbox =
+						AABB3::from_radius_height(box_collider.radius, box_collider.height)
+							.offset(transform.position);
 
-				for (distance, normal) in ArrayVec::from([
-					(-sector_dynamic.interval.max, Vector3::new(0.0, 0.0, -1.0)),
-					(sector_dynamic.interval.min, Vector3::new(0.0, 0.0, 1.0)),
-				])
-				.into_iter()
-				{
-					let z_planes = [
-						Plane3::new(distance, normal),
-						Plane3::new(-distance, -normal),
-					];
-					let iter = subsector.planes.iter().chain(z_planes.iter());
+					// Don't collide against self
+					if entity_bbox == &other_bbox {
+						continue;
+					}
 
-					if let Some((fraction, normal)) = trace_planes(&entity_bbox, move_step, iter) {
-						if fraction < trace_fraction {
+					if !move_bbox.overlaps(&other_bbox) {
+						continue;
+					}
+
+					if let Some((fraction, normal)) =
+						trace_planes(&entity_bbox, move_step, &other_bbox.planes())
+					{
+						if fraction < trace_fraction
+							&& entity_solid_mask.intersects(box_collider.solid_mask)
+						{
 							trace_fraction = fraction;
 							trace_move_step = move_step * fraction;
 							trace_collision = Some(TraceCollision {
-								entity: sector_dynamic.entity,
+								entity,
 								normal,
-								step_z: None,
+								step_z: Some(other_bbox[2].max + DISTANCE_EPSILON),
 							});
 							trace_touched.retain(|(f, _)| *f <= fraction);
-							trace_touched.push((fraction, sector_dynamic.entity));
+							trace_touched.push((fraction, entity));
 						} else if fraction <= trace_fraction {
-							trace_touched.push((fraction, sector_dynamic.entity));
+							trace_touched.push((fraction, entity));
 						}
 					}
 				}
-			}
-		});
-
-		for (entity, transform, box_collider) in (
-			self.entities,
-			self.transform_component,
-			self.box_collider_component,
-		)
-			.join()
-		{
-			let other_bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height)
-				.offset(transform.position);
-
-			// Don't collide against self
-			if entity_bbox == &other_bbox {
-				continue;
-			}
-
-			if !move_bbox.overlaps(&other_bbox) {
-				continue;
-			}
-
-			if let Some((fraction, normal)) =
-				trace_planes(&entity_bbox, move_step, &other_bbox.planes())
-			{
-				if fraction < trace_fraction
-					&& entity_solid_mask.intersects(box_collider.solid_mask)
-				{
-					trace_fraction = fraction;
-					trace_move_step = move_step * fraction;
-					trace_collision = Some(TraceCollision {
-						entity,
-						normal,
-						step_z: Some(other_bbox[2].max + DISTANCE_EPSILON),
-					});
-					trace_touched.retain(|(f, _)| *f <= fraction);
-					trace_touched.push((fraction, entity));
-				} else if fraction <= trace_fraction {
-					trace_touched.push((fraction, entity));
-				}
-			}
-		}
+			});
 
 		Trace {
 			fraction: trace_fraction,

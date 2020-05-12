@@ -7,6 +7,7 @@ mod doom;
 mod geometry;
 mod input;
 mod logger;
+mod quadtree;
 mod renderer;
 
 use crate::{
@@ -14,6 +15,7 @@ use crate::{
 	audio::Sound,
 	component::EntityTemplate,
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
+	quadtree::Quadtree,
 	renderer::{AsBytes, RenderContext},
 };
 use anyhow::{bail, Context};
@@ -555,8 +557,17 @@ fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
 		});
 	}
 
-	// Spawn map entities and things
 	log::info!("Spawning entities...");
+
+	// Create quadtree
+	let bbox = {
+		let map_storage = world.system_data::<ReadExpect<AssetStorage<doom::map::Map>>>();
+		let map = map_storage.get(&map_handle).unwrap();
+		map.bbox.clone()
+	};
+	world.insert(Quadtree::new(bbox));
+
+	// Spawn map entities and things
 	let things = {
 		let loader = world.system_data::<WriteExpect<doom::wad::WadLoader>>();
 		doom::map::load::build_things(&loader.load(&format!("{}/+{}", name, 1))?)?
