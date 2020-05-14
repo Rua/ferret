@@ -60,6 +60,8 @@ impl Quadtree {
 
 		if !self.bboxes.contains_key(&entity) {
 			self.bboxes.insert(entity, bbox.clone());
+			// TODO: Find a better pattern than mem::replace / update / place back
+
 			let root = mem::replace(&mut self.root, QuadtreeNode::empty());
 			self.root = root.insert(&self.bbox, entity, &bbox, &self.bboxes);
 		}
@@ -239,6 +241,8 @@ impl Node {
 
 	fn collapse_into(self, v: &mut Vec<Entity>) {
 		v.extend(self.entities);
+
+		// TODO: Find a better way to express this.
 		let [a, b, c, d] = *self.children;
 		a.collapse_into(v);
 		b.collapse_into(v);
