@@ -5,8 +5,8 @@ use crate::{
 		LinedefFlags, Map, MapDynamic, SectorSlot, Side, SidedefSlot,
 	},
 };
+use legion::prelude::{Read, ResourceSet, Resources};
 use nalgebra::Vector2;
-use specs::{ReadExpect, World};
 use std::collections::HashMap;
 use vulkano::{image::Dimensions, impl_vertex};
 
@@ -27,7 +27,7 @@ impl_vertex!(SkyVertexData, in_position);
 pub fn make_meshes(
 	map: &Map,
 	map_dynamic: &MapDynamic,
-	world: &World,
+	resources: &Resources,
 ) -> anyhow::Result<(
 	HashMap<AssetHandle<Flat>, (Vec<VertexData>, Vec<u32>)>,
 	(Vec<SkyVertexData>, Vec<u32>),
@@ -122,10 +122,8 @@ pub fn make_meshes(
 	let mut sky_mesh: (Vec<SkyVertexData>, Vec<u32>) = (Vec::new(), Vec::new());
 	let mut wall_meshes: HashMap<AssetHandle<Wall>, (Vec<VertexData>, Vec<u32>)> = HashMap::new();
 
-	let (flat_storage, wall_storage) = world.system_data::<(
-		ReadExpect<AssetStorage<Flat>>,
-		ReadExpect<AssetStorage<Wall>>,
-	)>();
+	let (flat_storage, wall_storage) =
+		<(Read<AssetStorage<Flat>>, Read<AssetStorage<Wall>>)>::fetch(resources);
 
 	// Walls
 	for (linedef_index, linedef) in map.linedefs.iter().enumerate() {

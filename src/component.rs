@@ -1,14 +1,26 @@
 use crate::assets::{Asset, DataSource};
-use specs::{Component, Entity, World, WorldExt};
+use legion::{
+	prelude::{Entity, World},
+	storage::Component,
+	world::EntityMutationError,
+};
 use std::{any::TypeId, collections::HashMap};
 
 pub trait DynComponent: Send + Sync {
-	fn add_to_entity(&self, entity: Entity, world: &World) -> Result<(), specs::error::Error>;
+	fn add_to_entity<'a, 'b>(
+		&'a self,
+		entity: Entity,
+		world: &'b mut World,
+	) -> Result<(), EntityMutationError>;
 }
 
-impl<T: Component + Clone + Send + Sync> DynComponent for T {
-	fn add_to_entity(&self, entity: Entity, world: &World) -> Result<(), specs::error::Error> {
-		world.write_component().insert(entity, self.clone())?;
+impl<T: Component + Clone> DynComponent for T {
+	fn add_to_entity<'a, 'b>(
+		&'a self,
+		entity: Entity,
+		world: &'b mut World,
+	) -> Result<(), EntityMutationError> {
+		world.add_component(entity, self.clone())?;
 		Ok(())
 	}
 }
@@ -24,19 +36,23 @@ impl EntityTemplate {
 		}
 	}
 
-	pub fn add_component<T: Component + Clone + Send + Sync>(&mut self, component: T) {
+	pub fn add_component<T: Component + Clone>(&mut self, component: T) {
 		self.components
 			.insert(TypeId::of::<T>(), Box::from(component));
 	}
 
-	pub fn with_component<T: Component + Clone + Send + Sync>(mut self, component: T) -> Self {
+	pub fn with_component<T: Component + Clone>(mut self, component: T) -> Self {
 		self.add_component(component);
 		self
 	}
 
-	pub fn add_to_entity(&self, entity: Entity, world: &World) -> Result<(), specs::error::Error> {
+	pub fn add_to_entity<'a, 'b>(
+		&'a self,
+		entity: Entity,
+		world: &'b mut World,
+	) -> Result<(), EntityMutationError> {
 		for dyn_component in self.components.values() {
-			dyn_component.add_to_entity(entity, world)?;
+			//dyn_component.add_to_entity(entity, world)?;
 		}
 
 		Ok(())

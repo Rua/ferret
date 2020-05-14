@@ -10,7 +10,7 @@ use crate::{
 		wad::WadLoader,
 	},
 };
-use specs::{World, WriteExpect};
+use legion::prelude::{ResourceSet, Resources, Write};
 use std::collections::HashMap;
 
 pub struct MobjTypes {
@@ -20,12 +20,12 @@ pub struct MobjTypes {
 
 impl MobjTypes {
 	#[rustfmt::skip]
-	pub fn new(world: &World) -> MobjTypes {
-		let (mut template_storage, mut sprite_storage, mut loader) = world.system_data::<(
-			WriteExpect<AssetStorage<EntityTemplate>>,
-			WriteExpect<AssetStorage<Sprite>>,
-			WriteExpect<WadLoader>,
-		)>();
+	pub fn new(resources: &mut Resources) -> MobjTypes {
+		let (mut template_storage, mut sprite_storage, mut loader) = <(
+			Write<AssetStorage<EntityTemplate>>,
+			Write<AssetStorage<Sprite>>,
+			Write<WadLoader>,
+		)>::fetch_mut(resources);
 
 		let mut names = HashMap::new();
 		let mut doomednums = HashMap::new();

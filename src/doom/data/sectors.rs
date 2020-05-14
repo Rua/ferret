@@ -6,7 +6,7 @@ use crate::{
 		light::{LightFlash, LightFlashType, LightGlow},
 	},
 };
-use specs::{World, WriteExpect};
+use legion::prelude::{ResourceSet, Resources, Write};
 use std::collections::HashMap;
 
 pub struct SectorTypes {
@@ -15,10 +15,8 @@ pub struct SectorTypes {
 
 impl SectorTypes {
 	#[rustfmt::skip]
-	pub fn new(world: &World) -> SectorTypes {
-        let mut template_storage = world.system_data::<
-			WriteExpect<AssetStorage<EntityTemplate>>,
-		>();
+	pub fn new(resources: &mut Resources) -> SectorTypes {
+        let mut template_storage = <Write<AssetStorage<EntityTemplate>>>::fetch_mut(resources);
 
         let mut doomednums = HashMap::new();
 

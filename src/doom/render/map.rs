@@ -12,8 +12,8 @@ use crate::{
 	renderer::AsBytes,
 };
 use anyhow::{anyhow, Context};
+use legion::prelude::{IntoQuery, Read, ResourceSet, Resources, World};
 use nalgebra::Vector3;
-use specs::{Join, ReadExpect, ReadStorage, World};
 use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
@@ -134,23 +134,23 @@ impl MapRenderSystem {
 	pub fn draw(
 		&mut self,
 		world: &World,
+		resources: &Resources,
 		mut command_buffer_builder: AutoCommandBufferBuilder<StandardCommandPoolBuilder>,
 		dynamic_state: DynamicState,
 		sampler: Arc<Sampler>,
 		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
 		rotation: Vector3<Angle>,
 	) -> anyhow::Result<AutoCommandBufferBuilder> {
-		let (flat_storage, map_storage, wall_storage, map_component) = world.system_data::<(
-			ReadExpect<AssetStorage<Flat>>,
-			ReadExpect<AssetStorage<Map>>,
-			ReadExpect<AssetStorage<Wall>>,
-			ReadStorage<MapDynamic>,
-		)>();
+		let (flat_storage, map_storage, wall_storage) = <(
+			Read<AssetStorage<Flat>>,
+			Read<AssetStorage<Map>>,
+			Read<AssetStorage<Wall>>,
+		)>::fetch(resources);
 
-		for map_dynamic in map_component.join() {
+		for map_dynamic in <Read<MapDynamic>>::query().iter(world) {
 			let map = map_storage.get(&map_dynamic.map).unwrap();
 			let (flat_meshes, sky_mesh, wall_meshes) =
-				crate::doom::map::meshes::make_meshes(map, map_dynamic, world)
+				crate::doom::map::meshes::make_meshes(map, map_dynamic.as_ref(), resources)
 					.context("Couldn't generate map mesh")?;
 
 			// Draw the walls

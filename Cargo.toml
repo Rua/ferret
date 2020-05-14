@@ -16,6 +16,7 @@ colored = "1.9"
 crossbeam-channel = "0.4.2"
 derivative = "2.1"
 lazy_static = "1.4"
+legion = {git = "https://github.com/TomGillen/legion"}
 log = {version = "0.4.8", features = ["std"]}
 nalgebra = "0.20.0"
 num-traits = "0.2.10"

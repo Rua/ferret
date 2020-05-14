@@ -10,8 +10,8 @@ use crate::{
 		wad::WadLoader,
 	},
 };
+use legion::prelude::{ResourceSet, Resources, Write};
 use nalgebra::Vector2;
-use specs::{World, WriteExpect};
 use std::collections::HashMap;
 
 pub struct LinedefTypes {
@@ -20,12 +20,12 @@ pub struct LinedefTypes {
 
 impl LinedefTypes {
 	#[rustfmt::skip]
-	pub fn new(world: &World) -> LinedefTypes {
-        let (mut template_storage, mut sound_storage, mut loader) = world.system_data::<(
-			WriteExpect<AssetStorage<EntityTemplate>>,
-			WriteExpect<AssetStorage<Sound>>,
-			WriteExpect<WadLoader>,
-		)>();
+	pub fn new(resources: &mut Resources) -> LinedefTypes {
+        let (mut template_storage, mut sound_storage, mut loader) = <(
+			Write<AssetStorage<EntityTemplate>>,
+			Write<AssetStorage<Sound>>,
+			Write<WadLoader>,
+		)>::fetch_mut(resources);
 
         let mut doomednums = HashMap::new();
 

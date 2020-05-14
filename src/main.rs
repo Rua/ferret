@@ -20,11 +20,14 @@ use crate::{
 };
 use anyhow::{bail, Context};
 use clap::{App, Arg, ArgMatches};
+use legion::{
+	prelude::{Entity, Read, ResourceSet, Resources, World, Write},
+	systems::schedule::Builder,
+};
 use nalgebra::{Matrix4, Vector3};
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
 use shrev::EventChannel;
-use specs::{DispatcherBuilder, Entity, ReadExpect, RunNow, World, WorldExt, WriteExpect};
 use std::{
 	path::PathBuf,
 	time::{Duration, Instant},
@@ -100,55 +103,38 @@ fn main() -> anyhow::Result<()> {
 		};
 	command_sender.send(format!("map {}", map)).ok();
 
-	// Set up world
-	let mut world = World::new();
-
-	// Register components
-	world.register::<doom::client::UseAction>();
-	world.register::<doom::components::SpawnOnCeiling>();
-	world.register::<doom::components::SpawnPoint>();
-	world.register::<doom::components::Transform>();
-	world.register::<doom::components::Velocity>();
-	world.register::<doom::door::DoorActive>();
-	world.register::<doom::door::SwitchActive>();
-	world.register::<doom::light::LightFlash>();
-	world.register::<doom::light::LightGlow>();
-	world.register::<doom::map::LinedefRef>();
-	world.register::<doom::map::MapDynamic>();
-	world.register::<doom::map::SectorRef>();
-	world.register::<doom::physics::BoxCollider>();
-	world.register::<doom::render::sprite::SpriteRender>();
-	world.register::<doom::sound::SoundPlaying>();
-	world.register::<doom::update::TextureScroll>();
+	// Set up resources
+	let mut resources = Resources::default();
 
 	// Insert asset storages
-	world.insert(AssetStorage::<EntityTemplate>::default());
-	world.insert(AssetStorage::<Sound>::default());
-	world.insert(AssetStorage::<doom::map::Map>::default());
-	world.insert(AssetStorage::<doom::map::textures::Flat>::default());
-	world.insert(AssetStorage::<doom::map::textures::Wall>::default());
-	world.insert(AssetStorage::<doom::image::Palette>::default());
-	world.insert(AssetStorage::<doom::sprite::Sprite>::default());
-	world.insert(AssetStorage::<doom::sprite::SpriteImage>::default());
+	resources.insert(AssetStorage::<EntityTemplate>::default());
+	resources.insert(AssetStorage::<Sound>::default());
+	resources.insert(AssetStorage::<doom::map::Map>::default());
+	resources.insert(AssetStorage::<doom::map::textures::Flat>::default());
+	resources.insert(AssetStorage::<doom::map::textures::Wall>::default());
+	resources.insert(AssetStorage::<doom::image::Palette>::default());
+	resources.insert(AssetStorage::<doom::sprite::Sprite>::default());
+	resources.insert(AssetStorage::<doom::sprite::SpriteImage>::default());
 
 	// Insert other resources
-	world.insert(Pcg64Mcg::from_entropy());
-	world.insert(render_context);
-	world.insert(sound_sender);
-	world.insert(loader);
-	world.insert(InputState::new());
-	world.insert(bindings);
-	world.insert(Vec::<(AssetHandle<Sound>, Entity)>::new());
-	world.insert(doom::client::Client::default());
-	world.insert(doom::data::FRAME_TIME);
-	world.insert(EventChannel::<doom::client::UseEvent>::new());
+	resources.insert(Pcg64Mcg::from_entropy());
+	resources.insert(render_context);
+	resources.insert(sound_sender);
+	resources.insert(loader);
+	resources.insert(InputState::new());
+	resources.insert(bindings);
+	resources.insert(Vec::<(AssetHandle<Sound>, Entity)>::new());
+	resources.insert(doom::client::Client::default());
+	resources.insert(doom::data::FRAME_TIME);
+	resources.insert(EventChannel::<doom::client::UseEvent>::new());
 
 	// Create systems
 	let mut render_system =
-		doom::render::RenderSystem::new(&world).context("Couldn't create RenderSystem")?;
-	let mut sound_system = doom::sound::SoundSystem;
-	let mut update_dispatcher = DispatcherBuilder::new()
-		.with_thread_local(doom::client::PlayerCommandSystem::default())
+		doom::render::RenderSystem::new(&*resources.get::<RenderContext>().unwrap())
+			.context("Couldn't create RenderSystem")?;
+	let mut sound_system = doom::sound::sound_system();
+	let mut update_dispatcher = Builder::default()
+		/*.with_thread_local(doom::client::PlayerCommandSystem::default())
 		.with_thread_local(doom::client::PlayerMoveSystem::default())
 		.with_thread_local(doom::client::PlayerUseSystem::default())
 		.with_thread_local(doom::physics::PhysicsSystem::default())
@@ -159,8 +145,11 @@ fn main() -> anyhow::Result<()> {
 				.register_reader(),
 		))
 		.with_thread_local(doom::light::LightUpdateSystem::default())
-		.with_thread_local(doom::update::TextureAnimSystem::default())
+		.with_thread_local(doom::update::TextureAnimSystem::default())*/
 		.build();
+
+	// Create world
+	let mut world = World::new();
 
 	let mut should_quit = false;
 	let mut old_time = Instant::now();
@@ -183,7 +172,7 @@ fn main() -> anyhow::Result<()> {
 		// Process events from the system
 		event_loop.run_return(|event, _, control_flow| {
 			let (mut input_state, render_context) =
-				world.system_data::<(WriteExpect<InputState>, ReadExpect<RenderContext>)>();
+				<(Write<InputState>, Read<RenderContext>)>::fetch_mut(&mut resources);
 			input_state.process_event(&event);
 
 			match event {
@@ -248,7 +237,7 @@ fn main() -> anyhow::Result<()> {
 			// Split further into subcommands
 			for args in tokens.split(|tok| tok == ";") {
 				match args[0].as_str() {
-					"map" => load_map(&args[1], &mut world)?,
+					"map" => load_map(&args[1], &mut world, &mut resources)?,
 					"quit" => should_quit = true,
 					_ => log::error!("Unknown command: {}", args[0]),
 				}
@@ -265,20 +254,20 @@ fn main() -> anyhow::Result<()> {
 		if leftover_time >= doom::data::FRAME_TIME {
 			leftover_time -= doom::data::FRAME_TIME;
 
-			update_dispatcher.dispatch(&world);
+			update_dispatcher.execute(&mut world, &mut resources);
 
 			// Reset input delta state
 			{
-				let mut input_state = world.fetch_mut::<InputState>();
+				let mut input_state = resources.get_mut::<InputState>().unwrap();
 				input_state.reset();
 			}
 		}
 
 		// Update sound
-		sound_system.run_now(&world);
+		sound_system(&mut world, &mut resources);
 
 		// Draw frame
-		render_system.run_now(&world);
+		render_system.draw(&world, &resources);
 	}
 
 	Ok(())
@@ -377,16 +366,16 @@ fn get_bindings() -> Bindings<doom::input::Action, doom::input::Axis> {
 	bindings
 }
 
-fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
+fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow::Result<()> {
 	log::info!("Starting map {}...", name);
 	let start_time = Instant::now();
 
 	// Load palette
 	let palette_handle = {
-		let (mut loader, mut palette_storage) = world.system_data::<(
-			WriteExpect<doom::wad::WadLoader>,
-			WriteExpect<AssetStorage<crate::doom::image::Palette>>,
-		)>();
+		let (mut loader, mut palette_storage) = <(
+			Write<doom::wad::WadLoader>,
+			Write<AssetStorage<crate::doom::image::Palette>>,
+		)>::fetch_mut(resources);
 		let handle = palette_storage.load("PLAYPAL", &mut *loader);
 		palette_storage.build_waiting(Ok);
 		handle
@@ -394,25 +383,29 @@ fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
 
 	// Load entity type data
 	log::info!("Loading entity data...");
-	world.insert(doom::data::MobjTypes::new(&world));
-	world.insert(doom::data::SectorTypes::new(&world));
-	world.insert(doom::data::LinedefTypes::new(&world));
+	let mobj_types = doom::data::MobjTypes::new(resources);
+	let sector_types = doom::data::SectorTypes::new(resources);
+	let linedef_types = doom::data::LinedefTypes::new(resources);
+
+	resources.insert(mobj_types);
+	resources.insert(sector_types);
+	resources.insert(linedef_types);
 
 	// Load sprite images
 	{
 		let (
 			palette_storage,
+			render_context,
 			mut sprite_storage,
 			mut sprite_image_storage,
 			mut source,
-			render_context,
-		) = world.system_data::<(
-			ReadExpect<AssetStorage<crate::doom::image::Palette>>,
-			WriteExpect<AssetStorage<crate::doom::sprite::Sprite>>,
-			WriteExpect<AssetStorage<crate::doom::sprite::SpriteImage>>,
-			WriteExpect<crate::doom::wad::WadLoader>,
-			ReadExpect<crate::renderer::RenderContext>,
-		)>();
+		) = <(
+			Read<AssetStorage<crate::doom::image::Palette>>,
+			Read<crate::renderer::RenderContext>,
+			Write<AssetStorage<crate::doom::sprite::Sprite>>,
+			Write<AssetStorage<crate::doom::sprite::SpriteImage>>,
+			Write<crate::doom::wad::WadLoader>,
+		)>::fetch_mut(resources);
 		let palette = palette_storage.get(&palette_handle).unwrap();
 		sprite_storage.build_waiting(|intermediate| {
 			Ok(intermediate.build(&mut *sprite_image_storage, &mut *source)?)
@@ -458,21 +451,20 @@ fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
 
 	// Load sounds
 	{
-		let mut sound_storage = world.system_data::<WriteExpect<AssetStorage<Sound>>>();
-
+		let mut sound_storage = <Write<AssetStorage<Sound>>>::fetch_mut(resources);
 		sound_storage.build_waiting(|intermediate| doom::sound::build_sound(intermediate));
 	}
 
 	// Load map
 	log::info!("Loading map...");
 	let map_handle = {
-		let (mut loader, mut map_storage, mut flat_storage, mut wall_storage) = world
-			.system_data::<(
-				WriteExpect<doom::wad::WadLoader>,
-				WriteExpect<AssetStorage<doom::map::Map>>,
-				WriteExpect<AssetStorage<doom::map::textures::Flat>>,
-				WriteExpect<AssetStorage<doom::map::textures::Wall>>,
-			)>();
+		let (mut loader, mut map_storage, mut flat_storage, mut wall_storage) =
+			<(
+				Write<doom::wad::WadLoader>,
+				Write<AssetStorage<doom::map::Map>>,
+				Write<AssetStorage<doom::map::textures::Flat>>,
+				Write<AssetStorage<doom::map::textures::Wall>>,
+			)>::fetch_mut(resources);
 		let map_handle = map_storage.load(name, &mut *loader);
 		map_storage.build_waiting(|data| {
 			doom::map::load::build_map(
@@ -489,11 +481,11 @@ fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
 
 	// Build flats and wall textures
 	{
-		let (palette_storage, mut flat_storage, render_context) = world.system_data::<(
-			ReadExpect<AssetStorage<doom::image::Palette>>,
-			WriteExpect<AssetStorage<doom::map::textures::Flat>>,
-			ReadExpect<RenderContext>,
-		)>();
+		let (palette_storage, render_context, mut flat_storage) = <(
+			Read<AssetStorage<doom::image::Palette>>,
+			Read<RenderContext>,
+			Write<AssetStorage<doom::map::textures::Flat>>,
+		)>::fetch_mut(resources);
 		let palette = palette_storage.get(&palette_handle).unwrap();
 		flat_storage.build_waiting(|image| {
 			let data: Vec<_> = image
@@ -524,11 +516,11 @@ fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
 	}
 
 	{
-		let (palette_storage, mut wall_storage, render_context) = world.system_data::<(
-			ReadExpect<AssetStorage<doom::image::Palette>>,
-			WriteExpect<AssetStorage<doom::map::textures::Wall>>,
-			ReadExpect<RenderContext>,
-		)>();
+		let (palette_storage, render_context, mut wall_storage) = <(
+			Read<AssetStorage<doom::image::Palette>>,
+			Read<RenderContext>,
+			Write<AssetStorage<doom::map::textures::Wall>>,
+		)>::fetch_mut(resources);
 		let palette = palette_storage.get(&palette_handle).unwrap();
 		wall_storage.build_waiting(|image| {
 			let data: Vec<_> = image
@@ -561,25 +553,23 @@ fn load_map(name: &str, world: &mut World) -> anyhow::Result<()> {
 
 	// Create quadtree
 	let bbox = {
-		let map_storage = world.system_data::<ReadExpect<AssetStorage<doom::map::Map>>>();
+		let map_storage = <Read<AssetStorage<doom::map::Map>>>::fetch(resources);
 		let map = map_storage.get(&map_handle).unwrap();
 		map.bbox.clone()
 	};
-	world.insert(Quadtree::new(bbox));
+	resources.insert(Quadtree::new(bbox));
 
 	// Spawn map entities and things
 	let things = {
-		let loader = world.system_data::<WriteExpect<doom::wad::WadLoader>>();
+		let loader = <Write<doom::wad::WadLoader>>::fetch_mut(resources);
 		doom::map::load::build_things(&loader.load(&format!("{}/+{}", name, 1))?)?
 	};
-	doom::map::spawn_map_entities(&world, &map_handle)?;
-	doom::map::spawn_things(things, &world, &map_handle)?;
+	doom::map::spawn_map_entities(world, &resources, &map_handle)?;
+	doom::map::spawn_things(things, world, resources, &map_handle)?;
 
 	// Spawn player
-	let entity = doom::map::spawn_player(&world)?;
-	world
-		.system_data::<WriteExpect<doom::client::Client>>()
-		.entity = Some(entity);
+	let entity = doom::map::spawn_player(world, resources)?;
+	<Write<doom::client::Client>>::fetch_mut(resources).entity = Some(entity);
 
 	log::debug!(
 		"Loading took {} s",

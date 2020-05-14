@@ -7,14 +7,10 @@ use crate::{
 use anyhow::ensure;
 use byteorder::{ReadBytesExt, LE};
 use crossbeam_channel::Sender;
+use legion::prelude::{Entity, IntoQuery, Read, ResourceSet, Resources, World, Write};
 use nalgebra::Vector2;
 use rodio::Source;
-use specs::{
-	Component, DenseVecStorage, Entities, Entity, Join, ReadExpect, ReadStorage, RunNow, World,
-	WriteExpect, WriteStorage,
-};
-use specs_derive::Component;
-use std::io::{Cursor, Read};
+use std::io::{Cursor, Read as IoRead};
 
 impl Asset for Sound {
 	type Data = Self;
@@ -54,42 +50,24 @@ pub fn build_sound(data: Vec<u8>) -> anyhow::Result<Sound> {
 	})
 }
 
-#[derive(Default)]
-pub struct SoundSystem;
-
-impl<'a> RunNow<'a> for SoundSystem {
-	fn setup(&mut self, _world: &mut World) {}
-
-	fn run_now(&mut self, world: &'a World) {
-		let (
-			entities,
-			client,
-			sound_sender,
-			sound_storage,
-			transform_component,
-			mut sound_queue,
-			mut sound_playing_component,
-		) = world.system_data::<(
-			Entities,
-			ReadExpect<Client>,
-			ReadExpect<Sender<Box<dyn Source<Item = f32> + Send>>>,
-			ReadExpect<AssetStorage<Sound>>,
-			ReadStorage<Transform>,
-			WriteExpect<Vec<(AssetHandle<Sound>, Entity)>>,
-			WriteStorage<SoundPlaying>,
-		)>();
+pub fn sound_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
+	Box::new(|world, resources| {
+		let (client, sound_sender, sound_storage, mut sound_queue) = <(
+			Read<Client>,
+			Read<Sender<Box<dyn Source<Item = f32> + Send>>>,
+			Read<AssetStorage<Sound>>,
+			Write<Vec<(AssetHandle<Sound>, Entity)>>,
+		)>::fetch_mut(resources);
 
 		let mut to_remove = Vec::new();
 
 		// Update currently playing sounds
-		let client_transform = transform_component.get(client.entity.unwrap()).unwrap();
+		let client_transform = world
+			.get_component::<Transform>(client.entity.unwrap())
+			.unwrap();
 
-		for (entity, transform, sound_playing) in (
-			&entities,
-			&transform_component,
-			&mut sound_playing_component,
-		)
-			.join()
+		for (entity, (transform, sound_playing)) in
+			<(Read<Transform>, Write<SoundPlaying>)>::query().iter_entities_mut(world)
 		{
 			if sound_playing.controller.is_done() {
 				to_remove.push(entity);
@@ -97,13 +75,13 @@ impl<'a> RunNow<'a> for SoundSystem {
 			}
 
 			// Set distance falloff and stereo panning
-			let volumes = calculate_volumes(client_transform, transform);
+			let volumes = calculate_volumes(client_transform.as_ref(), transform.as_ref());
 			sound_playing.controller.set_volumes(volumes.into());
 		}
 
 		// Remove finished sounds
 		for entity in to_remove {
-			sound_playing_component.remove(entity);
+			world.remove_component::<SoundPlaying>(entity);
 		}
 
 		// Play new sounds
@@ -112,21 +90,21 @@ impl<'a> RunNow<'a> for SoundSystem {
 			let (controller, source) = SoundController::new(SoundSource::new(&sound));
 
 			// Set distance falloff and stereo panning
-			let transform = transform_component.get(entity).unwrap();
-			let volumes = calculate_volumes(client_transform, transform);
+			let transform = world.get_component::<Transform>(entity).unwrap();
+			let volumes = calculate_volumes(client_transform.as_ref(), transform.as_ref());
 			controller.set_volumes(volumes.into());
 
-			// Insert component
-			if let Ok(Some(sound_playing)) =
-				sound_playing_component.insert(entity, SoundPlaying { controller })
-			{
-				// Stop old sound on this entity, if any
+			// Stop old sound on this entity, if any
+			if let Some(mut sound_playing) = world.get_component_mut::<SoundPlaying>(entity) {
 				sound_playing.controller.stop();
+				sound_playing.controller = controller;
+			} else {
+				world.add_component(entity, SoundPlaying { controller });
 			}
 
 			sound_sender.send(Box::from(source.convert_samples())).ok();
 		}
-	}
+	})
 }
 
 fn calculate_volumes(client_transform: &Transform, entity_transform: &Transform) -> Vector2<f32> {
@@ -160,7 +138,6 @@ fn calculate_volumes(client_transform: &Transform, entity_transform: &Transform)
 	volumes * distance_factor
 }
 
-#[derive(Component)]
 pub struct SoundPlaying {
 	pub controller: SoundController,
 }

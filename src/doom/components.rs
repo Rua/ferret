@@ -1,19 +1,17 @@
 use crate::geometry::Angle;
 use nalgebra::Vector3;
-use specs::{Component, DenseVecStorage};
-use specs_derive::Component;
 
-#[derive(Clone, Component, Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct SpawnOnCeiling {
 	pub offset: f32,
 }
 
-#[derive(Clone, Component, Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct SpawnPoint {
 	pub player_num: usize,
 }
 
-#[derive(Clone, Component, Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Transform {
 	pub position: Vector3<f32>,
 	pub rotation: Vector3<Angle>,
@@ -28,7 +26,7 @@ impl Default for Transform {
 	}
 }
 
-#[derive(Clone, Component, Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Velocity {
 	pub velocity: Vector3<f32>,
 }

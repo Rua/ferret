@@ -11,9 +11,8 @@ use crate::{
 	renderer::{AsBytes, RenderContext},
 };
 use anyhow::Context;
+use legion::prelude::{IntoQuery, Read, ResourceSet, Resources, World};
 use nalgebra::{Matrix4, Vector2, Vector3};
-use specs::{Component, DenseVecStorage, Entities, Join, ReadExpect, ReadStorage, World};
-use specs_derive::Component;
 use std::{
 	collections::{hash_map::Entry, HashMap},
 	sync::Arc,
@@ -113,6 +112,7 @@ impl SpriteRenderSystem {
 	pub fn draw(
 		&mut self,
 		world: &World,
+		resources: &Resources,
 		mut command_buffer_builder: AutoCommandBufferBuilder<StandardCommandPoolBuilder>,
 		dynamic_state: DynamicState,
 		sampler: Arc<Sampler>,
@@ -120,35 +120,22 @@ impl SpriteRenderSystem {
 		yaw: Angle,
 		view_pos: Vector3<f32>,
 	) -> anyhow::Result<AutoCommandBufferBuilder> {
-		let (
-			entities,
-			client,
-			map_storage,
-			sprite_storage,
-			sprite_image_storage,
-			map_dynamic_component,
-			sprite_component,
-			transform_component,
-		) = world.system_data::<(
-			Entities,
-			ReadExpect<Client>,
-			ReadExpect<AssetStorage<Map>>,
-			ReadExpect<AssetStorage<Sprite>>,
-			ReadExpect<AssetStorage<SpriteImage>>,
-			ReadStorage<MapDynamic>,
-			ReadStorage<SpriteRender>,
-			ReadStorage<Transform>,
-		)>();
+		let (client, map_storage, sprite_storage, sprite_image_storage) = <(
+			Read<Client>,
+			Read<AssetStorage<Map>>,
+			Read<AssetStorage<Sprite>>,
+			Read<AssetStorage<SpriteImage>>,
+		)>::fetch(resources);
 
-		let map_dynamic = map_dynamic_component.join().next().unwrap();
+		let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
 		let map = map_storage.get(&map_dynamic.map).unwrap();
 
 		// Group draws into batches by texture
 		let mut batches: HashMap<Arc<dyn ImageViewAccess + Send + Sync>, Vec<InstanceData>> =
 			HashMap::new();
 
-		for (entity, sprite_render, transform) in
-			(&entities, &sprite_component, &transform_component).join()
+		for (entity, (sprite_render, transform)) in
+			<(Read<SpriteRender>, Read<Transform>)>::query().iter_entities(world)
 		{
 			// Don't render the player's own sprite
 			if let Some(view_entity) = client.entity {
@@ -265,7 +252,7 @@ pub struct InstanceData {
 }
 impl_vertex!(InstanceData, in_flip, in_light_level, in_matrix);
 
-#[derive(Clone, Component, Debug)]
+#[derive(Clone, Debug)]
 pub struct SpriteRender {
 	pub sprite: AssetHandle<Sprite>,
 	pub frame: usize,

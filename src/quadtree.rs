@@ -1,6 +1,6 @@
 use crate::geometry::{Interval, AABB2};
+use legion::prelude::Entity;
 use nalgebra::Vector2;
-use specs::Entity;
 use std::collections::HashMap;
 
 #[derive(Clone, Debug)]

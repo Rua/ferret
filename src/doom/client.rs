@@ -12,13 +12,9 @@ use crate::{
 	input::{Bindings, InputState},
 	quadtree::Quadtree,
 };
+use legion::prelude::{Entity, IntoQuery, Read, ResourceSet, Resources, World, Write};
 use nalgebra::{Vector2, Vector3};
 use shrev::EventChannel;
-use specs::{
-	Component, DenseVecStorage, Entities, Entity, Join, ReadExpect, ReadStorage, RunNow, World,
-	WriteExpect, WriteStorage,
-};
-use specs_derive::Component;
 use std::time::Duration;
 
 #[derive(Default)]
@@ -28,19 +24,13 @@ pub struct Client {
 	pub previous_command: UserCommand,
 }
 
-#[derive(Default)]
-pub struct PlayerCommandSystem;
-
-impl<'a> RunNow<'a> for PlayerCommandSystem {
-	fn setup(&mut self, _world: &mut World) {}
-
-	fn run_now(&mut self, world: &'a World) {
-		let (bindings, mut client, input_state) = world.system_data::<(
-			ReadExpect<Bindings<Action, Axis>>,
-			WriteExpect<Client>,
-			ReadExpect<InputState>,
-		)>();
-
+pub fn player_command_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
+	Box::new(|_world, resources| {
+		let (bindings, input_state, mut client) = <(
+			Read<Bindings<Action, Axis>>,
+			Read<InputState>,
+			Write<Client>,
+		)>::fetch_mut(resources);
 		let mut command = UserCommand {
 			action_attack: bindings.action_is_down(&Action::Attack, &input_state),
 			action_use: bindings.action_is_down(&Action::Use, &input_state),
@@ -57,42 +47,22 @@ impl<'a> RunNow<'a> for PlayerCommandSystem {
 
 		client.previous_command = client.command;
 		client.command = command;
-	}
+	})
 }
 
-#[derive(Default)]
-pub struct PlayerMoveSystem;
-
-impl<'a> RunNow<'a> for PlayerMoveSystem {
-	fn setup(&mut self, _world: &mut World) {}
-
-	fn run_now(&mut self, world: &'a World) {
-		let (
-			entities,
-			client,
-			delta,
-			map_storage,
-			quadtree,
-			box_collider_component,
-			map_dynamic_component,
-			mut transform_component,
-			mut velocity_component,
-		) = world.system_data::<(
-			Entities,
-			ReadExpect<Client>,
-			ReadExpect<Duration>,
-			ReadExpect<AssetStorage<Map>>,
-			ReadExpect<Quadtree>,
-			ReadStorage<BoxCollider>,
-			ReadStorage<MapDynamic>,
-			WriteStorage<Transform>,
-			WriteStorage<Velocity>,
-		)>();
+pub fn player_move_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
+	Box::new(|world, resources| {
+		let (client, delta, map_storage, quadtree) = <(
+			Read<Client>,
+			Read<Duration>,
+			Read<AssetStorage<Map>>,
+			Read<Quadtree>,
+		)>::fetch_mut(resources);
 
 		if let Some(entity) = client.entity {
 			// Apply rotation
 			{
-				let transform = transform_component.get_mut(entity).unwrap();
+				let mut transform = world.get_component_mut::<Transform>(entity).unwrap();
 
 				transform.rotation[1] += (client.command.axis_pitch * 1e6) as i32;
 				transform.rotation[1].0 =
@@ -107,19 +77,17 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 					return;
 				}
 
-				let velocity = velocity_component.get_mut(entity).unwrap();
-				let transform = transform_component.get(entity).unwrap();
-				let map_dynamic = map_dynamic_component.join().next().unwrap();
+				let mut velocity = world.get_component_mut::<Velocity>(entity).unwrap();
+				let transform = world.get_component::<Transform>(entity).unwrap();
+				let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
 				let map = map_storage.get(&map_dynamic.map).unwrap();
-				let box_collider = box_collider_component.get(entity).unwrap();
+				let box_collider = world.get_component::<BoxCollider>(entity).unwrap();
 
 				let tracer = EntityTracer {
-					entities: &entities,
 					map,
-					map_dynamic,
+					map_dynamic: map_dynamic.as_ref(),
 					quadtree: &quadtree,
-					transform_component: &transform_component,
-					box_collider_component: &box_collider_component,
+					world,
 				};
 
 				let entity_bbox =
@@ -147,36 +115,21 @@ impl<'a> RunNow<'a> for PlayerMoveSystem {
 				velocity.velocity += accel;
 			}
 		}
-	}
+	})
 }
 
-#[derive(Default)]
-pub struct PlayerUseSystem;
-
-impl<'a> RunNow<'a> for PlayerUseSystem {
-	fn setup(&mut self, _world: &mut World) {}
-
-	fn run_now(&mut self, world: &'a World) {
-		let (
-			client,
-			map_asset_storage,
-			mut use_event_channel,
-			map_dynamic_component,
-			use_action_component,
-			mut transform_component,
-		) = world.system_data::<(
-			ReadExpect<Client>,
-			ReadExpect<AssetStorage<Map>>,
-			WriteExpect<EventChannel<UseEvent>>,
-			ReadStorage<MapDynamic>,
-			ReadStorage<UseAction>,
-			WriteStorage<Transform>,
-		)>();
+pub fn player_use_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
+	Box::new(|world, resources| {
+		let (client, map_asset_storage, mut use_event_channel) = <(
+			Read<Client>,
+			Read<AssetStorage<Map>>,
+			Write<EventChannel<UseEvent>>,
+		)>::fetch_mut(resources);
 
 		if let Some(entity) = client.entity {
 			if client.command.action_use && !client.previous_command.action_use {
-				let transform = transform_component.get_mut(entity).unwrap();
-				let map_dynamic = map_dynamic_component.join().next().unwrap();
+				let transform = world.get_component_mut::<Transform>(entity).unwrap();
+				let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
 				let map = map_asset_storage.get(&map_dynamic.map).unwrap();
 
 				const USERANGE: f32 = 64.0;
@@ -194,8 +147,8 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 					if let Some((linedef_p, use_p)) = linedef.line.intersect(&use_line) {
 						if linedef_p >= 0.0 && linedef_p <= 1.0 && use_p >= 0.0 && use_p < pmax {
 							// Always hit a usable linedef
-							if use_action_component
-								.get(map_dynamic.linedefs[i].entity)
+							if world
+								.get_component::<DoorUse>(map_dynamic.linedefs[i].entity)
 								.is_some()
 							{
 								pmax = use_p;
@@ -223,16 +176,16 @@ impl<'a> RunNow<'a> for PlayerUseSystem {
 
 					let linedef_entity = map_dynamic.linedefs[linedef_index].entity;
 
-					if use_action_component.get(linedef_entity).is_some() {
+					if world.get_component::<UseAction>(linedef_entity).is_some() {
 						use_event_channel.single_write(UseEvent { linedef_entity });
 					}
 				}
 			}
 		}
-	}
+	})
 }
 
-#[derive(Clone, Component, Debug)]
+#[derive(Clone, Debug)]
 pub enum UseAction {
 	DoorUse(DoorUse),
 	DoorSwitchUse(DoorSwitchUse),
