@@ -1,8 +1,6 @@
 use crate::geometry::{Interval, AABB2};
 use nalgebra::Vector2;
-use smallvec::SmallVec;
 use specs::Entity;
-use static_assertions::assert_eq_size;
 use std::collections::HashMap;
 use std::iter::IntoIterator;
 use std::mem;
@@ -32,10 +30,8 @@ struct Node {
 
 #[derive(Clone, Debug)]
 struct Leaf {
-	entities: SmallVec<[Entity; 4]>,
+	entities: Vec<Entity>,
 }
-
-assert_eq_size!(Leaf, Node);
 
 impl Quadtree {
 	// Minimum number of entities stored into an inner node;
@@ -88,15 +84,13 @@ impl Leaf {
 	#[inline]
 	fn new() -> Leaf {
 		Leaf {
-			entities: SmallVec::new(),
+			entities: Vec::new(),
 		}
 	}
 
 	#[inline]
 	fn from_entities(entities: Vec<Entity>) -> Leaf {
-		Leaf {
-			entities: SmallVec::from_vec(entities),
-		}
+		Leaf { entities }
 	}
 
 	fn insert(
