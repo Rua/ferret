@@ -2,144 +2,54 @@ use crate::geometry::{Interval, AABB2};
 use nalgebra::Vector2;
 use specs::Entity;
 use std::collections::HashMap;
+use std::iter::IntoIterator;
+use std::mem;
+
+type Vector = Vector2<f32>;
 
 #[derive(Clone, Debug)]
 pub struct Quadtree {
-	nodes: Vec<QuadtreeNode>,
-	unused_nodes: Vec<usize>,
+	root: QuadtreeNode,
+	bbox: AABB2,
 	bboxes: HashMap<Entity, AABB2>,
 }
 
+#[derive(Clone, Debug)]
+enum QuadtreeNode {
+	Branch(Node),
+	Leaf(Leaf),
+}
+
+#[derive(Clone, Debug)]
+struct Node {
+	middle: Vector,
+	entities: Vec<Entity>,
+	num_descendants: usize,
+	children: Box<[QuadtreeNode; 4]>,
+}
+
+#[derive(Clone, Debug)]
+struct Leaf {
+	entities: Vec<Entity>,
+}
+
 impl Quadtree {
+	// Minimum number of entities stored into an inner node;
+	//  fewer entities are always represented as a lead
 	const NODE_MIN: usize = 5;
-	const NODE_MAX: usize = 10;
+
+	// Maximum number of entities represented as a leaf before splitting it into
+	//  an inner node; may be exceeded if splitting wouldn't separated the
+	//  entities (may happen if their AABBs overlap)
+	const LEAF_MAX: usize = 10;
 
 	#[inline]
 	pub fn new(bbox: AABB2) -> Quadtree {
 		assert!(!bbox.is_empty());
 		Quadtree {
-			nodes: vec![QuadtreeNode::new(bbox)],
-			unused_nodes: Vec::new(),
+			root: QuadtreeNode::empty(),
+			bbox,
 			bboxes: HashMap::new(),
-		}
-	}
-
-	#[inline]
-	fn allocate_node(&mut self, bbox: AABB2) -> usize {
-		match self.unused_nodes.pop() {
-			Some(index) => {
-				self.nodes[index].clear(bbox);
-				index
-			}
-			None => {
-				self.nodes.push(QuadtreeNode::new(bbox));
-				self.nodes.len() - 1
-			}
-		}
-	}
-
-	#[inline]
-	fn child_index(&self, index: usize, bbox: &AABB2) -> Option<usize> {
-		if let Some((middle, child_nodes)) = self.nodes[index].children {
-			let offset = bbox.offset(-middle);
-			let crosses_split = [
-				offset[0].min <= 0.0 && offset[0].max >= 0.0,
-				offset[1].min <= 0.0 && offset[1].max >= 0.0,
-			];
-
-			if crosses_split[0] || crosses_split[1] {
-				// Bounding box lies on the split
-				None
-			} else {
-				// Bounding box lies in one of the quadrants
-				let sides = [
-					(offset[0].min > 0.0) as usize,
-					(offset[1].min > 0.0) as usize,
-				];
-				Some(child_nodes[sides[0]][sides[1]])
-			}
-		} else {
-			None
-		}
-	}
-
-	fn check_split(&mut self, index: usize) {
-		if self.nodes[index].num_descendants <= Self::NODE_MAX {
-			return;
-		}
-
-		if self.nodes[index].children.is_none() {
-			// Create child nodes
-			let middle = self.nodes[index].bbox.middle();
-			let child_nodes = [
-				[
-					self.allocate_node(AABB2::from_minmax(self.nodes[index].bbox.min(), middle)),
-					self.allocate_node(AABB2::from_intervals(Vector2::new(
-						Interval::new(self.nodes[index].bbox[0].min, middle[0]),
-						Interval::new(middle[1], self.nodes[index].bbox[1].max),
-					))),
-				],
-				[
-					self.allocate_node(AABB2::from_intervals(Vector2::new(
-						Interval::new(middle[0], self.nodes[index].bbox[0].max),
-						Interval::new(self.nodes[index].bbox[1].min, middle[1]),
-					))),
-					self.allocate_node(AABB2::from_minmax(middle, self.nodes[index].bbox.max())),
-				],
-			];
-			self.nodes[index].children = Some((middle, child_nodes));
-
-			// Re-insert the entities
-			let mut i = 0;
-			while i != self.nodes[index].entities.len() {
-				let bbox = &self.bboxes[&self.nodes[index].entities[i]];
-				if let Some(child) = self.child_index(index, bbox) {
-					// Entity goes in child node
-					let data = self.nodes[index].entities.swap_remove(i);
-					self.nodes[child].entities.push(data);
-					self.nodes[child].num_descendants += 1;
-				} else {
-					// Entity stays in current node
-					i += 1;
-				}
-			}
-
-			// Check if any of the children need splitting
-			for &(x, y) in &[(0, 0), (0, 1), (1, 0), (1, 1)] {
-				self.check_split(child_nodes[x][y]);
-			}
-		}
-	}
-
-	fn collapse(&mut self, index: usize) {
-		if let Some((_, child_nodes)) = self.nodes[index].children {
-			let mut entities = std::mem::replace(&mut self.nodes[index].entities, Vec::new());
-			for &(x, y) in &[(0, 0), (0, 1), (1, 0), (1, 1)] {
-				// Move the entities to the parent
-				self.collapse_r(&mut entities, child_nodes[x][y]);
-			}
-
-			self.nodes[index].children = None;
-			self.nodes[index].entities = entities;
-		}
-	}
-
-	fn collapse_r(&mut self, dest: &mut Vec<Entity>, index: usize) {
-		let QuadtreeNode {
-			entities,
-			num_descendants: _,
-			bbox: _,
-			children,
-		} = std::mem::replace(&mut self.nodes[index], QuadtreeNode::empty());
-		self.unused_nodes.push(index);
-
-		dest.extend(entities);
-
-		if let Some((_, child_nodes)) = children {
-			for &(x, y) in &[(0, 0), (0, 1), (1, 0), (1, 1)] {
-				// Move the entities to the parent
-				self.collapse_r(dest, child_nodes[x][y]);
-			}
 		}
 	}
 
@@ -149,123 +59,258 @@ impl Quadtree {
 
 		if !self.bboxes.contains_key(&entity) {
 			self.bboxes.insert(entity, bbox.clone());
-			self.insert_r(0, entity, &bbox);
+			// TODO: Find a better pattern than mem::replace / update / place back
+
+			let root = mem::replace(&mut self.root, QuadtreeNode::empty());
+			self.root = root.insert(&self.bbox, entity, &bbox, &self.bboxes);
 		}
-	}
-
-	fn insert_r(&mut self, index: usize, entity: Entity, bbox: &AABB2) {
-		self.nodes[index].num_descendants += 1;
-
-		if let Some(child) = self.child_index(index, bbox) {
-			self.insert_r(child, entity, bbox);
-		} else {
-			self.nodes[index].entities.push(entity);
-		}
-
-		self.check_split(index);
 	}
 
 	#[inline]
 	pub fn remove(&mut self, entity: Entity) {
 		if let Some(bbox) = self.bboxes.remove(&entity) {
-			self.remove_r(0, entity, &bbox);
-		}
-	}
-
-	fn remove_r(&mut self, index: usize, entity: Entity, bbox: &AABB2) {
-		self.nodes[index].num_descendants -= 1;
-
-		if self.nodes[index].num_descendants < Self::NODE_MIN {
-			self.collapse(index);
-		}
-
-		if let Some(child) = self.child_index(index, bbox) {
-			self.remove_r(child, entity, bbox);
-		} else {
-			let pos = self.nodes[index]
-				.entities
-				.iter()
-				.position(|x| *x == entity)
-				.unwrap();
-			self.nodes[index].entities.swap_remove(pos);
+			let root = mem::replace(&mut self.root, QuadtreeNode::empty());
+			self.root = root.remove(entity, &bbox)
 		}
 	}
 
 	#[inline]
 	pub fn traverse_nodes<F: FnMut(&[Entity])>(&self, bbox: &AABB2, func: &mut F) {
-		self.traverse_nodes_r(0, bbox, func);
+		self.root.traverse(bbox, func);
+	}
+}
+
+impl Leaf {
+	#[inline]
+	fn new() -> Leaf {
+		Leaf {
+			entities: Vec::new(),
+		}
 	}
 
-	fn traverse_nodes_r<F: FnMut(&[Entity])>(&self, index: usize, bbox: &AABB2, func: &mut F) {
-		if !self.nodes[index].entities.is_empty() {
-			func(&self.nodes[index].entities);
+	#[inline]
+	fn from_entities(entities: Vec<Entity>) -> Leaf {
+		Leaf { entities }
+	}
+
+	fn insert(
+		mut self,
+		self_bbox: &AABB2,
+		entity: Entity,
+		bbox: &AABB2,
+		bboxes: &HashMap<Entity, AABB2>,
+	) -> QuadtreeNode {
+		if self.entities.len() < Quadtree::LEAF_MAX {
+			self.entities.push(entity);
+			return QuadtreeNode::Leaf(self);
+		} else {
+			let mut n = self.split(self_bbox, bboxes);
+			n.insert(self_bbox, entity, bbox, bboxes);
+			return QuadtreeNode::Branch(n);
+		}
+	}
+
+	fn split(self, self_bbox: &AABB2, bboxes: &HashMap<Entity, AABB2>) -> Node {
+		debug_assert!(self.entities.len() >= Quadtree::LEAF_MAX);
+
+		// Create inner node
+		let middle = self_bbox.middle();
+		let mut n = Node::new(middle);
+
+		for e in self.entities.into_iter() {
+			n.insert(self_bbox, e, &bboxes[&e], &bboxes)
 		}
 
-		if let Some((middle, child_nodes)) = self.nodes[index].children {
-			let offset = bbox.offset(-middle);
-			let crosses_split = [
-				offset[0].min <= 0.0 && offset[0].max >= 0.0,
-				offset[1].min <= 0.0 && offset[1].max >= 0.0,
-			];
+		n
+	}
 
-			if crosses_split[0] && crosses_split[1] {
-				// Bounding box crosses both splits, recurse into all four children
-				for &(x, y) in &[(0, 0), (0, 1), (1, 0), (1, 1)] {
-					self.traverse_nodes_r(child_nodes[x][y], bbox, func);
-				}
-			} else if crosses_split[0] {
-				// Bounding box crosses x-axis split only
-				let y = (offset[1].min > 0.0) as usize;
-				for x in 0..2 {
-					self.traverse_nodes_r(child_nodes[x][y], bbox, func);
-				}
-			} else if crosses_split[1] {
-				// Bounding box crosses y-axis split only
-				let x = (offset[0].min > 0.0) as usize;
-				for y in 0..2 {
-					self.traverse_nodes_r(child_nodes[x][y], bbox, func);
-				}
+	#[inline]
+	fn remove(&mut self, entity: Entity) {
+		let pos = self.entities.iter().position(|x| *x == entity).unwrap();
+		self.entities.swap_remove(pos);
+	}
+
+	fn collapse_into(self, v: &mut Vec<Entity>) {
+		v.extend(self.entities)
+	}
+
+	#[inline]
+	fn traverse<F: FnMut(&[Entity])>(&self, f: &mut F) {
+		if !self.entities.is_empty() {
+			f(&self.entities);
+		}
+	}
+}
+
+impl Node {
+	#[inline]
+	fn new(middle: Vector) -> Node {
+		Node {
+			middle,
+			entities: Vec::new(),
+			num_descendants: 0,
+			children: Box::new([
+				QuadtreeNode::empty(),
+				QuadtreeNode::empty(),
+				QuadtreeNode::empty(),
+				QuadtreeNode::empty(),
+			]),
+		}
+	}
+
+	#[inline]
+	fn child(&self, bbox: &AABB2) -> Option<usize> {
+		let offset = bbox.offset(-self.middle);
+		let horizontal_cross = offset[0].min <= 0.0 && offset[0].max >= 0.0;
+		let vertical_cross = offset[1].min <= 0.0 && offset[1].max >= 0.0;
+
+		if horizontal_cross || vertical_cross {
+			// Bounding box lies on the split
+			None
+		} else {
+			// Bounding box lies in one of the quadrants
+			let right = offset[0].min > 0.0;
+			let up = offset[1].min > 0.0;
+			Some(2 * (right as usize) + (up as usize))
+		}
+	}
+
+	#[inline]
+	fn child_box(&self, self_bbox: &AABB2, i: usize) -> AABB2 {
+		debug_assert!(i < 4);
+		let right = (i / 2) != 0;
+		let up = (i % 2) != 0;
+
+		AABB2::from_intervals(Vector2::new(
+			if right {
+				Interval::new(self.middle[0], self_bbox[0].max)
 			} else {
-				// Bounding box lies in one of the quadrants, recurse into that quadrant
-				let [x, y] = [
-					(offset[0].min > 0.0) as usize,
-					(offset[1].min > 0.0) as usize,
-				];
-				self.traverse_nodes_r(child_nodes[x][y], bbox, func);
+				Interval::new(self_bbox[0].min, self.middle[0])
+			},
+			if up {
+				Interval::new(self.middle[1], self_bbox[1].max)
+			} else {
+				Interval::new(self_bbox[1].min, self.middle[1])
+			},
+		))
+	}
+
+	fn insert(
+		&mut self,
+		self_bbox: &AABB2,
+		entity: Entity,
+		bbox: &AABB2,
+		bboxes: &HashMap<Entity, AABB2>,
+	) {
+		self.num_descendants += 1;
+
+		if let Some(i) = self.child(bbox) {
+			let c_bbox = self.child_box(self_bbox, i);
+			let child = mem::replace(&mut self.children[i], QuadtreeNode::empty());
+			self.children[i] = child.insert(&c_bbox, entity, bbox, bboxes);
+		} else {
+			self.entities.push(entity);
+		}
+	}
+
+	fn remove(mut self, entity: Entity, bbox: &AABB2) -> QuadtreeNode {
+		self.num_descendants -= 1;
+
+		if self.num_descendants < Quadtree::NODE_MIN {
+			let mut leaf = self.collapse();
+			leaf.remove(entity);
+			QuadtreeNode::Leaf(leaf)
+		} else {
+			if let Some(i) = self.child(bbox) {
+				let child = mem::replace(&mut self.children[i], QuadtreeNode::empty());
+				self.children[i] = child.remove(entity, bbox)
+			} else {
+				let pos = self.entities.iter().position(|x| *x == entity).unwrap();
+				self.entities.swap_remove(pos);
+			}
+			QuadtreeNode::Branch(self)
+		}
+	}
+
+	fn collapse(mut self) -> Leaf {
+		let mut v = mem::replace(&mut self.entities, Vec::new());
+		self.collapse_into(&mut v);
+		Leaf::from_entities(v)
+	}
+
+	fn collapse_into(self, v: &mut Vec<Entity>) {
+		v.extend(self.entities);
+
+		// TODO: Find a better way to express this.
+		let [a, b, c, d] = *self.children;
+		a.collapse_into(v);
+		b.collapse_into(v);
+		c.collapse_into(v);
+		d.collapse_into(v);
+	}
+
+	fn traverse<F: FnMut(&[Entity])>(&self, bbox: &AABB2, f: &mut F) {
+		if let Some(i) = self.child(&bbox) {
+			self.children[i].traverse(&bbox, f);
+		} else {
+			if !self.entities.is_empty() {
+				f(&self.entities);
+			}
+
+			for child in self.children.iter() {
+				child.traverse(&bbox, f);
 			}
 		}
 	}
 }
 
-#[derive(Clone, Debug)]
-pub struct QuadtreeNode {
-	entities: Vec<Entity>,
-	num_descendants: usize,
-	bbox: AABB2,
-	children: Option<(Vector2<f32>, [[usize; 2]; 2])>,
-}
-
 impl QuadtreeNode {
 	#[inline]
-	fn new(bbox: AABB2) -> QuadtreeNode {
-		QuadtreeNode {
-			entities: Vec::new(),
-			num_descendants: 0,
-			bbox,
-			children: None,
+	fn insert(
+		self,
+		self_bbox: &AABB2,
+		entity: Entity,
+		bbox: &AABB2,
+		bboxes: &HashMap<Entity, AABB2>,
+	) -> QuadtreeNode {
+		match self {
+			QuadtreeNode::Leaf(l) => l.insert(self_bbox, entity, bbox, bboxes),
+			QuadtreeNode::Branch(mut b) => {
+				b.insert(self_bbox, entity, bbox, bboxes);
+				QuadtreeNode::Branch(b)
+			}
+		}
+	}
+
+	#[inline]
+	fn remove(self, entity: Entity, bbox: &AABB2) -> QuadtreeNode {
+		match self {
+			QuadtreeNode::Branch(b) => b.remove(entity, &bbox),
+			QuadtreeNode::Leaf(mut l) => {
+				l.remove(entity);
+				QuadtreeNode::Leaf(l)
+			}
 		}
 	}
 
 	#[inline]
 	fn empty() -> QuadtreeNode {
-		QuadtreeNode::new(AABB2::empty())
+		QuadtreeNode::Leaf(Leaf::new())
 	}
 
 	#[inline]
-	fn clear(&mut self, bbox: AABB2) {
-		self.entities.clear();
-		self.num_descendants = 0;
-		self.bbox = bbox;
-		self.children = None;
+	fn collapse_into(self, v: &mut Vec<Entity>) {
+		match self {
+			QuadtreeNode::Branch(b) => b.collapse_into(v),
+			QuadtreeNode::Leaf(l) => l.collapse_into(v),
+		}
+	}
+
+	#[inline]
+	fn traverse<F: FnMut(&[Entity])>(&self, bbox: &AABB2, f: &mut F) {
+		match self {
+			QuadtreeNode::Leaf(l) => l.traverse(f),
+			QuadtreeNode::Branch(b) => b.traverse(&bbox, f),
+		}
 	}
 }

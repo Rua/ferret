@@ -2,3 +2,7 @@
 *.gwa
 /target/
 **/*.rs.bk
+
+# Performance measurements
+flamegraph.*
+perf.*
