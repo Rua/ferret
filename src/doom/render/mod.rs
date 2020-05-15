@@ -4,7 +4,7 @@ pub mod sprite;
 use crate::{
 	doom::{
 		client::Client,
-		components::Transform,
+		components::{Camera, Transform},
 		render::{
 			map::{MapRenderSystem, UniformBufferObject},
 			sprite::SpriteRenderSystem,
@@ -226,15 +226,21 @@ impl RenderSystem {
 		let proj = projection_matrix(90.0, aspect_ratio, 1.0, 20000.0);
 
 		// View matrix
-		let (client, transform_storage) =
-			world.system_data::<(ReadExpect<Client>, ReadStorage<Transform>)>();
+		let (client, camera_storage, transform_storage) = world.system_data::<(
+			ReadExpect<Client>,
+			ReadStorage<Camera>,
+			ReadStorage<Transform>,
+		)>();
 
 		if let Some(entity) = client.entity {
 			let Transform {
 				mut position,
 				rotation,
 			} = *transform_storage.get(entity).unwrap();
-			position += Vector3::new(0.0, 0.0, 41.0);
+
+			if let Some(camera) = camera_storage.get(entity) {
+				position += camera.base + camera.offset;
+			}
 
 			let view =
 				Matrix4::new_rotation(Vector3::new(-rotation[0].to_radians() as f32, 0.0, 0.0))

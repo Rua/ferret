@@ -105,6 +105,7 @@ fn main() -> anyhow::Result<()> {
 
 	// Register components
 	world.register::<doom::client::UseAction>();
+	world.register::<doom::components::Camera>();
 	world.register::<doom::components::SpawnOnCeiling>();
 	world.register::<doom::components::SpawnPoint>();
 	world.register::<doom::components::Transform>();

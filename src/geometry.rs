@@ -2,6 +2,7 @@ use nalgebra::{
 	allocator::Allocator, storage::Owned, DefaultAllocator, DimName, Vector2, Vector3, VectorN, U2,
 	U3,
 };
+use num_traits::identities::Zero;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Line<D>
@@ -507,6 +508,16 @@ impl Angle {
 	#[inline]
 	pub fn tan(self) -> f64 {
 		self.to_radians().tan()
+	}
+}
+
+impl Zero for Angle {
+	fn zero() -> Self {
+		Self::default()
+	}
+
+	fn is_zero(&self) -> bool {
+		self.0.is_zero()
 	}
 }
 

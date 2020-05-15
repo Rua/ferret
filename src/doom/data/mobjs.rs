@@ -3,13 +3,14 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
 	doom::{
-		components::{SpawnOnCeiling, SpawnPoint, Velocity},
+		components::{Camera, SpawnOnCeiling, SpawnPoint, Velocity},
 		physics::{BoxCollider, SolidMask},
 		render::sprite::SpriteRender,
 		sprite::Sprite,
 		wad::WadLoader,
 	},
 };
+use nalgebra::Vector3;
 use specs::{World, WriteExpect};
 use std::collections::HashMap;
 
@@ -65,6 +66,10 @@ impl MobjTypes {
 					height: 56.0,
 					radius: 16.0,
 					solid_mask: SolidMask::all(),
+				})
+				.with_component(Camera {
+					base: Vector3::new(0.0, 0.0, 41.0),
+					..Camera::default()
 				})
 				.with_component(SpriteRender {
 					sprite: sprite_storage.load("PLAY", &mut *loader),
