@@ -134,18 +134,18 @@ fn main() -> anyhow::Result<()> {
 			.context("Couldn't create RenderSystem")?;
 	let mut sound_system = doom::sound::sound_system();
 	let mut update_dispatcher = Builder::default()
-		/*.with_thread_local(doom::client::PlayerCommandSystem::default())
-		.with_thread_local(doom::client::PlayerMoveSystem::default())
-		.with_thread_local(doom::client::PlayerUseSystem::default())
-		.with_thread_local(doom::physics::PhysicsSystem::default())
-		.with_thread_local(doom::door::DoorUpdateSystem::new(
-			world
+		.add_thread_local_fn(doom::client::player_command_system())
+		.add_thread_local_fn(doom::client::player_move_system())
+		.add_thread_local_fn(doom::client::player_use_system())
+		.add_thread_local_fn(doom::physics::physics_system())
+		.add_thread_local_fn(doom::door::door_update_system(
+			resources
 				.get_mut::<EventChannel<doom::client::UseEvent>>()
 				.unwrap()
 				.register_reader(),
 		))
-		.with_thread_local(doom::light::LightUpdateSystem::default())
-		.with_thread_local(doom::update::TextureAnimSystem::default())*/
+		.add_thread_local_fn(doom::light::light_update_system())
+		.add_thread_local_fn(doom::update::texture_anim_system())
 		.build();
 
 	// Create world
@@ -267,7 +267,9 @@ fn main() -> anyhow::Result<()> {
 		sound_system(&mut world, &mut resources);
 
 		// Draw frame
-		render_system.draw(&world, &resources);
+		render_system
+			.draw(&world, &resources)
+			.context("Error while rendering")?;
 	}
 
 	Ok(())

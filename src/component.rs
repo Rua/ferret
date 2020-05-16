@@ -1,27 +1,17 @@
 use crate::assets::{Asset, DataSource};
 use legion::{
-	prelude::{Entity, World},
+	prelude::{CommandBuffer, Entity},
 	storage::Component,
-	world::EntityMutationError,
 };
 use std::{any::TypeId, collections::HashMap};
 
 pub trait DynComponent: Send + Sync {
-	fn add_to_entity<'a, 'b>(
-		&'a self,
-		entity: Entity,
-		world: &'b mut World,
-	) -> Result<(), EntityMutationError>;
+	fn add_to_entity(&self, entity: Entity, command_buffer: &mut CommandBuffer);
 }
 
 impl<T: Component + Clone> DynComponent for T {
-	fn add_to_entity<'a, 'b>(
-		&'a self,
-		entity: Entity,
-		world: &'b mut World,
-	) -> Result<(), EntityMutationError> {
-		world.add_component(entity, self.clone())?;
-		Ok(())
+	fn add_to_entity(&self, entity: Entity, command_buffer: &mut CommandBuffer) {
+		command_buffer.add_component(entity, self.clone());
 	}
 }
 
@@ -46,16 +36,10 @@ impl EntityTemplate {
 		self
 	}
 
-	pub fn add_to_entity<'a, 'b>(
-		&'a self,
-		entity: Entity,
-		world: &'b mut World,
-	) -> Result<(), EntityMutationError> {
+	pub fn add_to_entity(&self, entity: Entity, command_buffer: &mut CommandBuffer) {
 		for dyn_component in self.components.values() {
-			//dyn_component.add_to_entity(entity, world)?;
+			dyn_component.add_to_entity(entity, command_buffer);
 		}
-
-		Ok(())
 	}
 }
 

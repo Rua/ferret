@@ -77,7 +77,6 @@ pub fn player_move_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 					return;
 				}
 
-				let mut velocity = world.get_component_mut::<Velocity>(entity).unwrap();
 				let transform = world.get_component::<Transform>(entity).unwrap();
 				let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
 				let map = map_storage.get(&map_dynamic.map).unwrap();
@@ -112,7 +111,13 @@ pub fn player_move_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 				let angles = Vector3::new(0.into(), 0.into(), transform.rotation[2]);
 				let axes = crate::geometry::angles_to_axes(angles);
 				let accel = (axes[0] * move_dir[0] + axes[1] * move_dir[1]) * delta.as_secs_f32();
-				velocity.velocity += accel;
+
+				unsafe {
+					world
+						.get_component_mut_unchecked::<Velocity>(entity)
+						.unwrap()
+						.velocity += accel;
+				}
 			}
 		}
 	})
@@ -128,7 +133,7 @@ pub fn player_use_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 
 		if let Some(entity) = client.entity {
 			if client.command.action_use && !client.previous_command.action_use {
-				let transform = world.get_component_mut::<Transform>(entity).unwrap();
+				let transform = world.get_component::<Transform>(entity).unwrap();
 				let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
 				let map = map_asset_storage.get(&map_dynamic.map).unwrap();
 

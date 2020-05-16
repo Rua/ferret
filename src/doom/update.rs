@@ -39,11 +39,13 @@ pub fn texture_anim_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 
 		// Scroll textures
 		for (linedef_ref, texture_scroll) in
-			<(Read<LinedefRef>, Read<TextureScroll>)>::query().iter(world)
+			unsafe { <(Read<LinedefRef>, Read<TextureScroll>)>::query().iter_unchecked(world) }
 		{
-			let mut map_dynamic = world
-				.get_component_mut::<MapDynamic>(linedef_ref.map_entity)
-				.unwrap();
+			let mut map_dynamic = unsafe {
+				world
+					.get_component_mut_unchecked::<MapDynamic>(linedef_ref.map_entity)
+					.unwrap()
+			};
 			let map_dynamic = map_dynamic.as_mut();
 			let linedef_dynamic = &mut map_dynamic.linedefs[linedef_ref.index];
 			linedef_dynamic.texture_offset += texture_scroll.speed * delta.as_secs_f32();

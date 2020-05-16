@@ -93,14 +93,17 @@ pub fn physics_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 				// Entity isn't on ground, apply gravity
 				new_velocity[2] -= GRAVITY * delta.as_secs_f32();
 			}
-			world
-				.get_component_mut::<Transform>(entity)
-				.unwrap()
-				.position = new_position;
-			world
-				.get_component_mut::<Velocity>(entity)
-				.unwrap()
-				.velocity = new_velocity;
+
+			unsafe {
+				world
+					.get_component_mut_unchecked::<Transform>(entity)
+					.unwrap()
+					.position = new_position;
+				world
+					.get_component_mut_unchecked::<Velocity>(entity)
+					.unwrap()
+					.velocity = new_velocity;
+			}
 			quadtree.insert(entity, &AABB2::from(&entity_bbox.offset(new_position)));
 		}
 	})

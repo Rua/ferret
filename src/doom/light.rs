@@ -16,11 +16,13 @@ pub fn light_update_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 			<(Read<AssetStorage<Map>>, Read<Duration>, Write<Pcg64Mcg>)>::fetch_mut(resources);
 
 		for (sector_ref, mut light_flash) in
-			<(Read<SectorRef>, Write<LightFlash>)>::query().iter_mut(world)
+			unsafe { <(Read<SectorRef>, Write<LightFlash>)>::query().iter_unchecked(world) }
 		{
-			let mut map_dynamic = world
-				.get_component_mut::<MapDynamic>(sector_ref.map_entity)
-				.unwrap();
+			let mut map_dynamic = unsafe {
+				world
+					.get_component_mut_unchecked::<MapDynamic>(sector_ref.map_entity)
+					.unwrap()
+			};
 			let map_dynamic = map_dynamic.as_mut();
 			let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 
@@ -73,11 +75,13 @@ pub fn light_update_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 		}
 
 		for (sector_ref, mut light_glow) in
-			<(Read<SectorRef>, Write<LightGlow>)>::query().iter_mut(world)
+			unsafe { <(Read<SectorRef>, Write<LightGlow>)>::query().iter_unchecked(world) }
 		{
-			let mut map_dynamic = world
-				.get_component_mut::<MapDynamic>(sector_ref.map_entity)
-				.unwrap();
+			let mut map_dynamic = unsafe {
+				world
+					.get_component_mut_unchecked::<MapDynamic>(sector_ref.map_entity)
+					.unwrap()
+			};
 			let map_dynamic = map_dynamic.as_mut();
 			let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 
