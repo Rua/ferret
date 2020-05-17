@@ -12,10 +12,9 @@ use crate::{
 			load::LinedefFlags,
 			textures::{Flat, TextureType, Wall},
 		},
-		physics::{BoxCollider, SolidMask},
+		physics::SolidMask,
 	},
-	geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2, AABB3},
-	quadtree::Quadtree,
+	geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2},
 };
 use anyhow::anyhow;
 use bitflags::bitflags;
@@ -232,16 +231,16 @@ pub fn spawn_things(
 	resources: &mut Resources,
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
+	let (entity_types, map_storage, template_storage) = <(
+		Read<MobjTypes>,
+		Read<AssetStorage<Map>>,
+		Read<AssetStorage<EntityTemplate>>,
+	)>::fetch_mut(resources);
+
 	let mut command_buffer = CommandBuffer::new(world);
 
 	for (_i, thing) in things.into_iter().enumerate() {
 		// Fetch entity template
-		let (entity_types, map_storage, template_storage, mut quadtree) = <(
-			Read<MobjTypes>,
-			Read<AssetStorage<Map>>,
-			Read<AssetStorage<EntityTemplate>>,
-			Write<Quadtree>,
-		)>::fetch_mut(resources);
 		let handle = entity_types
 			.doomednums
 			.get(&thing.doomednum)
@@ -256,14 +255,7 @@ pub fn spawn_things(
 		let z = {
 			let map = map_storage.get(&map_handle).unwrap();
 			let ssect = map.find_subsector(thing.position);
-			let sector = &map.sectors[ssect.sector_index];
-
-			if let Some(spawn_on_ceiling) = world.get_component::<SpawnOnCeiling>(entity) {
-				command_buffer.remove_component::<SpawnOnCeiling>(entity);
-				sector.interval.max - spawn_on_ceiling.offset
-			} else {
-				sector.interval.min
-			}
+			map.sectors[ssect.sector_index].interval.min
 		};
 
 		command_buffer.add_component(
@@ -273,13 +265,21 @@ pub fn spawn_things(
 				rotation: Vector3::new(0.into(), 0.into(), thing.angle),
 			},
 		);
+	}
 
-		// Add to quadtree
-		if let Some(box_collider) = world.get_component::<BoxCollider>(entity) {
-			let transform = world.get_component::<Transform>(entity).unwrap();
-			let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
-			quadtree.insert(entity, &AABB2::from(&bbox.offset(transform.position)));
-		}
+	command_buffer.write(world);
+
+	// TODO very ugly way to do it
+	for (entity, (spawn_on_ceiling, mut transform)) in
+		<(Read<SpawnOnCeiling>, Write<Transform>)>::query().iter_entities_mut(world)
+	{
+		command_buffer.remove_component::<SpawnOnCeiling>(entity);
+
+		let map = map_storage.get(&map_handle).unwrap();
+		let position = Vector2::new(transform.position[0], transform.position[1]);
+		let ssect = map.find_subsector(position);
+		let sector = &map.sectors[ssect.sector_index];
+		transform.position[2] = sector.interval.max - spawn_on_ceiling.offset;
 	}
 
 	command_buffer.write(world);
@@ -296,11 +296,8 @@ pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Res
 		.unwrap();
 
 	// Fetch entity template
-	let (entity_types, template_storage, mut quadtree) = <(
-		Read<MobjTypes>,
-		Read<AssetStorage<EntityTemplate>>,
-		Write<Quadtree>,
-	)>::fetch_mut(resources);
+	let (entity_types, template_storage) =
+		<(Read<MobjTypes>, Read<AssetStorage<EntityTemplate>>)>::fetch_mut(resources);
 	let handle = entity_types
 		.names
 		.get("PLAYER")
@@ -312,14 +309,8 @@ pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Res
 	template.add_to_entity(entity, &mut command_buffer);
 	command_buffer.add_component(entity, transform);
 
-	// Add to quadtree
-	if let Some(box_collider) = world.get_component::<BoxCollider>(entity) {
-		let transform = world.get_component::<Transform>(entity).unwrap();
-		let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
-		quadtree.insert(entity, &AABB2::from(&bbox.offset(transform.position)));
-	}
-
 	command_buffer.write(world);
+
 	Ok(entity)
 }
 

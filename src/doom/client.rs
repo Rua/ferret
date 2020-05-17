@@ -153,7 +153,7 @@ pub fn player_use_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 						if linedef_p >= 0.0 && linedef_p <= 1.0 && use_p >= 0.0 && use_p < pmax {
 							// Always hit a usable linedef
 							if world
-								.get_component::<DoorUse>(map_dynamic.linedefs[i].entity)
+								.get_component::<UseAction>(map_dynamic.linedefs[i].entity)
 								.is_some()
 							{
 								pmax = use_p;

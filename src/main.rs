@@ -14,6 +14,7 @@ use crate::{
 	assets::{AssetHandle, AssetStorage, DataSource},
 	audio::Sound,
 	component::EntityTemplate,
+	geometry::{AABB2, AABB3},
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
 	quadtree::Quadtree,
 	renderer::{AsBytes, RenderContext},
@@ -21,7 +22,7 @@ use crate::{
 use anyhow::{bail, Context};
 use clap::{App, Arg, ArgMatches};
 use legion::{
-	prelude::{Entity, Read, ResourceSet, Resources, World, Write},
+	prelude::{Entity, IntoQuery, Read, ResourceSet, Resources, World, Write},
 	systems::schedule::Builder,
 };
 use nalgebra::{Matrix4, Vector3};
@@ -553,14 +554,6 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 
 	log::info!("Spawning entities...");
 
-	// Create quadtree
-	let bbox = {
-		let map_storage = <Read<AssetStorage<doom::map::Map>>>::fetch(resources);
-		let map = map_storage.get(&map_handle).unwrap();
-		map.bbox.clone()
-	};
-	resources.insert(Quadtree::new(bbox));
-
 	// Spawn map entities and things
 	let things = {
 		let loader = <Write<doom::wad::WadLoader>>::fetch_mut(resources);
@@ -572,6 +565,26 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 	// Spawn player
 	let entity = doom::map::spawn_player(world, resources)?;
 	<Write<doom::client::Client>>::fetch_mut(resources).entity = Some(entity);
+
+	// Create quadtree and add entities to it
+	let bbox = {
+		let map_storage = <Read<AssetStorage<doom::map::Map>>>::fetch(resources);
+		let map = map_storage.get(&map_handle).unwrap();
+		map.bbox.clone()
+	};
+	let mut quadtree = Quadtree::new(bbox);
+
+	for (entity, (box_collider, transform)) in <(
+		Read<doom::physics::BoxCollider>,
+		Read<doom::components::Transform>,
+	)>::query()
+	.iter_entities(world)
+	{
+		let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
+		quadtree.insert(entity, &AABB2::from(&bbox.offset(transform.position)));
+	}
+
+	resources.insert(quadtree);
 
 	log::debug!(
 		"Loading took {} s",

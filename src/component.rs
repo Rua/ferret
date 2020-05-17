@@ -38,7 +38,7 @@ impl EntityTemplate {
 
 	pub fn add_to_entity(&self, entity: Entity, command_buffer: &mut CommandBuffer) {
 		for dyn_component in self.components.values() {
-			dyn_component.add_to_entity(entity, command_buffer);
+			(*dyn_component).add_to_entity(entity, command_buffer);
 		}
 	}
 }
