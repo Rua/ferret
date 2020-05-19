@@ -10,13 +10,13 @@ use crate::{
 		wad::WadLoader,
 	},
 };
+use fnv::FnvHashMap;
 use nalgebra::Vector3;
 use specs::{World, WriteExpect};
-use std::collections::HashMap;
 
 pub struct MobjTypes {
-	pub names: HashMap<&'static str, AssetHandle<EntityTemplate>>,
-	pub doomednums: HashMap<u16, AssetHandle<EntityTemplate>>,
+	pub names: FnvHashMap<&'static str, AssetHandle<EntityTemplate>>,
+	pub doomednums: FnvHashMap<u16, AssetHandle<EntityTemplate>>,
 }
 
 impl MobjTypes {
@@ -28,8 +28,8 @@ impl MobjTypes {
 			WriteExpect<WadLoader>,
 		)>();
 
-		let mut names = HashMap::new();
-		let mut doomednums = HashMap::new();
+		let mut names = FnvHashMap::default();
+		let mut doomednums = FnvHashMap::default();
 
 		let handle = template_storage.insert({
 			EntityTemplate::new()

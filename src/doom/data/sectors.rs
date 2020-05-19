@@ -6,11 +6,11 @@ use crate::{
 		light::{LightFlash, LightFlashType, LightGlow},
 	},
 };
+use fnv::FnvHashMap;
 use specs::{World, WriteExpect};
-use std::collections::HashMap;
 
 pub struct SectorTypes {
-	pub doomednums: HashMap<u16, AssetHandle<EntityTemplate>>,
+	pub doomednums: FnvHashMap<u16, AssetHandle<EntityTemplate>>,
 }
 
 impl SectorTypes {
@@ -20,7 +20,7 @@ impl SectorTypes {
 			WriteExpect<AssetStorage<EntityTemplate>>,
 		>();
 
-        let mut doomednums = HashMap::new();
+        let mut doomednums = FnvHashMap::default();
 
         // Blink random
         let handle = template_storage.insert({

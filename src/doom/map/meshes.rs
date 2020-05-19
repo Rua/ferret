@@ -5,9 +5,9 @@ use crate::{
 		LinedefFlags, Map, MapDynamic, SectorSlot, Side, SidedefSlot,
 	},
 };
+use fnv::FnvHashMap;
 use nalgebra::Vector2;
 use specs::{ReadExpect, World};
-use std::collections::HashMap;
 use vulkano::{image::Dimensions, impl_vertex};
 
 #[derive(Clone, Debug, Default)]
@@ -29,9 +29,9 @@ pub fn make_meshes(
 	map_dynamic: &MapDynamic,
 	world: &World,
 ) -> anyhow::Result<(
-	HashMap<AssetHandle<Flat>, (Vec<VertexData>, Vec<u32>)>,
+	FnvHashMap<AssetHandle<Flat>, (Vec<VertexData>, Vec<u32>)>,
 	(Vec<SkyVertexData>, Vec<u32>),
-	HashMap<AssetHandle<Wall>, (Vec<VertexData>, Vec<u32>)>,
+	FnvHashMap<AssetHandle<Wall>, (Vec<VertexData>, Vec<u32>)>,
 )> {
 	#[inline]
 	fn push_wall(
@@ -118,9 +118,11 @@ pub fn make_meshes(
 		}
 	}
 
-	let mut flat_meshes: HashMap<AssetHandle<Flat>, (Vec<VertexData>, Vec<u32>)> = HashMap::new();
+	let mut flat_meshes: FnvHashMap<AssetHandle<Flat>, (Vec<VertexData>, Vec<u32>)> =
+		FnvHashMap::default();
 	let mut sky_mesh: (Vec<SkyVertexData>, Vec<u32>) = (Vec::new(), Vec::new());
-	let mut wall_meshes: HashMap<AssetHandle<Wall>, (Vec<VertexData>, Vec<u32>)> = HashMap::new();
+	let mut wall_meshes: FnvHashMap<AssetHandle<Wall>, (Vec<VertexData>, Vec<u32>)> =
+		FnvHashMap::default();
 
 	let (flat_storage, wall_storage) = world.system_data::<(
 		ReadExpect<AssetStorage<Flat>>,

@@ -1,13 +1,13 @@
 use crate::geometry::{Interval, AABB2};
+use fnv::FnvHashMap;
 use nalgebra::Vector2;
 use specs::Entity;
-use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 pub struct Quadtree {
 	nodes: Vec<QuadtreeNode>,
 	unused_nodes: Vec<usize>,
-	bboxes: HashMap<Entity, AABB2>,
+	bboxes: FnvHashMap<Entity, AABB2>,
 }
 
 impl Quadtree {
@@ -20,7 +20,7 @@ impl Quadtree {
 		Quadtree {
 			nodes: vec![QuadtreeNode::new(bbox)],
 			unused_nodes: Vec::new(),
-			bboxes: HashMap::new(),
+			bboxes: FnvHashMap::default(),
 		}
 	}
 

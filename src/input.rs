@@ -1,10 +1,7 @@
 use derivative::Derivative;
+use fnv::FnvHashMap;
 use serde::{Deserialize, Serialize};
-use std::{
-	collections::{hash_map::Entry, HashMap},
-	fmt::Debug,
-	hash::Hash,
-};
+use std::{collections::hash_map::Entry, fmt::Debug, hash::Hash};
 use winit::event::{
 	DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent,
 };
@@ -153,15 +150,15 @@ impl InputState {
 #[derive(Derivative, Deserialize, Serialize)]
 #[derivative(Debug(bound = ""), Default(bound = ""), Clone(bound = ""))]
 pub struct Bindings<A: Clone + Debug + Hash + Eq, X: Clone + Debug + Hash + Eq> {
-	actions: HashMap<A, Vec<Button>>,
-	axes: HashMap<X, Axis>,
+	actions: FnvHashMap<A, Vec<Button>>,
+	axes: FnvHashMap<X, Axis>,
 }
 
 impl<A: Clone + Debug + Hash + Eq, X: Clone + Debug + Hash + Eq> Bindings<A, X> {
 	pub fn new() -> Bindings<A, X> {
 		Bindings {
-			actions: HashMap::new(),
-			axes: HashMap::new(),
+			actions: FnvHashMap::default(),
+			axes: FnvHashMap::default(),
 		}
 	}
 

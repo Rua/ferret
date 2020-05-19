@@ -10,12 +10,12 @@ use crate::{
 		wad::WadLoader,
 	},
 };
+use fnv::FnvHashMap;
 use nalgebra::Vector2;
 use specs::{World, WriteExpect};
-use std::collections::HashMap;
 
 pub struct LinedefTypes {
-	pub doomednums: HashMap<u16, AssetHandle<EntityTemplate>>,
+	pub doomednums: FnvHashMap<u16, AssetHandle<EntityTemplate>>,
 }
 
 impl LinedefTypes {
@@ -27,7 +27,7 @@ impl LinedefTypes {
 			WriteExpect<WadLoader>,
 		)>();
 
-        let mut doomednums = HashMap::new();
+        let mut doomednums = FnvHashMap::default();
 
         let handle = template_storage.insert({
         	EntityTemplate::new()

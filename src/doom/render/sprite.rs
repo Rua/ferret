@@ -11,13 +11,11 @@ use crate::{
 	renderer::{AsBytes, RenderContext},
 };
 use anyhow::Context;
+use fnv::FnvHashMap;
 use nalgebra::{Matrix4, Vector2, Vector3};
 use specs::{Component, DenseVecStorage, Entities, Join, ReadExpect, ReadStorage, World};
 use specs_derive::Component;
-use std::{
-	collections::{hash_map::Entry, HashMap},
-	sync::Arc,
-};
+use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool, ImmutableBuffer},
 	command_buffer::{
@@ -144,8 +142,8 @@ impl SpriteRenderSystem {
 		let map = map_storage.get(&map_dynamic.map).unwrap();
 
 		// Group draws into batches by texture
-		let mut batches: HashMap<Arc<dyn ImageViewAccess + Send + Sync>, Vec<InstanceData>> =
-			HashMap::new();
+		let mut batches: FnvHashMap<Arc<dyn ImageViewAccess + Send + Sync>, Vec<InstanceData>> =
+			FnvHashMap::default();
 
 		for (entity, sprite_render, transform) in
 			(&entities, &sprite_component, &transform_component).join()

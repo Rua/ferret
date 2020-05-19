@@ -1,6 +1,7 @@
 use crate::assets::{Asset, DataSource};
+use fnv::FnvHashMap;
 use specs::{Component, Entity, World, WorldExt};
-use std::{any::TypeId, collections::HashMap};
+use std::any::TypeId;
 
 pub trait DynComponent: Send + Sync {
 	fn add_to_entity(&self, entity: Entity, world: &World) -> Result<(), specs::error::Error>;
@@ -14,13 +15,13 @@ impl<T: Component + Clone + Send + Sync> DynComponent for T {
 }
 
 pub struct EntityTemplate {
-	components: HashMap<TypeId, Box<dyn DynComponent>>,
+	components: FnvHashMap<TypeId, Box<dyn DynComponent>>,
 }
 
 impl EntityTemplate {
 	pub fn new() -> EntityTemplate {
 		EntityTemplate {
-			components: HashMap::new(),
+			components: FnvHashMap::default(),
 		}
 	}
 

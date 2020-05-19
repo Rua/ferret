@@ -1,7 +1,7 @@
 use derivative::Derivative;
+use fnv::FnvHashMap;
 use std::{
 	clone::Clone,
-	collections::HashMap,
 	marker::PhantomData,
 	sync::{Arc, Weak},
 };
@@ -62,41 +62,13 @@ impl<A> WeakHandle<A> {
 	}
 }
 
-/*#[derive(Derivative)]
-#[derivative(Default(bound = ""))]
-pub struct AssetCache<A> {
-	map: HashMap<String, WeakHandle<A>>,
-}
-
-impl<A> AssetCache<A> {
-	pub fn new() -> Self {
-		Default::default()
-	}
-
-	pub fn insert<K: Into<String>>(
-		&mut self,
-		key: K,
-		asset: &AssetHandle<A>,
-	) -> Option<WeakHandle<A>> {
-		self.map.insert(key.into(), asset.downgrade())
-	}
-
-	pub fn get<K>(&self, key: &K) -> Option<AssetHandle<A>>
-	where
-		K: ?Sized + Hash + Eq,
-		String: Borrow<K>,
-	{
-		self.map.get(key).and_then(WeakHandle::upgrade)
-	}
-}*/
-
 #[derive(Derivative)]
 #[derivative(Default(bound = ""))]
 pub struct AssetStorage<A: Asset> {
-	assets: HashMap<u32, A::Data>,
+	assets: FnvHashMap<u32, A::Data>,
 	handles: Vec<AssetHandle<A>>,
 	highest_id: u32,
-	names: HashMap<String, WeakHandle<A>>,
+	names: FnvHashMap<String, WeakHandle<A>>,
 	unbuilt: Vec<(AssetHandle<A>, anyhow::Result<A::Intermediate>, String)>,
 	unused_ids: Vec<u32>,
 }

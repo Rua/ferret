@@ -5,8 +5,8 @@ use crate::{
 use anyhow::anyhow;
 use byteorder::{ReadBytesExt, LE};
 use derivative::Derivative;
+use fnv::FnvHashMap;
 use std::{
-	collections::HashMap,
 	io::{Cursor, Read, Seek, SeekFrom},
 	str,
 	sync::Arc,
@@ -146,7 +146,7 @@ pub struct TextureInfo {
 pub struct TexturesFormat;
 
 impl AssetFormat for TexturesFormat {
-	type Asset = HashMap<String, TextureInfo>;
+	type Asset = FnvHashMap<String, TextureInfo>;
 
 	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
 		RawTexturesFormat

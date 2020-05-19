@@ -19,6 +19,7 @@ use crate::{
 };
 use anyhow::anyhow;
 use bitflags::bitflags;
+use fnv::FnvHashMap;
 use nalgebra::{Vector2, Vector3};
 use serde::Deserialize;
 use specs::{
@@ -26,25 +27,25 @@ use specs::{
 	World, WorldExt, WriteExpect, WriteStorage,
 };
 use specs_derive::Component;
-use std::{collections::HashMap, fmt::Debug, time::Duration};
+use std::{fmt::Debug, time::Duration};
 
 #[derive(Debug)]
 pub struct Map {
-	pub anims_flat: HashMap<AssetHandle<Flat>, Anim<Flat>>,
-	pub anims_wall: HashMap<AssetHandle<Wall>, Anim<Wall>>,
+	pub anims_flat: FnvHashMap<AssetHandle<Flat>, Anim<Flat>>,
+	pub anims_wall: FnvHashMap<AssetHandle<Wall>, Anim<Wall>>,
 	pub bbox: AABB2,
 	pub linedefs: Vec<Linedef>,
 	pub nodes: Vec<Node>,
 	pub sectors: Vec<Sector>,
 	pub subsectors: Vec<Subsector>,
 	pub sky: AssetHandle<Wall>,
-	pub switches: HashMap<AssetHandle<Wall>, AssetHandle<Wall>>,
+	pub switches: FnvHashMap<AssetHandle<Wall>, AssetHandle<Wall>>,
 }
 
 #[derive(Clone, Component, Debug)]
 pub struct MapDynamic {
-	pub anim_states_flat: HashMap<AssetHandle<Flat>, AnimState>,
-	pub anim_states_wall: HashMap<AssetHandle<Wall>, AnimState>,
+	pub anim_states_flat: FnvHashMap<AssetHandle<Flat>, AnimState>,
+	pub anim_states_wall: FnvHashMap<AssetHandle<Wall>, AnimState>,
 	pub map: AssetHandle<Map>,
 	pub linedefs: Vec<LinedefDynamic>,
 	pub sectors: Vec<SectorDynamic>,

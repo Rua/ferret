@@ -15,9 +15,10 @@ use crate::{
 use anyhow::{bail, ensure};
 use bitflags::bitflags;
 use byteorder::{ReadBytesExt, LE};
+use fnv::FnvHashMap;
 use nalgebra::{Vector2, Vector3};
 use serde::Deserialize;
-use std::{cmp::Ordering, collections::HashMap, io::Read};
+use std::{cmp::Ordering, io::Read};
 
 pub struct MapData {
 	pub linedefs: Vec<u8>,
@@ -1177,8 +1178,8 @@ pub fn get_anims<T: Asset>(
 	data: &[AnimData],
 	storage: &mut AssetStorage<T>,
 	loader: &mut WadLoader,
-) -> HashMap<AssetHandle<T>, Anim<T>> {
-	let mut ret = HashMap::new();
+) -> FnvHashMap<AssetHandle<T>, Anim<T>> {
+	let mut ret = FnvHashMap::default();
 
 	for anim_data in data {
 		assert!(!anim_data.frames.is_empty());
@@ -1204,8 +1205,8 @@ pub fn get_anims<T: Asset>(
 pub fn get_switches(
 	wall_storage: &mut AssetStorage<Wall>,
 	loader: &mut WadLoader,
-) -> HashMap<AssetHandle<Wall>, AssetHandle<Wall>> {
-	let mut ret = HashMap::new();
+) -> FnvHashMap<AssetHandle<Wall>, AssetHandle<Wall>> {
+	let mut ret = FnvHashMap::default();
 
 	for [name1, name2] in SWITCHES.iter() {
 		let handle1 = wall_storage.handle_for(name1);
