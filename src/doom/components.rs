@@ -1,20 +1,18 @@
 use crate::geometry::Angle;
 use derivative::Derivative;
 use nalgebra::Vector3;
-use specs::{Component, DenseVecStorage};
-use specs_derive::Component;
 
-#[derive(Clone, Component, Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct SpawnOnCeiling {
 	pub offset: f32,
 }
 
-#[derive(Clone, Component, Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct SpawnPoint {
 	pub player_num: usize,
 }
 
-#[derive(Clone, Component, Copy, Debug, Derivative)]
+#[derive(Clone, Copy, Debug, Derivative)]
 #[derivative(Default)]
 pub struct Transform {
 	#[derivative(Default(value = "Vector3::zeros()"))]
@@ -23,7 +21,7 @@ pub struct Transform {
 	pub rotation: Vector3<Angle>,
 }
 
-#[derive(Clone, Component, Copy, Debug, Derivative)]
+#[derive(Clone, Copy, Debug, Derivative)]
 #[derivative(Default)]
 pub struct Camera {
 	#[derivative(Default(value = "Vector3::zeros()"))]
@@ -32,7 +30,7 @@ pub struct Camera {
 	pub offset: Vector3<f32>,
 }
 
-#[derive(Clone, Component, Copy, Debug, Derivative)]
+#[derive(Clone, Copy, Debug, Derivative)]
 #[derivative(Default)]
 pub struct Velocity {
 	#[derivative(Default(value = "Vector3::zeros()"))]

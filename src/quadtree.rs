@@ -1,7 +1,7 @@
 use crate::geometry::{Interval, AABB2};
 use fnv::FnvHashMap;
+use legion::prelude::Entity;
 use nalgebra::Vector2;
-use specs::Entity;
 
 #[derive(Clone, Debug)]
 pub struct Quadtree {

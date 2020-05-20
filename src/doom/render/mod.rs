@@ -13,8 +13,8 @@ use crate::{
 	renderer::{RenderContext, RenderTarget},
 };
 use anyhow::Context;
+use legion::prelude::{Read, ResourceSet, Resources, World};
 use nalgebra::{Matrix4, Vector3};
-use specs::{ReadExpect, ReadStorage, RunNow, World};
 use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
@@ -43,9 +43,7 @@ pub struct RenderSystem {
 }
 
 impl RenderSystem {
-	pub fn new(world: &World) -> anyhow::Result<RenderSystem> {
-		let render_context = world.fetch::<RenderContext>();
-
+	pub fn new(render_context: &RenderContext) -> anyhow::Result<RenderSystem> {
 		// Create texture sampler
 		let sampler = Sampler::new(
 			render_context.device().clone(),
@@ -183,8 +181,8 @@ impl RenderSystem {
 		Ok(())
 	}
 
-	pub fn draw(&mut self, world: &World) -> anyhow::Result<()> {
-		let render_context = world.fetch::<RenderContext>();
+	pub fn draw(&mut self, world: &World, resources: &Resources) -> anyhow::Result<()> {
+		let render_context = <Read<RenderContext>>::fetch(resources);
 		let queues = render_context.queues();
 
 		// Prepare for drawing
@@ -226,19 +224,15 @@ impl RenderSystem {
 		let proj = projection_matrix(90.0, aspect_ratio, 1.0, 20000.0);
 
 		// View matrix
-		let (client, camera_storage, transform_storage) = world.system_data::<(
-			ReadExpect<Client>,
-			ReadStorage<Camera>,
-			ReadStorage<Transform>,
-		)>();
+		let client = <Read<Client>>::fetch(resources);
 
 		if let Some(entity) = client.entity {
 			let Transform {
 				mut position,
 				rotation,
-			} = *transform_storage.get(entity).unwrap();
+			} = *world.get_component::<Transform>(entity).unwrap();
 
-			if let Some(camera) = camera_storage.get(entity) {
+			if let Some(camera) = world.get_component::<Camera>(entity) {
 				position += camera.base + camera.offset;
 			}
 
@@ -273,6 +267,7 @@ impl RenderSystem {
 				.map
 				.draw(
 					world,
+					resources,
 					command_buffer_builder,
 					dynamic_state.clone(),
 					self.sampler.clone(),
@@ -286,6 +281,7 @@ impl RenderSystem {
 				.sprites
 				.draw(
 					world,
+					resources,
 					command_buffer_builder,
 					dynamic_state,
 					self.sampler.clone(),
@@ -313,16 +309,6 @@ impl RenderSystem {
 			.context("Couldn't flush command buffer")?;
 
 		Ok(())
-	}
-}
-
-impl<'a> RunNow<'a> for RenderSystem {
-	fn setup(&mut self, _world: &mut World) {}
-
-	fn run_now(&mut self, world: &'a World) {
-		self.draw(world).unwrap_or_else(|e| {
-			panic!("{:?}", e.context("Error while rendering"));
-		});
 	}
 }
 

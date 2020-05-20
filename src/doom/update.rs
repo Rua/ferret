@@ -2,37 +2,19 @@ use crate::{
 	assets::AssetStorage,
 	doom::map::{LinedefRef, Map, MapDynamic},
 };
+use legion::prelude::{IntoQuery, Read, ResourceSet, Resources, World, Write};
 use nalgebra::Vector2;
-use specs::{
-	Component, DenseVecStorage, Join, ReadExpect, ReadStorage, RunNow, World, WriteStorage,
-};
-use specs_derive::Component;
 use std::time::Duration;
 
-#[derive(Default)]
-pub struct TextureAnimSystem;
-
-impl<'a> RunNow<'a> for TextureAnimSystem {
-	fn setup(&mut self, _world: &mut World) {}
-
-	fn run_now(&mut self, world: &'a World) {
-		let (
-			delta,
-			map_storage,
-			linedef_ref_component,
-			texture_scroll_component,
-			mut map_dynamic_component,
-		) = world.system_data::<(
-			ReadExpect<Duration>,
-			ReadExpect<AssetStorage<Map>>,
-			ReadStorage<LinedefRef>,
-			ReadStorage<TextureScroll>,
-			WriteStorage<MapDynamic>,
-		)>();
+pub fn texture_anim_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
+	Box::new(|world, resources| {
+		let (delta, map_storage) = <(Read<Duration>, Read<AssetStorage<Map>>)>::fetch(resources);
 
 		// Advance animations
-		for map_dynamic in (&mut map_dynamic_component).join() {
-			for (handle, anim_state) in &mut map_dynamic.anim_states_flat {
+		for mut map_dynamic in <Write<MapDynamic>>::query().iter_mut(world) {
+			let map_dynamic = map_dynamic.as_mut();
+
+			for (handle, anim_state) in map_dynamic.anim_states_flat.iter_mut() {
 				if let Some(time_left) = anim_state.time_left.checked_sub(*delta) {
 					anim_state.time_left = time_left;
 				} else {
@@ -43,7 +25,7 @@ impl<'a> RunNow<'a> for TextureAnimSystem {
 				}
 			}
 
-			for (handle, anim_state) in &mut map_dynamic.anim_states_wall {
+			for (handle, anim_state) in map_dynamic.anim_states_wall.iter_mut() {
 				if let Some(time_left) = anim_state.time_left.checked_sub(*delta) {
 					anim_state.time_left = time_left;
 				} else {
@@ -57,18 +39,21 @@ impl<'a> RunNow<'a> for TextureAnimSystem {
 
 		// Scroll textures
 		for (linedef_ref, texture_scroll) in
-			(&linedef_ref_component, &texture_scroll_component).join()
+			unsafe { <(Read<LinedefRef>, Read<TextureScroll>)>::query().iter_unchecked(world) }
 		{
-			let map_dynamic = map_dynamic_component
-				.get_mut(linedef_ref.map_entity)
-				.unwrap();
+			let mut map_dynamic = unsafe {
+				world
+					.get_component_mut_unchecked::<MapDynamic>(linedef_ref.map_entity)
+					.unwrap()
+			};
+			let map_dynamic = map_dynamic.as_mut();
 			let linedef_dynamic = &mut map_dynamic.linedefs[linedef_ref.index];
 			linedef_dynamic.texture_offset += texture_scroll.speed * delta.as_secs_f32();
 		}
-	}
+	})
 }
 
-#[derive(Clone, Component, Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct TextureScroll {
 	pub speed: Vector2<f32>,
 }

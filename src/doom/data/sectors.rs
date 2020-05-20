@@ -7,7 +7,7 @@ use crate::{
 	},
 };
 use fnv::FnvHashMap;
-use specs::{World, WriteExpect};
+use legion::prelude::{ResourceSet, Resources, Write};
 
 pub struct SectorTypes {
 	pub doomednums: FnvHashMap<u16, AssetHandle<EntityTemplate>>,
@@ -15,10 +15,8 @@ pub struct SectorTypes {
 
 impl SectorTypes {
 	#[rustfmt::skip]
-	pub fn new(world: &World) -> SectorTypes {
-        let mut template_storage = world.system_data::<
-			WriteExpect<AssetStorage<EntityTemplate>>,
-		>();
+	pub fn new(resources: &mut Resources) -> SectorTypes {
+        let mut template_storage = <Write<AssetStorage<EntityTemplate>>>::fetch_mut(resources);
 
         let mut doomednums = FnvHashMap::default();
 

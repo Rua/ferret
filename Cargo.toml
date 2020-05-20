@@ -17,6 +17,7 @@ crossbeam-channel = "0.4.2"
 derivative = "2.1"
 fnv = "1.0"
 lazy_static = "1.4"
+legion = {git = "https://github.com/TomGillen/legion"}
 log = {version = "0.4.8", features = ["std"]}
 nalgebra = "0.20.0"
 num-traits = "0.2.10"
@@ -28,8 +29,6 @@ serde = {version = "1.0", features = ["derive"]}
 serde_json = "1.0"
 shrev = "1.1"
 smallvec = "1.4"
-specs = "0.16.1"
-specs-derive = "0.4.1"
 vulkano = "0.18"
 vulkano-shaders = "0.18"
 vulkano-win = "0.18"

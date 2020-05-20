@@ -6,8 +6,8 @@ use crate::{
 	},
 };
 use fnv::FnvHashMap;
+use legion::prelude::{Read, ResourceSet, Resources};
 use nalgebra::Vector2;
-use specs::{ReadExpect, World};
 use vulkano::{image::Dimensions, impl_vertex};
 
 #[derive(Clone, Debug, Default)]
@@ -27,7 +27,7 @@ impl_vertex!(SkyVertexData, in_position);
 pub fn make_meshes(
 	map: &Map,
 	map_dynamic: &MapDynamic,
-	world: &World,
+	resources: &Resources,
 ) -> anyhow::Result<(
 	FnvHashMap<AssetHandle<Flat>, (Vec<VertexData>, Vec<u32>)>,
 	(Vec<SkyVertexData>, Vec<u32>),
@@ -124,10 +124,8 @@ pub fn make_meshes(
 	let mut wall_meshes: FnvHashMap<AssetHandle<Wall>, (Vec<VertexData>, Vec<u32>)> =
 		FnvHashMap::default();
 
-	let (flat_storage, wall_storage) = world.system_data::<(
-		ReadExpect<AssetStorage<Flat>>,
-		ReadExpect<AssetStorage<Wall>>,
-	)>();
+	let (flat_storage, wall_storage) =
+		<(Read<AssetStorage<Flat>>, Read<AssetStorage<Wall>>)>::fetch(resources);
 
 	// Walls
 	for (linedef_index, linedef) in map.linedefs.iter().enumerate() {

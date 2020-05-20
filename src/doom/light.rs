@@ -5,45 +5,25 @@ use crate::{
 		map::{Map, MapDynamic, SectorRef},
 	},
 };
+use legion::prelude::{IntoQuery, Read, ResourceSet, Resources, World, Write};
 use rand::Rng;
 use rand_pcg::Pcg64Mcg;
-use specs::{
-	Component, DenseVecStorage, Join, ReadExpect, ReadStorage, RunNow, World, WriteExpect,
-	WriteStorage,
-};
-use specs_derive::Component;
 use std::time::Duration;
 
-#[derive(Default)]
-pub struct LightUpdateSystem;
+pub fn light_update_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
+	Box::new(|world, resources| {
+		let (map_storage, delta, mut rng) =
+			<(Read<AssetStorage<Map>>, Read<Duration>, Write<Pcg64Mcg>)>::fetch_mut(resources);
 
-impl<'a> RunNow<'a> for LightUpdateSystem {
-	fn setup(&mut self, _world: &mut World) {}
-
-	fn run_now(&mut self, world: &'a World) {
-		let (
-			map_storage,
-			delta,
-			mut rng,
-			sector_ref_component,
-			mut light_flash_component,
-			mut light_glow_component,
-			mut map_dynamic_component,
-		) = world.system_data::<(
-			ReadExpect<AssetStorage<Map>>,
-			ReadExpect<Duration>,
-			WriteExpect<Pcg64Mcg>,
-			ReadStorage<SectorRef>,
-			WriteStorage<LightFlash>,
-			WriteStorage<LightGlow>,
-			WriteStorage<MapDynamic>,
-		)>();
-
-		for (sector_ref, light_flash) in (&sector_ref_component, &mut light_flash_component).join()
+		for (sector_ref, mut light_flash) in
+			unsafe { <(Read<SectorRef>, Write<LightFlash>)>::query().iter_unchecked(world) }
 		{
-			let map_dynamic = map_dynamic_component
-				.get_mut(sector_ref.map_entity)
-				.unwrap();
+			let mut map_dynamic = unsafe {
+				world
+					.get_component_mut_unchecked::<MapDynamic>(sector_ref.map_entity)
+					.unwrap()
+			};
+			let map_dynamic = map_dynamic.as_mut();
 			let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 
 			if let Some(new_time) = light_flash.time_left.checked_sub(*delta) {
@@ -94,10 +74,15 @@ impl<'a> RunNow<'a> for LightUpdateSystem {
 			}
 		}
 
-		for (sector_ref, light_glow) in (&sector_ref_component, &mut light_glow_component).join() {
-			let map_dynamic = map_dynamic_component
-				.get_mut(sector_ref.map_entity)
-				.unwrap();
+		for (sector_ref, mut light_glow) in
+			unsafe { <(Read<SectorRef>, Write<LightGlow>)>::query().iter_unchecked(world) }
+		{
+			let mut map_dynamic = unsafe {
+				world
+					.get_component_mut_unchecked::<MapDynamic>(sector_ref.map_entity)
+					.unwrap()
+			};
+			let map_dynamic = map_dynamic.as_mut();
 			let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 
 			let map = map_storage.get(&map_dynamic.map).unwrap();
@@ -127,10 +112,10 @@ impl<'a> RunNow<'a> for LightUpdateSystem {
 				}
 			}
 		}
-	}
+	})
 }
 
-#[derive(Clone, Component, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct LightFlash {
 	pub on_time: Duration,
 	pub off_time: Duration,
@@ -152,7 +137,7 @@ impl Default for LightFlashType {
 	}
 }
 
-#[derive(Clone, Component, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct LightGlow {
 	pub speed: f32,
 	pub state: bool,

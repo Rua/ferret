@@ -12,21 +12,18 @@ use crate::{
 			load::LinedefFlags,
 			textures::{Flat, TextureType, Wall},
 		},
-		physics::{BoxCollider, SolidMask},
+		physics::SolidMask,
 	},
-	geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2, AABB3},
-	quadtree::Quadtree,
+	geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2},
 };
 use anyhow::anyhow;
 use bitflags::bitflags;
 use fnv::FnvHashMap;
+use legion::prelude::{
+	CommandBuffer, Entity, IntoQuery, Read, ResourceSet, Resources, World, Write,
+};
 use nalgebra::{Vector2, Vector3};
 use serde::Deserialize;
-use specs::{
-	storage::StorageEntry, Component, DenseVecStorage, Entity, Join, ReadExpect, ReadStorage,
-	World, WorldExt, WriteExpect, WriteStorage,
-};
-use specs_derive::Component;
 use std::{fmt::Debug, time::Duration};
 
 #[derive(Debug)]
@@ -42,7 +39,7 @@ pub struct Map {
 	pub switches: FnvHashMap<AssetHandle<Wall>, AssetHandle<Wall>>,
 }
 
-#[derive(Clone, Component, Debug)]
+#[derive(Clone, Debug)]
 pub struct MapDynamic {
 	pub anim_states_flat: FnvHashMap<AssetHandle<Flat>, AnimState>,
 	pub anim_states_wall: FnvHashMap<AssetHandle<Wall>, AnimState>,
@@ -119,7 +116,7 @@ pub struct SidedefDynamic {
 	pub textures: [TextureType<Wall>; 3],
 }
 
-#[derive(Clone, Component, Debug)]
+#[derive(Clone, Debug)]
 pub struct LinedefRef {
 	pub map_entity: Entity,
 	pub index: usize,
@@ -180,7 +177,7 @@ pub struct SectorDynamic {
 	pub interval: Interval,
 }
 
-#[derive(Clone, Component, Debug)]
+#[derive(Clone, Debug)]
 pub struct SectorRef {
 	pub map_entity: Entity,
 	pub index: usize,
@@ -231,16 +228,20 @@ impl Map {
 
 pub fn spawn_things(
 	things: Vec<Thing>,
-	world: &World,
+	world: &mut World,
+	resources: &mut Resources,
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
+	let (entity_types, map_storage, template_storage) = <(
+		Read<MobjTypes>,
+		Read<AssetStorage<Map>>,
+		Read<AssetStorage<EntityTemplate>>,
+	)>::fetch_mut(resources);
+
+	let mut command_buffer = CommandBuffer::new(world);
+
 	for (_i, thing) in things.into_iter().enumerate() {
 		// Fetch entity template
-		let (entity_types, template_storage, mut quadtree) = world.system_data::<(
-			ReadExpect<MobjTypes>,
-			ReadExpect<AssetStorage<EntityTemplate>>,
-			WriteExpect<Quadtree>,
-		)>();
 		let handle = entity_types
 			.doomednums
 			.get(&thing.doomednum)
@@ -248,63 +249,56 @@ pub fn spawn_things(
 		let template = template_storage.get(handle).unwrap();
 
 		// Create entity and add components
-		let entity = world.entities().create();
-		template.add_to_entity(entity, world)?;
+		let entity = command_buffer.insert((), vec![()])[0];
+		template.add_to_entity(entity, &mut command_buffer);
 
 		// Set entity transform
 		let z = {
-			let (map_storage, mut spawn_on_ceiling_component) = world
-				.system_data::<(ReadExpect<AssetStorage<Map>>, WriteStorage<SpawnOnCeiling>)>();
 			let map = map_storage.get(&map_handle).unwrap();
 			let ssect = map.find_subsector(thing.position);
-			let sector = &map.sectors[ssect.sector_index];
-
-			if let StorageEntry::Occupied(entry) = spawn_on_ceiling_component.entry(entity)? {
-				sector.interval.max - entry.remove().offset
-			} else {
-				sector.interval.min
-			}
+			map.sectors[ssect.sector_index].interval.min
 		};
 
-		let (box_collider_component, mut transform_component) =
-			world.system_data::<(ReadStorage<BoxCollider>, WriteStorage<Transform>)>();
-		transform_component.insert(
+		command_buffer.add_component(
 			entity,
 			Transform {
 				position: Vector3::new(thing.position[0], thing.position[1], z),
 				rotation: Vector3::new(0.into(), 0.into(), thing.angle),
 			},
-		)?;
-
-		// Add to quadtree
-		if let Some(box_collider) = box_collider_component.get(entity) {
-			let transform = transform_component.get(entity).unwrap();
-			let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
-			quadtree.insert(entity, &AABB2::from(&bbox.offset(transform.position)));
-		}
+		);
 	}
 
+	command_buffer.write(world);
+
+	// TODO very ugly way to do it
+	for (entity, (spawn_on_ceiling, mut transform)) in
+		<(Read<SpawnOnCeiling>, Write<Transform>)>::query().iter_entities_mut(world)
+	{
+		command_buffer.remove_component::<SpawnOnCeiling>(entity);
+
+		let map = map_storage.get(&map_handle).unwrap();
+		let position = Vector2::new(transform.position[0], transform.position[1]);
+		let ssect = map.find_subsector(position);
+		let sector = &map.sectors[ssect.sector_index];
+		transform.position[2] = sector.interval.max - spawn_on_ceiling.offset;
+	}
+
+	command_buffer.write(world);
 	Ok(())
 }
 
-pub fn spawn_player(world: &World) -> anyhow::Result<Entity> {
-	// Get spawn point transform
-	let transform = {
-		let (transform, spawn_point) =
-			world.system_data::<(ReadStorage<Transform>, ReadStorage<SpawnPoint>)>();
+pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Result<Entity> {
+	let mut command_buffer = CommandBuffer::new(world);
 
-		(&transform, &spawn_point)
-			.join()
-			.find_map(|(t, s)| if s.player_num == 1 { Some(*t) } else { None })
-			.unwrap()
-	};
+	// Get spawn point transform
+	let transform = <(Read<Transform>, Read<SpawnPoint>)>::query()
+		.iter(world)
+		.find_map(|(t, s)| if s.player_num == 1 { Some(*t) } else { None })
+		.unwrap();
 
 	// Fetch entity template
-	let (entity_types, template_storage, mut quadtree) = world.system_data::<(
-		ReadExpect<MobjTypes>,
-		ReadExpect<AssetStorage<EntityTemplate>>,
-		WriteExpect<Quadtree>,
-	)>();
+	let (entity_types, template_storage) =
+		<(Read<MobjTypes>, Read<AssetStorage<EntityTemplate>>)>::fetch_mut(resources);
 	let handle = entity_types
 		.names
 		.get("PLAYER")
@@ -312,48 +306,31 @@ pub fn spawn_player(world: &World) -> anyhow::Result<Entity> {
 	let template = template_storage.get(handle).unwrap();
 
 	// Create entity and add components
-	let entity = world.entities().create();
-	template.add_to_entity(entity, world)?;
+	let entity = command_buffer.insert((), vec![()])[0];
+	template.add_to_entity(entity, &mut command_buffer);
+	command_buffer.add_component(entity, transform);
 
-	// Set entity transform
-	let (box_collider_component, mut transform_component) =
-		world.system_data::<(ReadStorage<BoxCollider>, WriteStorage<Transform>)>();
-	transform_component.insert(entity, transform)?;
-
-	// Add to quadtree
-	if let Some(box_collider) = box_collider_component.get(entity) {
-		let transform = transform_component.get(entity).unwrap();
-		let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
-		quadtree.insert(entity, &AABB2::from(&bbox.offset(transform.position)));
-	}
+	command_buffer.write(world);
 
 	Ok(entity)
 }
 
-pub fn spawn_map_entities(world: &World, map_handle: &AssetHandle<Map>) -> anyhow::Result<()> {
-	let (
-		map_storage,
-		mut map_dynamic_component,
-		template_storage,
-		linedef_types,
-		mut linedef_ref_component,
-		sector_types,
-		mut sector_ref_component,
-		mut transform_component,
-	) = world.system_data::<(
-		ReadExpect<AssetStorage<Map>>,
-		WriteStorage<MapDynamic>,
-		ReadExpect<AssetStorage<EntityTemplate>>,
-		ReadExpect<LinedefTypes>,
-		WriteStorage<LinedefRef>,
-		ReadExpect<SectorTypes>,
-		WriteStorage<SectorRef>,
-		WriteStorage<Transform>,
-	)>();
+pub fn spawn_map_entities(
+	world: &mut World,
+	resources: &Resources,
+	map_handle: &AssetHandle<Map>,
+) -> anyhow::Result<()> {
+	let mut command_buffer = CommandBuffer::new(world);
+	let (map_storage, template_storage, linedef_types, sector_types) = <(
+		Read<AssetStorage<Map>>,
+		Read<AssetStorage<EntityTemplate>>,
+		Read<LinedefTypes>,
+		Read<SectorTypes>,
+	)>::fetch(resources);
 	let map = map_storage.get(&map_handle).unwrap();
 
 	// Create map entity
-	let map_entity = world.entities().create();
+	let map_entity = command_buffer.insert((), vec![()])[0];
 	let anim_states_flat = map
 		.anims_flat
 		.iter()
@@ -392,7 +369,7 @@ pub fn spawn_map_entities(world: &World, map_handle: &AssetHandle<Map>) -> anyho
 	// Create linedef entities
 	for (i, linedef) in map.linedefs.iter().enumerate() {
 		// Create entity and set reference
-		let entity = world.entities().create();
+		let entity = command_buffer.insert((), vec![()])[0];
 		let sidedefs = [
 			linedef.sidedefs[0].as_ref().map(|sidedef| SidedefDynamic {
 				textures: sidedef.textures.clone(),
@@ -406,13 +383,13 @@ pub fn spawn_map_entities(world: &World, map_handle: &AssetHandle<Map>) -> anyho
 			sidedefs,
 			texture_offset: Vector2::new(0.0, 0.0),
 		});
-		linedef_ref_component.insert(
+		command_buffer.add_component(
 			entity,
 			LinedefRef {
 				map_entity,
 				index: i,
 			},
-		)?;
+		);
 
 		if linedef.special_type == 0 {
 			continue;
@@ -427,25 +404,25 @@ pub fn spawn_map_entities(world: &World, map_handle: &AssetHandle<Map>) -> anyho
 				linedef.special_type
 			))?;
 		let template = template_storage.get(handle).unwrap();
-		template.add_to_entity(entity, world)?;
+		template.add_to_entity(entity, &mut command_buffer);
 	}
 
 	// Create sector entities
 	for (i, sector) in map.sectors.iter().enumerate() {
 		// Create entity and set reference
-		let entity = world.entities().create();
+		let entity = command_buffer.insert((), vec![()])[0];
 		map_dynamic.sectors.push(SectorDynamic {
 			entity,
 			light_level: sector.light_level,
 			interval: sector.interval,
 		});
-		sector_ref_component.insert(
+		command_buffer.add_component(
 			entity,
 			SectorRef {
 				map_entity,
 				index: i,
 			},
-		)?;
+		);
 
 		// Find midpoint of sector for sound purposes
 		let mut bbox = AABB2::empty();
@@ -461,13 +438,13 @@ pub fn spawn_map_entities(world: &World, map_handle: &AssetHandle<Map>) -> anyho
 
 		let midpoint = (bbox.min() + bbox.max()) / 2.0;
 
-		transform_component.insert(
+		command_buffer.add_component(
 			entity,
 			Transform {
 				position: Vector3::new(midpoint[0], midpoint[1], 0.0),
 				rotation: Vector3::new(0.into(), 0.into(), 0.into()),
 			},
-		)?;
+		);
 
 		if sector.special_type == 0 {
 			continue;
@@ -482,10 +459,10 @@ pub fn spawn_map_entities(world: &World, map_handle: &AssetHandle<Map>) -> anyho
 				sector.special_type
 			))?;
 		let template = template_storage.get(handle).unwrap();
-		template.add_to_entity(entity, world)?;
+		template.add_to_entity(entity, &mut command_buffer);
 	}
 
-	map_dynamic_component.insert(map_entity, map_dynamic)?;
-
+	command_buffer.add_component(map_entity, map_dynamic);
+	command_buffer.write(world);
 	Ok(())
 }

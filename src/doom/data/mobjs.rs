@@ -11,8 +11,8 @@ use crate::{
 	},
 };
 use fnv::FnvHashMap;
+use legion::prelude::{ResourceSet, Resources, Write};
 use nalgebra::Vector3;
-use specs::{World, WriteExpect};
 
 pub struct MobjTypes {
 	pub names: FnvHashMap<&'static str, AssetHandle<EntityTemplate>>,
@@ -21,12 +21,12 @@ pub struct MobjTypes {
 
 impl MobjTypes {
 	#[rustfmt::skip]
-	pub fn new(world: &World) -> MobjTypes {
-		let (mut template_storage, mut sprite_storage, mut loader) = world.system_data::<(
-			WriteExpect<AssetStorage<EntityTemplate>>,
-			WriteExpect<AssetStorage<Sprite>>,
-			WriteExpect<WadLoader>,
-		)>();
+	pub fn new(resources: &mut Resources) -> MobjTypes {
+		let (mut template_storage, mut sprite_storage, mut loader) = <(
+			Write<AssetStorage<EntityTemplate>>,
+			Write<AssetStorage<Sprite>>,
+			Write<WadLoader>,
+		)>::fetch_mut(resources);
 
 		let mut names = FnvHashMap::default();
 		let mut doomednums = FnvHashMap::default();
