@@ -1,3 +1,4 @@
+pub mod camera;
 pub mod client;
 pub mod components;
 pub mod data;
@@ -10,5 +11,5 @@ pub mod physics;
 pub mod render;
 pub mod sound;
 pub mod sprite;
-pub mod update;
+pub mod texture;
 pub mod wad;

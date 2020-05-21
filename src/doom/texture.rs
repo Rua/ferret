@@ -6,7 +6,7 @@ use legion::prelude::{IntoQuery, Read, ResourceSet, Resources, World, Write};
 use nalgebra::Vector2;
 use std::time::Duration;
 
-pub fn texture_anim_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
+pub fn texture_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 	Box::new(|world, resources| {
 		let (asset_storage, delta) = <(Read<AssetStorage>, Read<Duration>)>::fetch(resources);
 

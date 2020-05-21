@@ -3,7 +3,9 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
 	doom::{
-		components::{Camera, SpawnOnCeiling, SpawnPoint, Velocity},
+		camera::Camera,
+		components::{SpawnOnCeiling, SpawnPoint, Velocity},
+		data::FRAME_TIME,
 		physics::{BoxCollider, SolidMask},
 		render::sprite::SpriteRender,
 		wad::WadLoader,
@@ -61,6 +63,8 @@ impl MobjTypes {
 			})
 			.with_component(Camera {
 				base: Vector3::new(0.0, 0.0, 41.0),
+				bob_max: 16.0,
+				bob_period: 20 * FRAME_TIME,
 				..Camera::default()
 			})
 			.with_component(SpriteRender {

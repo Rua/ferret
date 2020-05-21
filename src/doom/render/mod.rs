@@ -3,8 +3,9 @@ pub mod sprite;
 
 use crate::{
 	doom::{
+		camera::Camera,
 		client::Client,
-		components::{Camera, Transform},
+		components::Transform,
 		render::{
 			map::{MapRenderSystem, UniformBufferObject},
 			sprite::SpriteRenderSystem,

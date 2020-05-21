@@ -5,7 +5,7 @@ use crate::{
 		client::UseAction,
 		data::{FRAME_RATE, FRAME_TIME},
 		door::{DoorSwitchUse, DoorUse},
-		update::TextureScroll,
+		texture::TextureScroll,
 		wad::WadLoader,
 	},
 };

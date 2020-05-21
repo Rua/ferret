@@ -131,12 +131,13 @@ fn main() -> anyhow::Result<()> {
 		.add_thread_local_fn(doom::client::player_command_system())
 		.add_thread_local_fn(doom::client::player_move_system())
 		.add_thread_local_fn(doom::client::player_use_system())
+		.add_thread_local_fn(doom::camera::camera_system())
 		.add_thread_local_fn(doom::physics::physics_system())
 		.add_thread_local_fn(doom::door::door_use_system(&mut resources))
 		.add_thread_local_fn(doom::door::door_active_system())
 		.add_thread_local_fn(doom::door::switch_active_system())
-		.add_thread_local_fn(doom::light::light_update_system())
-		.add_thread_local_fn(doom::update::texture_anim_system())
+		.add_thread_local_fn(doom::light::light_system())
+		.add_thread_local_fn(doom::texture::texture_system())
 		.build();
 
 	// Create world

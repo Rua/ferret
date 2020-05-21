@@ -23,15 +23,6 @@ pub struct Transform {
 
 #[derive(Clone, Copy, Debug, Derivative)]
 #[derivative(Default)]
-pub struct Camera {
-	#[derivative(Default(value = "Vector3::zeros()"))]
-	pub base: Vector3<f32>,
-	#[derivative(Default(value = "Vector3::zeros()"))]
-	pub offset: Vector3<f32>,
-}
-
-#[derive(Clone, Copy, Debug, Derivative)]
-#[derivative(Default)]
 pub struct Velocity {
 	#[derivative(Default(value = "Vector3::zeros()"))]
 	pub velocity: Vector3<f32>,
