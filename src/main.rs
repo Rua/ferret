@@ -13,7 +13,6 @@ mod renderer;
 use crate::{
 	assets::{AssetHandle, AssetStorage, DataSource},
 	audio::Sound,
-	component::EntityTemplate,
 	geometry::{AABB2, AABB3},
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
 	quadtree::Quadtree,
@@ -77,21 +76,40 @@ fn main() -> anyhow::Result<()> {
 
 	logger::init(&arg_matches)?;
 
+	// Set up resources
+	let mut resources = Resources::default();
+
 	let mut loader = doom::wad::WadLoader::new();
 	load_wads(&mut loader, &arg_matches)?;
+	resources.insert(loader);
 
 	let (command_sender, command_receiver) = commands::init()?;
 	let mut event_loop = EventLoop::new();
+
 	let (render_context, _debug_callback) =
 		RenderContext::new(&event_loop).context("Could not create rendering context")?;
+	resources.insert(render_context);
+
 	let sound_sender = audio::init()?;
+	resources.insert(sound_sender);
+
 	let bindings = get_bindings();
+	resources.insert(bindings);
+
+	resources.insert(AssetStorage::default());
+	resources.insert(Pcg64Mcg::from_entropy());
+	resources.insert(InputState::new());
+	resources.insert(Vec::<(AssetHandle<Sound>, Entity)>::new());
+	resources.insert(doom::client::Client::default());
+	resources.insert(doom::data::FRAME_TIME);
+	resources.insert(EventChannel::<doom::client::UseEvent>::new());
 
 	// Select map
 	let map =
 		if let Some(map) = arg_matches.value_of("map") {
 			map
 		} else {
+			let loader = <Read<doom::wad::WadLoader>>::fetch(&resources);
 			let wad = loader.wads().next().unwrap().file_name().unwrap();
 
 			if wad == "doom.wad" || wad == "doom1.wad" || wad == "doomu.wad" {
@@ -103,31 +121,6 @@ fn main() -> anyhow::Result<()> {
 			}
 		};
 	command_sender.send(format!("map {}", map)).ok();
-
-	// Set up resources
-	let mut resources = Resources::default();
-
-	// Insert asset storages
-	resources.insert(AssetStorage::<EntityTemplate>::default());
-	resources.insert(AssetStorage::<Sound>::default());
-	resources.insert(AssetStorage::<doom::map::Map>::default());
-	resources.insert(AssetStorage::<doom::map::textures::Flat>::default());
-	resources.insert(AssetStorage::<doom::map::textures::Wall>::default());
-	resources.insert(AssetStorage::<doom::image::Palette>::default());
-	resources.insert(AssetStorage::<doom::sprite::Sprite>::default());
-	resources.insert(AssetStorage::<doom::sprite::SpriteImage>::default());
-
-	// Insert other resources
-	resources.insert(Pcg64Mcg::from_entropy());
-	resources.insert(render_context);
-	resources.insert(sound_sender);
-	resources.insert(loader);
-	resources.insert(InputState::new());
-	resources.insert(bindings);
-	resources.insert(Vec::<(AssetHandle<Sound>, Entity)>::new());
-	resources.insert(doom::client::Client::default());
-	resources.insert(doom::data::FRAME_TIME);
-	resources.insert(EventChannel::<doom::client::UseEvent>::new());
 
 	// Create systems
 	let mut render_system =
@@ -374,13 +367,11 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 	let start_time = Instant::now();
 
 	// Load palette
-	let palette_handle = {
-		let (mut loader, mut palette_storage) = <(
-			Write<doom::wad::WadLoader>,
-			Write<AssetStorage<crate::doom::image::Palette>>,
-		)>::fetch_mut(resources);
-		let handle = palette_storage.load("PLAYPAL", &mut *loader);
-		palette_storage.build_waiting(Ok);
+	let palette_handle: AssetHandle<doom::image::Palette> = {
+		let (mut asset_storage, mut loader) =
+			<(Write<AssetStorage>, Write<doom::wad::WadLoader>)>::fetch_mut(resources);
+		let handle = asset_storage.load("PLAYPAL", &mut *loader);
+		asset_storage.build_waiting::<doom::image::Palette, _>(|x, _| Ok(x));
 		handle
 	};
 
@@ -396,25 +387,16 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 
 	// Load sprite images
 	{
-		let (
-			palette_storage,
-			render_context,
-			mut sprite_storage,
-			mut sprite_image_storage,
-			mut source,
-		) = <(
-			Read<AssetStorage<crate::doom::image::Palette>>,
+		let (render_context, mut asset_storage, mut source) = <(
 			Read<crate::renderer::RenderContext>,
-			Write<AssetStorage<crate::doom::sprite::Sprite>>,
-			Write<AssetStorage<crate::doom::sprite::SpriteImage>>,
+			Write<AssetStorage>,
 			Write<crate::doom::wad::WadLoader>,
 		)>::fetch_mut(resources);
-		let palette = palette_storage.get(&palette_handle).unwrap();
-		sprite_storage.build_waiting(|intermediate| {
-			Ok(intermediate.build(&mut *sprite_image_storage, &mut *source)?)
+		asset_storage.build_waiting::<doom::sprite::Sprite, _>(|builder, asset_storage| {
+			Ok(builder.build(asset_storage, &mut *source)?)
 		});
-
-		sprite_image_storage.build_waiting(|image| {
+		asset_storage.build_waiting::<doom::sprite::SpriteImage, _>(|image, asset_storage| {
+			let palette = asset_storage.get(&palette_handle).unwrap();
 			let data: Vec<_> = image
 				.data
 				.into_iter()
@@ -454,29 +436,20 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 
 	// Load sounds
 	{
-		let mut sound_storage = <Write<AssetStorage<Sound>>>::fetch_mut(resources);
-		sound_storage.build_waiting(|intermediate| doom::sound::build_sound(intermediate));
+		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
+		asset_storage.build_waiting::<audio::Sound, _>(|intermediate, _| {
+			doom::sound::build_sound(intermediate)
+		});
 	}
 
 	// Load map
 	log::info!("Loading map...");
 	let map_handle = {
-		let (mut loader, mut map_storage, mut flat_storage, mut wall_storage) =
-			<(
-				Write<doom::wad::WadLoader>,
-				Write<AssetStorage<doom::map::Map>>,
-				Write<AssetStorage<doom::map::textures::Flat>>,
-				Write<AssetStorage<doom::map::textures::Wall>>,
-			)>::fetch_mut(resources);
-		let map_handle = map_storage.load(name, &mut *loader);
-		map_storage.build_waiting(|data| {
-			doom::map::load::build_map(
-				data,
-				"SKY1",
-				&mut *loader,
-				&mut *flat_storage,
-				&mut *wall_storage,
-			)
+		let (mut asset_storage, mut loader) =
+			<(Write<AssetStorage>, Write<doom::wad::WadLoader>)>::fetch_mut(resources);
+		let map_handle = asset_storage.load(name, &mut *loader);
+		asset_storage.build_waiting::<doom::map::Map, _>(|data, asset_storage| {
+			doom::map::load::build_map(data, "SKY1", &mut *loader, asset_storage)
 		});
 
 		map_handle
@@ -484,13 +457,10 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 
 	// Build flats and wall textures
 	{
-		let (palette_storage, render_context, mut flat_storage) = <(
-			Read<AssetStorage<doom::image::Palette>>,
-			Read<RenderContext>,
-			Write<AssetStorage<doom::map::textures::Flat>>,
-		)>::fetch_mut(resources);
-		let palette = palette_storage.get(&palette_handle).unwrap();
-		flat_storage.build_waiting(|image| {
+		let (render_context, mut asset_storage) =
+			<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(resources);
+		asset_storage.build_waiting::<doom::map::textures::Wall, _>(|image, asset_storage| {
+			let palette = asset_storage.get(&palette_handle).unwrap();
 			let data: Vec<_> = image
 				.data
 				.into_iter()
@@ -516,16 +486,8 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 
 			Ok(image)
 		});
-	}
-
-	{
-		let (palette_storage, render_context, mut wall_storage) = <(
-			Read<AssetStorage<doom::image::Palette>>,
-			Read<RenderContext>,
-			Write<AssetStorage<doom::map::textures::Wall>>,
-		)>::fetch_mut(resources);
-		let palette = palette_storage.get(&palette_handle).unwrap();
-		wall_storage.build_waiting(|image| {
+		asset_storage.build_waiting::<doom::map::textures::Flat, _>(|image, asset_storage| {
+			let palette = asset_storage.get(&palette_handle).unwrap();
 			let data: Vec<_> = image
 				.data
 				.into_iter()
@@ -568,8 +530,8 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 
 	// Create quadtree and add entities to it
 	let bbox = {
-		let map_storage = <Read<AssetStorage<doom::map::Map>>>::fetch(resources);
-		let map = map_storage.get(&map_handle).unwrap();
+		let asset_storage = <Read<AssetStorage>>::fetch(resources);
+		let map = asset_storage.get(&map_handle).unwrap();
 		map.bbox.clone()
 	};
 	let mut quadtree = Quadtree::new(bbox);

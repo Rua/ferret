@@ -3,8 +3,7 @@ use crate::{
 	doom::{
 		map::{
 			meshes::{SkyVertexData, VertexData},
-			textures::{Flat, Wall},
-			Map, MapDynamic,
+			MapDynamic,
 		},
 		render::normal_frag,
 	},
@@ -141,14 +140,10 @@ impl MapRenderSystem {
 		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
 		rotation: Vector3<Angle>,
 	) -> anyhow::Result<AutoCommandBufferBuilder> {
-		let (flat_storage, map_storage, wall_storage) = <(
-			Read<AssetStorage<Flat>>,
-			Read<AssetStorage<Map>>,
-			Read<AssetStorage<Wall>>,
-		)>::fetch(resources);
+		let asset_storage = <Read<AssetStorage>>::fetch(resources);
 
 		for map_dynamic in <Read<MapDynamic>>::query().iter(world) {
-			let map = map_storage.get(&map_dynamic.map).unwrap();
+			let map = asset_storage.get(&map_dynamic.map).unwrap();
 			let (flat_meshes, sky_mesh, wall_meshes) =
 				crate::doom::map::meshes::make_meshes(map, map_dynamic.as_ref(), resources)
 					.context("Couldn't generate map mesh")?;
@@ -167,7 +162,7 @@ impl MapRenderSystem {
 				} else {
 					&handle
 				};
-				let image = wall_storage.get(&handle).unwrap();
+				let image = asset_storage.get(&handle).unwrap();
 
 				let texture_set = Arc::new(
 					self.normal_texture_set_pool
@@ -200,7 +195,7 @@ impl MapRenderSystem {
 				} else {
 					&handle
 				};
-				let image = flat_storage.get(handle).unwrap();
+				let image = asset_storage.get(handle).unwrap();
 
 				let texture_set = Arc::new(
 					self.normal_texture_set_pool
@@ -226,7 +221,7 @@ impl MapRenderSystem {
 				.vertex_buffer_pool
 				.chunk(sky_mesh.0.as_bytes().iter().copied())?;
 			let index_buffer = self.index_buffer_pool.chunk(sky_mesh.1)?;
-			let image = wall_storage.get(&map.sky).unwrap();
+			let image = asset_storage.get(&map.sky).unwrap();
 			let sky_buffer = self.sky_uniform_pool.next(sky_frag::ty::FragParams {
 				screenSize: [800.0, 600.0],
 				pitch: rotation[1].to_degrees() as f32,

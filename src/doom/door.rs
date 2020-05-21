@@ -5,7 +5,7 @@ use crate::{
 		client::{UseAction, UseEvent},
 		map::{
 			textures::{TextureType, Wall},
-			LinedefRef, Map, MapDynamic, SectorRef, SidedefSlot,
+			LinedefRef, MapDynamic, SectorRef, SidedefSlot,
 		},
 		physics::SectorTracer,
 	},
@@ -21,13 +21,12 @@ pub fn door_update_system(
 	mut use_event_reader: ReaderId<UseEvent>,
 ) -> Box<dyn FnMut(&mut World, &mut Resources)> {
 	Box::new(move |world, resources| {
-		let (delta, use_event_channel, map_asset_storage, mut sound_queue) =
-			<(
-				Read<Duration>,
-				Read<EventChannel<UseEvent>>,
-				Read<AssetStorage<Map>>,
-				Write<Vec<(AssetHandle<Sound>, Entity)>>,
-			)>::fetch_mut(resources);
+		let (asset_storage, delta, use_event_channel, mut sound_queue) = <(
+			Read<AssetStorage>,
+			Read<Duration>,
+			Read<EventChannel<UseEvent>>,
+			Write<Vec<(AssetHandle<Sound>, Entity)>>,
+		)>::fetch_mut(resources);
 
 		let tracer = SectorTracer { world };
 		let mut command_buffer = CommandBuffer::new(world);
@@ -43,7 +42,7 @@ pub fn door_update_system(
 				let map_dynamic = world
 					.get_component::<MapDynamic>(linedef_ref.map_entity)
 					.unwrap();
-				let map = map_asset_storage.get(&map_dynamic.map).unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
 				let linedef = &map.linedefs[linedef_ref.index];
 
 				if let Some(back_sidedef) = &linedef.sidedefs[Side::Left as usize] {
@@ -116,7 +115,7 @@ pub fn door_update_system(
 						.unwrap()
 				};
 				let map_dynamic = map_dynamic.as_mut();
-				let map = map_asset_storage.get(&map_dynamic.map).unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
 				let linedef = &map.linedefs[linedef_ref.index];
 
 				let mut used = false;
@@ -211,7 +210,7 @@ pub fn door_update_system(
 					.unwrap()
 			};
 			let map_dynamic = map_dynamic.as_mut();
-			let map = map_asset_storage.get(&map_dynamic.map).unwrap();
+			let map = asset_storage.get(&map_dynamic.map).unwrap();
 			let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 			let sector = &map.sectors[sector_ref.index];
 
@@ -280,7 +279,7 @@ pub fn door_update_system(
 				let map_dynamic = map_dynamic.as_mut();
 				let linedef_dynamic = &mut map_dynamic.linedefs[linedef_ref.index];
 				let sidedef_dynamic = linedef_dynamic.sidedefs[0].as_mut().unwrap();
-				let map = map_asset_storage.get(&map_dynamic.map).unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
 				let linedef = &map.linedefs[linedef_ref.index];
 				let sidedef = linedef.sidedefs[0].as_ref().unwrap();
 				let sector_entity = map_dynamic.sectors[sidedef.sector_index].entity;

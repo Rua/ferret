@@ -5,7 +5,7 @@ use crate::{
 		data::{FORWARD_ACCEL, STRAFE_ACCEL},
 		door::{DoorSwitchUse, DoorUse},
 		input::{Action, Axis, UserCommand},
-		map::{Map, MapDynamic},
+		map::MapDynamic,
 		physics::{BoxCollider, EntityTracer, SolidMask},
 	},
 	geometry::{Line2, AABB3},
@@ -52,10 +52,10 @@ pub fn player_command_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 
 pub fn player_move_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 	Box::new(|world, resources| {
-		let (client, delta, map_storage, quadtree) = <(
+		let (asset_storage, client, delta, quadtree) = <(
+			Read<AssetStorage>,
 			Read<Client>,
 			Read<Duration>,
-			Read<AssetStorage<Map>>,
 			Read<Quadtree>,
 		)>::fetch_mut(resources);
 
@@ -79,7 +79,7 @@ pub fn player_move_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 
 				let transform = world.get_component::<Transform>(entity).unwrap();
 				let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
-				let map = map_storage.get(&map_dynamic.map).unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
 				let box_collider = world.get_component::<BoxCollider>(entity).unwrap();
 
 				let tracer = EntityTracer {
@@ -125,9 +125,9 @@ pub fn player_move_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 
 pub fn player_use_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 	Box::new(|world, resources| {
-		let (client, map_asset_storage, mut use_event_channel) = <(
+		let (asset_storage, client, mut use_event_channel) = <(
+			Read<AssetStorage>,
 			Read<Client>,
-			Read<AssetStorage<Map>>,
 			Write<EventChannel<UseEvent>>,
 		)>::fetch_mut(resources);
 
@@ -135,7 +135,7 @@ pub fn player_use_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 			if client.command.action_use && !client.previous_command.action_use {
 				let transform = world.get_component::<Transform>(entity).unwrap();
 				let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
-				let map = map_asset_storage.get(&map_dynamic.map).unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
 
 				const USERANGE: f32 = 64.0;
 				let yaw = transform.rotation[2].to_radians() as f32;

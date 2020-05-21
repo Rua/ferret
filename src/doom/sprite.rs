@@ -56,13 +56,13 @@ impl SpriteBuilder {
 
 	pub fn build(
 		self,
-		sprite_image_storage: &mut AssetStorage<SpriteImage>,
+		storage: &mut AssetStorage,
 		source: &mut impl DataSource,
 	) -> anyhow::Result<Sprite> {
 		let handles: Vec<_> = self
 			.image_names
 			.into_iter()
-			.map(|name| sprite_image_storage.load(&name, source))
+			.map(|name| storage.load(&name, source))
 			.collect();
 
 		let frames = self

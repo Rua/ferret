@@ -2,7 +2,7 @@ use crate::{
 	assets::AssetStorage,
 	doom::{
 		data::FRAME_TIME,
-		map::{Map, MapDynamic, SectorRef},
+		map::{MapDynamic, SectorRef},
 	},
 };
 use legion::prelude::{IntoQuery, Read, ResourceSet, Resources, World, Write};
@@ -12,8 +12,8 @@ use std::time::Duration;
 
 pub fn light_update_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 	Box::new(|world, resources| {
-		let (map_storage, delta, mut rng) =
-			<(Read<AssetStorage<Map>>, Read<Duration>, Write<Pcg64Mcg>)>::fetch_mut(resources);
+		let (asset_storage, delta, mut rng) =
+			<(Read<AssetStorage>, Read<Duration>, Write<Pcg64Mcg>)>::fetch_mut(resources);
 
 		for (sector_ref, mut light_flash) in
 			unsafe { <(Read<SectorRef>, Write<LightFlash>)>::query().iter_unchecked(world) }
@@ -30,7 +30,7 @@ pub fn light_update_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 				light_flash.time_left = new_time;
 			} else {
 				light_flash.state = !light_flash.state;
-				let map = map_storage.get(&map_dynamic.map).unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
 				let sector = &map.sectors[sector_ref.index];
 
 				let max_light = sector.light_level;
@@ -85,7 +85,7 @@ pub fn light_update_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 			let map_dynamic = map_dynamic.as_mut();
 			let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 
-			let map = map_storage.get(&map_dynamic.map).unwrap();
+			let map = asset_storage.get(&map_dynamic.map).unwrap();
 			let sector = &map.sectors[sector_ref.index];
 			let speed = light_glow.speed * delta.as_secs_f32();
 

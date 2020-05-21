@@ -4,7 +4,6 @@ pub mod textures;
 
 use crate::{
 	assets::{AssetHandle, AssetStorage},
-	component::EntityTemplate,
 	doom::{
 		components::{SpawnOnCeiling, SpawnPoint, Transform},
 		data::{LinedefTypes, MobjTypes, SectorTypes},
@@ -232,11 +231,8 @@ pub fn spawn_things(
 	resources: &mut Resources,
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
-	let (entity_types, map_storage, template_storage) = <(
-		Read<MobjTypes>,
-		Read<AssetStorage<Map>>,
-		Read<AssetStorage<EntityTemplate>>,
-	)>::fetch_mut(resources);
+	let (asset_storage, entity_types) =
+		<(Read<AssetStorage>, Read<MobjTypes>)>::fetch_mut(resources);
 
 	let mut command_buffer = CommandBuffer::new(world);
 
@@ -246,7 +242,7 @@ pub fn spawn_things(
 			.doomednums
 			.get(&thing.doomednum)
 			.ok_or(anyhow!("Doomednum not found: {}", thing.doomednum))?;
-		let template = template_storage.get(handle).unwrap();
+		let template = asset_storage.get(handle).unwrap();
 
 		// Create entity and add components
 		let entity = command_buffer.insert((), vec![()])[0];
@@ -254,7 +250,7 @@ pub fn spawn_things(
 
 		// Set entity transform
 		let z = {
-			let map = map_storage.get(&map_handle).unwrap();
+			let map = asset_storage.get(&map_handle).unwrap();
 			let ssect = map.find_subsector(thing.position);
 			map.sectors[ssect.sector_index].interval.min
 		};
@@ -276,7 +272,7 @@ pub fn spawn_things(
 	{
 		command_buffer.remove_component::<SpawnOnCeiling>(entity);
 
-		let map = map_storage.get(&map_handle).unwrap();
+		let map = asset_storage.get(&map_handle).unwrap();
 		let position = Vector2::new(transform.position[0], transform.position[1]);
 		let ssect = map.find_subsector(position);
 		let sector = &map.sectors[ssect.sector_index];
@@ -297,13 +293,13 @@ pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Res
 		.unwrap();
 
 	// Fetch entity template
-	let (entity_types, template_storage) =
-		<(Read<MobjTypes>, Read<AssetStorage<EntityTemplate>>)>::fetch_mut(resources);
+	let (asset_storage, entity_types) =
+		<(Read<AssetStorage>, Read<MobjTypes>)>::fetch_mut(resources);
 	let handle = entity_types
 		.names
 		.get("PLAYER")
 		.ok_or(anyhow!("Entity type not found: {}", "PLAYER"))?;
-	let template = template_storage.get(handle).unwrap();
+	let template = asset_storage.get(handle).unwrap();
 
 	// Create entity and add components
 	let entity = command_buffer.insert((), vec![()])[0];
@@ -321,13 +317,9 @@ pub fn spawn_map_entities(
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
 	let mut command_buffer = CommandBuffer::new(world);
-	let (map_storage, template_storage, linedef_types, sector_types) = <(
-		Read<AssetStorage<Map>>,
-		Read<AssetStorage<EntityTemplate>>,
-		Read<LinedefTypes>,
-		Read<SectorTypes>,
-	)>::fetch(resources);
-	let map = map_storage.get(&map_handle).unwrap();
+	let (asset_storage, linedef_types, sector_types) =
+		<(Read<AssetStorage>, Read<LinedefTypes>, Read<SectorTypes>)>::fetch(resources);
+	let map = asset_storage.get(&map_handle).unwrap();
 
 	// Create map entity
 	let map_entity = command_buffer.insert((), vec![()])[0];
@@ -403,7 +395,7 @@ pub fn spawn_map_entities(
 				"Linedef special type not found: {}",
 				linedef.special_type
 			))?;
-		let template = template_storage.get(handle).unwrap();
+		let template = asset_storage.get(handle).unwrap();
 		template.add_to_entity(entity, &mut command_buffer);
 	}
 
@@ -458,7 +450,7 @@ pub fn spawn_map_entities(
 				"Sector special type not found: {}",
 				sector.special_type
 			))?;
-		let template = template_storage.get(handle).unwrap();
+		let template = asset_storage.get(handle).unwrap();
 		template.add_to_entity(entity, &mut command_buffer);
 	}
 

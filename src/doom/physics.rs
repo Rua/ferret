@@ -21,11 +21,11 @@ pub struct PhysicsSystem;
 
 pub fn physics_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 	Box::new(|world, resources| {
-		let (delta, map_storage, mut quadtree) =
-			<(Read<Duration>, Read<AssetStorage<Map>>, Write<Quadtree>)>::fetch_mut(resources);
+		let (asset_storage, delta, mut quadtree) =
+			<(Read<AssetStorage>, Read<Duration>, Write<Quadtree>)>::fetch_mut(resources);
 
 		let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
-		let map = map_storage.get(&map_dynamic.map).unwrap();
+		let map = asset_storage.get(&map_dynamic.map).unwrap();
 
 		// Clone the mask so that transform_component is free to be borrowed during the loop
 		let entities: Vec<Entity> = <Read<Transform>>::query()

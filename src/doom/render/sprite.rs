@@ -1,11 +1,7 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
 	doom::{
-		client::Client,
-		components::Transform,
-		map::{Map, MapDynamic},
-		render::normal_frag,
-		sprite::{Sprite, SpriteImage},
+		client::Client, components::Transform, map::MapDynamic, render::normal_frag, sprite::Sprite,
 	},
 	geometry::Angle,
 	renderer::{AsBytes, RenderContext},
@@ -118,15 +114,10 @@ impl SpriteRenderSystem {
 		yaw: Angle,
 		view_pos: Vector3<f32>,
 	) -> anyhow::Result<AutoCommandBufferBuilder> {
-		let (client, map_storage, sprite_storage, sprite_image_storage) = <(
-			Read<Client>,
-			Read<AssetStorage<Map>>,
-			Read<AssetStorage<Sprite>>,
-			Read<AssetStorage<SpriteImage>>,
-		)>::fetch(resources);
+		let (asset_storage, client) = <(Read<AssetStorage>, Read<Client>)>::fetch(resources);
 
 		let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
-		let map = map_storage.get(&map_dynamic.map).unwrap();
+		let map = asset_storage.get(&map_dynamic.map).unwrap();
 
 		// Group draws into batches by texture
 		let mut batches: FnvHashMap<Arc<dyn ImageViewAccess + Send + Sync>, Vec<InstanceData>> =
@@ -142,7 +133,7 @@ impl SpriteRenderSystem {
 				}
 			}
 
-			let sprite = sprite_storage.get(&sprite_render.sprite).unwrap();
+			let sprite = asset_storage.get(&sprite_render.sprite).unwrap();
 			let frame = &sprite.frames()[sprite_render.frame];
 
 			// This frame has no images, nothing to render
@@ -164,7 +155,7 @@ impl SpriteRenderSystem {
 			};
 
 			let image_info = &frame[index];
-			let sprite_image = sprite_image_storage.get(&image_info.handle).unwrap();
+			let sprite_image = asset_storage.get(&image_info.handle).unwrap();
 
 			// Determine light level
 			let light_level = if sprite_render.full_bright {
@@ -186,13 +177,7 @@ impl SpriteRenderSystem {
 			};
 
 			// Add to batches
-			match batches.entry(
-				sprite_image_storage
-					.get(&image_info.handle)
-					.unwrap()
-					.image
-					.clone(),
-			) {
+			match batches.entry(asset_storage.get(&image_info.handle).unwrap().image.clone()) {
 				Entry::Occupied(mut entry) => {
 					entry.get_mut().push(instance_data);
 				}

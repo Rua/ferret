@@ -54,10 +54,10 @@ pub fn build_sound(data: Vec<u8>) -> anyhow::Result<Sound> {
 
 pub fn sound_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 	Box::new(|world, resources| {
-		let (client, sound_sender, sound_storage, mut sound_queue) = <(
+		let (asset_storage, client, sound_sender, mut sound_queue) = <(
+			Read<AssetStorage>,
 			Read<Client>,
 			Read<Sender<Box<dyn Source<Item = f32> + Send>>>,
-			Read<AssetStorage<Sound>>,
 			Write<Vec<(AssetHandle<Sound>, Entity)>>,
 		)>::fetch_mut(resources);
 
@@ -70,7 +70,7 @@ pub fn sound_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 
 			// Play new sounds
 			for (handle, entity) in sound_queue.drain(..) {
-				let sound = sound_storage.get(&handle).unwrap();
+				let sound = asset_storage.get(&handle).unwrap();
 				let (controller, source) = SoundController::new(SoundSource::new(&sound));
 
 				// Set distance falloff and stereo panning
