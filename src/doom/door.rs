@@ -14,21 +14,22 @@ use crate::{
 use legion::prelude::{
 	CommandBuffer, Entity, IntoQuery, Read, ResourceSet, Resources, World, Write,
 };
-use shrev::{EventChannel, ReaderId};
+use shrev::EventChannel;
 use std::time::Duration;
 
-pub fn door_update_system(
-	mut use_event_reader: ReaderId<UseEvent>,
-) -> Box<dyn FnMut(&mut World, &mut Resources)> {
+pub fn door_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mut Resources)> {
+	let mut use_event_reader = resources
+		.get_mut::<EventChannel<UseEvent>>()
+		.unwrap()
+		.register_reader();
+
 	Box::new(move |world, resources| {
-		let (asset_storage, delta, use_event_channel, mut sound_queue) = <(
+		let (asset_storage, use_event_channel, mut sound_queue) = <(
 			Read<AssetStorage>,
-			Read<Duration>,
 			Read<EventChannel<UseEvent>>,
 			Write<Vec<(AssetHandle<Sound>, Entity)>>,
 		)>::fetch_mut(resources);
 
-		let tracer = SectorTracer { world };
 		let mut command_buffer = CommandBuffer::new(world);
 
 		for use_event in use_event_channel.read(&mut use_event_reader) {
@@ -201,6 +202,39 @@ pub fn door_update_system(
 			}
 		}
 
+		command_buffer.write(world);
+	})
+}
+
+#[derive(Clone, Debug)]
+pub struct DoorUse {
+	pub open_sound: AssetHandle<Sound>,
+	pub close_sound: AssetHandle<Sound>,
+	pub speed: f32,
+	pub wait_time: Duration,
+}
+
+#[derive(Clone, Debug)]
+pub struct DoorSwitchUse {
+	pub open_sound: AssetHandle<Sound>,
+	pub close_sound: AssetHandle<Sound>,
+	pub switch_sound: AssetHandle<Sound>,
+	pub switch_time: Duration,
+	pub speed: f32,
+	pub wait_time: Duration,
+}
+
+pub fn door_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
+	Box::new(move |world, resources| {
+		let (asset_storage, delta, mut sound_queue) = <(
+			Read<AssetStorage>,
+			Read<Duration>,
+			Write<Vec<(AssetHandle<Sound>, Entity)>>,
+		)>::fetch_mut(resources);
+
+		let tracer = SectorTracer { world };
+		let mut command_buffer = CommandBuffer::new(world);
+
 		for (entity, (sector_ref, mut door_active)) in unsafe {
 			<(Read<SectorRef>, Write<DoorActive>)>::query().iter_entities_unchecked(world)
 		} {
@@ -265,6 +299,34 @@ pub fn door_update_system(
 			}
 		}
 
+		command_buffer.write(world);
+	})
+}
+
+#[derive(Clone, Debug)]
+pub struct DoorActive {
+	pub open_sound: AssetHandle<Sound>,
+	pub open_height: f32,
+
+	pub close_sound: AssetHandle<Sound>,
+	pub close_height: f32,
+
+	pub state: DoorState,
+	pub speed: f32,
+	pub time_left: Duration,
+	pub wait_time: Duration,
+}
+
+pub fn switch_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
+	Box::new(move |world, resources| {
+		let (asset_storage, delta, mut sound_queue) = <(
+			Read<AssetStorage>,
+			Read<Duration>,
+			Write<Vec<(AssetHandle<Sound>, Entity)>>,
+		)>::fetch_mut(resources);
+
+		let mut command_buffer = CommandBuffer::new(world);
+
 		for (entity, (linedef_ref, mut switch_active)) in unsafe {
 			<(Read<LinedefRef>, Write<SwitchActive>)>::query().iter_entities_unchecked(world)
 		} {
@@ -293,38 +355,6 @@ pub fn door_update_system(
 
 		command_buffer.write(world);
 	})
-}
-
-#[derive(Clone, Debug)]
-pub struct DoorUse {
-	pub open_sound: AssetHandle<Sound>,
-	pub close_sound: AssetHandle<Sound>,
-	pub speed: f32,
-	pub wait_time: Duration,
-}
-
-#[derive(Clone, Debug)]
-pub struct DoorSwitchUse {
-	pub open_sound: AssetHandle<Sound>,
-	pub close_sound: AssetHandle<Sound>,
-	pub switch_sound: AssetHandle<Sound>,
-	pub switch_time: Duration,
-	pub speed: f32,
-	pub wait_time: Duration,
-}
-
-#[derive(Clone, Debug)]
-pub struct DoorActive {
-	pub open_sound: AssetHandle<Sound>,
-	pub open_height: f32,
-
-	pub close_sound: AssetHandle<Sound>,
-	pub close_height: f32,
-
-	pub state: DoorState,
-	pub speed: f32,
-	pub time_left: Duration,
-	pub wait_time: Duration,
 }
 
 #[derive(Clone, Debug)]
