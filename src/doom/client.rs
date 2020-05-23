@@ -123,7 +123,9 @@ pub fn player_move_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 	})
 }
 
-pub fn player_use_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
+pub fn player_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mut Resources)> {
+	resources.insert(EventChannel::<UseEvent>::new());
+
 	Box::new(|world, resources| {
 		let (asset_storage, client, mut use_event_channel) = <(
 			Read<AssetStorage>,

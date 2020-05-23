@@ -27,7 +27,6 @@ use legion::{
 use nalgebra::{Matrix4, Vector3};
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
-use shrev::EventChannel;
 use std::{
 	path::PathBuf,
 	time::{Duration, Instant},
@@ -102,7 +101,6 @@ fn main() -> anyhow::Result<()> {
 	resources.insert(Vec::<(AssetHandle<Sound>, Entity)>::new());
 	resources.insert(doom::client::Client::default());
 	resources.insert(doom::data::FRAME_TIME);
-	resources.insert(EventChannel::<doom::client::UseEvent>::new());
 
 	// Select map
 	let map =
@@ -130,9 +128,9 @@ fn main() -> anyhow::Result<()> {
 	let mut update_dispatcher = Builder::default()
 		.add_thread_local_fn(doom::client::player_command_system())
 		.add_thread_local_fn(doom::client::player_move_system())
-		.add_thread_local_fn(doom::client::player_use_system())
+		.add_thread_local_fn(doom::client::player_use_system(&mut resources))
 		.add_thread_local_fn(doom::camera::camera_system())
-		.add_thread_local_fn(doom::physics::physics_system())
+		.add_thread_local_fn(doom::physics::physics_system(&mut resources))
 		.add_thread_local_fn(doom::door::door_use_system(&mut resources))
 		.add_thread_local_fn(doom::door::door_active_system())
 		.add_thread_local_fn(doom::door::switch_active_system())

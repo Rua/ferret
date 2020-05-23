@@ -13,16 +13,23 @@ use bitflags::bitflags;
 use lazy_static::lazy_static;
 use legion::prelude::{component, Entity, IntoQuery, Read, ResourceSet, Resources, World, Write};
 use nalgebra::Vector3;
+use shrev::EventChannel;
 use smallvec::SmallVec;
 use std::time::Duration;
 
 #[derive(Default)]
 pub struct PhysicsSystem;
 
-pub fn physics_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
+pub fn physics_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mut Resources)> {
+	resources.insert(EventChannel::<TouchEvent>::new());
+
 	Box::new(|world, resources| {
-		let (asset_storage, delta, mut quadtree) =
-			<(Read<AssetStorage>, Read<Duration>, Write<Quadtree>)>::fetch_mut(resources);
+		let (asset_storage, delta, mut quadtree, mut touch_event_channel) = <(
+			Read<AssetStorage>,
+			Read<Duration>,
+			Write<Quadtree>,
+			Write<EventChannel<TouchEvent>>,
+		)>::fetch_mut(resources);
 
 		let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
 		let map = asset_storage.get(&map_dynamic.map).unwrap();
@@ -45,7 +52,7 @@ pub fn physics_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 			}
 
 			quadtree.remove(entity);
-			let mut touched: SmallVec<[Entity; 8]> = SmallVec::new();
+			let mut touch_events: SmallVec<[TouchEvent; 8]> = SmallVec::new();
 
 			let tracer = EntityTracer {
 				map,
@@ -54,7 +61,7 @@ pub fn physics_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 				world,
 			};
 
-			// Check and touch ground
+			// Check for ground
 			let trace = tracer.trace(
 				&entity_bbox.offset(new_position),
 				Vector3::new(0.0, 0.0, -0.25),
@@ -62,8 +69,21 @@ pub fn physics_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 			);
 
 			if let Some(collision) = trace.collision {
-				touched.push(collision.entity);
+				// Entity is on ground, apply friction and send touch event
+				// TODO make this work with any ground normal
+				let factor = FRICTION.powf(delta.as_secs_f32());
+				new_velocity[0] *= factor;
+				new_velocity[1] *= factor;
 				new_velocity[2] = 0.0;
+
+				touch_events.push(TouchEvent {
+					toucher: entity,
+					touched: collision.entity,
+					collision: None,
+				});
+			} else {
+				// Entity isn't on ground, apply gravity
+				new_velocity[2] -= GRAVITY * delta.as_secs_f32();
 			}
 
 			// Apply the move
@@ -71,29 +91,14 @@ pub fn physics_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 				&tracer,
 				&mut new_position,
 				&mut new_velocity,
-				&mut touched,
+				&mut touch_events,
+				entity,
 				&entity_bbox,
 				SolidMask::NON_MONSTER, // TODO solid mask
 				*delta,
 			);
 
-			// Check ground again after move
-			let trace = tracer.trace(
-				&entity_bbox.offset(new_position),
-				Vector3::new(0.0, 0.0, -0.25),
-				SolidMask::NON_MONSTER, // TODO solid mask
-			);
-
-			if trace.collision.is_some() {
-				// Entity is on ground, apply friction
-				let factor = FRICTION.powf(delta.as_secs_f32());
-				new_velocity[0] *= factor;
-				new_velocity[1] *= factor;
-			} else {
-				// Entity isn't on ground, apply gravity
-				new_velocity[2] -= GRAVITY * delta.as_secs_f32();
-			}
-
+			// Set new position and velocity
 			unsafe {
 				world
 					.get_component_mut_unchecked::<Transform>(entity)
@@ -105,6 +110,9 @@ pub fn physics_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 					.velocity = new_velocity;
 			}
 			quadtree.insert(entity, &AABB2::from(&entity_bbox.offset(new_position)));
+
+			// Send touch events
+			touch_event_channel.iter_write(touch_events);
 		}
 	})
 }
@@ -113,7 +121,8 @@ fn step_slide_move(
 	tracer: &EntityTracer,
 	position: &mut Vector3<f32>,
 	velocity: &mut Vector3<f32>,
-	touched: &mut SmallVec<[Entity; 8]>,
+	touch_events: &mut SmallVec<[TouchEvent; 8]>,
+	entity: Entity,
 	entity_bbox: &AABB3,
 	solid_mask: SolidMask,
 	mut time_left: Duration,
@@ -125,18 +134,41 @@ fn step_slide_move(
 		let move_step = *velocity * time_left.as_secs_f32();
 		let trace = tracer.trace(&entity_bbox.offset(*position), move_step, solid_mask);
 
+		// Commit to the move
 		*position += trace.move_step;
 		time_left = time_left
 			.checked_sub(time_left.mul_f32(trace.fraction))
 			.unwrap_or_default();
 
-		for entity in trace.touched.iter().copied() {
-			if !touched.contains(&entity) {
-				touched.push(entity);
+		for touched in trace.touched.iter().copied() {
+			if touch_events.iter().find(|t| t.touched == touched).is_none() {
+				touch_events.push(TouchEvent {
+					toucher: entity,
+					touched,
+					collision: None,
+				});
 			}
 		}
 
 		if let Some(collision) = trace.collision {
+			let speed = -velocity.dot(&collision.normal);
+			assert!(speed > 0.0);
+
+			if touch_events
+				.iter()
+				.find(|t| t.touched == collision.entity)
+				.is_none()
+			{
+				touch_events.push(TouchEvent {
+					toucher: entity,
+					touched: collision.entity,
+					collision: Some(TouchEventCollision {
+						normal: collision.normal,
+						speed,
+					}),
+				});
+			}
+
 			if let Some(step_z) = collision.step_z {
 				// Try to step up
 				let move_step = Vector3::new(0.0, 0.0, step_z - position[2]);
@@ -147,9 +179,13 @@ fn step_slide_move(
 					if trace.collision.is_none() {
 						*position += trace.move_step;
 
-						for entity in trace.touched.iter().copied() {
-							if !touched.contains(&entity) {
-								touched.push(entity);
+						for touched in trace.touched.iter().copied() {
+							if !touch_events.iter().find(|t| t.touched == touched).is_some() {
+								touch_events.push(TouchEvent {
+									toucher: entity,
+									touched,
+									collision: None,
+								});
 							}
 						}
 
@@ -159,7 +195,7 @@ fn step_slide_move(
 			}
 
 			// Push back against the collision
-			*velocity -= collision.normal * velocity.dot(&collision.normal) * 1.01;
+			*velocity += collision.normal * speed * 1.01;
 
 			// Avoid bouncing too much
 			if velocity.dot(&original_velocity) <= 0.0 {
@@ -179,6 +215,19 @@ pub struct BoxCollider {
 	pub height: f32,
 	pub radius: f32,
 	pub solid_mask: SolidMask,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct TouchEvent {
+	pub toucher: Entity,
+	pub touched: Entity,
+	pub collision: Option<TouchEventCollision>,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct TouchEventCollision {
+	pub normal: Vector3<f32>,
+	pub speed: f32,
 }
 
 bitflags! {
@@ -300,7 +349,6 @@ impl<'a> EntityTracer<'a> {
 										},
 									});
 									trace_touched.retain(|(f, _)| *f <= fraction);
-									trace_touched.push((fraction, linedef_dynamic.entity));
 								} else if fraction <= trace_fraction {
 									trace_touched.push((fraction, linedef_dynamic.entity));
 								}
@@ -327,7 +375,6 @@ impl<'a> EntityTracer<'a> {
 									step_z: None,
 								});
 								trace_touched.retain(|(f, _)| *f <= fraction);
-								trace_touched.push((fraction, linedef_dynamic.entity));
 							} else if fraction <= trace_fraction {
 								trace_touched.push((fraction, linedef_dynamic.entity));
 							}
@@ -368,7 +415,6 @@ impl<'a> EntityTracer<'a> {
 									step_z: None,
 								});
 								trace_touched.retain(|(f, _)| *f <= fraction);
-								trace_touched.push((fraction, sector_dynamic.entity));
 							} else if fraction <= trace_fraction {
 								trace_touched.push((fraction, sector_dynamic.entity));
 							}
@@ -421,7 +467,6 @@ impl<'a> EntityTracer<'a> {
 								step_z: Some(other_bbox[2].max + DISTANCE_EPSILON),
 							});
 							trace_touched.retain(|(f, _)| *f <= fraction);
-							trace_touched.push((fraction, entity));
 						} else if fraction <= trace_fraction {
 							trace_touched.push((fraction, entity));
 						}
@@ -486,7 +531,6 @@ impl<'a> SectorTracer<'a> {
 							step_z: None,
 						});
 						trace_touched.retain(|(f, _)| *f <= fraction);
-						trace_touched.push((fraction, entity));
 					} else if fraction <= trace_fraction {
 						trace_touched.push((fraction, entity));
 					}
