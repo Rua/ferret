@@ -4,6 +4,7 @@ use crate::{
 	component::EntityTemplate,
 	doom::{
 		camera::Camera,
+		client::User,
 		components::{SpawnOnCeiling, SpawnPoint, Velocity},
 		data::FRAME_TIME,
 		physics::{BoxCollider, SolidMask},
@@ -71,6 +72,9 @@ impl MobjTypes {
 				sprite: asset_storage.load("PLAY", &mut *loader),
 				frame: 0,
 				full_bright: false,
+			})
+			.with_component(User {
+				error_sound: asset_storage.load("DSNOWAY", &mut *loader),
 			})
 			.with_component(Velocity::default());
 		let handle = asset_storage.insert(template);

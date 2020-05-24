@@ -1,5 +1,6 @@
 use crate::{
-	assets::AssetStorage,
+	assets::{AssetHandle, AssetStorage},
+	audio::Sound,
 	doom::{
 		components::{Transform, Velocity},
 		data::{FORWARD_ACCEL, STRAFE_ACCEL},
@@ -127,15 +128,18 @@ pub fn player_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World,
 	resources.insert(EventChannel::<UseEvent>::new());
 
 	Box::new(|world, resources| {
-		let (asset_storage, client, mut use_event_channel) = <(
-			Read<AssetStorage>,
-			Read<Client>,
-			Write<EventChannel<UseEvent>>,
-		)>::fetch_mut(resources);
+		let (asset_storage, client, mut use_event_channel, mut sound_queue) =
+			<(
+				Read<AssetStorage>,
+				Read<Client>,
+				Write<EventChannel<UseEvent>>,
+				Write<Vec<(AssetHandle<Sound>, Entity)>>,
+			)>::fetch_mut(resources);
 
 		if let Some(entity) = client.entity {
 			if client.command.action_use && !client.previous_command.action_use {
 				let transform = world.get_component::<Transform>(entity).unwrap();
+				let user = world.get_component::<User>(entity).unwrap();
 				let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 
@@ -185,6 +189,8 @@ pub fn player_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World,
 
 					if world.get_component::<UseAction>(linedef_entity).is_some() {
 						use_event_channel.single_write(UseEvent { linedef_entity });
+					} else {
+						sound_queue.push((user.error_sound.clone(), entity));
 					}
 				}
 			}
@@ -193,12 +199,17 @@ pub fn player_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World,
 }
 
 #[derive(Clone, Debug)]
+pub struct User {
+	pub error_sound: AssetHandle<Sound>,
+}
+
+#[derive(Clone, Debug)]
 pub enum UseAction {
 	DoorUse(DoorUse),
 	DoorSwitchUse(DoorSwitchUse),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct UseEvent {
 	pub linedef_entity: Entity,
 }
