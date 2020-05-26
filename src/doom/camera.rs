@@ -49,25 +49,27 @@ pub fn camera_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mu
 			}
 		}
 
-		// Set camera position
 		for (velocity, mut camera) in <(Read<Velocity>, Write<Camera>)>::query().iter_mut(world) {
-			camera.deviation_position += camera.deviation_velocity * delta.as_secs_f32();
+			// Calculate deviation
+			if camera.deviation_position != 0.0 || camera.deviation_velocity != 0.0 {
+				camera.deviation_position += camera.deviation_velocity * delta.as_secs_f32();
+				camera.deviation_velocity += 0.25 * FRAME_RATE * FRAME_RATE * delta.as_secs_f32();
 
-			if camera.deviation_position > 0.0 {
-				// Hit the top
-				camera.deviation_position = 0.0;
-				camera.deviation_velocity = 0.0;
-			} else if camera.deviation_position < -camera.base[2] * 0.5 {
-				// Hit the bottom, bounce back up
-				camera.deviation_position = -camera.base[2] * 0.5;
-
-				if camera.deviation_velocity <= 0.0 {
+				if camera.deviation_position > 0.0 {
+					// Hit the top
+					camera.deviation_position = 0.0;
 					camera.deviation_velocity = 0.0;
+				} else if camera.deviation_position < -camera.base[2] * 0.5 {
+					// Hit the bottom, bounce back up
+					camera.deviation_position = -camera.base[2] * 0.5;
+
+					if camera.deviation_velocity <= 0.0 {
+						camera.deviation_velocity = 0.0;
+					}
 				}
-			} else {
-				camera.deviation_velocity += 0.25 / delta.as_secs_f32();
 			}
 
+			// Calculate movement bobbing
 			let div = delta.as_secs_f64() / camera.bob_period.as_secs_f64(); // TODO replace with div_duration_f64 once it's stable
 			camera.bob_angle += Angle::from_units(div);
 
@@ -75,6 +77,7 @@ pub fn camera_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mu
 			let amplitude = (velocity2.norm_squared() * 0.25).min(camera.bob_max) * 0.5;
 			let bob = amplitude * camera.bob_angle.sin() as f32;
 
+			// Set camera position
 			camera.offset[2] = camera.deviation_position + bob;
 		}
 	})
