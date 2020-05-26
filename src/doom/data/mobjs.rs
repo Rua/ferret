@@ -11,6 +11,7 @@ use crate::{
 		render::sprite::SpriteRender,
 		wad::WadLoader,
 	},
+	geometry::Angle,
 };
 use fnv::FnvHashMap;
 use legion::prelude::{ResourceSet, Resources, Write};
@@ -64,9 +65,13 @@ impl MobjTypes {
 			})
 			.with_component(Camera {
 				base: Vector3::new(0.0, 0.0, 41.0),
+				offset: Vector3::zeros(),
+				bob_angle: Angle::default(),
 				bob_max: 16.0,
 				bob_period: 20 * FRAME_TIME,
-				..Camera::default()
+				deviation_position: 0.0,
+				deviation_velocity: 0.0,
+				impact_sound: asset_storage.load("DSOOF", &mut *loader),
 			})
 			.with_component(SpriteRender {
 				sprite: asset_storage.load("PLAY", &mut *loader),

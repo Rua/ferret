@@ -69,13 +69,13 @@ pub fn physics_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &m
 			);
 
 			if let Some(collision) = trace.collision {
-				// Entity is on ground, apply friction and send touch event
+				// Entity is on ground, apply friction
 				// TODO make this work with any ground normal
 				let factor = FRICTION.powf(delta.as_secs_f32());
 				new_velocity[0] *= factor;
 				new_velocity[1] *= factor;
-				new_velocity[2] = 0.0;
 
+				// Send touch event
 				touch_events.push(TouchEvent {
 					toucher: entity,
 					touched: collision.entity,
@@ -154,18 +154,21 @@ fn step_slide_move(
 			let speed = -velocity.dot(&collision.normal);
 			assert!(speed > 0.0);
 
-			if touch_events
-				.iter()
+			let touch_collision = Some(TouchEventCollision {
+				normal: collision.normal,
+				speed,
+			});
+
+			if let Some(event) = touch_events
+				.iter_mut()
 				.find(|t| t.touched == collision.entity)
-				.is_none()
 			{
+				event.collision = touch_collision;
+			} else {
 				touch_events.push(TouchEvent {
 					toucher: entity,
 					touched: collision.entity,
-					collision: Some(TouchEventCollision {
-						normal: collision.normal,
-						speed,
-					}),
+					collision: touch_collision,
 				});
 			}
 
@@ -180,7 +183,7 @@ fn step_slide_move(
 						*position += trace.move_step;
 
 						for touched in trace.touched.iter().copied() {
-							if !touch_events.iter().find(|t| t.touched == touched).is_some() {
+							if touch_events.iter().find(|t| t.touched == touched).is_none() {
 								touch_events.push(TouchEvent {
 									toucher: entity,
 									touched,
@@ -195,7 +198,7 @@ fn step_slide_move(
 			}
 
 			// Push back against the collision
-			*velocity += collision.normal * speed * 1.01;
+			*velocity += collision.normal * speed;
 
 			// Avoid bouncing too much
 			if velocity.dot(&original_velocity) <= 0.0 {
@@ -332,23 +335,23 @@ impl<'a> EntityTracer<'a> {
 							if let Some((fraction, normal)) =
 								trace_planes(&entity_bbox, move_step, iter)
 							{
-								if fraction < trace_fraction
-									&& entity_solid_mask.intersects(solid_mask)
-								{
-									trace_fraction = fraction;
-									trace_move_step = move_step * fraction;
-									trace_collision = Some(TraceCollision {
-										entity: linedef_dynamic.entity,
-										normal,
-										step_z: if step
-											&& !entity_solid_mask.intersects(linedef.solid_mask)
-										{
-											Some(interval.max + DISTANCE_EPSILON)
-										} else {
-											None
-										},
-									});
-									trace_touched.retain(|(f, _)| *f <= fraction);
+								if entity_solid_mask.intersects(solid_mask) {
+									if fraction < trace_fraction {
+										trace_fraction = fraction;
+										trace_move_step = move_step * fraction;
+										trace_collision = Some(TraceCollision {
+											entity: linedef_dynamic.entity,
+											normal,
+											step_z: if step
+												&& !entity_solid_mask.intersects(linedef.solid_mask)
+											{
+												Some(interval.max + DISTANCE_EPSILON)
+											} else {
+												None
+											},
+										});
+										trace_touched.retain(|(f, _)| *f <= fraction);
+									}
 								} else if fraction <= trace_fraction {
 									trace_touched.push((fraction, linedef_dynamic.entity));
 								}
@@ -366,15 +369,17 @@ impl<'a> EntityTracer<'a> {
 						if let Some((fraction, normal)) =
 							trace_planes(&entity_bbox, move_step, iter)
 						{
-							if fraction < trace_fraction {
-								trace_fraction = fraction;
-								trace_move_step = move_step * fraction;
-								trace_collision = Some(TraceCollision {
-									entity: linedef_dynamic.entity,
-									normal,
-									step_z: None,
-								});
-								trace_touched.retain(|(f, _)| *f <= fraction);
+							if entity_solid_mask.intersects(SolidMask::all()) {
+								if fraction < trace_fraction {
+									trace_fraction = fraction;
+									trace_move_step = move_step * fraction;
+									trace_collision = Some(TraceCollision {
+										entity: linedef_dynamic.entity,
+										normal,
+										step_z: None,
+									});
+									trace_touched.retain(|(f, _)| *f <= fraction);
+								}
 							} else if fraction <= trace_fraction {
 								trace_touched.push((fraction, linedef_dynamic.entity));
 							}
@@ -406,15 +411,17 @@ impl<'a> EntityTracer<'a> {
 						if let Some((fraction, normal)) =
 							trace_planes(&entity_bbox, move_step, iter)
 						{
-							if fraction < trace_fraction {
-								trace_fraction = fraction;
-								trace_move_step = move_step * fraction;
-								trace_collision = Some(TraceCollision {
-									entity: sector_dynamic.entity,
-									normal,
-									step_z: None,
-								});
-								trace_touched.retain(|(f, _)| *f <= fraction);
+							if entity_solid_mask.intersects(SolidMask::all()) {
+								if fraction < trace_fraction {
+									trace_fraction = fraction;
+									trace_move_step = move_step * fraction;
+									trace_collision = Some(TraceCollision {
+										entity: sector_dynamic.entity,
+										normal,
+										step_z: None,
+									});
+									trace_touched.retain(|(f, _)| *f <= fraction);
+								}
 							} else if fraction <= trace_fraction {
 								trace_touched.push((fraction, sector_dynamic.entity));
 							}
@@ -456,17 +463,17 @@ impl<'a> EntityTracer<'a> {
 					if let Some((fraction, normal)) =
 						trace_planes(&entity_bbox, move_step, &other_bbox.planes())
 					{
-						if fraction < trace_fraction
-							&& entity_solid_mask.intersects(box_collider.solid_mask)
-						{
-							trace_fraction = fraction;
-							trace_move_step = move_step * fraction;
-							trace_collision = Some(TraceCollision {
-								entity,
-								normal,
-								step_z: Some(other_bbox[2].max + DISTANCE_EPSILON),
-							});
-							trace_touched.retain(|(f, _)| *f <= fraction);
+						if entity_solid_mask.intersects(box_collider.solid_mask) {
+							if fraction < trace_fraction {
+								trace_fraction = fraction;
+								trace_move_step = move_step * fraction;
+								trace_collision = Some(TraceCollision {
+									entity,
+									normal,
+									step_z: Some(other_bbox[2].max + DISTANCE_EPSILON),
+								});
+								trace_touched.retain(|(f, _)| *f <= fraction);
+							}
 						} else if fraction <= trace_fraction {
 							trace_touched.push((fraction, entity));
 						}
