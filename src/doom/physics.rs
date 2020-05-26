@@ -21,15 +21,18 @@ use std::time::Duration;
 pub struct PhysicsSystem;
 
 pub fn physics_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mut Resources)> {
+	resources.insert(EventChannel::<StepEvent>::new());
 	resources.insert(EventChannel::<TouchEvent>::new());
 
 	Box::new(|world, resources| {
-		let (asset_storage, delta, mut quadtree, mut touch_event_channel) = <(
-			Read<AssetStorage>,
-			Read<Duration>,
-			Write<Quadtree>,
-			Write<EventChannel<TouchEvent>>,
-		)>::fetch_mut(resources);
+		let (asset_storage, delta, mut quadtree, mut step_event_channel, mut touch_event_channel) =
+			<(
+				Read<AssetStorage>,
+				Read<Duration>,
+				Write<Quadtree>,
+				Write<EventChannel<StepEvent>>,
+				Write<EventChannel<TouchEvent>>,
+			)>::fetch_mut(resources);
 
 		let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
 		let map = asset_storage.get(&map_dynamic.map).unwrap();
@@ -52,6 +55,7 @@ pub fn physics_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &m
 			}
 
 			quadtree.remove(entity);
+			let mut step_events: SmallVec<[StepEvent; 8]> = SmallVec::new();
 			let mut touch_events: SmallVec<[TouchEvent; 8]> = SmallVec::new();
 
 			let tracer = EntityTracer {
@@ -91,6 +95,7 @@ pub fn physics_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &m
 				&tracer,
 				&mut new_position,
 				&mut new_velocity,
+				&mut step_events,
 				&mut touch_events,
 				entity,
 				&entity_bbox,
@@ -111,7 +116,8 @@ pub fn physics_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &m
 			}
 			quadtree.insert(entity, &AABB2::from(&entity_bbox.offset(new_position)));
 
-			// Send touch events
+			// Send events
+			step_event_channel.iter_write(step_events);
 			touch_event_channel.iter_write(touch_events);
 		}
 	})
@@ -121,6 +127,7 @@ fn step_slide_move(
 	tracer: &EntityTracer,
 	position: &mut Vector3<f32>,
 	velocity: &mut Vector3<f32>,
+	step_events: &mut SmallVec<[StepEvent; 8]>,
 	touch_events: &mut SmallVec<[TouchEvent; 8]>,
 	entity: Entity,
 	entity_bbox: &AABB3,
@@ -181,6 +188,10 @@ fn step_slide_move(
 
 					if trace.collision.is_none() {
 						*position += trace.move_step;
+						step_events.push(StepEvent {
+							entity,
+							height: move_step[2],
+						});
 
 						for touched in trace.touched.iter().copied() {
 							if touch_events.iter().find(|t| t.touched == touched).is_none() {
@@ -231,6 +242,12 @@ pub struct TouchEvent {
 pub struct TouchEventCollision {
 	pub normal: Vector3<f32>,
 	pub speed: f32,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct StepEvent {
+	pub entity: Entity,
+	pub height: f32,
 }
 
 bitflags! {

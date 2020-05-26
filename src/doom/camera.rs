@@ -1,7 +1,11 @@
 use crate::{
 	assets::AssetHandle,
 	audio::Sound,
-	doom::{components::Velocity, data::FRAME_RATE, physics::TouchEvent},
+	doom::{
+		components::Velocity,
+		data::FRAME_RATE,
+		physics::{StepEvent, TouchEvent},
+	},
 	geometry::Angle,
 };
 use legion::prelude::{Entity, IntoQuery, Read, ResourceSet, Resources, World, Write};
@@ -22,19 +26,25 @@ pub struct Camera {
 }
 
 pub fn camera_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mut Resources)> {
+	let mut step_event_reader = resources
+		.get_mut::<EventChannel<StepEvent>>()
+		.unwrap()
+		.register_reader();
 	let mut touch_event_reader = resources
 		.get_mut::<EventChannel<TouchEvent>>()
 		.unwrap()
 		.register_reader();
 
 	Box::new(move |world, resources| {
-		let (delta, touch_event_channel, mut sound_queue) = <(
-			Read<Duration>,
-			Read<EventChannel<TouchEvent>>,
-			Write<Vec<(AssetHandle<Sound>, Entity)>>,
-		)>::fetch_mut(resources);
+		let (delta, step_event_channel, touch_event_channel, mut sound_queue) =
+			<(
+				Read<Duration>,
+				Read<EventChannel<StepEvent>>,
+				Read<EventChannel<TouchEvent>>,
+				Write<Vec<(AssetHandle<Sound>, Entity)>>,
+			)>::fetch_mut(resources);
 
-		// Handle entity hitting the ground
+		// Entity hitting the ground
 		for touch_event in touch_event_channel.read(&mut touch_event_reader) {
 			if let (Some(mut camera), Some(collision)) = (
 				world.get_component_mut::<Camera>(touch_event.toucher),
@@ -46,6 +56,14 @@ pub fn camera_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mu
 					camera.deviation_velocity = -down_speed / 8.0;
 					sound_queue.push((camera.impact_sound.clone(), touch_event.toucher));
 				}
+			}
+		}
+
+		// Entity stepping up
+		for step_event in step_event_channel.read(&mut step_event_reader) {
+			if let Some(mut camera) = world.get_component_mut::<Camera>(step_event.entity) {
+				camera.deviation_position -= step_event.height;
+				camera.deviation_velocity = -camera.deviation_position / 8.0 * FRAME_RATE;
 			}
 		}
 
@@ -65,7 +83,7 @@ pub fn camera_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mu
 					camera.deviation_position = -camera.base[2] * 0.5;
 
 					if camera.deviation_velocity < 0.0 {
-						camera.deviation_velocity = 0.0;
+						camera.deviation_velocity = FRAME_RATE;
 					}
 				}
 			}
