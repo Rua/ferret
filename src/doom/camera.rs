@@ -52,8 +52,9 @@ pub fn camera_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mu
 		for (velocity, mut camera) in <(Read<Velocity>, Write<Camera>)>::query().iter_mut(world) {
 			// Calculate deviation
 			if camera.deviation_position != 0.0 || camera.deviation_velocity != 0.0 {
+				const DEVIATION_ACCEL: f32 = 0.25 * FRAME_RATE * FRAME_RATE;
 				camera.deviation_position += camera.deviation_velocity * delta.as_secs_f32();
-				camera.deviation_velocity += 0.25 * FRAME_RATE * FRAME_RATE * delta.as_secs_f32();
+				camera.deviation_velocity += DEVIATION_ACCEL * delta.as_secs_f32();
 
 				if camera.deviation_position > 0.0 {
 					// Hit the top
@@ -63,7 +64,7 @@ pub fn camera_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mu
 					// Hit the bottom, bounce back up
 					camera.deviation_position = -camera.base[2] * 0.5;
 
-					if camera.deviation_velocity <= 0.0 {
+					if camera.deviation_velocity < 0.0 {
 						camera.deviation_velocity = 0.0;
 					}
 				}
