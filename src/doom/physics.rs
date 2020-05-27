@@ -3,6 +3,7 @@ use crate::{
 	doom::{
 		components::{Transform, Velocity},
 		data::{FRICTION, GRAVITY},
+		door::DoorTouch,
 		map::{Map, MapDynamic, NodeChild, Subsector},
 	},
 	geometry::{Interval, Plane3, AABB2, AABB3},
@@ -244,6 +245,11 @@ pub struct TouchEventCollision {
 	pub speed: f32,
 }
 
+#[derive(Clone, Debug)]
+pub enum TouchAction {
+	DoorTouch(DoorTouch),
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct StepEvent {
 	pub entity: Entity,
@@ -293,7 +299,7 @@ impl<'a> EntityTracer<'a> {
 		let mut trace_collision = None;
 		let mut trace_touched: SmallVec<[(f32, Entity); 8]> = SmallVec::new();
 
-		let zero_bbox = AABB3::zero();
+		let zero_bbox = AABB3::from_point(entity_bbox.middle());
 		let move_bbox = entity_bbox.union(&entity_bbox.offset(move_step));
 		let move_bbox2 = AABB2::from(&move_bbox);
 

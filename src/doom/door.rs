@@ -7,7 +7,7 @@ use crate::{
 			textures::{TextureType, Wall},
 			LinedefRef, Map, MapDynamic, SectorRef, SidedefSlot,
 		},
-		physics::SectorTracer,
+		physics::{SectorTracer, TouchAction, TouchEvent},
 	},
 	geometry::Side,
 };
@@ -16,6 +16,38 @@ use legion::prelude::{
 };
 use shrev::EventChannel;
 use std::time::Duration;
+
+#[derive(Clone, Debug)]
+pub struct DoorTrigger {
+	pub start_state: DoorState,
+	pub end_state: DoorState,
+	pub speed: f32,
+
+	pub open_sound: AssetHandle<Sound>,
+	pub open_time: Duration,
+
+	pub close_sound: AssetHandle<Sound>,
+	pub close_time: Duration,
+}
+
+#[derive(Clone, Debug)]
+pub struct DoorUse {
+	pub trigger: DoorTrigger,
+	pub retrigger: bool,
+}
+
+#[derive(Clone, Debug)]
+pub struct DoorSwitchUse {
+	pub trigger: DoorTrigger,
+	pub switch_sound: AssetHandle<Sound>,
+	pub retrigger_time: Option<Duration>,
+}
+
+#[derive(Clone, Debug)]
+pub struct DoorTouch {
+	pub trigger: DoorTrigger,
+	pub retrigger: bool,
+}
 
 pub fn door_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mut Resources)> {
 	let mut use_event_reader = resources
@@ -33,20 +65,22 @@ pub fn door_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &
 		let mut command_buffer = CommandBuffer::new(world);
 
 		for use_event in use_event_channel.read(&mut use_event_reader) {
+			let linedef_ref = world
+				.get_component::<LinedefRef>(use_event.linedef_entity)
+				.unwrap();
+			let mut map_dynamic = unsafe {
+				world
+					.get_component_mut_unchecked::<MapDynamic>(linedef_ref.map_entity)
+					.unwrap()
+			};
+			let map = asset_storage.get(&map_dynamic.map).unwrap();
+			let linedef = &map.linedefs[linedef_ref.index];
+
 			match world
 				.get_component::<UseAction>(use_event.linedef_entity)
 				.as_deref()
 			{
 				Some(UseAction::DoorUse(door_use)) => {
-					let linedef_ref = world
-						.get_component::<LinedefRef>(use_event.linedef_entity)
-						.unwrap();
-					let map_dynamic = world
-						.get_component::<MapDynamic>(linedef_ref.map_entity)
-						.unwrap();
-					let map = asset_storage.get(&map_dynamic.map).unwrap();
-					let linedef = &map.linedefs[linedef_ref.index];
-
 					if let Some(back_sidedef) = &linedef.sidedefs[Side::Left as usize] {
 						let sector_index = back_sidedef.sector_index;
 						let sector_entity = map_dynamic.sectors[sector_index].entity;
@@ -66,7 +100,8 @@ pub fn door_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &
 								}
 								DoorState::Closed => unreachable!(),
 							}
-						} else if door_use.trigger.activate(
+						} else if activate(
+							&door_use.trigger,
 							&mut command_buffer,
 							sector_index,
 							&map,
@@ -87,40 +122,14 @@ pub fn door_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &
 						continue;
 					}
 
-					let linedef_ref = world
-						.get_component::<LinedefRef>(use_event.linedef_entity)
-						.unwrap();
-					let mut map_dynamic = unsafe {
-						world
-							.get_component_mut_unchecked::<MapDynamic>(linedef_ref.map_entity)
-							.unwrap()
-					};
-					let map_dynamic = map_dynamic.as_mut();
-					let map = asset_storage.get(&map_dynamic.map).unwrap();
-					let linedef = &map.linedefs[linedef_ref.index];
-
-					let mut used = false;
-
-					// Activate all the doors with the same tag
-					for (sector_index, _) in map
-						.sectors
-						.iter()
-						.enumerate()
-						.filter(|(_, s)| s.sector_tag == linedef.sector_tag)
-					{
-						let sector_entity = map_dynamic.sectors[sector_index].entity;
-
-						if world.has_component::<DoorActive>(sector_entity) {
-							continue;
-						}
-
-						used = door_use.trigger.activate(
-							&mut command_buffer,
-							sector_index,
-							&map,
-							&map_dynamic,
-						) || used;
-					}
+					let used = activate_with_tag(
+						&door_use.trigger,
+						&mut command_buffer,
+						linedef.sector_tag,
+						world,
+						map,
+						map_dynamic.as_ref(),
+					);
 
 					if used {
 						// Flip the switch texture
@@ -175,75 +184,133 @@ pub fn door_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &
 	})
 }
 
-#[derive(Clone, Debug)]
-pub struct DoorUse {
-	pub trigger: DoorTrigger,
-	pub retrigger: bool,
-}
+pub fn door_touch_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mut Resources)> {
+	let mut touch_event_reader = resources
+		.get_mut::<EventChannel<TouchEvent>>()
+		.unwrap()
+		.register_reader();
 
-#[derive(Clone, Debug)]
-pub struct DoorSwitchUse {
-	pub trigger: DoorTrigger,
-	pub switch_sound: AssetHandle<Sound>,
-	pub retrigger_time: Option<Duration>,
-}
+	Box::new(move |world, resources| {
+		let (asset_storage, touch_event_channel) =
+			<(Read<AssetStorage>, Read<EventChannel<TouchEvent>>)>::fetch(resources);
 
-#[derive(Clone, Debug)]
-pub struct DoorTrigger {
-	pub start_state: DoorState,
-	pub end_state: DoorState,
-	pub speed: f32,
+		let mut command_buffer = CommandBuffer::new(world);
 
-	pub open_sound: AssetHandle<Sound>,
-	pub open_time: Duration,
+		for touch_event in touch_event_channel.read(&mut touch_event_reader) {
+			if touch_event.collision.is_some() {
+				continue;
+			}
 
-	pub close_sound: AssetHandle<Sound>,
-	pub close_time: Duration,
-}
+			let linedef_ref =
+				if let Some(linedef_ref) = world.get_component::<LinedefRef>(touch_event.touched) {
+					linedef_ref
+				} else {
+					continue;
+				};
+			let map_dynamic = unsafe {
+				world
+					.get_component_mut_unchecked::<MapDynamic>(linedef_ref.map_entity)
+					.unwrap()
+			};
+			let map = asset_storage.get(&map_dynamic.map).unwrap();
+			let linedef = &map.linedefs[linedef_ref.index];
 
-impl DoorTrigger {
-	fn activate(
-		&self,
-		command_buffer: &mut CommandBuffer,
-		sector_index: usize,
-		map: &Map,
-		map_dynamic: &MapDynamic,
-	) -> bool {
-		let sector = &map.sectors[sector_index];
-		let sector_dynamic = &map_dynamic.sectors[sector_index];
-
-		if let Some(open_height) = sector
-			.neighbours
-			.iter()
-			.map(|index| map_dynamic.sectors[*index].interval.max)
-			.min_by(|x, y| x.partial_cmp(y).unwrap())
-		{
-			command_buffer.add_component(
-				sector_dynamic.entity,
-				DoorActive {
-					open_sound: self.open_sound.clone(),
-					open_height: open_height - 4.0,
-					open_time: self.open_time,
-
-					close_sound: self.close_sound.clone(),
-					close_height: sector_dynamic.interval.min,
-					close_time: self.close_time,
-
-					state: self.start_state,
-					end_state: self.end_state,
-					speed: self.speed,
-					time_left: Duration::default(),
-				},
-			);
-			true
-		} else {
-			log::error!(
-				"Used door sector {}, has no neighbouring sectors",
-				sector_index
-			);
-			false
+			match world
+				.get_component::<TouchAction>(touch_event.touched)
+				.as_deref()
+			{
+				Some(TouchAction::DoorTouch(door_touch)) => {
+					if activate_with_tag(
+						&door_touch.trigger,
+						&mut command_buffer,
+						linedef.sector_tag,
+						world,
+						map,
+						map_dynamic.as_ref(),
+					) {
+						if !door_touch.retrigger {
+							command_buffer.remove_component::<UseAction>(touch_event.touched);
+						}
+					}
+				}
+				_ => {}
+			}
 		}
+
+		command_buffer.write(world);
+	})
+}
+
+fn activate(
+	trigger: &DoorTrigger,
+	command_buffer: &mut CommandBuffer,
+	sector_index: usize,
+	map: &Map,
+	map_dynamic: &MapDynamic,
+) -> bool {
+	let sector = &map.sectors[sector_index];
+	let sector_dynamic = &map_dynamic.sectors[sector_index];
+
+	if let Some(open_height) = sector
+		.neighbours
+		.iter()
+		.map(|index| map_dynamic.sectors[*index].interval.max)
+		.min_by(|x, y| x.partial_cmp(y).unwrap())
+	{
+		command_buffer.add_component(
+			sector_dynamic.entity,
+			DoorActive {
+				open_sound: trigger.open_sound.clone(),
+				open_height: open_height - 4.0, // TODO close-open doors use initial sector height
+				open_time: trigger.open_time,
+
+				close_sound: trigger.close_sound.clone(),
+				close_height: sector_dynamic.interval.min,
+				close_time: trigger.close_time,
+
+				state: trigger.start_state,
+				end_state: trigger.end_state,
+				speed: trigger.speed,
+				time_left: Duration::default(),
+			},
+		);
+		true
+	} else {
+		log::error!(
+			"Used door sector {}, has no neighbouring sectors",
+			sector_index
+		);
+		false
 	}
+}
+
+fn activate_with_tag(
+	trigger: &DoorTrigger,
+	command_buffer: &mut CommandBuffer,
+	sector_tag: u16,
+	world: &World,
+	map: &Map,
+	map_dynamic: &MapDynamic,
+) -> bool {
+	let mut used = false;
+
+	// Activate all the doors with the same tag
+	for (sector_index, _) in map
+		.sectors
+		.iter()
+		.enumerate()
+		.filter(|(_, s)| s.sector_tag == sector_tag)
+	{
+		let sector_entity = map_dynamic.sectors[sector_index].entity;
+
+		if world.has_component::<DoorActive>(sector_entity) {
+			continue;
+		}
+
+		used = activate(trigger, command_buffer, sector_index, map, map_dynamic) || used;
+	}
+
+	used
 }
 
 pub fn door_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {

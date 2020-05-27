@@ -142,8 +142,11 @@ impl Interval {
 	}
 
 	#[inline]
-	pub fn zero() -> Interval {
-		Interval { min: 0.0, max: 0.0 }
+	pub fn from_point(point: f32) -> Interval {
+		Interval {
+			min: point,
+			max: point,
+		}
 	}
 
 	/*#[inline]
@@ -273,8 +276,12 @@ where
 	}
 
 	#[inline]
-	pub fn zero() -> AABB<D> {
-		AABB(VectorN::repeat(Interval::zero()))
+	pub fn from_point(point: VectorN<f32, D>) -> AABB<D>
+	where
+		DefaultAllocator: Allocator<f32, D>,
+		Owned<f32, D>: Copy,
+	{
+		AABB(point.map(Interval::from_point))
 	}
 
 	#[inline]
