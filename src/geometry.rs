@@ -141,6 +141,11 @@ impl Interval {
 		}
 	}
 
+	#[inline]
+	pub fn zero() -> Interval {
+		Interval { min: 0.0, max: 0.0 }
+	}
+
 	/*#[inline]
 	pub fn full() -> Interval {
 		Interval {
@@ -265,6 +270,11 @@ where
 	#[inline]
 	pub fn empty() -> AABB<D> {
 		AABB(VectorN::repeat(Interval::empty()))
+	}
+
+	#[inline]
+	pub fn zero() -> AABB<D> {
+		AABB(VectorN::repeat(Interval::zero()))
 	}
 
 	#[inline]

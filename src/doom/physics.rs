@@ -293,6 +293,7 @@ impl<'a> EntityTracer<'a> {
 		let mut trace_collision = None;
 		let mut trace_touched: SmallVec<[(f32, Entity); 8]> = SmallVec::new();
 
+		let zero_bbox = AABB3::zero();
 		let move_bbox = entity_bbox.union(&entity_bbox.offset(move_step));
 		let move_bbox2 = AABB2::from(&move_bbox);
 
@@ -349,9 +350,15 @@ impl<'a> EntityTracer<'a> {
 							];
 							let iter = linedef.planes.iter().chain(z_planes.iter());
 
-							if let Some((fraction, normal)) =
-								trace_planes(&entity_bbox, move_step, iter)
-							{
+							// Non-solid linedefs are only touched
+							// if the midpoint of the entity touches
+							let bbox = if entity_solid_mask.intersects(solid_mask) {
+								entity_bbox
+							} else {
+								&zero_bbox
+							};
+
+							if let Some((fraction, normal)) = trace_planes(bbox, move_step, iter) {
 								if entity_solid_mask.intersects(solid_mask) {
 									if fraction < trace_fraction {
 										trace_fraction = fraction;
