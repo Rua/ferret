@@ -34,5 +34,8 @@ vulkano-shaders = "0.18"
 vulkano-win = "0.18"
 winit = {version = "0.22.2", features = ["serde"]}
 
+[profile.dev]
+opt-level = 1
+
 [profile.release]
 lto = true

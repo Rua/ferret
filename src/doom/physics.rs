@@ -159,7 +159,7 @@ fn step_slide_move(
 
 		if let Some(collision) = trace.collision {
 			let speed = -velocity.dot(&collision.normal);
-			assert!(speed > 0.0);
+			assert!(speed >= 0.0);
 
 			let touch_collision = Some(TouchEventCollision {
 				normal: collision.normal,
