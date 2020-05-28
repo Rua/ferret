@@ -237,6 +237,14 @@ pub fn spawn_things(
 	let mut command_buffer = CommandBuffer::new(world);
 
 	for (_i, thing) in things.into_iter().enumerate() {
+		if thing.flags.intersects(ThingFlags::MPONLY) {
+			continue;
+		}
+
+		if !thing.flags.intersects(ThingFlags::EASY) {
+			continue;
+		}
+
 		// Fetch entity template
 		let handle = entity_types
 			.doomednums
