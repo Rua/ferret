@@ -72,7 +72,8 @@ bitflags! {
 		const EASY = 0b00000000_00000001;
 		const NORMAL = 0b00000000_00000010;
 		const HARD = 0b00000000_00000100;
-		const MPONLY = 0b00000000_00001000;
+		const DEAF = 0b00000000_00001000;
+		const DMONLY = 0b00000000_00010000;
 	}
 }
 
@@ -237,7 +238,7 @@ pub fn spawn_things(
 	let mut command_buffer = CommandBuffer::new(world);
 
 	for (_i, thing) in things.into_iter().enumerate() {
-		if thing.flags.intersects(ThingFlags::MPONLY) {
+		if thing.flags.intersects(ThingFlags::DMONLY) {
 			continue;
 		}
 
