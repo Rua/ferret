@@ -160,7 +160,6 @@ fn step_slide_move(
 
 		if let Some(collision) = trace.collision {
 			let speed = -velocity.dot(&collision.normal);
-			assert!(speed >= 0.0);
 
 			let touch_collision = Some(TouchEventCollision {
 				normal: collision.normal,
@@ -366,7 +365,10 @@ impl<'a> EntityTracer<'a> {
 
 							if let Some((fraction, normal)) = trace_planes(bbox, move_step, iter) {
 								if entity_solid_mask.intersects(solid_mask) {
-									if fraction < trace_fraction {
+									if fraction < trace_fraction
+										// Wall takes priority over other vertical surfaces
+										|| fraction == trace_fraction && normal[2] == 0.0
+									{
 										trace_fraction = fraction;
 										trace_move_step = move_step * fraction;
 										trace_collision = Some(TraceCollision {
@@ -400,7 +402,10 @@ impl<'a> EntityTracer<'a> {
 							trace_planes(&entity_bbox, move_step, iter)
 						{
 							if entity_solid_mask.intersects(SolidMask::all()) {
-								if fraction < trace_fraction {
+								if fraction < trace_fraction
+									// Wall takes priority over other vertical surfaces
+									|| fraction == trace_fraction && normal[2] == 0.0
+								{
 									trace_fraction = fraction;
 									trace_move_step = move_step * fraction;
 									trace_collision = Some(TraceCollision {
@@ -442,7 +447,11 @@ impl<'a> EntityTracer<'a> {
 							trace_planes(&entity_bbox, move_step, iter)
 						{
 							if entity_solid_mask.intersects(SolidMask::all()) {
-								if fraction < trace_fraction {
+								if fraction < trace_fraction
+									// Flat takes priority over other horizontal surfaces
+									|| fraction == trace_fraction
+										&& normal[0] == 0.0 && normal[1] == 0.0
+								{
 									trace_fraction = fraction;
 									trace_move_step = move_step * fraction;
 									trace_collision = Some(TraceCollision {
