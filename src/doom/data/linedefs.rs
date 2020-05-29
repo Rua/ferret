@@ -41,12 +41,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: 150 * FRAME_TIME,
+					can_reverse: true,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: 150 * FRAME_TIME,
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 			}));
         let handle = asset_storage.insert(template);
@@ -60,12 +59,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: 150 * FRAME_TIME,
+					can_reverse: true,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: 150 * FRAME_TIME,
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: true,
 			}));
@@ -80,12 +78,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: 150 * FRAME_TIME,
+					can_reverse: true,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: 150 * FRAME_TIME,
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: true,
 			}));
@@ -100,12 +97,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: 150 * FRAME_TIME,
+					can_reverse: true,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: 150 * FRAME_TIME,
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: true,
 			}));
@@ -119,12 +115,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: 150 * FRAME_TIME,
+					can_reverse: true,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: 150 * FRAME_TIME,
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: true,
 			}));
@@ -142,12 +137,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: false,
 			}));
@@ -162,12 +156,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: false,
 			}));
@@ -182,12 +175,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: false,
 			}));
@@ -202,12 +194,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: false,
 			}));
@@ -221,12 +212,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: false,
 			}));
@@ -244,12 +234,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: 150 * FRAME_TIME,
+					can_reverse: true,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: 150 * FRAME_TIME,
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: Some(35 * FRAME_TIME),
@@ -264,12 +253,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: 150 * FRAME_TIME,
+					can_reverse: true,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: 150 * FRAME_TIME,
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: Some(35 * FRAME_TIME),
@@ -284,12 +272,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: 150 * FRAME_TIME,
+					can_reverse: true,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: 150 * FRAME_TIME,
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: None,
@@ -304,12 +291,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: 150 * FRAME_TIME,
+					can_reverse: true,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: 150 * FRAME_TIME,
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: None,
@@ -328,12 +314,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: Some(35 * FRAME_TIME),
@@ -348,12 +333,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: Some(35 * FRAME_TIME),
@@ -369,12 +353,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: Some(35 * FRAME_TIME),
@@ -390,12 +373,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: Some(35 * FRAME_TIME),
@@ -411,12 +393,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: Some(35 * FRAME_TIME),
@@ -431,12 +412,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: None,
@@ -451,12 +431,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: None,
@@ -472,12 +451,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: None,
@@ -493,12 +471,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: None,
@@ -514,12 +491,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: None,
@@ -538,12 +514,11 @@ impl LinedefTypes {
 					start_state: DoorState::Open,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: Some(35 * FRAME_TIME),
@@ -558,12 +533,11 @@ impl LinedefTypes {
 					start_state: DoorState::Open,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: Some(35 * FRAME_TIME),
@@ -578,12 +552,11 @@ impl LinedefTypes {
 					start_state: DoorState::Open,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: None,
@@ -598,12 +571,11 @@ impl LinedefTypes {
 					start_state: DoorState::Open,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
 				retrigger_time: None,
@@ -612,7 +584,7 @@ impl LinedefTypes {
         doomednums.insert(50, handle);
 
 		/*
-			Touch doors, open-close
+			Linedef touch doors, open-close
 		*/
 
 		// Retrigger, slow
@@ -622,12 +594,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: 150 * FRAME_TIME,
+					can_reverse: true,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: 150 * FRAME_TIME,
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: true,
 			}));
@@ -641,12 +612,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: 150 * FRAME_TIME,
+					can_reverse: true,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: 150 * FRAME_TIME,
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: true,
 			}));
@@ -660,12 +630,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: 150 * FRAME_TIME,
+					can_reverse: true,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: 150 * FRAME_TIME,
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: false,
 			}));
@@ -679,12 +648,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: 150 * FRAME_TIME,
+					can_reverse: true,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: 150 * FRAME_TIME,
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: false,
 			}));
@@ -692,7 +660,7 @@ impl LinedefTypes {
         doomednums.insert(108, handle);
 
 		/*
-			Touch doors, open only
+			Linedef touch doors, open only
 		*/
 
 		// Retrigger, slow
@@ -702,12 +670,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: true,
 			}));
@@ -721,12 +688,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: true,
 			}));
@@ -740,12 +706,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: false,
 			}));
@@ -759,12 +724,11 @@ impl LinedefTypes {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: false,
 			}));
@@ -772,8 +736,7 @@ impl LinedefTypes {
         doomednums.insert(109, handle);
 
 		/*
-			Touch doors, close only
-			TODO these shouldn't go back up if they bump something
+			Linedef touch doors, close only
 		*/
 
 		// Retrigger, slow
@@ -783,12 +746,11 @@ impl LinedefTypes {
 					start_state: DoorState::Open,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: true,
 			}));
@@ -802,12 +764,11 @@ impl LinedefTypes {
 					start_state: DoorState::Open,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: true,
 			}));
@@ -821,12 +782,11 @@ impl LinedefTypes {
 					start_state: DoorState::Open,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: false,
 			}));
@@ -840,12 +800,11 @@ impl LinedefTypes {
 					start_state: DoorState::Open,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
+					wait_time: Duration::default(),
+					can_reverse: false,
 
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
-					close_time: Duration::default(),
 				},
 				retrigger: false,
 			}));
@@ -853,7 +812,7 @@ impl LinedefTypes {
         doomednums.insert(110, handle);
 
 		/*
-			Touch doors, close-open
+			Linedef touch doors, close-open
 		*/
 
 		// Retrigger, slow
@@ -863,12 +822,11 @@ impl LinedefTypes {
 					start_state: DoorState::Open,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: 30 * FRAME_TIME,
+					can_reverse: true,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: 30 * FRAME_TIME,
 				},
 				retrigger: true,
 			}));
@@ -882,12 +840,11 @@ impl LinedefTypes {
 					start_state: DoorState::Open,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
+					wait_time: 30 * FRAME_TIME,
+					can_reverse: true,
 
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					open_time: Duration::default(),
-
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
-					close_time: 30 * FRAME_TIME,
 				},
 				retrigger: false,
 			}));

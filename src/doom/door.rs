@@ -18,16 +18,31 @@ use shrev::EventChannel;
 use std::time::Duration;
 
 #[derive(Clone, Debug)]
+pub struct DoorActive {
+	pub state: DoorState,
+	pub end_state: DoorState,
+	pub speed: f32,
+	pub wait_time: Duration,
+	pub time_left: Duration,
+	pub can_reverse: bool,
+
+	pub open_sound: AssetHandle<Sound>,
+	pub open_height: f32,
+
+	pub close_sound: AssetHandle<Sound>,
+	pub close_height: f32,
+}
+
+#[derive(Clone, Debug)]
 pub struct DoorTrigger {
 	pub start_state: DoorState,
 	pub end_state: DoorState,
 	pub speed: f32,
+	pub wait_time: Duration,
+	pub can_reverse: bool,
 
 	pub open_sound: AssetHandle<Sound>,
-	pub open_time: Duration,
-
 	pub close_sound: AssetHandle<Sound>,
-	pub close_time: Duration,
 }
 
 #[derive(Clone, Debug)]
@@ -88,17 +103,19 @@ pub fn door_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &
 						if let Some(mut door_active) = unsafe {
 							world.get_component_mut_unchecked::<DoorActive>(sector_entity)
 						} {
-							match door_active.state {
-								DoorState::Closing => {
-									// Re-open the door
-									door_active.state = DoorState::Closed;
+							if door_use.trigger.can_reverse {
+								door_active.time_left = Duration::default();
+
+								match door_active.state {
+									DoorState::Closing | DoorState::Closed => {
+										// Re-open the door
+										door_active.state = DoorState::Closed;
+									}
+									DoorState::Opening | DoorState::Open => {
+										// Close the door early
+										door_active.state = DoorState::Open;
+									}
 								}
-								DoorState::Opening | DoorState::Open => {
-									// Close the door early
-									door_active.state = DoorState::Open;
-									door_active.time_left = Duration::default();
-								}
-								DoorState::Closed => unreachable!(),
 							}
 						} else if activate(
 							&door_use.trigger,
@@ -260,18 +277,18 @@ fn activate(
 		command_buffer.add_component(
 			sector_dynamic.entity,
 			DoorActive {
-				open_sound: trigger.open_sound.clone(),
-				open_height: open_height - 4.0, // TODO close-open doors use initial sector height
-				open_time: trigger.open_time,
-
-				close_sound: trigger.close_sound.clone(),
-				close_height: sector_dynamic.interval.min,
-				close_time: trigger.close_time,
-
 				state: trigger.start_state,
 				end_state: trigger.end_state,
 				speed: trigger.speed,
+				wait_time: trigger.wait_time,
 				time_left: Duration::default(),
+				can_reverse: trigger.can_reverse,
+
+				open_sound: trigger.open_sound.clone(),
+				open_height: open_height - 4.0, // TODO close-open doors use initial sector height
+
+				close_sound: trigger.close_sound.clone(),
+				close_height: sector_dynamic.interval.min,
 			},
 		);
 		true
@@ -343,7 +360,12 @@ pub fn door_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 						door_active.time_left = new_time;
 						None
 					} else {
-						Some(DoorState::Opening)
+						if sector_dynamic.interval.max == door_active.open_height {
+							// Already open
+							Some(DoorState::Open)
+						} else {
+							Some(DoorState::Opening)
+						}
 					}
 				}
 				DoorState::Opening => {
@@ -362,10 +384,16 @@ pub fn door_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 						door_active.time_left = new_time;
 						None
 					} else {
-						Some(DoorState::Closing)
+						if sector_dynamic.interval.max == door_active.close_height {
+							// Already closed
+							Some(DoorState::Closed)
+						} else {
+							Some(DoorState::Closing)
+						}
 					}
 				}
 				DoorState::Closing => {
+					// Check if the door bumped something on the way down
 					let move_step = -door_active.speed * delta.as_secs_f32();
 					let trace = tracer.trace(
 						-sector_dynamic.interval.max,
@@ -376,8 +404,13 @@ pub fn door_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 
 					// TODO use fraction
 					if trace.collision.is_some() {
-						// Hit something on the way down, re-open the door
-						Some(DoorState::Opening)
+						if door_active.can_reverse {
+							// Re-open the door
+							Some(DoorState::Opening)
+						} else {
+							// Hang there until the obstruction is gone
+							None
+						}
 					} else {
 						sector_dynamic.interval.max += move_step;
 
@@ -403,13 +436,13 @@ pub fn door_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 							sound_queue.push((door_active.open_sound.clone(), entity));
 						}
 						DoorState::Open => {
-							door_active.time_left = door_active.open_time;
+							door_active.time_left = door_active.wait_time;
 						}
 						DoorState::Closing => {
 							sound_queue.push((door_active.close_sound.clone(), entity));
 						}
 						DoorState::Closed => {
-							door_active.time_left = door_active.close_time;
+							door_active.time_left = door_active.wait_time;
 						}
 					}
 				}
@@ -418,22 +451,6 @@ pub fn door_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 
 		command_buffer.write(world);
 	})
-}
-
-#[derive(Clone, Debug)]
-pub struct DoorActive {
-	pub open_sound: AssetHandle<Sound>,
-	pub open_height: f32,
-	pub open_time: Duration,
-
-	pub close_sound: AssetHandle<Sound>,
-	pub close_height: f32,
-	pub close_time: Duration,
-
-	pub state: DoorState,
-	pub end_state: DoorState,
-	pub speed: f32,
-	pub time_left: Duration,
 }
 
 pub fn switch_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
