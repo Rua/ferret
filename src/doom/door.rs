@@ -117,13 +117,15 @@ pub fn door_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &
 									}
 								}
 							}
-						} else if activate(
-							&door_use.trigger,
-							&mut command_buffer,
-							sector_index,
-							&map,
-							&map_dynamic,
-						) {
+						} else {
+							activate(
+								&door_use.trigger,
+								&mut command_buffer,
+								sector_index,
+								&map,
+								&map_dynamic,
+							);
+
 							if !door_use.retrigger {
 								command_buffer
 									.remove_component::<UseAction>(use_event.linedef_entity);
@@ -264,41 +266,34 @@ fn activate(
 	sector_index: usize,
 	map: &Map,
 	map_dynamic: &MapDynamic,
-) -> bool {
-	let sector = &map.sectors[sector_index];
+) {
 	let sector_dynamic = &map_dynamic.sectors[sector_index];
 
-	if let Some(open_height) = sector
-		.neighbours
-		.iter()
-		.map(|index| map_dynamic.sectors[*index].interval.max)
-		.min_by(|x, y| x.partial_cmp(y).unwrap())
-	{
-		command_buffer.add_component(
-			sector_dynamic.entity,
-			DoorActive {
-				state: trigger.start_state,
-				end_state: trigger.end_state,
-				speed: trigger.speed,
-				wait_time: trigger.wait_time,
-				time_left: Duration::default(),
-				can_reverse: trigger.can_reverse,
-
-				open_sound: trigger.open_sound.clone(),
-				open_height: open_height - 4.0, // TODO close-open doors use initial sector height
-
-				close_sound: trigger.close_sound.clone(),
-				close_height: sector_dynamic.interval.min,
-			},
-		);
-		true
+	let open_height = if trigger.start_state == DoorState::Open {
+		sector_dynamic.interval.max
 	} else {
-		log::error!(
-			"Used door sector {}, has no neighbouring sectors",
-			sector_index
-		);
-		false
-	}
+		map.lowest_neighbour_ceiling(map_dynamic, sector_index) - 4.0
+	};
+
+	let close_height = sector_dynamic.interval.min;
+
+	command_buffer.add_component(
+		sector_dynamic.entity,
+		DoorActive {
+			state: trigger.start_state,
+			end_state: trigger.end_state,
+			speed: trigger.speed,
+			wait_time: trigger.wait_time,
+			time_left: Duration::default(),
+			can_reverse: trigger.can_reverse,
+
+			open_sound: trigger.open_sound.clone(),
+			open_height,
+
+			close_sound: trigger.close_sound.clone(),
+			close_height,
+		},
+	);
 }
 
 fn activate_with_tag(
@@ -324,7 +319,8 @@ fn activate_with_tag(
 			continue;
 		}
 
-		used = activate(trigger, command_buffer, sector_index, map, map_dynamic) || used;
+		used = true;
+		activate(trigger, command_buffer, sector_index, map, map_dynamic);
 	}
 
 	used

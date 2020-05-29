@@ -224,6 +224,42 @@ impl Map {
 			}
 		}
 	}
+
+	pub fn lowest_neighbour_floor(&self, map_dynamic: &MapDynamic, sector_index: usize) -> f32 {
+		self.sectors[sector_index]
+			.neighbours
+			.iter()
+			.map(|index| map_dynamic.sectors[*index].interval.min)
+			.min_by(|x, y| x.partial_cmp(y).unwrap())
+			.unwrap_or(self.sectors[sector_index].interval.min)
+	}
+
+	pub fn highest_neighbour_floor(&self, map_dynamic: &MapDynamic, sector_index: usize) -> f32 {
+		self.sectors[sector_index]
+			.neighbours
+			.iter()
+			.map(|index| map_dynamic.sectors[*index].interval.min)
+			.max_by(|x, y| x.partial_cmp(y).unwrap())
+			.unwrap_or(-500.0)
+	}
+
+	pub fn lowest_neighbour_ceiling(&self, map_dynamic: &MapDynamic, sector_index: usize) -> f32 {
+		self.sectors[sector_index]
+			.neighbours
+			.iter()
+			.map(|index| map_dynamic.sectors[*index].interval.max)
+			.min_by(|x, y| x.partial_cmp(y).unwrap())
+			.unwrap_or(32768.0)
+	}
+
+	pub fn highest_neighbour_ceiling(&self, map_dynamic: &MapDynamic, sector_index: usize) -> f32 {
+		self.sectors[sector_index]
+			.neighbours
+			.iter()
+			.map(|index| map_dynamic.sectors[*index].interval.max)
+			.max_by(|x, y| x.partial_cmp(y).unwrap())
+			.unwrap_or(0.0)
+	}
 }
 
 pub fn spawn_things(
