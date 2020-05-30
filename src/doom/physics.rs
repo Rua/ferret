@@ -4,6 +4,7 @@ use crate::{
 		components::{Transform, Velocity},
 		data::{FRICTION, GRAVITY},
 		door::DoorTouch,
+		floor::FloorTouch,
 		map::{Map, MapDynamic, NodeChild, Subsector},
 	},
 	geometry::{Interval, Plane3, AABB2, AABB3},
@@ -247,6 +248,7 @@ pub struct TouchEventCollision {
 #[derive(Clone, Debug)]
 pub enum TouchAction {
 	DoorTouch(DoorTouch),
+	FloorTouch(FloorTouch),
 }
 
 #[derive(Clone, Copy, Debug)]

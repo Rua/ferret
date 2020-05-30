@@ -5,6 +5,7 @@ use crate::{
 		components::{Transform, Velocity},
 		data::{FORWARD_ACCEL, STRAFE_ACCEL},
 		door::{DoorSwitchUse, DoorUse},
+		floor::FloorSwitchUse,
 		input::{Action, Axis, UserCommand},
 		map::MapDynamic,
 		physics::{BoxCollider, EntityTracer, SolidMask},
@@ -207,6 +208,7 @@ pub struct User {
 pub enum UseAction {
 	DoorUse(DoorUse),
 	DoorSwitchUse(DoorSwitchUse),
+	FloorSwitchUse(FloorSwitchUse),
 }
 
 #[derive(Clone, Copy, Debug)]

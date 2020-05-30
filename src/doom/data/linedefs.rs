@@ -4,8 +4,10 @@ use crate::{
 	doom::{
 		client::UseAction,
 		data::{FRAME_RATE, FRAME_TIME},
-		door::{DoorState, DoorSwitchUse, DoorTouch, DoorTrigger, DoorUse},
+		door::{DoorParams, DoorState, DoorSwitchUse, DoorTouch, DoorUse},
+		floor::{FloorParams, FloorSwitchUse, FloorTouch, TargetHeight},
 		physics::TouchAction,
+		switch::SwitchParams,
 		texture::TextureScroll,
 		wad::WadLoader,
 	},
@@ -37,7 +39,7 @@ impl LinedefTypes {
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorUse(DoorUse {
 				retrigger: true,
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
@@ -55,7 +57,7 @@ impl LinedefTypes {
 		// TODO blue key
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorUse(DoorUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
@@ -74,7 +76,7 @@ impl LinedefTypes {
 		// TODO red key
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorUse(DoorUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
@@ -93,7 +95,7 @@ impl LinedefTypes {
 		// TODO yellow key
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorUse(DoorUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
@@ -111,7 +113,7 @@ impl LinedefTypes {
 		// Retrigger, fast
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorUse(DoorUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
@@ -133,7 +135,7 @@ impl LinedefTypes {
 		// No retrigger, slow
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorUse(DoorUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
@@ -152,7 +154,7 @@ impl LinedefTypes {
 		// TODO blue key
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorUse(DoorUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
@@ -171,7 +173,7 @@ impl LinedefTypes {
 		// TODO red key
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorUse(DoorUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
@@ -190,7 +192,7 @@ impl LinedefTypes {
 		// TODO yellow key
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorUse(DoorUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
@@ -208,7 +210,7 @@ impl LinedefTypes {
 		// No retrigger, fast
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorUse(DoorUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
@@ -230,7 +232,7 @@ impl LinedefTypes {
 		// Retrigger, slow
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
@@ -240,8 +242,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: Some(35 * FRAME_TIME),
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
 			}));
 		let handle = asset_storage.insert(template);
         doomednums.insert(63, handle);
@@ -249,7 +253,7 @@ impl LinedefTypes {
 		// Retrigger, fast
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
@@ -259,8 +263,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: Some(35 * FRAME_TIME),
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
 			}));
 		let handle = asset_storage.insert(template);
         doomednums.insert(114, handle);
@@ -268,7 +274,7 @@ impl LinedefTypes {
 		// No retrigger, slow
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
@@ -278,8 +284,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: None,
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
 			}));
 		let handle = asset_storage.insert(template);
 		doomednums.insert(29, handle);
@@ -287,7 +295,7 @@ impl LinedefTypes {
 		// No retrigger, fast
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
@@ -297,8 +305,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: None,
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
 			}));
 		let handle = asset_storage.insert(template);
         doomednums.insert(111, handle);
@@ -310,7 +320,7 @@ impl LinedefTypes {
 		// Retrigger, slow
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
@@ -320,8 +330,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: Some(35 * FRAME_TIME),
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
 			}));
 		let handle = asset_storage.insert(template);
 		doomednums.insert(61, handle);
@@ -329,7 +341,7 @@ impl LinedefTypes {
 		// Retrigger, fast
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
@@ -339,8 +351,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: Some(35 * FRAME_TIME),
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
 			}));
 		let handle = asset_storage.insert(template);
         doomednums.insert(115, handle);
@@ -349,7 +363,7 @@ impl LinedefTypes {
 		// TODO blue key
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
@@ -359,8 +373,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: Some(35 * FRAME_TIME),
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
 			}));
 		let handle = asset_storage.insert(template);
         doomednums.insert(99, handle);
@@ -369,7 +385,7 @@ impl LinedefTypes {
 		// TODO red key
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
@@ -379,8 +395,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: Some(35 * FRAME_TIME),
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
 			}));
 		let handle = asset_storage.insert(template);
         doomednums.insert(134, handle);
@@ -389,7 +407,7 @@ impl LinedefTypes {
 		// TODO yellow key
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
@@ -399,8 +417,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: Some(35 * FRAME_TIME),
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
 			}));
 		let handle = asset_storage.insert(template);
         doomednums.insert(136, handle);
@@ -408,7 +428,7 @@ impl LinedefTypes {
 		// No retrigger, slow
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
@@ -418,8 +438,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: None,
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
 			}));
 		let handle = asset_storage.insert(template);
 		doomednums.insert(103, handle);
@@ -427,7 +449,7 @@ impl LinedefTypes {
 		// No retrigger, fast
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
@@ -437,8 +459,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: None,
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
 			}));
 		let handle = asset_storage.insert(template);
         doomednums.insert(112, handle);
@@ -447,7 +471,7 @@ impl LinedefTypes {
 		// TODO blue key
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
@@ -457,8 +481,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: None,
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
 			}));
 		let handle = asset_storage.insert(template);
         doomednums.insert(133, handle);
@@ -467,7 +493,7 @@ impl LinedefTypes {
 		// TODO red key
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
@@ -477,8 +503,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: None,
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
 			}));
 		let handle = asset_storage.insert(template);
         doomednums.insert(135, handle);
@@ -487,7 +515,7 @@ impl LinedefTypes {
 		// TODO yellow key
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
@@ -497,8 +525,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: None,
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
 			}));
 		let handle = asset_storage.insert(template);
         doomednums.insert(137, handle);
@@ -510,7 +540,7 @@ impl LinedefTypes {
 		// Retrigger, slow
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Open,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
@@ -520,8 +550,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: Some(35 * FRAME_TIME),
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
 			}));
 		let handle = asset_storage.insert(template);
 		doomednums.insert(42, handle);
@@ -529,7 +561,7 @@ impl LinedefTypes {
 		// Retrigger, fast
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Open,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
@@ -539,8 +571,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: Some(35 * FRAME_TIME),
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
 			}));
 		let handle = asset_storage.insert(template);
         doomednums.insert(116, handle);
@@ -548,7 +582,7 @@ impl LinedefTypes {
 		// No retrigger, slow
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Open,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
@@ -558,8 +592,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
 					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: None,
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
 			}));
 		let handle = asset_storage.insert(template);
 		doomednums.insert(113, handle);
@@ -567,7 +603,7 @@ impl LinedefTypes {
 		// No retrigger, fast
 		let template = EntityTemplate::new()
 			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Open,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
@@ -577,8 +613,10 @@ impl LinedefTypes {
 					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
 					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
 				},
-				switch_sound: asset_storage.load("DSSWTCHN", &mut *loader),
-				retrigger_time: None,
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
 			}));
 		let handle = asset_storage.insert(template);
         doomednums.insert(50, handle);
@@ -590,7 +628,7 @@ impl LinedefTypes {
 		// Retrigger, slow
 		let template = EntityTemplate::new()
 			.with_component(TouchAction::DoorTouch(DoorTouch {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
@@ -608,7 +646,7 @@ impl LinedefTypes {
 		// Retrigger, fast
 		let template = EntityTemplate::new()
 			.with_component(TouchAction::DoorTouch(DoorTouch {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
@@ -626,7 +664,7 @@ impl LinedefTypes {
 		// No retrigger, slow
 		let template = EntityTemplate::new()
 			.with_component(TouchAction::DoorTouch(DoorTouch {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
@@ -644,7 +682,7 @@ impl LinedefTypes {
 		// No retrigger, fast
 		let template = EntityTemplate::new()
 			.with_component(TouchAction::DoorTouch(DoorTouch {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
@@ -666,7 +704,7 @@ impl LinedefTypes {
 		// Retrigger, slow
 		let template = EntityTemplate::new()
 			.with_component(TouchAction::DoorTouch(DoorTouch {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
@@ -684,7 +722,7 @@ impl LinedefTypes {
 		// Retrigger, fast
 		let template = EntityTemplate::new()
 			.with_component(TouchAction::DoorTouch(DoorTouch {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
@@ -702,7 +740,7 @@ impl LinedefTypes {
 		// No retrigger, slow
 		let template = EntityTemplate::new()
 			.with_component(TouchAction::DoorTouch(DoorTouch {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
@@ -720,7 +758,7 @@ impl LinedefTypes {
 		// No retrigger, fast
 		let template = EntityTemplate::new()
 			.with_component(TouchAction::DoorTouch(DoorTouch {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Closed,
 					end_state: DoorState::Open,
 					speed: 8.0 * FRAME_RATE,
@@ -742,7 +780,7 @@ impl LinedefTypes {
 		// Retrigger, slow
 		let template = EntityTemplate::new()
 			.with_component(TouchAction::DoorTouch(DoorTouch {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Open,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
@@ -760,7 +798,7 @@ impl LinedefTypes {
 		// Retrigger, fast
 		let template = EntityTemplate::new()
 			.with_component(TouchAction::DoorTouch(DoorTouch {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Open,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
@@ -778,7 +816,7 @@ impl LinedefTypes {
 		// No retrigger, slow
 		let template = EntityTemplate::new()
 			.with_component(TouchAction::DoorTouch(DoorTouch {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Open,
 					end_state: DoorState::Closed,
 					speed: 2.0 * FRAME_RATE,
@@ -796,7 +834,7 @@ impl LinedefTypes {
 		// No retrigger, fast
 		let template = EntityTemplate::new()
 			.with_component(TouchAction::DoorTouch(DoorTouch {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Open,
 					end_state: DoorState::Closed,
 					speed: 8.0 * FRAME_RATE,
@@ -818,7 +856,7 @@ impl LinedefTypes {
 		// Retrigger, slow
 		let template = EntityTemplate::new()
 			.with_component(TouchAction::DoorTouch(DoorTouch {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Open,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
@@ -836,7 +874,7 @@ impl LinedefTypes {
 		// No retrigger, slow
 		let template = EntityTemplate::new()
 			.with_component(TouchAction::DoorTouch(DoorTouch {
-				trigger: DoorTrigger {
+				params: DoorParams {
 					start_state: DoorState::Open,
 					end_state: DoorState::Open,
 					speed: 2.0 * FRAME_RATE,
@@ -852,12 +890,661 @@ impl LinedefTypes {
 		doomednums.insert(16, handle);
 
 		/*
-			Other
+			Switch floors, current height
 		*/
 
-        let template = EntityTemplate::new();
+		// No retrigger, slow, offset 512
+		let template = EntityTemplate::new()
+			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::Current,
+					target_height_offset: 512.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(140, handle);
+
+		/*
+			Switch floors, lowest neighbour floor
+		*/
+
+		// Retrigger, slow, offset 0
+		let template = EntityTemplate::new()
+			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourFloor,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(60, handle);
+
+		// No retrigger, slow, offset 0
+		let template = EntityTemplate::new()
+			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourFloor,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(23, handle);
+
+		/*
+			Switch floors, lowest neighbour floor above
+		*/
+
+		// Retrigger, slow, offset 0
+		let template = EntityTemplate::new()
+			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourFloorAbove,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(69, handle);
+
+		// No retrigger, slow, offset 0
+		let template = EntityTemplate::new()
+			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourFloorAbove,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(18, handle);
+
+		// Retrigger, fast, offset 0
+		let template = EntityTemplate::new()
+			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
+				params: FloorParams {
+					speed: 4.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourFloorAbove,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(132, handle);
+
+		// No retrigger, fast, offset 0
+		let template = EntityTemplate::new()
+			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
+				params: FloorParams {
+					speed: 4.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourFloorAbove,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(131, handle);
+
+		/*
+			Switch floors, lowest neighbour ceiling
+		*/
+
+		// Retrigger, slow, offset 0
+		let template = EntityTemplate::new()
+			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourCeiling,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(64, handle);
+
+		// No retrigger, slow, offset 0
+		let template = EntityTemplate::new()
+			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourCeiling,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(101, handle);
+
+		// Retrigger, slow, offset -8
+		// TODO crush
+		let template = EntityTemplate::new()
+			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourCeiling,
+					target_height_offset: -8.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(65, handle);
+
+		// No retrigger, slow, offset -8
+		// TODO crush
+		let template = EntityTemplate::new()
+			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourCeiling,
+					target_height_offset: -8.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(55, handle);
+
+		/*
+			Switch floors, highest neighbour floor
+		*/
+
+		// Retrigger, slow, offset 0
+		let template = EntityTemplate::new()
+			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::HighestNeighbourFloor,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(45, handle);
+
+		// No retrigger, slow, offset 0
+		let template = EntityTemplate::new()
+			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::HighestNeighbourFloor,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(102, handle);
+
+		// Retrigger, fast, offset +8
+		let template = EntityTemplate::new()
+			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
+				params: FloorParams {
+					speed: 4.0 * FRAME_RATE,
+					target_height_base: TargetHeight::HighestNeighbourFloor,
+					target_height_offset: 8.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(70, handle);
+
+		// No retrigger, fast, offset +8
+		let template = EntityTemplate::new()
+			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
+				params: FloorParams {
+					speed: 4.0 * FRAME_RATE,
+					target_height_base: TargetHeight::HighestNeighbourFloor,
+					target_height_offset: 8.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				switch_params: SwitchParams {
+					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					retrigger_time: None,
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(71, handle);
+
+		/*
+			Linedef touch floors, current height
+		*/
+
+		// Retrigger, slow, offset 24
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::Current,
+					target_height_offset: 24.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: true,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(92, handle);
+
+		// No retrigger, slow, offset 24
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::Current,
+					target_height_offset: 24.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: false,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(58, handle);
+
+		// Retrigger, slow, offset 24
+		// TODO change type
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::Current,
+					target_height_offset: 24.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: true,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(93, handle);
+
+		// No retrigger, slow, offset 24
+		// TODO change type
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::Current,
+					target_height_offset: 24.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: false,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(59, handle);
+
+		/*
+			Linedef touch floors, lowest neighbour floor
+		*/
+
+		// Retrigger, slow, offset 0
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourFloor,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: true,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(82, handle);
+
+		// No retrigger, slow, offset 0
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourFloor,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: false,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(38, handle);
+
+		// Retrigger, slow, offset 0
+		// TODO type change
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourFloor,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: true,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(84, handle);
+
+		// No retrigger, slow, offset 0
+		// TODO type change
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourFloor,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: false,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(37, handle);
+
+		/*
+			Linedef touch floors, lowest neighbour floor above
+		*/
+
+		// Retrigger, slow, offset 0
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourFloorAbove,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: true,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(128, handle);
+
+		// No retrigger, slow, offset 0
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourFloorAbove,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: false,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(119, handle);
+
+		// Retrigger, fast, offset 0
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 4.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourFloorAbove,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: true,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(129, handle);
+
+		// No retrigger, fast, offset 0
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 4.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourFloorAbove,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: false,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(130, handle);
+
+		/*
+			Linedef touch floors, lowest neighbour ceiling
+		*/
+
+		// Retrigger, slow, offset 0
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourCeiling,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: true,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(91, handle);
+
+		// No retrigger, slow, offset 0
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourCeiling,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: false,
+			}));
 		let handle = asset_storage.insert(template);
         doomednums.insert(5, handle);
+
+		// Retrigger, slow, offset -8
+		// TODO crush
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourCeiling,
+					target_height_offset: -8.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: true,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(94, handle);
+
+		// No retrigger, slow, offset -8
+		// TODO crush
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::LowestNeighbourCeiling,
+					target_height_offset: -8.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: false,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(56, handle);
+
+		/*
+			Linedef touch floors, highest neighbour floor
+		*/
+
+		// Retrigger, slow, offset 0
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::HighestNeighbourFloor,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: true,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(83, handle);
+
+		// No retrigger, slow, offset 0
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 1.0 * FRAME_RATE,
+					target_height_base: TargetHeight::HighestNeighbourFloor,
+					target_height_offset: 0.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: false,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(19, handle);
+
+		// Retrigger, fast, offset +8
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 4.0 * FRAME_RATE,
+					target_height_base: TargetHeight::HighestNeighbourFloor,
+					target_height_offset: 8.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: true,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(98, handle);
+
+		// No retrigger, fast, offset +8
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::FloorTouch(FloorTouch {
+				params: FloorParams {
+					speed: 4.0 * FRAME_RATE,
+					target_height_base: TargetHeight::HighestNeighbourFloor,
+					target_height_offset: 8.0,
+					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+				},
+				retrigger: false,
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(36, handle);
+
+		/*
+			Other
+		*/
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
@@ -905,14 +1592,6 @@ impl LinedefTypes {
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
-        doomednums.insert(18, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(19, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
         doomednums.insert(20, handle);
 
         let template = EntityTemplate::new();
@@ -922,10 +1601,6 @@ impl LinedefTypes {
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
         doomednums.insert(22, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(23, handle);
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
@@ -942,18 +1617,6 @@ impl LinedefTypes {
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
         doomednums.insert(35, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(36, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(37, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(38, handle);
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
@@ -974,10 +1637,6 @@ impl LinedefTypes {
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
         doomednums.insert(44, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(45, handle);
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
@@ -1016,39 +1675,11 @@ impl LinedefTypes {
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
-        doomednums.insert(55, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(56, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
         doomednums.insert(57, handle);
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
-        doomednums.insert(58, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(59, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(60, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
         doomednums.insert(62, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(64, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(65, handle);
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
@@ -1061,18 +1692,6 @@ impl LinedefTypes {
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
         doomednums.insert(68, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(69, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(70, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(71, handle);
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
@@ -1104,18 +1723,6 @@ impl LinedefTypes {
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
-        doomednums.insert(82, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(83, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(84, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
         doomednums.insert(87, handle);
 
         let template = EntityTemplate::new();
@@ -1125,22 +1732,6 @@ impl LinedefTypes {
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
         doomednums.insert(89, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(91, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(92, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(93, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(94, handle);
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
@@ -1156,27 +1747,11 @@ impl LinedefTypes {
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
-        doomednums.insert(98, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
         doomednums.insert(100, handle);
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
-        doomednums.insert(101, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(102, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
         doomednums.insert(104, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(119, handle);
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
@@ -1212,35 +1787,11 @@ impl LinedefTypes {
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
-        doomednums.insert(128, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(129, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(130, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(131, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(132, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
         doomednums.insert(138, handle);
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
         doomednums.insert(139, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(140, handle);
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);

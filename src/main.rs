@@ -132,10 +132,14 @@ fn main() -> anyhow::Result<()> {
 		.add_thread_local_fn(doom::physics::physics_system(&mut resources))
 		.add_thread_local_fn(doom::camera::camera_system(&mut resources))
 		.add_thread_local_fn(doom::door::door_use_system(&mut resources))
+		.add_thread_local_fn(doom::door::door_switch_system(&mut resources))
 		.add_thread_local_fn(doom::door::door_touch_system(&mut resources))
 		.add_thread_local_fn(doom::door::door_active_system())
-		.add_thread_local_fn(doom::door::switch_active_system())
+		.add_thread_local_fn(doom::floor::floor_switch_system(&mut resources))
+		.add_thread_local_fn(doom::floor::floor_touch_system(&mut resources))
+		.add_thread_local_fn(doom::floor::floor_active_system())
 		.add_thread_local_fn(doom::light::light_system())
+		.add_thread_local_fn(doom::switch::switch_active_system())
 		.add_thread_local_fn(doom::texture::texture_system())
 		.build();
 
