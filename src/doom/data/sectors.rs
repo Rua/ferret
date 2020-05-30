@@ -2,7 +2,7 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	component::EntityTemplate,
 	doom::{
-		data::FRAME_TIME,
+		data::{FRAME_RATE, FRAME_TIME},
 		light::{LightFlash, LightFlashType, LightGlow},
 	},
 };
@@ -76,7 +76,7 @@ impl SectorTypes {
         // Glow
         let template = EntityTemplate::new()
             .with_component(LightGlow {
-                speed: 1.09375,
+                speed: (8.0 / 256.0) * FRAME_RATE,
                 ..LightGlow::default()
             });
 		let handle = asset_storage.insert(template);

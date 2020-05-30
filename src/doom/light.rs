@@ -94,7 +94,7 @@ pub fn light_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 				let max_light = sector.light_level;
 
 				if sector_dynamic.light_level > max_light {
-					sector_dynamic.light_level = 2.0 * max_light - sector_dynamic.light_level;
+					sector_dynamic.light_level -= speed;
 					light_glow.state = !light_glow.state;
 				}
 			} else {
@@ -106,8 +106,8 @@ pub fn light_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 					.min_by(|x, y| x.partial_cmp(y).unwrap())
 					.unwrap_or(0.0);
 
-				if sector_dynamic.light_level < min_light {
-					sector_dynamic.light_level = 2.0 * min_light - sector_dynamic.light_level;
+				if sector_dynamic.light_level <= min_light {
+					sector_dynamic.light_level += speed;
 					light_glow.state = !light_glow.state;
 				}
 			}
