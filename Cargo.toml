@@ -29,9 +29,9 @@ serde = {version = "1.0", features = ["derive"]}
 serde_json = "1.0"
 shrev = "1.1"
 smallvec = "1.4"
-vulkano = "0.18"
-vulkano-shaders = "0.18"
-vulkano-win = "0.18"
+vulkano = "0.19"
+vulkano-shaders = "0.19"
+vulkano-win = "0.19"
 winit = {version = "0.22.2", features = ["serde"]}
 
 [profile.dev]

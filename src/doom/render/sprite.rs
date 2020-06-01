@@ -13,9 +13,7 @@ use nalgebra::{Matrix4, Vector2, Vector3};
 use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool, ImmutableBuffer},
-	command_buffer::{
-		pool::standard::StandardCommandPoolBuilder, AutoCommandBufferBuilder, DynamicState,
-	},
+	command_buffer::{AutoCommandBufferBuilder, DynamicState},
 	descriptor::{
 		descriptor_set::{DescriptorSet, FixedSizeDescriptorSetsPool},
 		PipelineLayoutAbstract,
@@ -107,13 +105,13 @@ impl SpriteRenderSystem {
 		&mut self,
 		world: &World,
 		resources: &Resources,
-		mut command_buffer_builder: AutoCommandBufferBuilder<StandardCommandPoolBuilder>,
+		command_buffer_builder: &mut AutoCommandBufferBuilder,
 		dynamic_state: DynamicState,
 		sampler: Arc<Sampler>,
 		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
 		yaw: Angle,
 		view_pos: Vector3<f32>,
-	) -> anyhow::Result<AutoCommandBufferBuilder> {
+	) -> anyhow::Result<()> {
 		let (asset_storage, client) = <(Read<AssetStorage>, Read<Client>)>::fetch(resources);
 
 		let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
@@ -198,7 +196,7 @@ impl SpriteRenderSystem {
 
 			let instance_buffer = self.instance_buffer_pool.chunk(instance_data)?;
 
-			command_buffer_builder = command_buffer_builder
+			command_buffer_builder
 				.draw(
 					self.pipeline.clone(),
 					&dynamic_state,
@@ -209,7 +207,7 @@ impl SpriteRenderSystem {
 				.context("Draw error")?;
 		}
 
-		Ok(command_buffer_builder)
+		Ok(())
 	}
 }
 

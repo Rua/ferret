@@ -212,9 +212,10 @@ impl RenderSystem {
 		let mut command_buffer_builder = AutoCommandBufferBuilder::primary_one_time_submit(
 			self.target.device().clone(),
 			queues.graphics.family(),
-		)?
-		.begin_render_pass(framebuffer, false, clear_value)
-		.context("Couldn't begin render pass")?;
+		)?;
+		command_buffer_builder
+			.begin_render_pass(framebuffer, false, clear_value)
+			.context("Couldn't begin render pass")?;
 
 		// Projection matrix
 		// Doom had non-square pixels, with a resolution of 320x200 (16:10) running on a 4:3
@@ -264,12 +265,11 @@ impl RenderSystem {
 			);
 
 			// Draw the map
-			command_buffer_builder = self
-				.map
+			self.map
 				.draw(
 					world,
 					resources,
-					command_buffer_builder,
+					&mut command_buffer_builder,
 					dynamic_state.clone(),
 					self.sampler.clone(),
 					matrix_set.clone(),
@@ -278,12 +278,11 @@ impl RenderSystem {
 				.context("Draw error")?;
 
 			// Draw sprites
-			command_buffer_builder = self
-				.sprites
+			self.sprites
 				.draw(
 					world,
 					resources,
-					command_buffer_builder,
+					&mut command_buffer_builder,
 					dynamic_state,
 					self.sampler.clone(),
 					matrix_set,
@@ -294,7 +293,8 @@ impl RenderSystem {
 		}
 
 		// Finalise
-		let command_buffer = Arc::new(command_buffer_builder.end_render_pass()?.build()?);
+		command_buffer_builder.end_render_pass()?;
+		let command_buffer = Arc::new(command_buffer_builder.build()?);
 
 		future
 			.then_execute(queues.graphics.clone(), command_buffer)

@@ -16,9 +16,7 @@ use nalgebra::Vector3;
 use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
-	command_buffer::{
-		pool::standard::StandardCommandPoolBuilder, AutoCommandBufferBuilder, DynamicState,
-	},
+	command_buffer::{AutoCommandBufferBuilder, DynamicState},
 	descriptor::{
 		descriptor_set::{DescriptorSet, FixedSizeDescriptorSetsPool},
 		PipelineLayoutAbstract,
@@ -134,12 +132,12 @@ impl MapRenderSystem {
 		&mut self,
 		world: &World,
 		resources: &Resources,
-		mut command_buffer_builder: AutoCommandBufferBuilder<StandardCommandPoolBuilder>,
+		command_buffer_builder: &mut AutoCommandBufferBuilder,
 		dynamic_state: DynamicState,
 		sampler: Arc<Sampler>,
 		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
 		rotation: Vector3<Angle>,
-	) -> anyhow::Result<AutoCommandBufferBuilder> {
+	) -> anyhow::Result<()> {
 		let asset_storage = <Read<AssetStorage>>::fetch(resources);
 
 		for map_dynamic in <Read<MapDynamic>>::query().iter(world) {
@@ -171,7 +169,7 @@ impl MapRenderSystem {
 						.build()?,
 				);
 
-				command_buffer_builder = command_buffer_builder.draw_indexed(
+				command_buffer_builder.draw_indexed(
 					self.normal_pipeline.clone(),
 					&dynamic_state,
 					vec![Arc::new(vertex_buffer)],
@@ -204,7 +202,7 @@ impl MapRenderSystem {
 						.build()?,
 				);
 
-				command_buffer_builder = command_buffer_builder
+				command_buffer_builder
 					.draw_indexed(
 						self.normal_pipeline.clone(),
 						&dynamic_state,
@@ -236,7 +234,7 @@ impl MapRenderSystem {
 					.build()?,
 			);
 
-			command_buffer_builder = command_buffer_builder
+			command_buffer_builder
 				.draw_indexed(
 					self.sky_pipeline.clone(),
 					&dynamic_state,
@@ -248,6 +246,6 @@ impl MapRenderSystem {
 				.context("Draw error")?;
 		}
 
-		Ok(command_buffer_builder)
+		Ok(())
 	}
 }
