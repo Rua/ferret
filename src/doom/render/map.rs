@@ -1,26 +1,22 @@
 use crate::{
 	assets::AssetStorage,
 	doom::{
+		client::Client,
+		components::Transform,
 		map::{
 			meshes::{SkyVertexData, VertexData},
 			MapDynamic,
 		},
-		render::normal_frag,
+		render::{normal_frag, DrawContext},
 	},
-	geometry::Angle,
 	renderer::AsBytes,
 };
 use anyhow::{anyhow, Context};
 use legion::prelude::{IntoQuery, Read, ResourceSet, Resources, World};
-use nalgebra::Vector3;
 use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
-	command_buffer::{AutoCommandBufferBuilder, DynamicState},
-	descriptor::{
-		descriptor_set::{DescriptorSet, FixedSizeDescriptorSetsPool},
-		PipelineLayoutAbstract,
-	},
+	descriptor::{descriptor_set::FixedSizeDescriptorSetsPool, PipelineLayoutAbstract},
 	device::DeviceOwned,
 	framebuffer::{RenderPassAbstract, Subpass},
 	pipeline::{GraphicsPipeline, GraphicsPipelineAbstract},
@@ -130,15 +126,14 @@ impl MapRenderSystem {
 
 	pub fn draw(
 		&mut self,
+		draw_context: &mut DrawContext,
 		world: &World,
 		resources: &Resources,
-		command_buffer_builder: &mut AutoCommandBufferBuilder,
-		dynamic_state: DynamicState,
-		sampler: Arc<Sampler>,
-		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
-		rotation: Vector3<Angle>,
 	) -> anyhow::Result<()> {
-		let asset_storage = <Read<AssetStorage>>::fetch(resources);
+		let (asset_storage, client, sampler) =
+			<(Read<AssetStorage>, Read<Client>, Read<Arc<Sampler>>)>::fetch(resources);
+		let camera_entity = client.entity.unwrap();
+		let camera_transform = world.get_component::<Transform>(camera_entity).unwrap();
 
 		for map_dynamic in <Read<MapDynamic>>::query().iter(world) {
 			let map = asset_storage.get(&map_dynamic.map).unwrap();
@@ -162,19 +157,20 @@ impl MapRenderSystem {
 				};
 				let image = asset_storage.get(&handle).unwrap();
 
-				let texture_set = Arc::new(
+				draw_context.descriptor_sets.truncate(1);
+				draw_context.descriptor_sets.push(Arc::new(
 					self.normal_texture_set_pool
 						.next()
 						.add_sampled_image(image.clone(), sampler.clone())?
 						.build()?,
-				);
+				));
 
-				command_buffer_builder.draw_indexed(
+				draw_context.commands.draw_indexed(
 					self.normal_pipeline.clone(),
-					&dynamic_state,
+					&draw_context.dynamic_state,
 					vec![Arc::new(vertex_buffer)],
 					index_buffer,
-					(matrix_set.clone(), texture_set.clone()),
+					draw_context.descriptor_sets.clone(),
 					(),
 				)?;
 			}
@@ -195,20 +191,22 @@ impl MapRenderSystem {
 				};
 				let image = asset_storage.get(handle).unwrap();
 
-				let texture_set = Arc::new(
+				draw_context.descriptor_sets.truncate(1);
+				draw_context.descriptor_sets.push(Arc::new(
 					self.normal_texture_set_pool
 						.next()
 						.add_sampled_image(image.clone(), sampler.clone())?
 						.build()?,
-				);
+				));
 
-				command_buffer_builder
+				draw_context
+					.commands
 					.draw_indexed(
 						self.normal_pipeline.clone(),
-						&dynamic_state,
+						&draw_context.dynamic_state,
 						vec![Arc::new(vertex_buffer)],
 						index_buffer,
-						(matrix_set.clone(), texture_set.clone()),
+						draw_context.descriptor_sets.clone(),
 						(),
 					)
 					.context("Draw error")?;
@@ -222,25 +220,27 @@ impl MapRenderSystem {
 			let image = asset_storage.get(&map.sky).unwrap();
 			let sky_buffer = self.sky_uniform_pool.next(sky_frag::ty::FragParams {
 				screenSize: [800.0, 600.0],
-				pitch: rotation[1].to_degrees() as f32,
-				yaw: rotation[2].to_degrees() as f32,
+				pitch: camera_transform.rotation[1].to_degrees() as f32,
+				yaw: camera_transform.rotation[2].to_degrees() as f32,
 			})?;
 
-			let texture_params_set = Arc::new(
+			draw_context.descriptor_sets.truncate(1);
+			draw_context.descriptor_sets.push(Arc::new(
 				self.sky_texture_set_pool
 					.next()
 					.add_sampled_image(image.clone(), sampler.clone())?
 					.add_buffer(sky_buffer)?
 					.build()?,
-			);
+			));
 
-			command_buffer_builder
+			draw_context
+				.commands
 				.draw_indexed(
 					self.sky_pipeline.clone(),
-					&dynamic_state,
+					&draw_context.dynamic_state,
 					vec![Arc::new(vertex_buffer)],
 					index_buffer,
-					(matrix_set.clone(), texture_params_set.clone()),
+					draw_context.descriptor_sets.clone(),
 					(),
 				)
 				.context("Draw error")?;

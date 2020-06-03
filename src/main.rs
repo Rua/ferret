@@ -34,6 +34,7 @@ use std::{
 use vulkano::{
 	format::Format,
 	image::{Dimensions, ImmutableImage},
+	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
 };
 use winit::{
 	event::{ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent},
@@ -87,7 +88,22 @@ fn main() -> anyhow::Result<()> {
 
 	let (render_context, _debug_callback) =
 		RenderContext::new(&event_loop).context("Could not create rendering context")?;
+	let sampler = Sampler::new(
+		render_context.device().clone(),
+		Filter::Nearest,
+		Filter::Nearest,
+		MipmapMode::Nearest,
+		SamplerAddressMode::Repeat,
+		SamplerAddressMode::Repeat,
+		SamplerAddressMode::Repeat,
+		0.0,
+		1.0,
+		0.0,
+		0.0,
+	)
+	.context("Could not create texture sampler")?;
 	resources.insert(render_context);
+	resources.insert(sampler);
 
 	let sound_sender = audio::init()?;
 	resources.insert(sound_sender);

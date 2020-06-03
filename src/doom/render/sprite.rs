@@ -1,7 +1,11 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
 	doom::{
-		client::Client, components::Transform, map::MapDynamic, render::normal_frag, sprite::Sprite,
+		client::Client,
+		components::Transform,
+		map::MapDynamic,
+		render::{normal_frag, DrawContext},
+		sprite::Sprite,
 	},
 	geometry::Angle,
 	renderer::{AsBytes, RenderContext},
@@ -13,11 +17,7 @@ use nalgebra::{Matrix4, Vector2, Vector3};
 use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool, ImmutableBuffer},
-	command_buffer::{AutoCommandBufferBuilder, DynamicState},
-	descriptor::{
-		descriptor_set::{DescriptorSet, FixedSizeDescriptorSetsPool},
-		PipelineLayoutAbstract,
-	},
+	descriptor::{descriptor_set::FixedSizeDescriptorSetsPool, PipelineLayoutAbstract},
 	device::DeviceOwned,
 	framebuffer::{RenderPassAbstract, Subpass},
 	image::ImageViewAccess,
@@ -103,16 +103,14 @@ impl SpriteRenderSystem {
 
 	pub fn draw(
 		&mut self,
+		draw_context: &mut DrawContext,
 		world: &World,
 		resources: &Resources,
-		command_buffer_builder: &mut AutoCommandBufferBuilder,
-		dynamic_state: DynamicState,
-		sampler: Arc<Sampler>,
-		matrix_set: Arc<dyn DescriptorSet + Send + Sync>,
-		yaw: Angle,
-		view_pos: Vector3<f32>,
 	) -> anyhow::Result<()> {
-		let (asset_storage, client) = <(Read<AssetStorage>, Read<Client>)>::fetch(resources);
+		let (asset_storage, client, sampler) =
+			<(Read<AssetStorage>, Read<Client>, Read<Arc<Sampler>>)>::fetch(resources);
+		let camera_entity = client.entity.unwrap();
+		let camera_transform = world.get_component::<Transform>(camera_entity).unwrap();
 
 		let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
 		let map = asset_storage.get(&map_dynamic.map).unwrap();
@@ -144,7 +142,7 @@ impl SpriteRenderSystem {
 			let index = if frame.len() == 1 {
 				0
 			} else {
-				let to_view_vec = view_pos - transform.position;
+				let to_view_vec = camera_transform.position - transform.position;
 				let to_view_angle =
 					Angle::from_radians(f64::atan2(to_view_vec[1] as f64, to_view_vec[0] as f64));
 				let delta = to_view_angle - transform.rotation[2]
@@ -166,8 +164,11 @@ impl SpriteRenderSystem {
 
 			// Set up instance data
 			let instance_matrix = Matrix4::new_translation(&transform.position)
-				* Matrix4::new_rotation(Vector3::new(0.0, 0.0, yaw.to_radians() as f32))
-				* sprite_image.matrix;
+				* Matrix4::new_rotation(Vector3::new(
+					0.0,
+					0.0,
+					camera_transform.rotation[2].to_radians() as f32,
+				)) * sprite_image.matrix;
 			let instance_data = InstanceData {
 				in_flip: image_info.flip,
 				in_light_level: light_level,
@@ -187,21 +188,23 @@ impl SpriteRenderSystem {
 
 		// Draw the batches
 		for (texture, instance_data) in batches {
-			let texture_set = Arc::new(
+			draw_context.descriptor_sets.truncate(1);
+			draw_context.descriptor_sets.push(Arc::new(
 				self.texture_set_pool
 					.next()
 					.add_sampled_image(texture, sampler.clone())?
 					.build()?,
-			);
+			));
 
 			let instance_buffer = self.instance_buffer_pool.chunk(instance_data)?;
 
-			command_buffer_builder
+			draw_context
+				.commands
 				.draw(
 					self.pipeline.clone(),
-					&dynamic_state,
+					&draw_context.dynamic_state,
 					vec![self.vertex_buffer.clone(), Arc::new(instance_buffer)],
-					(matrix_set.clone(), texture_set.clone()),
+					draw_context.descriptor_sets.clone(),
 					(),
 				)
 				.context("Draw error")?;

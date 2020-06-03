@@ -1,66 +1,40 @@
 pub mod map;
 pub mod sprite;
+pub mod world;
 
 use crate::{
-	doom::{
-		camera::Camera,
-		client::Client,
-		components::Transform,
-		render::{
-			map::{MapRenderSystem, UniformBufferObject},
-			sprite::SpriteRenderSystem,
-		},
-	},
+	doom::render::world::DrawWorld,
 	renderer::{RenderContext, RenderTarget},
 };
 use anyhow::Context;
 use legion::prelude::{Read, ResourceSet, Resources, World};
-use nalgebra::{Matrix4, Vector3};
 use std::sync::Arc;
 use vulkano::{
-	buffer::{BufferUsage, CpuBufferPool},
 	command_buffer::{AutoCommandBufferBuilder, DynamicState},
-	descriptor::{
-		descriptor::{DescriptorBufferDesc, DescriptorDesc, DescriptorDescTy, ShaderStages},
-		descriptor_set::{FixedSizeDescriptorSetsPool, UnsafeDescriptorSetLayout},
-	},
+	descriptor::descriptor_set::DescriptorSet,
 	framebuffer::{Framebuffer, FramebufferAbstract, RenderPassAbstract},
 	pipeline::viewport::Viewport,
-	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
 	single_pass_renderpass,
 	swapchain::AcquireError,
 	sync::GpuFuture,
 };
 
+pub struct DrawContext {
+	commands: AutoCommandBufferBuilder,
+	descriptor_sets: Vec<Arc<dyn DescriptorSet + Send + Sync>>,
+	dynamic_state: DynamicState,
+}
+
 pub struct RenderSystem {
 	framebuffers: Vec<Arc<dyn FramebufferAbstract + Send + Sync>>,
-	map: MapRenderSystem,
-	matrix_uniform_pool: CpuBufferPool<UniformBufferObject>,
-	matrix_set_pool: FixedSizeDescriptorSetsPool,
 	render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
-	sampler: Arc<Sampler>,
-	sprites: SpriteRenderSystem,
 	target: RenderTarget,
+
+	world: DrawWorld,
 }
 
 impl RenderSystem {
 	pub fn new(render_context: &RenderContext) -> anyhow::Result<RenderSystem> {
-		// Create texture sampler
-		let sampler = Sampler::new(
-			render_context.device().clone(),
-			Filter::Nearest,
-			Filter::Nearest,
-			MipmapMode::Nearest,
-			SamplerAddressMode::Repeat,
-			SamplerAddressMode::Repeat,
-			SamplerAddressMode::Repeat,
-			0.0,
-			1.0,
-			0.0,
-			0.0,
-		)
-		.context("Couldn't create sampler")?;
-
 		// Create render target
 		let size = render_context.surface().window().inner_size().into();
 		let target = RenderTarget::new(
@@ -110,43 +84,13 @@ impl RenderSystem {
 			) as Arc<dyn FramebufferAbstract + Send + Sync>);
 		}
 
-		// Create descriptor sets pool for matrices
-		let descriptors = [Some(DescriptorDesc {
-			ty: DescriptorDescTy::Buffer(DescriptorBufferDesc {
-				dynamic: Some(false),
-				storage: false,
-			}),
-			array_count: 1,
-			stages: ShaderStages {
-				vertex: true,
-				..ShaderStages::none()
-			},
-			readonly: true,
-		})];
-
-		let layout = Arc::new(
-			UnsafeDescriptorSetLayout::new(
-				render_context.device().clone(),
-				descriptors.iter().cloned(),
-			)
-			.context("Couldn't create descriptor set layout")?,
-		);
-		let matrix_set_pool = FixedSizeDescriptorSetsPool::new(layout);
-
 		Ok(RenderSystem {
 			framebuffers,
-			map: MapRenderSystem::new(render_pass.clone())
-				.context("Couldn't create MapRenderSystem")?,
-			matrix_uniform_pool: CpuBufferPool::new(
-				render_context.device().clone(),
-				BufferUsage::uniform_buffer(),
-			),
-			matrix_set_pool,
 			render_pass: render_pass.clone(),
-			sampler,
-			sprites: SpriteRenderSystem::new(render_pass, &*render_context)
-				.context("Couldn't create SpriteRenderSystem")?,
 			target,
+
+			world: DrawWorld::new(render_context, render_pass)
+				.context("Couldn't create DrawWorld")?,
 		})
 	}
 
@@ -204,97 +148,27 @@ impl RenderSystem {
 			depth_range: 0.0..1.0,
 		};
 
-		let dynamic_state = DynamicState {
-			viewports: Some(vec![viewport]),
-			..DynamicState::none()
+		let mut draw_context = DrawContext {
+			commands: AutoCommandBufferBuilder::primary_one_time_submit(
+				self.target.device().clone(),
+				queues.graphics.family(),
+			)?,
+			descriptor_sets: Vec::with_capacity(12),
+			dynamic_state: DynamicState {
+				viewports: Some(vec![viewport]),
+				..DynamicState::none()
+			},
 		};
 
-		let mut command_buffer_builder = AutoCommandBufferBuilder::primary_one_time_submit(
-			self.target.device().clone(),
-			queues.graphics.family(),
-		)?;
-		command_buffer_builder
+		draw_context
+			.commands
 			.begin_render_pass(framebuffer, false, clear_value)
 			.context("Couldn't begin render pass")?;
 
-		// Projection matrix
-		// Doom had non-square pixels, with a resolution of 320x200 (16:10) running on a 4:3
-		// screen. This caused everything to be stretched vertically by some degree, and the game
-		// art was made with that in mind.
-		// The 1.2 factor here applies the same stretching as in the original.
-		let aspect_ratio = (dimensions[0] / dimensions[1]) * 1.2;
-		let proj = projection_matrix(90.0, aspect_ratio, 1.0, 20000.0);
+		self.world.draw(&mut draw_context, world, resources)?;
 
-		// View matrix
-		let client = <Read<Client>>::fetch(resources);
-
-		if let Some(entity) = client.entity {
-			let Transform {
-				mut position,
-				rotation,
-			} = *world.get_component::<Transform>(entity).unwrap();
-
-			if let Some(camera) = world.get_component::<Camera>(entity) {
-				position += camera.base + camera.offset;
-			}
-
-			let view =
-				Matrix4::new_rotation(Vector3::new(-rotation[0].to_radians() as f32, 0.0, 0.0))
-					* Matrix4::new_rotation(Vector3::new(
-						0.0,
-						-rotation[1].to_radians() as f32,
-						0.0,
-					)) * Matrix4::new_rotation(Vector3::new(
-					0.0,
-					0.0,
-					-rotation[2].to_radians() as f32,
-				)) * Matrix4::new_translation(&-position);
-
-			// Create UBO
-			let data = UniformBufferObject {
-				view: view.into(),
-				proj: proj.into(),
-			};
-
-			let matrix_buffer = self.matrix_uniform_pool.next(data)?;
-			let matrix_set = Arc::new(
-				self.matrix_set_pool
-					.next()
-					.add_buffer(matrix_buffer)?
-					.build()?,
-			);
-
-			// Draw the map
-			self.map
-				.draw(
-					world,
-					resources,
-					&mut command_buffer_builder,
-					dynamic_state.clone(),
-					self.sampler.clone(),
-					matrix_set.clone(),
-					rotation,
-				)
-				.context("Draw error")?;
-
-			// Draw sprites
-			self.sprites
-				.draw(
-					world,
-					resources,
-					&mut command_buffer_builder,
-					dynamic_state,
-					self.sampler.clone(),
-					matrix_set,
-					rotation[2],
-					position,
-				)
-				.context("Draw error")?;
-		}
-
-		// Finalise
-		command_buffer_builder.end_render_pass()?;
-		let command_buffer = Arc::new(command_buffer_builder.build()?);
+		draw_context.commands.end_render_pass()?;
+		let command_buffer = Arc::new(draw_context.commands.build()?);
 
 		future
 			.then_execute(queues.graphics.clone(), command_buffer)
@@ -318,22 +192,4 @@ mod normal_frag {
 		ty: "fragment",
 		path: "shaders/normal.frag",
 	}
-}
-
-// A projection matrix that creates a world coordinate system with
-// x = forward
-// y = left
-// z = up
-#[rustfmt::skip]
-fn projection_matrix(fovx: f32, aspect: f32, near: f32, far: f32) -> Matrix4<f32> {
-	let fovx = fovx.to_radians();
-	let nmf = near - far;
-	let f = 1.0 / (fovx * 0.5).tan();
-
-	Matrix4::new(
-		0.0       , -f , 0.0        , 0.0               ,
-		0.0       , 0.0, -f * aspect, 0.0               ,
-		-far / nmf, 0.0, 0.0        , (near * far) / nmf,
-		1.0       , 0.0, 0.0        , 0.0               ,
-	)
 }
