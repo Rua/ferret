@@ -53,7 +53,7 @@ pub fn build_sound(data: Vec<u8>) -> anyhow::Result<Sound> {
 }
 
 pub fn sound_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
-	Box::new(|world, resources| {
+	Box::new(move |world, resources| {
 		let (asset_storage, client, sound_sender, mut sound_queue) = <(
 			Read<AssetStorage>,
 			Read<Client>,

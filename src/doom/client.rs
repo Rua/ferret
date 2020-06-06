@@ -27,7 +27,7 @@ pub struct Client {
 }
 
 pub fn player_command_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
-	Box::new(|_world, resources| {
+	Box::new(move |_world, resources| {
 		let (bindings, input_state, mut client) = <(
 			Read<Bindings<Action, Axis>>,
 			Read<InputState>,
@@ -53,7 +53,7 @@ pub fn player_command_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 }
 
 pub fn player_move_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
-	Box::new(|world, resources| {
+	Box::new(move |world, resources| {
 		let (asset_storage, client, delta, quadtree) = <(
 			Read<AssetStorage>,
 			Read<Client>,
@@ -128,7 +128,7 @@ pub fn player_move_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 pub fn player_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mut Resources)> {
 	resources.insert(EventChannel::<UseEvent>::new());
 
-	Box::new(|world, resources| {
+	Box::new(move |world, resources| {
 		let (asset_storage, client, mut use_event_channel, mut sound_queue) =
 			<(
 				Read<AssetStorage>,

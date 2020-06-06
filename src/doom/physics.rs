@@ -26,7 +26,7 @@ pub fn physics_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &m
 	resources.insert(EventChannel::<StepEvent>::new());
 	resources.insert(EventChannel::<TouchEvent>::new());
 
-	Box::new(|world, resources| {
+	Box::new(move |world, resources| {
 		let (asset_storage, delta, mut quadtree, mut step_event_channel, mut touch_event_channel) =
 			<(
 				Read<AssetStorage>,

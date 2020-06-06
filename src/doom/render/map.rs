@@ -7,9 +7,9 @@ use crate::{
 			meshes::{SkyVertexData, VertexData},
 			MapDynamic,
 		},
-		render::{normal_frag, DrawContext},
+		render::world::normal_frag,
 	},
-	renderer::AsBytes,
+	renderer::{AsBytes, DrawContext, DrawStep},
 };
 use anyhow::{anyhow, Context};
 use legion::prelude::{IntoQuery, Read, ResourceSet, Resources, World};
@@ -23,30 +23,7 @@ use vulkano::{
 	sampler::Sampler,
 };
 
-mod normal_vert {
-	vulkano_shaders::shader! {
-		ty: "vertex",
-		path: "shaders/map_normal.vert",
-	}
-}
-
-pub use normal_vert::ty::UniformBufferObject;
-
-mod sky_vert {
-	vulkano_shaders::shader! {
-		ty: "vertex",
-		path: "shaders/map_sky.vert",
-	}
-}
-
-mod sky_frag {
-	vulkano_shaders::shader! {
-		ty: "fragment",
-		path: "shaders/sky.frag",
-	}
-}
-
-pub struct MapRenderSystem {
+pub struct DrawMap {
 	index_buffer_pool: CpuBufferPool<u32>,
 	normal_pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
 	normal_texture_set_pool: FixedSizeDescriptorSetsPool,
@@ -56,10 +33,8 @@ pub struct MapRenderSystem {
 	vertex_buffer_pool: CpuBufferPool<u8>,
 }
 
-impl MapRenderSystem {
-	pub fn new(
-		render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
-	) -> anyhow::Result<MapRenderSystem> {
+impl DrawMap {
+	pub fn new(render_pass: &Arc<dyn RenderPassAbstract + Send + Sync>) -> anyhow::Result<DrawMap> {
 		let device = render_pass.device();
 
 		// Create pipeline for normal parts of the map
@@ -107,7 +82,7 @@ impl MapRenderSystem {
 				.context("Couldn't create pipeline")?,
 		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
-		Ok(MapRenderSystem {
+		Ok(DrawMap {
 			index_buffer_pool: CpuBufferPool::new(device.clone(), BufferUsage::index_buffer()),
 			vertex_buffer_pool: CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer()),
 
@@ -123,8 +98,10 @@ impl MapRenderSystem {
 			sky_pipeline,
 		})
 	}
+}
 
-	pub fn draw(
+impl DrawStep for DrawMap {
+	fn draw(
 		&mut self,
 		draw_context: &mut DrawContext,
 		world: &World,
@@ -247,5 +224,28 @@ impl MapRenderSystem {
 		}
 
 		Ok(())
+	}
+}
+
+mod normal_vert {
+	vulkano_shaders::shader! {
+		ty: "vertex",
+		path: "shaders/map_normal.vert",
+	}
+}
+
+pub use normal_vert::ty::UniformBufferObject;
+
+mod sky_vert {
+	vulkano_shaders::shader! {
+		ty: "vertex",
+		path: "shaders/map_sky.vert",
+	}
+}
+
+mod sky_frag {
+	vulkano_shaders::shader! {
+		ty: "fragment",
+		path: "shaders/sky.frag",
 	}
 }

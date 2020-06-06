@@ -1,15 +1,8 @@
 use crate::{
 	doom::{
-		camera::Camera,
-		client::Client,
-		components::Transform,
-		render::{
-			map::{MapRenderSystem, UniformBufferObject},
-			sprite::SpriteRenderSystem,
-			DrawContext,
-		},
+		camera::Camera, client::Client, components::Transform, render::map::UniformBufferObject,
 	},
-	renderer::RenderContext,
+	renderer::{DrawContext, DrawStep, RenderContext},
 };
 use anyhow::Context;
 use legion::prelude::{Read, ResourceSet, Resources, World};
@@ -21,22 +14,15 @@ use vulkano::{
 		descriptor::{DescriptorBufferDesc, DescriptorDesc, DescriptorDescTy, ShaderStages},
 		descriptor_set::{FixedSizeDescriptorSetsPool, UnsafeDescriptorSetLayout},
 	},
-	framebuffer::RenderPassAbstract,
 };
 
 pub struct DrawWorld {
 	matrix_uniform_pool: CpuBufferPool<UniformBufferObject>,
 	matrix_set_pool: FixedSizeDescriptorSetsPool,
-
-	map: MapRenderSystem,
-	sprites: SpriteRenderSystem,
 }
 
 impl DrawWorld {
-	pub fn new(
-		render_context: &RenderContext,
-		render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
-	) -> anyhow::Result<DrawWorld> {
+	pub fn new(render_context: &RenderContext) -> anyhow::Result<DrawWorld> {
 		// Create descriptor sets pool for matrices
 		let descriptors = [Some(DescriptorDesc {
 			ty: DescriptorDescTy::Buffer(DescriptorBufferDesc {
@@ -66,14 +52,30 @@ impl DrawWorld {
 				BufferUsage::uniform_buffer(),
 			),
 			matrix_set_pool,
-			map: MapRenderSystem::new(render_pass.clone())
-				.context("Couldn't create MapRenderSystem")?,
-			sprites: SpriteRenderSystem::new(render_pass, &*render_context)
-				.context("Couldn't create SpriteRenderSystem")?,
 		})
 	}
 
-	pub fn draw(
+	// A projection matrix that creates a world coordinate system with
+	// x = forward
+	// y = left
+	// z = up
+	#[rustfmt::skip]
+	fn projection_matrix(fovx: f32, aspect: f32, near: f32, far: f32) -> Matrix4<f32> {
+		let fovx = fovx.to_radians();
+		let nmf = near - far;
+		let f = 1.0 / (fovx * 0.5).tan();
+
+		Matrix4::new(
+			0.0       , -f , 0.0        , 0.0               ,
+			0.0       , 0.0, -f * aspect, 0.0               ,
+			-far / nmf, 0.0, 0.0        , (near * far) / nmf,
+			1.0       , 0.0, 0.0        , 0.0               ,
+		)
+	}
+}
+
+impl DrawStep for DrawWorld {
+	fn draw(
 		&mut self,
 		draw_context: &mut DrawContext,
 		world: &World,
@@ -86,7 +88,7 @@ impl DrawWorld {
 		// The 1.2 factor here applies the same stretching as in the original.
 		let viewport = &draw_context.dynamic_state.viewports.as_ref().unwrap()[0];
 		let aspect_ratio = (viewport.dimensions[0] / viewport.dimensions[1]) * 1.2;
-		let proj = projection_matrix(90.0, aspect_ratio, 1.0, 20000.0);
+		let proj = Self::projection_matrix(90.0, aspect_ratio, 1.0, 20000.0);
 
 		// View matrix
 		let client = <Read<Client>>::fetch(resources);
@@ -118,34 +120,13 @@ impl DrawWorld {
 				.build()?,
 		));
 
-		// Draw the map
-		self.map
-			.draw(draw_context, world, resources)
-			.context("Draw error")?;
-
-		// Draw sprites
-		self.sprites
-			.draw(draw_context, world, resources)
-			.context("Draw error")?;
-
 		Ok(())
 	}
 }
 
-// A projection matrix that creates a world coordinate system with
-// x = forward
-// y = left
-// z = up
-#[rustfmt::skip]
-fn projection_matrix(fovx: f32, aspect: f32, near: f32, far: f32) -> Matrix4<f32> {
-	let fovx = fovx.to_radians();
-	let nmf = near - far;
-	let f = 1.0 / (fovx * 0.5).tan();
-
-	Matrix4::new(
-		0.0       , -f , 0.0        , 0.0               ,
-		0.0       , 0.0, -f * aspect, 0.0               ,
-		-far / nmf, 0.0, 0.0        , (near * far) / nmf,
-		1.0       , 0.0, 0.0        , 0.0               ,
-	)
+pub mod normal_frag {
+	vulkano_shaders::shader! {
+		ty: "fragment",
+		path: "shaders/normal.frag",
+	}
 }

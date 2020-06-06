@@ -14,6 +14,7 @@ use std::{
 };
 
 pub fn init() -> anyhow::Result<Sender<Box<dyn Source<Item = f32> + Send>>> {
+	log::debug!("Spawning audio thread");
 	let (sender, receiver) = crossbeam_channel::unbounded();
 
 	Builder::new()

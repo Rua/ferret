@@ -7,7 +7,7 @@ use nalgebra::Vector2;
 use std::time::Duration;
 
 pub fn texture_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
-	Box::new(|world, resources| {
+	Box::new(move |world, resources| {
 		let (asset_storage, delta) = <(Read<AssetStorage>, Read<Duration>)>::fetch(resources);
 
 		// Advance animations

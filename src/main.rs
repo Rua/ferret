@@ -16,7 +16,7 @@ use crate::{
 	geometry::{AABB2, AABB3},
 	input::{Axis, Bindings, Button, InputState, MouseAxis},
 	quadtree::Quadtree,
-	renderer::{AsBytes, RenderContext},
+	renderer::{AsBytes, DrawList, RenderContext, RenderTarget},
 };
 use anyhow::{bail, Context};
 use clap::{App, Arg, ArgMatches};
@@ -87,23 +87,46 @@ fn main() -> anyhow::Result<()> {
 	let mut event_loop = EventLoop::new();
 
 	let (render_context, _debug_callback) =
-		RenderContext::new(&event_loop).context("Could not create rendering context")?;
-	let sampler = Sampler::new(
+		RenderContext::new(&event_loop).context("Could not create RenderContext")?;
+	let render_target = RenderTarget::new(
+		render_context.surface().clone(),
 		render_context.device().clone(),
-		Filter::Nearest,
-		Filter::Nearest,
-		MipmapMode::Nearest,
-		SamplerAddressMode::Repeat,
-		SamplerAddressMode::Repeat,
-		SamplerAddressMode::Repeat,
-		0.0,
-		1.0,
-		0.0,
-		0.0,
 	)
-	.context("Could not create texture sampler")?;
+	.context("Couldn't create RenderTarget")?;
+	let mut draw_list = DrawList::new(&render_context, render_target.dimensions())
+		.context("Couldn't create DrawList")?;
+	draw_list.add_step(
+		doom::render::world::DrawWorld::new(&render_context)
+			.context("Couldn't create DrawWorld")?,
+	);
+	draw_list.add_step(
+		doom::render::map::DrawMap::new(draw_list.render_pass())
+			.context("Couldn't create DrawMap")?,
+	);
+	draw_list.add_step(
+		doom::render::sprite::DrawSprites::new(&render_context, draw_list.render_pass())
+			.context("Couldn't create DrawSprites")?,
+	);
+
+	resources.insert(draw_list);
+	resources.insert(
+		Sampler::new(
+			render_context.device().clone(),
+			Filter::Nearest,
+			Filter::Nearest,
+			MipmapMode::Nearest,
+			SamplerAddressMode::Repeat,
+			SamplerAddressMode::Repeat,
+			SamplerAddressMode::Repeat,
+			0.0,
+			1.0,
+			0.0,
+			0.0,
+		)
+		.context("Could not create texture sampler")?,
+	);
+	resources.insert(render_target);
 	resources.insert(render_context);
-	resources.insert(sampler);
 
 	let sound_sender = audio::init()?;
 	resources.insert(sound_sender);
@@ -137,9 +160,7 @@ fn main() -> anyhow::Result<()> {
 	command_sender.send(format!("map {}", map)).ok();
 
 	// Create systems
-	let mut render_system =
-		doom::render::RenderSystem::new(&*resources.get::<RenderContext>().unwrap())
-			.context("Couldn't create RenderSystem")?;
+	let mut render_system = doom::render::render_system();
 	let mut sound_system = doom::sound::sound_system();
 	let mut update_dispatcher = Builder::default()
 		.add_thread_local_fn(doom::client::player_command_system())
@@ -182,8 +203,10 @@ fn main() -> anyhow::Result<()> {
 
 		// Process events from the system
 		event_loop.run_return(|event, _, control_flow| {
-			let (mut input_state, render_context) =
-				<(Write<InputState>, Read<RenderContext>)>::fetch_mut(&mut resources);
+			let (mut input_state, render_context, mut render_target) =
+				<(Write<InputState>, Read<RenderContext>, Write<RenderTarget>)>::fetch_mut(
+					&mut resources,
+				);
 			input_state.process_event(&event);
 
 			match event {
@@ -192,18 +215,16 @@ fn main() -> anyhow::Result<()> {
 						command_sender.send("quit".to_owned()).ok();
 						*control_flow = ControlFlow::Exit;
 					}
-					WindowEvent::Resized(_) => {
-						if let Err(msg) = render_system.recreate() {
-							log::warn!("Error recreating swapchain: {}", msg);
-						}
+					WindowEvent::Resized(new_size) => {
+						render_target.window_resized(new_size.into());
 					}
 					WindowEvent::MouseInput {
 						state: ElementState::Pressed,
 						..
 					} => {
 						let window = render_context.surface().window();
-						if let Err(msg) = window.set_cursor_grab(true) {
-							log::warn!("Couldn't grab cursor: {}", msg);
+						if let Err(err) = window.set_cursor_grab(true) {
+							log::warn!("Couldn't grab cursor: {}", err);
 						}
 						window.set_cursor_visible(false);
 						input_state.set_mouse_delta_enabled(true);
@@ -219,8 +240,8 @@ fn main() -> anyhow::Result<()> {
 						..
 					} => {
 						let window = render_context.surface().window();
-						if let Err(msg) = window.set_cursor_grab(false) {
-							log::warn!("Couldn't release cursor: {}", msg);
+						if let Err(err) = window.set_cursor_grab(false) {
+							log::warn!("Couldn't release cursor: {}", err);
 						}
 						window.set_cursor_visible(true);
 						input_state.set_mouse_delta_enabled(false);
@@ -278,9 +299,7 @@ fn main() -> anyhow::Result<()> {
 		sound_system(&mut world, &mut resources);
 
 		// Draw frame
-		render_system
-			.draw(&world, &resources)
-			.context("Error while rendering")?;
+		render_system(&mut world, &mut resources);
 	}
 
 	Ok(())

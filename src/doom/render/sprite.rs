@@ -1,14 +1,11 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
 	doom::{
-		client::Client,
-		components::Transform,
-		map::MapDynamic,
-		render::{normal_frag, DrawContext},
+		client::Client, components::Transform, map::MapDynamic, render::world::normal_frag,
 		sprite::Sprite,
 	},
 	geometry::Angle,
-	renderer::{AsBytes, RenderContext},
+	renderer::{AsBytes, DrawContext, DrawStep, RenderContext},
 };
 use anyhow::Context;
 use fnv::FnvHashMap;
@@ -28,18 +25,18 @@ use vulkano::{
 	sampler::Sampler,
 };
 
-pub struct SpriteRenderSystem {
+pub struct DrawSprites {
 	instance_buffer_pool: CpuBufferPool<InstanceData>,
 	vertex_buffer: Arc<ImmutableBuffer<[u8]>>,
 	pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
 	texture_set_pool: FixedSizeDescriptorSetsPool,
 }
 
-impl SpriteRenderSystem {
+impl DrawSprites {
 	pub fn new(
-		render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
 		render_context: &RenderContext,
-	) -> anyhow::Result<SpriteRenderSystem> {
+		render_pass: &Arc<dyn RenderPassAbstract + Send + Sync>,
+	) -> anyhow::Result<DrawSprites> {
 		let device = render_pass.device();
 
 		// Create pipeline
@@ -90,7 +87,7 @@ impl SpriteRenderSystem {
 			render_context.queues().graphics.clone(),
 		)?;
 
-		Ok(SpriteRenderSystem {
+		Ok(DrawSprites {
 			vertex_buffer,
 
 			instance_buffer_pool: CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer()),
@@ -100,8 +97,10 @@ impl SpriteRenderSystem {
 			pipeline,
 		})
 	}
+}
 
-	pub fn draw(
+impl DrawStep for DrawSprites {
+	fn draw(
 		&mut self,
 		draw_context: &mut DrawContext,
 		world: &World,

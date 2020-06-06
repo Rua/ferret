@@ -3,7 +3,10 @@ use std::sync::Arc;
 use vulkano::{
 	app_info_from_cargo_toml,
 	device::{Device, DeviceExtensions, Features, Queue},
-	instance::{debug::DebugCallback, Instance, InstanceExtensions, PhysicalDevice, QueueFamily},
+	instance::{
+		debug::{DebugCallback, MessageSeverity, MessageType},
+		Instance, InstanceExtensions, PhysicalDevice, QueueFamily,
+	},
 	swapchain::Surface,
 };
 use vulkano_win::VkSurfaceBuild;
@@ -23,12 +26,15 @@ impl RenderContext {
 	pub fn new(
 		event_loop: &EventLoop<()>,
 	) -> anyhow::Result<(RenderContext, Option<DebugCallback>)> {
+		log::debug!("Loading Vulkan library");
 		// Load the Vulkan library
 		vulkano::instance::loader::auto_loader().context("Couldn't load the Vulkan library")?;
 
 		// Create Vulkan instance
+		log::debug!("Creating Vulkan instance");
 		let instance = create_instance().context("Couldn't create Vulkan instance")?;
 
+		log::debug!("Creating Vulkan window and surface");
 		let surface = WindowBuilder::new()
 			.with_min_inner_size(Size::Physical([320, 240].into()))
 			.with_inner_size(Size::Physical([800, 600].into()))
@@ -38,19 +44,32 @@ impl RenderContext {
 
 		// Setup debug callback for validation layers
 		#[cfg(debug_assertions)]
-		let debug_callback = DebugCallback::errors_and_warnings(&instance, |ref message| {
-			if message.ty.validation {
-				log::error!("{}: {}", message.layer_prefix, message.description);
-			} else {
-				log::warn!("{}: {}", message.layer_prefix, message.description);
-			}
-		})
+		let debug_callback = DebugCallback::new(
+			&instance,
+			MessageSeverity {
+				error: true,
+				warning: true,
+				information: true,
+				verbose: true,
+			},
+			MessageType::all(),
+			|ref message| {
+				if message.severity.error {
+					log::error!("{}: {}", message.layer_prefix, message.description);
+				} else if message.severity.warning {
+					log::warn!("{}: {}", message.layer_prefix, message.description);
+				} else {
+					log::trace!("{}: {}", message.layer_prefix, message.description);
+				}
+			},
+		)
 		.ok();
 
 		#[cfg(not(debug_assertions))]
 		let debug_callback = None;
 
 		// Create Vulkan device
+		log::debug!("Creating Vulkan device");
 		let (device, queues) =
 			create_device(&instance, &surface).context("Couldn't create Vulkan device")?;
 		log::info!(
@@ -174,7 +193,6 @@ fn create_device(
 	instance: &Arc<Instance>,
 	surface: &Arc<Surface<Window>>,
 ) -> anyhow::Result<(Arc<Device>, Queues)> {
-	// Select physical device
 	let (physical_device, family) = find_suitable_physical_device(&instance, &surface)?
 		.context("No suitable physical device found")?;
 

@@ -11,7 +11,7 @@ use rand_pcg::Pcg64Mcg;
 use std::time::Duration;
 
 pub fn light_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
-	Box::new(|world, resources| {
+	Box::new(move |world, resources| {
 		let (asset_storage, delta, mut rng) =
 			<(Read<AssetStorage>, Read<Duration>, Write<Pcg64Mcg>)>::fetch_mut(resources);
 
