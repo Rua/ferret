@@ -1,15 +1,13 @@
-use serde::{Deserialize, Serialize};
-
-#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
-pub enum Action {
+#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
+pub enum BoolInput {
 	Attack,
-	SwitchWeapon(u8),
+	//SwitchWeapon(u8),
 	Use,
 	Walk,
 }
 
-#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
-pub enum Axis {
+#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
+pub enum FloatInput {
 	Forward,
 	Pitch,
 	Strafe,
@@ -18,11 +16,11 @@ pub enum Axis {
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct UserCommand {
-	pub action_attack: bool,
+	pub attack: bool,
 	//pub action_switch_weapon: Option<u8>,
-	pub action_use: bool,
-	pub axis_forward: f32,
-	pub axis_pitch: f32,
-	pub axis_strafe: f32,
-	pub axis_yaw: f32,
+	pub r#use: bool,
+	pub forward: f32,
+	pub pitch: f32,
+	pub strafe: f32,
+	pub yaw: f32,
 }

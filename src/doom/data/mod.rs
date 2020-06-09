@@ -1,8 +1,10 @@
 pub mod anims;
+mod bindings;
 mod linedefs;
 mod mobjs;
 mod sectors;
 
+pub use bindings::get_bindings;
 pub use linedefs::LinedefTypes;
 pub use mobjs::MobjTypes;
 pub use sectors::SectorTypes;

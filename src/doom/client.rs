@@ -6,7 +6,7 @@ use crate::{
 		data::{FORWARD_ACCEL, STRAFE_ACCEL},
 		door::{DoorSwitchUse, DoorUse},
 		floor::FloorSwitchUse,
-		input::{Action, Axis, UserCommand},
+		input::{BoolInput, FloatInput, UserCommand},
 		map::MapDynamic,
 		physics::{BoxCollider, EntityTracer, SolidMask},
 	},
@@ -29,22 +29,22 @@ pub struct Client {
 pub fn player_command_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 	Box::new(move |_world, resources| {
 		let (bindings, input_state, mut client) = <(
-			Read<Bindings<Action, Axis>>,
+			Read<Bindings<BoolInput, FloatInput>>,
 			Read<InputState>,
 			Write<Client>,
 		)>::fetch_mut(resources);
 		let mut command = UserCommand {
-			action_attack: bindings.action_is_down(&Action::Attack, &input_state),
-			action_use: bindings.action_is_down(&Action::Use, &input_state),
-			axis_forward: bindings.axis_value(&Axis::Forward, &input_state) as f32,
-			axis_pitch: bindings.axis_value(&Axis::Pitch, &input_state) as f32,
-			axis_strafe: bindings.axis_value(&Axis::Strafe, &input_state) as f32,
-			axis_yaw: bindings.axis_value(&Axis::Yaw, &input_state) as f32,
+			attack: bindings.bool_value(&BoolInput::Attack, &input_state),
+			r#use: bindings.bool_value(&BoolInput::Use, &input_state),
+			forward: bindings.float_value(&FloatInput::Forward, &input_state) as f32,
+			pitch: bindings.float_value(&FloatInput::Pitch, &input_state) as f32,
+			strafe: bindings.float_value(&FloatInput::Strafe, &input_state) as f32,
+			yaw: bindings.float_value(&FloatInput::Yaw, &input_state) as f32,
 		};
 
-		if bindings.action_is_down(&Action::Walk, &input_state) {
-			command.axis_forward *= 0.5;
-			command.axis_strafe *= 0.6;
+		if bindings.bool_value(&BoolInput::Walk, &input_state) {
+			command.forward *= 0.5;
+			command.strafe *= 0.6;
 		}
 
 		client.previous_command = client.command;
@@ -66,16 +66,16 @@ pub fn player_move_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 			{
 				let mut transform = world.get_component_mut::<Transform>(entity).unwrap();
 
-				transform.rotation[1] += (client.command.axis_pitch * 1e6) as i32;
+				transform.rotation[1] += (client.command.pitch * 1e6) as i32;
 				transform.rotation[1].0 =
 					num_traits::clamp(transform.rotation[1].0, -0x4000_0000, 0x4000_0000);
 
-				transform.rotation[2] -= (client.command.axis_yaw * 1e6) as i32;
+				transform.rotation[2] -= (client.command.yaw * 1e6) as i32;
 			}
 
 			// Apply acceleration
 			{
-				if client.command.axis_forward == 0.0 && client.command.axis_strafe == 0.0 {
+				if client.command.forward == 0.0 && client.command.strafe == 0.0 {
 					return;
 				}
 
@@ -106,8 +106,8 @@ pub fn player_move_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 				}
 
 				let move_dir = Vector2::new(
-					client.command.axis_forward.max(-1.0).min(1.0) * FORWARD_ACCEL,
-					client.command.axis_strafe.max(-1.0).min(1.0) * STRAFE_ACCEL,
+					client.command.forward.max(-1.0).min(1.0) * FORWARD_ACCEL,
+					client.command.strafe.max(-1.0).min(1.0) * STRAFE_ACCEL,
 				);
 
 				let angles = Vector3::new(0.into(), 0.into(), transform.rotation[2]);
@@ -138,7 +138,7 @@ pub fn player_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World,
 			)>::fetch_mut(resources);
 
 		if let Some(entity) = client.entity {
-			if client.command.action_use && !client.previous_command.action_use {
+			if client.command.r#use && !client.previous_command.r#use {
 				let transform = world.get_component::<Transform>(entity).unwrap();
 				let user = world.get_component::<User>(entity).unwrap();
 				let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();

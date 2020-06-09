@@ -14,7 +14,7 @@ use crate::{
 	assets::{AssetHandle, AssetStorage, DataSource},
 	audio::Sound,
 	geometry::{AABB2, AABB3},
-	input::{Axis, Bindings, Button, InputState, MouseAxis},
+	input::InputState,
 	quadtree::Quadtree,
 	renderer::{AsBytes, DrawList, RenderContext, RenderTarget},
 };
@@ -37,7 +37,7 @@ use vulkano::{
 	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
 };
 use winit::{
-	event::{ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent},
+	event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent},
 	event_loop::{ControlFlow, EventLoop},
 	platform::desktop::EventLoopExtDesktop,
 };
@@ -93,6 +93,7 @@ fn main() -> anyhow::Result<()> {
 		render_context.device().clone(),
 	)
 	.context("Couldn't create RenderTarget")?;
+
 	let mut draw_list = DrawList::new(&render_context, render_target.dimensions())
 		.context("Couldn't create DrawList")?;
 	draw_list.add_step(
@@ -107,8 +108,8 @@ fn main() -> anyhow::Result<()> {
 		doom::render::sprite::DrawSprites::new(&render_context, draw_list.render_pass())
 			.context("Couldn't create DrawSprites")?,
 	);
-
 	resources.insert(draw_list);
+
 	resources.insert(
 		Sampler::new(
 			render_context.device().clone(),
@@ -123,7 +124,7 @@ fn main() -> anyhow::Result<()> {
 			0.0,
 			0.0,
 		)
-		.context("Could not create texture sampler")?,
+		.context("Couldn't create texture sampler")?,
 	);
 	resources.insert(render_target);
 	resources.insert(render_context);
@@ -131,7 +132,7 @@ fn main() -> anyhow::Result<()> {
 	let sound_sender = audio::init()?;
 	resources.insert(sound_sender);
 
-	let bindings = get_bindings();
+	let bindings = doom::data::get_bindings();
 	resources.insert(bindings);
 
 	resources.insert(AssetStorage::default());
@@ -347,55 +348,6 @@ fn load_wads(loader: &mut doom::wad::WadLoader, arg_matches: &ArgMatches) -> any
 	}
 
 	Ok(())
-}
-
-fn get_bindings() -> Bindings<doom::input::Action, doom::input::Axis> {
-	let mut bindings = Bindings::new();
-	bindings.bind_action(
-		doom::input::Action::Attack,
-		Button::Mouse(MouseButton::Left),
-	);
-	bindings.bind_action(doom::input::Action::Use, Button::Key(VirtualKeyCode::Space));
-	bindings.bind_action(doom::input::Action::Use, Button::Mouse(MouseButton::Middle));
-	bindings.bind_action(
-		doom::input::Action::Walk,
-		Button::Key(VirtualKeyCode::LShift),
-	);
-	bindings.bind_action(
-		doom::input::Action::Walk,
-		Button::Key(VirtualKeyCode::RShift),
-	);
-	bindings.bind_axis(
-		doom::input::Axis::Forward,
-		Axis::Emulated {
-			pos: Button::Key(VirtualKeyCode::W),
-			neg: Button::Key(VirtualKeyCode::S),
-		},
-	);
-	bindings.bind_axis(
-		doom::input::Axis::Strafe,
-		Axis::Emulated {
-			pos: Button::Key(VirtualKeyCode::A),
-			neg: Button::Key(VirtualKeyCode::D),
-		},
-	);
-	bindings.bind_axis(
-		doom::input::Axis::Yaw,
-		Axis::Mouse {
-			axis: MouseAxis::X,
-			scale: 3.0,
-		},
-	);
-	bindings.bind_axis(
-		doom::input::Axis::Pitch,
-		Axis::Mouse {
-			axis: MouseAxis::Y,
-			scale: 3.0,
-		},
-	);
-	//println!("{}", serde_json::to_string(&bindings)?);
-
-	bindings
 }
 
 fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow::Result<()> {
