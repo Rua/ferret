@@ -7,7 +7,7 @@ use vulkano::{
 	image::{swapchain::SwapchainImage, AttachmentImage, ImageAccess, ImageUsage},
 	swapchain::{
 		AcquireError, ColorSpace, CompositeAlpha, FullscreenExclusive, PresentMode, Surface,
-		SurfaceTransform, Swapchain,
+		SurfaceTransform, Swapchain, SwapchainCreationError,
 	},
 	sync::{FlushError, GpuFuture, SharingMode},
 };
@@ -62,7 +62,7 @@ impl RenderTarget {
 		)?;
 		log::debug!("Creating swapchain: {:?}", params);
 
-		let (swapchain, images) = Swapchain::with_old_swapchain(
+		let (swapchain, images) = match Swapchain::with_old_swapchain(
 			self.swapchain.device().clone(),
 			self.swapchain.surface().clone(),
 			params.num_images,
@@ -81,8 +81,14 @@ impl RenderTarget {
 			true,
 			ColorSpace::SrgbNonLinear,
 			self.swapchain.clone(),
-		)
-		.context("Couldn't recreate swapchain")?;
+		) {
+			Ok(ok) => ok,
+			Err(SwapchainCreationError::UnsupportedDimensions) => {
+				log::debug!("Swapchain recreation returned UnsupportedDimensions");
+				return Ok(());
+			}
+			Err(err) => Err(err).context("Couldn't recreate swapchain")?,
+		};
 
 		*self = RenderTarget {
 			images,
@@ -118,7 +124,10 @@ impl RenderTarget {
 		image: Arc<AttachmentImage>,
 		draw_future: impl GpuFuture,
 	) -> anyhow::Result<()> {
-		assert!(!self.needs_recreate);
+		if self.needs_recreate() {
+			log::debug!("Swapchain still needs recreating, skipping frame presenting");
+			return Ok(());
+		}
 
 		// Acquire swapchain image
 		let (image_num, suboptimal, swapchain_future) =
