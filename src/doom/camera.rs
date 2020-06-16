@@ -8,7 +8,7 @@ use crate::{
 	},
 	geometry::Angle,
 };
-use legion::prelude::{Entity, IntoQuery, Read, ResourceSet, Resources, World, Write};
+use legion::prelude::{Entity, EntityStore, IntoQuery, Read, ResourceSet, Resources, World, Write};
 use nalgebra::{Vector2, Vector3};
 use shrev::EventChannel;
 use std::time::Duration;

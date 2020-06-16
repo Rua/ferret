@@ -10,7 +10,7 @@ use crate::{
 	geometry::Side,
 };
 use legion::prelude::{
-	CommandBuffer, Entity, IntoQuery, Read, ResourceSet, Resources, World, Write,
+	CommandBuffer, Entity, EntityStore, IntoQuery, Read, ResourceSet, Resources, World, Write,
 };
 use shrev::EventChannel;
 use std::time::Duration;
@@ -59,110 +59,113 @@ pub fn door_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 			Write<Vec<(AssetHandle<Sound>, Entity)>>,
 		)>::fetch_mut(resources);
 
-		let tracer = SectorTracer { world };
 		let mut command_buffer = CommandBuffer::new(world);
 
-		for (entity, (sector_ref, mut door_active)) in unsafe {
-			<(Read<SectorRef>, Write<DoorActive>)>::query().iter_entities_unchecked(world)
-		} {
-			let mut map_dynamic = unsafe {
-				world
-					.get_component_mut_unchecked::<MapDynamic>(sector_ref.map_entity)
-					.unwrap()
-			};
-			let map = asset_storage.get(&map_dynamic.map).unwrap();
-			let sector = &map.sectors[sector_ref.index];
-			let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
+		{
+			let query = <(Read<SectorRef>, Write<DoorActive>)>::query();
+			let (mut query_world, mut world) = world.split_for_query(&query);
+			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
+			let tracer = SectorTracer { world: &world };
 
-			let new_state = match door_active.state {
-				DoorState::Closed => {
-					if let Some(new_time) = door_active.time_left.checked_sub(*delta) {
-						door_active.time_left = new_time;
-						None
-					} else {
-						if sector_dynamic.interval.max == door_active.open_height {
-							// Already open
-							Some(DoorState::Open)
-						} else {
-							Some(DoorState::Opening)
-						}
-					}
-				}
-				DoorState::Opening => {
-					let move_step = door_active.speed * delta.as_secs_f32();
-					sector_dynamic.interval.max += move_step;
+			for (entity, (sector_ref, mut door_active)) in query.iter_entities_mut(&mut query_world)
+			{
+				let mut map_dynamic = map_dynamic_world
+					.get_component_mut::<MapDynamic>(sector_ref.map_entity)
+					.unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
+				let sector = &map.sectors[sector_ref.index];
+				let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 
-					if sector_dynamic.interval.max > door_active.open_height {
-						sector_dynamic.interval.max = door_active.open_height;
-						Some(DoorState::Open)
-					} else {
-						None
-					}
-				}
-				DoorState::Open => {
-					if let Some(new_time) = door_active.time_left.checked_sub(*delta) {
-						door_active.time_left = new_time;
-						None
-					} else {
-						if sector_dynamic.interval.max == door_active.close_height {
-							// Already closed
-							Some(DoorState::Closed)
-						} else {
-							Some(DoorState::Closing)
-						}
-					}
-				}
-				DoorState::Closing => {
-					// Check if the door bumped something on the way down
-					let move_step = -door_active.speed * delta.as_secs_f32();
-					let trace = tracer.trace(
-						-sector_dynamic.interval.max,
-						-1.0,
-						move_step,
-						sector.subsectors.iter().map(|i| &map.subsectors[*i]),
-					);
-
-					// TODO use fraction
-					if trace.collision.is_some() {
-						if door_active.can_reverse {
-							// Re-open the door
-							Some(DoorState::Opening)
-						} else {
-							// Hang there until the obstruction is gone
+				let new_state = match door_active.state {
+					DoorState::Closed => {
+						if let Some(new_time) = door_active.time_left.checked_sub(*delta) {
+							door_active.time_left = new_time;
 							None
+						} else {
+							if sector_dynamic.interval.max == door_active.open_height {
+								// Already open
+								Some(DoorState::Open)
+							} else {
+								Some(DoorState::Opening)
+							}
 						}
-					} else {
+					}
+					DoorState::Opening => {
+						let move_step = door_active.speed * delta.as_secs_f32();
 						sector_dynamic.interval.max += move_step;
 
-						if sector_dynamic.interval.max <= door_active.close_height {
-							sector_dynamic.interval.max = door_active.close_height;
-							Some(DoorState::Closed)
+						if sector_dynamic.interval.max > door_active.open_height {
+							sector_dynamic.interval.max = door_active.open_height;
+							Some(DoorState::Open)
 						} else {
 							None
 						}
 					}
-				}
-			};
+					DoorState::Open => {
+						if let Some(new_time) = door_active.time_left.checked_sub(*delta) {
+							door_active.time_left = new_time;
+							None
+						} else {
+							if sector_dynamic.interval.max == door_active.close_height {
+								// Already closed
+								Some(DoorState::Closed)
+							} else {
+								Some(DoorState::Closing)
+							}
+						}
+					}
+					DoorState::Closing => {
+						// Check if the door bumped something on the way down
+						let move_step = -door_active.speed * delta.as_secs_f32();
+						let trace = tracer.trace(
+							-sector_dynamic.interval.max,
+							-1.0,
+							move_step,
+							sector.subsectors.iter().map(|i| &map.subsectors[*i]),
+						);
 
-			// State transition
-			if let Some(new_state) = new_state {
-				if new_state == door_active.end_state {
-					command_buffer.remove_component::<DoorActive>(entity);
-				} else {
-					door_active.state = new_state;
+						// TODO use fraction
+						if trace.collision.is_some() {
+							if door_active.can_reverse {
+								// Re-open the door
+								Some(DoorState::Opening)
+							} else {
+								// Hang there until the obstruction is gone
+								None
+							}
+						} else {
+							sector_dynamic.interval.max += move_step;
 
-					match new_state {
-						DoorState::Opening => {
-							sound_queue.push((door_active.open_sound.clone(), entity));
+							if sector_dynamic.interval.max <= door_active.close_height {
+								sector_dynamic.interval.max = door_active.close_height;
+								Some(DoorState::Closed)
+							} else {
+								None
+							}
 						}
-						DoorState::Open => {
-							door_active.time_left = door_active.wait_time;
-						}
-						DoorState::Closing => {
-							sound_queue.push((door_active.close_sound.clone(), entity));
-						}
-						DoorState::Closed => {
-							door_active.time_left = door_active.wait_time;
+					}
+				};
+
+				// State transition
+				if let Some(new_state) = new_state {
+					if new_state == door_active.end_state {
+						command_buffer.remove_component::<DoorActive>(entity);
+					} else {
+						door_active.state = new_state;
+
+						match new_state {
+							DoorState::Opening => {
+								sound_queue.push((door_active.open_sound.clone(), entity));
+							}
+							DoorState::Open => {
+								door_active.time_left = door_active.wait_time;
+							}
+							DoorState::Closing => {
+								sound_queue.push((door_active.close_sound.clone(), entity));
+							}
+							DoorState::Closed => {
+								door_active.time_left = door_active.wait_time;
+							}
 						}
 					}
 				}
@@ -191,56 +194,61 @@ pub fn door_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &
 
 		let mut command_buffer = CommandBuffer::new(world);
 
-		for use_event in use_event_channel.read(&mut use_event_reader) {
-			let linedef_ref = world
-				.get_component::<LinedefRef>(use_event.linedef_entity)
-				.unwrap();
-			let map_dynamic = world
-				.get_component::<MapDynamic>(linedef_ref.map_entity)
-				.unwrap();
-			let map = asset_storage.get(&map_dynamic.map).unwrap();
-			let linedef = &map.linedefs[linedef_ref.index];
+		{
+			let (mut door_active_world, world) = world.split::<Write<DoorActive>>();
 
-			if let Some(UseAction::DoorUse(door_use)) = world
-				.get_component::<UseAction>(use_event.linedef_entity)
-				.as_deref()
-			{
-				if let Some(back_sidedef) = &linedef.sidedefs[Side::Left as usize] {
-					let sector_index = back_sidedef.sector_index;
-					let sector_entity = map_dynamic.sectors[sector_index].entity;
+			for use_event in use_event_channel.read(&mut use_event_reader) {
+				let linedef_ref = world
+					.get_component::<LinedefRef>(use_event.linedef_entity)
+					.unwrap();
+				let map_dynamic = world
+					.get_component::<MapDynamic>(linedef_ref.map_entity)
+					.unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
+				let linedef = &map.linedefs[linedef_ref.index];
 
-					if let Some(mut door_active) =
-						unsafe { world.get_component_mut_unchecked::<DoorActive>(sector_entity) }
-					{
-						if door_use.params.can_reverse {
-							door_active.time_left = Duration::default();
+				if let Some(UseAction::DoorUse(door_use)) = world
+					.get_component::<UseAction>(use_event.linedef_entity)
+					.as_deref()
+				{
+					if let Some(back_sidedef) = &linedef.sidedefs[Side::Left as usize] {
+						let sector_index = back_sidedef.sector_index;
+						let sector_entity = map_dynamic.sectors[sector_index].entity;
 
-							match door_active.state {
-								DoorState::Closing | DoorState::Closed => {
-									// Re-open the door
-									door_active.state = DoorState::Closed;
+						if let Some(mut door_active) =
+							door_active_world.get_component_mut::<DoorActive>(sector_entity)
+						{
+							if door_use.params.can_reverse {
+								door_active.time_left = Duration::default();
+
+								match door_active.state {
+									DoorState::Closing | DoorState::Closed => {
+										// Re-open the door
+										door_active.state = DoorState::Closed;
+									}
+									DoorState::Opening | DoorState::Open => {
+										// Close the door early
+										door_active.state = DoorState::Open;
+									}
 								}
-								DoorState::Opening | DoorState::Open => {
-									// Close the door early
-									door_active.state = DoorState::Open;
-								}
+							}
+						} else {
+							activate(
+								&door_use.params,
+								&mut command_buffer,
+								sector_index,
+								&map,
+								&map_dynamic,
+							);
+
+							if !door_use.retrigger {
+								command_buffer
+									.remove_component::<UseAction>(use_event.linedef_entity);
 							}
 						}
 					} else {
-						activate(
-							&door_use.params,
-							&mut command_buffer,
-							sector_index,
-							&map,
-							&map_dynamic,
-						);
-
-						if !door_use.retrigger {
-							command_buffer.remove_component::<UseAction>(use_event.linedef_entity);
-						}
+						log::error!("Used door linedef {} has no back sector", linedef_ref.index);
 					}
-				} else {
-					log::error!("Used door linedef {} has no back sector", linedef_ref.index);
 				}
 			}
 		}
@@ -270,48 +278,54 @@ pub fn door_switch_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World
 
 		let mut command_buffer = CommandBuffer::new(world);
 
-		for use_event in use_event_channel.read(&mut use_event_reader) {
-			let linedef_ref = world
-				.get_component::<LinedefRef>(use_event.linedef_entity)
-				.unwrap();
-			let mut map_dynamic = unsafe {
-				world
-					.get_component_mut_unchecked::<MapDynamic>(linedef_ref.map_entity)
-					.unwrap()
-			};
-			let map = asset_storage.get(&map_dynamic.map).unwrap();
-			let linedef = &map.linedefs[linedef_ref.index];
+		{
+			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
 
-			if let Some(UseAction::DoorSwitchUse(door_use)) = world
-				.get_component::<UseAction>(use_event.linedef_entity)
-				.as_deref()
-			{
-				// Skip if switch is already in active state
-				if world.has_component::<SwitchActive>(use_event.linedef_entity) {
-					continue;
-				}
+			for use_event in use_event_channel.read(&mut use_event_reader) {
+				let linedef_ref = world
+					.get_component::<LinedefRef>(use_event.linedef_entity)
+					.unwrap();
+				let mut map_dynamic = map_dynamic_world
+					.get_component_mut::<MapDynamic>(linedef_ref.map_entity)
+					.unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
+				let linedef = &map.linedefs[linedef_ref.index];
 
-				let activated = activate_with_tag(
-					&door_use.params,
-					&mut command_buffer,
-					linedef.sector_tag,
-					world,
-					map,
-					map_dynamic.as_ref(),
-				);
+				if let Some(UseAction::DoorSwitchUse(door_use)) = world
+					.get_component::<UseAction>(use_event.linedef_entity)
+					.as_deref()
+				{
+					// Skip if switch is already in active state
+					// TODO change to has_component once that's available on EntityStore
+					if world
+						.get_component::<SwitchActive>(use_event.linedef_entity)
+						.is_some()
+					{
+						continue;
+					}
 
-				if activated {
-					let activated = crate::doom::switch::activate(
-						&door_use.switch_params,
+					let activated = activate_with_tag(
+						&door_use.params,
 						&mut command_buffer,
-						sound_queue.as_mut(),
-						linedef_ref.index,
+						linedef.sector_tag,
+						&world,
 						map,
-						map_dynamic.as_mut(),
+						map_dynamic.as_ref(),
 					);
 
-					if activated && door_use.switch_params.retrigger_time.is_none() {
-						command_buffer.remove_component::<UseAction>(use_event.linedef_entity);
+					if activated {
+						let activated = crate::doom::switch::activate(
+							&door_use.switch_params,
+							&mut command_buffer,
+							sound_queue.as_mut(),
+							linedef_ref.index,
+							map,
+							map_dynamic.as_mut(),
+						);
+
+						if activated && door_use.switch_params.retrigger_time.is_none() {
+							command_buffer.remove_component::<UseAction>(use_event.linedef_entity);
+						}
 					}
 				}
 			}
@@ -339,44 +353,47 @@ pub fn door_touch_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World,
 
 		let mut command_buffer = CommandBuffer::new(world);
 
-		for touch_event in touch_event_channel.read(&mut touch_event_reader) {
-			if touch_event.collision.is_some() {
-				continue;
-			}
+		{
+			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
 
-			let linedef_ref =
-				if let Some(linedef_ref) = world.get_component::<LinedefRef>(touch_event.touched) {
+			for touch_event in touch_event_channel.read(&mut touch_event_reader) {
+				if touch_event.collision.is_some() {
+					continue;
+				}
+
+				let linedef_ref = if let Some(linedef_ref) =
+					world.get_component::<LinedefRef>(touch_event.touched)
+				{
 					linedef_ref
 				} else {
 					continue;
 				};
-			let map_dynamic = unsafe {
-				world
-					.get_component_mut_unchecked::<MapDynamic>(linedef_ref.map_entity)
-					.unwrap()
-			};
-			let map = asset_storage.get(&map_dynamic.map).unwrap();
-			let linedef = &map.linedefs[linedef_ref.index];
+				let map_dynamic = map_dynamic_world
+					.get_component_mut::<MapDynamic>(linedef_ref.map_entity)
+					.unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
+				let linedef = &map.linedefs[linedef_ref.index];
 
-			match world
-				.get_component::<TouchAction>(touch_event.touched)
-				.as_deref()
-			{
-				Some(TouchAction::DoorTouch(door_touch)) => {
-					if activate_with_tag(
-						&door_touch.params,
-						&mut command_buffer,
-						linedef.sector_tag,
-						world,
-						map,
-						map_dynamic.as_ref(),
-					) {
-						if !door_touch.retrigger {
-							command_buffer.remove_component::<TouchAction>(touch_event.touched);
+				match world
+					.get_component::<TouchAction>(touch_event.touched)
+					.as_deref()
+				{
+					Some(TouchAction::DoorTouch(door_touch)) => {
+						if activate_with_tag(
+							&door_touch.params,
+							&mut command_buffer,
+							linedef.sector_tag,
+							&world,
+							map,
+							map_dynamic.as_ref(),
+						) {
+							if !door_touch.retrigger {
+								command_buffer.remove_component::<TouchAction>(touch_event.touched);
+							}
 						}
 					}
+					_ => {}
 				}
-				_ => {}
 			}
 		}
 
@@ -420,11 +437,11 @@ fn activate(
 	);
 }
 
-fn activate_with_tag(
+fn activate_with_tag<W: EntityStore>(
 	params: &DoorParams,
 	command_buffer: &mut CommandBuffer,
 	sector_tag: u16,
-	world: &World,
+	world: &W,
 	map: &Map,
 	map_dynamic: &MapDynamic,
 ) -> bool {
@@ -439,7 +456,8 @@ fn activate_with_tag(
 	{
 		let sector_entity = map_dynamic.sectors[sector_index].entity;
 
-		if world.has_component::<DoorActive>(sector_entity) {
+		// TODO has_component
+		if world.get_component::<DoorActive>(sector_entity).is_some() {
 			continue;
 		}
 

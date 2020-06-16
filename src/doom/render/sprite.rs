@@ -9,7 +9,7 @@ use crate::{
 };
 use anyhow::Context;
 use fnv::FnvHashMap;
-use legion::prelude::{IntoQuery, Read, ResourceSet, Resources, World};
+use legion::prelude::{EntityStore, IntoQuery, Read, ResourceSet, Resources, World};
 use nalgebra::{Matrix4, Vector2, Vector3};
 use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{

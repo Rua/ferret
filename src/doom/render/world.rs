@@ -5,7 +5,7 @@ use crate::{
 	renderer::{DrawContext, DrawStep, RenderContext},
 };
 use anyhow::Context;
-use legion::prelude::{Read, ResourceSet, Resources, World};
+use legion::prelude::{EntityStore, Read, ResourceSet, Resources, World};
 use nalgebra::{Matrix4, Vector3};
 use std::sync::Arc;
 use vulkano::{

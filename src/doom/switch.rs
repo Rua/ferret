@@ -7,7 +7,7 @@ use crate::{
 	},
 };
 use legion::prelude::{
-	CommandBuffer, Entity, IntoQuery, Read, ResourceSet, Resources, World, Write,
+	CommandBuffer, Entity, EntityStore, IntoQuery, Read, ResourceSet, Resources, World, Write,
 };
 use std::time::Duration;
 
@@ -35,29 +35,33 @@ pub fn switch_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 
 		let mut command_buffer = CommandBuffer::new(world);
 
-		for (entity, (linedef_ref, mut switch_active)) in unsafe {
-			<(Read<LinedefRef>, Write<SwitchActive>)>::query().iter_entities_unchecked(world)
-		} {
-			if let Some(new_time) = switch_active.time_left.checked_sub(*delta) {
-				switch_active.time_left = new_time;
-			} else {
-				let mut map_dynamic = unsafe {
-					world
-						.get_component_mut_unchecked::<MapDynamic>(linedef_ref.map_entity)
-						.unwrap()
-				};
-				let map_dynamic = map_dynamic.as_mut();
-				let linedef_dynamic = &mut map_dynamic.linedefs[linedef_ref.index];
-				let sidedef_dynamic = linedef_dynamic.sidedefs[0].as_mut().unwrap();
-				let map = asset_storage.get(&map_dynamic.map).unwrap();
-				let linedef = &map.linedefs[linedef_ref.index];
-				let sidedef = linedef.sidedefs[0].as_ref().unwrap();
-				let sector_entity = map_dynamic.sectors[sidedef.sector_index].entity;
+		{
+			let query = <(Read<LinedefRef>, Write<SwitchActive>)>::query();
+			let (mut query_world, mut world) = world.split_for_query(&query);
+			let (mut map_dynamic_world, _world) = world.split::<Write<MapDynamic>>();
 
-				sidedef_dynamic.textures[switch_active.texture_slot as usize] =
-					TextureType::Normal(switch_active.texture.clone());
-				sound_queue.push((switch_active.sound.clone(), sector_entity));
-				command_buffer.remove_component::<SwitchActive>(entity);
+			for (entity, (linedef_ref, mut switch_active)) in
+				query.iter_entities_mut(&mut query_world)
+			{
+				if let Some(new_time) = switch_active.time_left.checked_sub(*delta) {
+					switch_active.time_left = new_time;
+				} else {
+					let mut map_dynamic = map_dynamic_world
+						.get_component_mut::<MapDynamic>(linedef_ref.map_entity)
+						.unwrap();
+					let map_dynamic = map_dynamic.as_mut();
+					let linedef_dynamic = &mut map_dynamic.linedefs[linedef_ref.index];
+					let sidedef_dynamic = linedef_dynamic.sidedefs[0].as_mut().unwrap();
+					let map = asset_storage.get(&map_dynamic.map).unwrap();
+					let linedef = &map.linedefs[linedef_ref.index];
+					let sidedef = linedef.sidedefs[0].as_ref().unwrap();
+					let sector_entity = map_dynamic.sectors[sidedef.sector_index].entity;
+
+					sidedef_dynamic.textures[switch_active.texture_slot as usize] =
+						TextureType::Normal(switch_active.texture.clone());
+					sound_queue.push((switch_active.sound.clone(), sector_entity));
+					command_buffer.remove_component::<SwitchActive>(entity);
+				}
 			}
 		}
 

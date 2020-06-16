@@ -14,7 +14,7 @@ use crate::{
 	input::{Bindings, InputState},
 	quadtree::Quadtree,
 };
-use legion::prelude::{Entity, IntoQuery, Read, ResourceSet, Resources, World, Write};
+use legion::prelude::{Entity, EntityStore, IntoQuery, Read, ResourceSet, Resources, World, Write};
 use nalgebra::{Vector2, Vector3};
 use shrev::EventChannel;
 use std::time::Duration;
@@ -61,6 +61,8 @@ pub fn player_move_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 			Read<Quadtree>,
 		)>::fetch_mut(resources);
 
+		let (mut velocity_world, mut world) = world.split::<Write<Velocity>>();
+
 		if let Some(entity) = client.entity {
 			// Apply rotation
 			{
@@ -80,7 +82,7 @@ pub fn player_move_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 				}
 
 				let transform = world.get_component::<Transform>(entity).unwrap();
-				let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
+				let map_dynamic = <Read<MapDynamic>>::query().iter(&world).next().unwrap();
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 				let box_collider = world.get_component::<BoxCollider>(entity).unwrap();
 
@@ -88,7 +90,7 @@ pub fn player_move_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 					map,
 					map_dynamic: map_dynamic.as_ref(),
 					quadtree: &quadtree,
-					world,
+					world: &world,
 				};
 
 				let entity_bbox =
@@ -114,12 +116,10 @@ pub fn player_move_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 				let axes = crate::geometry::angles_to_axes(angles);
 				let accel = (axes[0] * move_dir[0] + axes[1] * move_dir[1]) * delta.as_secs_f32();
 
-				unsafe {
-					world
-						.get_component_mut_unchecked::<Velocity>(entity)
-						.unwrap()
-						.velocity += accel;
-				}
+				velocity_world
+					.get_component_mut::<Velocity>(entity)
+					.unwrap()
+					.velocity += accel;
 			}
 		}
 	})

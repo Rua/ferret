@@ -13,7 +13,9 @@ use crate::{
 use arrayvec::ArrayVec;
 use bitflags::bitflags;
 use lazy_static::lazy_static;
-use legion::prelude::{component, Entity, IntoQuery, Read, ResourceSet, Resources, World, Write};
+use legion::prelude::{
+	component, Entity, EntityStore, IntoQuery, Read, ResourceSet, Resources, World, Write,
+};
 use nalgebra::Vector3;
 use shrev::EventChannel;
 use smallvec::SmallVec;
@@ -36,35 +38,42 @@ pub fn physics_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &m
 				Write<EventChannel<TouchEvent>>,
 			)>::fetch_mut(resources);
 
-		let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
+		let (map_dynamic_world, mut world) = world.split::<Read<MapDynamic>>();
+		let map_dynamic = <Read<MapDynamic>>::query()
+			.iter(&map_dynamic_world)
+			.next()
+			.unwrap();
 		let map = asset_storage.get(&map_dynamic.map).unwrap();
 
 		// Clone the mask so that transform_component is free to be borrowed during the loop
 		let entities: Vec<Entity> = <Read<Transform>>::query()
 			.filter(component::<BoxCollider>() & component::<Velocity>())
-			.iter_entities(world)
+			.iter_entities(&world)
 			.map(|(e, _)| e)
 			.collect();
 
 		for entity in entities {
-			let box_collider = world.get_component::<BoxCollider>(entity).unwrap();
-			let entity_bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
 			let mut new_position = world.get_component::<Transform>(entity).unwrap().position;
 			let mut new_velocity = world.get_component::<Velocity>(entity).unwrap().velocity;
+			let entity_bbox = {
+				let box_collider = world.get_component::<BoxCollider>(entity).unwrap();
+				AABB3::from_radius_height(box_collider.radius, box_collider.height)
+			};
+
+			let mut step_events: SmallVec<[StepEvent; 8]> = SmallVec::new();
+			let mut touch_events: SmallVec<[TouchEvent; 8]> = SmallVec::new();
 
 			if new_velocity == Vector3::zeros() {
 				continue;
 			}
 
 			quadtree.remove(entity);
-			let mut step_events: SmallVec<[StepEvent; 8]> = SmallVec::new();
-			let mut touch_events: SmallVec<[TouchEvent; 8]> = SmallVec::new();
 
 			let tracer = EntityTracer {
 				map,
 				map_dynamic: map_dynamic.as_ref(),
 				quadtree: &quadtree,
-				world,
+				world: &world,
 			};
 
 			// Check for ground
@@ -106,16 +115,14 @@ pub fn physics_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &m
 			);
 
 			// Set new position and velocity
-			unsafe {
-				world
-					.get_component_mut_unchecked::<Transform>(entity)
-					.unwrap()
-					.position = new_position;
-				world
-					.get_component_mut_unchecked::<Velocity>(entity)
-					.unwrap()
-					.velocity = new_velocity;
-			}
+			world
+				.get_component_mut::<Transform>(entity)
+				.unwrap()
+				.position = new_position;
+			world
+				.get_component_mut::<Velocity>(entity)
+				.unwrap()
+				.velocity = new_velocity;
 			quadtree.insert(entity, &AABB2::from(&entity_bbox.offset(new_position)));
 
 			// Send events
@@ -125,8 +132,8 @@ pub fn physics_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &m
 	})
 }
 
-fn step_slide_move(
-	tracer: &EntityTracer,
+fn step_slide_move<W: EntityStore>(
+	tracer: &EntityTracer<W>,
 	position: &mut Vector3<f32>,
 	velocity: &mut Vector3<f32>,
 	step_events: &mut SmallVec<[StepEvent; 8]>,
@@ -264,11 +271,11 @@ bitflags! {
 	}
 }
 
-pub struct EntityTracer<'a> {
+pub struct EntityTracer<'a, W: EntityStore> {
 	pub map: &'a Map,
 	pub map_dynamic: &'a MapDynamic,
 	pub quadtree: &'a Quadtree,
-	pub world: &'a World,
+	pub world: &'a W,
 }
 
 #[derive(Clone, Debug)]
@@ -288,7 +295,7 @@ pub struct TraceCollision {
 
 const DISTANCE_EPSILON: f32 = 0.03125;
 
-impl<'a> EntityTracer<'a> {
+impl<'a, W: EntityStore> EntityTracer<'a, W> {
 	pub fn trace(
 		&self,
 		entity_bbox: &AABB3,
@@ -531,11 +538,11 @@ impl<'a> EntityTracer<'a> {
 	}
 }
 
-pub struct SectorTracer<'a> {
-	pub world: &'a World,
+pub struct SectorTracer<'a, W: EntityStore> {
+	pub world: &'a W,
 }
 
-impl<'a> SectorTracer<'a> {
+impl<'a, W: EntityStore> SectorTracer<'a, W> {
 	pub fn trace<'b>(
 		&self,
 		distance: f32,

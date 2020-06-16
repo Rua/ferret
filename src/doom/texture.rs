@@ -2,7 +2,7 @@ use crate::{
 	assets::AssetStorage,
 	doom::map::{LinedefRef, MapDynamic},
 };
-use legion::prelude::{IntoQuery, Read, ResourceSet, Resources, World, Write};
+use legion::prelude::{EntityStore, IntoQuery, Read, ResourceSet, Resources, World, Write};
 use nalgebra::Vector2;
 use std::time::Duration;
 
@@ -10,8 +10,10 @@ pub fn texture_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 	Box::new(move |world, resources| {
 		let (asset_storage, delta) = <(Read<AssetStorage>, Read<Duration>)>::fetch(resources);
 
+		let (mut map_dynamic_world, mut world) = world.split::<Write<MapDynamic>>();
+
 		// Advance animations
-		for mut map_dynamic in <Write<MapDynamic>>::query().iter_mut(world) {
+		for mut map_dynamic in <Write<MapDynamic>>::query().iter_mut(&mut map_dynamic_world) {
 			let map_dynamic = map_dynamic.as_mut();
 
 			for (handle, anim_state) in map_dynamic.anim_states_flat.iter_mut() {
@@ -39,13 +41,11 @@ pub fn texture_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 
 		// Scroll textures
 		for (linedef_ref, texture_scroll) in
-			unsafe { <(Read<LinedefRef>, Read<TextureScroll>)>::query().iter_unchecked(world) }
+			<(Read<LinedefRef>, Read<TextureScroll>)>::query().iter_mut(&mut world)
 		{
-			let mut map_dynamic = unsafe {
-				world
-					.get_component_mut_unchecked::<MapDynamic>(linedef_ref.map_entity)
-					.unwrap()
-			};
+			let mut map_dynamic = map_dynamic_world
+				.get_component_mut::<MapDynamic>(linedef_ref.map_entity)
+				.unwrap();
 			let map_dynamic = map_dynamic.as_mut();
 			let linedef_dynamic = &mut map_dynamic.linedefs[linedef_ref.index];
 			linedef_dynamic.texture_offset += texture_scroll.speed * delta.as_secs_f32();

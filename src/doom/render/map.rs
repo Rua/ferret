@@ -12,7 +12,7 @@ use crate::{
 	renderer::{AsBytes, DrawContext, DrawStep},
 };
 use anyhow::{anyhow, Context};
-use legion::prelude::{IntoQuery, Read, ResourceSet, Resources, World};
+use legion::prelude::{EntityStore, IntoQuery, Read, ResourceSet, Resources, World};
 use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},

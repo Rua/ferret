@@ -8,7 +8,7 @@ use anyhow::ensure;
 use byteorder::{ReadBytesExt, LE};
 use crossbeam_channel::Sender;
 use legion::prelude::{
-	CommandBuffer, Entity, IntoQuery, Read, ResourceSet, Resources, World, Write,
+	CommandBuffer, Entity, EntityStore, IntoQuery, Read, ResourceSet, Resources, World, Write,
 };
 use nalgebra::Vector2;
 use rodio::Source;
@@ -64,7 +64,7 @@ pub fn sound_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 		let mut command_buffer = CommandBuffer::new(world);
 
 		{
-			let client_transform = world
+			let client_transform = *world
 				.get_component::<Transform>(client.entity.unwrap())
 				.unwrap();
 
@@ -74,14 +74,14 @@ pub fn sound_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 				let (controller, source) = SoundController::new(SoundSource::new(&sound));
 
 				// Set distance falloff and stereo panning
-				let transform = world.get_component::<Transform>(entity).unwrap();
-				let volumes = calculate_volumes(client_transform.as_ref(), transform.as_ref());
-				controller.set_volumes(volumes.into());
+				{
+					let transform = world.get_component::<Transform>(entity).unwrap();
+					let volumes = calculate_volumes(&client_transform, transform.as_ref());
+					controller.set_volumes(volumes.into());
+				}
 
 				// Stop old sound on this entity, if any
-				if let Some(mut sound_playing) =
-					unsafe { world.get_component_mut_unchecked::<SoundPlaying>(entity) }
-				{
+				if let Some(mut sound_playing) = world.get_component_mut::<SoundPlaying>(entity) {
 					sound_playing.controller.stop();
 					sound_playing.controller = controller;
 				} else {
@@ -92,16 +92,16 @@ pub fn sound_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 			}
 
 			// Update currently playing sounds
-			for (entity, (transform, sound_playing)) in unsafe {
-				<(Read<Transform>, Write<SoundPlaying>)>::query().iter_entities_unchecked(world)
-			} {
+			for (entity, (transform, sound_playing)) in
+				<(Read<Transform>, Write<SoundPlaying>)>::query().iter_entities_mut(world)
+			{
 				if sound_playing.controller.is_done() {
 					command_buffer.remove_component::<SoundPlaying>(entity);
 					continue;
 				}
 
 				// Set distance falloff and stereo panning
-				let volumes = calculate_volumes(client_transform.as_ref(), transform.as_ref());
+				let volumes = calculate_volumes(&client_transform, transform.as_ref());
 				sound_playing.controller.set_volumes(volumes.into());
 			}
 		}

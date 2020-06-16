@@ -9,7 +9,7 @@ use crate::{
 	},
 };
 use legion::prelude::{
-	CommandBuffer, Entity, IntoQuery, Read, ResourceSet, Resources, World, Write,
+	CommandBuffer, Entity, EntityStore, IntoQuery, Read, ResourceSet, Resources, World, Write,
 };
 use shrev::EventChannel;
 use std::time::Duration;
@@ -51,63 +51,67 @@ pub fn floor_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 			Write<Vec<(AssetHandle<Sound>, Entity)>>,
 		)>::fetch_mut(resources);
 
-		let tracer = SectorTracer { world };
 		let mut command_buffer = CommandBuffer::new(world);
 
-		for (entity, (sector_ref, mut floor_active)) in unsafe {
-			<(Read<SectorRef>, Write<FloorActive>)>::query().iter_entities_unchecked(world)
-		} {
-			let mut map_dynamic = unsafe {
-				world
-					.get_component_mut_unchecked::<MapDynamic>(sector_ref.map_entity)
-					.unwrap()
-			};
-			let map = asset_storage.get(&map_dynamic.map).unwrap();
-			let sector = &map.sectors[sector_ref.index];
-			let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
+		{
+			let query = <(Read<SectorRef>, Write<FloorActive>)>::query();
+			let (mut query_world, mut world) = world.split_for_query(&query);
+			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
+			let tracer = SectorTracer { world: &world };
 
-			if let Some(new_time) = floor_active.move_sound_time_left.checked_sub(*delta) {
-				floor_active.move_sound_time_left = new_time;
-			} else {
-				floor_active.move_sound_time_left = floor_active.move_sound_time;
-				sound_queue.push((floor_active.move_sound.clone(), entity));
-			}
+			for (entity, (sector_ref, mut floor_active)) in
+				query.iter_entities_mut(&mut query_world)
+			{
+				let mut map_dynamic = map_dynamic_world
+					.get_component_mut::<MapDynamic>(sector_ref.map_entity)
+					.unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
+				let sector = &map.sectors[sector_ref.index];
+				let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 
-			let done = {
-				let direction = if floor_active.target_height < sector_dynamic.interval.min {
-					-1.0
+				if let Some(new_time) = floor_active.move_sound_time_left.checked_sub(*delta) {
+					floor_active.move_sound_time_left = new_time;
 				} else {
-					1.0
+					floor_active.move_sound_time_left = floor_active.move_sound_time;
+					sound_queue.push((floor_active.move_sound.clone(), entity));
+				}
+
+				let done = {
+					let direction = if floor_active.target_height < sector_dynamic.interval.min {
+						-1.0
+					} else {
+						1.0
+					};
+
+					let move_step = direction * floor_active.speed * delta.as_secs_f32();
+					let trace = tracer.trace(
+						sector_dynamic.interval.min,
+						1.0,
+						move_step,
+						sector.subsectors.iter().map(|i| &map.subsectors[*i]),
+					);
+
+					if trace.collision.is_some() {
+						// Hang there until the obstruction is gone
+						false
+					} else {
+						sector_dynamic.interval.min += move_step;
+
+						if direction * sector_dynamic.interval.min
+							>= direction * floor_active.target_height
+						{
+							sector_dynamic.interval.min = floor_active.target_height;
+							true
+						} else {
+							false
+						}
+					}
 				};
 
-				let move_step = direction * floor_active.speed * delta.as_secs_f32();
-				let trace = tracer.trace(
-					sector_dynamic.interval.min,
-					1.0,
-					move_step,
-					sector.subsectors.iter().map(|i| &map.subsectors[*i]),
-				);
-
-				if trace.collision.is_some() {
-					// Hang there until the obstruction is gone
-					false
-				} else {
-					sector_dynamic.interval.min += move_step;
-
-					if direction * sector_dynamic.interval.min
-						>= direction * floor_active.target_height
-					{
-						sector_dynamic.interval.min = floor_active.target_height;
-						true
-					} else {
-						false
-					}
+				if done {
+					sound_queue.push((floor_active.finish_sound.clone(), entity));
+					command_buffer.remove_component::<FloorActive>(entity);
 				}
-			};
-
-			if done {
-				sound_queue.push((floor_active.finish_sound.clone(), entity));
-				command_buffer.remove_component::<FloorActive>(entity);
 			}
 		}
 
@@ -138,48 +142,54 @@ pub fn floor_switch_system(
 
 		let mut command_buffer = CommandBuffer::new(world);
 
-		for use_event in use_event_channel.read(&mut use_event_reader) {
-			let linedef_ref = world
-				.get_component::<LinedefRef>(use_event.linedef_entity)
-				.unwrap();
-			let mut map_dynamic = unsafe {
-				world
-					.get_component_mut_unchecked::<MapDynamic>(linedef_ref.map_entity)
-					.unwrap()
-			};
-			let map = asset_storage.get(&map_dynamic.map).unwrap();
-			let linedef = &map.linedefs[linedef_ref.index];
+		{
+			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
 
-			if let Some(UseAction::FloorSwitchUse(floor_use)) = world
-				.get_component::<UseAction>(use_event.linedef_entity)
-				.as_deref()
-			{
-				// Skip if switch is already in active state
-				if world.has_component::<SwitchActive>(use_event.linedef_entity) {
-					continue;
-				}
+			for use_event in use_event_channel.read(&mut use_event_reader) {
+				let linedef_ref = world
+					.get_component::<LinedefRef>(use_event.linedef_entity)
+					.unwrap();
+				let mut map_dynamic = map_dynamic_world
+					.get_component_mut::<MapDynamic>(linedef_ref.map_entity)
+					.unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
+				let linedef = &map.linedefs[linedef_ref.index];
 
-				let activated = activate_with_tag(
-					&floor_use.params,
-					&mut command_buffer,
-					linedef.sector_tag,
-					world,
-					map,
-					map_dynamic.as_ref(),
-				);
+				if let Some(UseAction::FloorSwitchUse(floor_use)) = world
+					.get_component::<UseAction>(use_event.linedef_entity)
+					.as_deref()
+				{
+					// Skip if switch is already in active state
+					// TODO has_component
+					if world
+						.get_component::<SwitchActive>(use_event.linedef_entity)
+						.is_some()
+					{
+						continue;
+					}
 
-				if activated {
-					let activated = crate::doom::switch::activate(
-						&floor_use.switch_params,
+					let activated = activate_with_tag(
+						&floor_use.params,
 						&mut command_buffer,
-						sound_queue.as_mut(),
-						linedef_ref.index,
+						linedef.sector_tag,
+						&world,
 						map,
-						map_dynamic.as_mut(),
+						map_dynamic.as_ref(),
 					);
 
-					if activated && floor_use.switch_params.retrigger_time.is_none() {
-						command_buffer.remove_component::<UseAction>(use_event.linedef_entity);
+					if activated {
+						let activated = crate::doom::switch::activate(
+							&floor_use.switch_params,
+							&mut command_buffer,
+							sound_queue.as_mut(),
+							linedef_ref.index,
+							map,
+							map_dynamic.as_mut(),
+						);
+
+						if activated && floor_use.switch_params.retrigger_time.is_none() {
+							command_buffer.remove_component::<UseAction>(use_event.linedef_entity);
+						}
 					}
 				}
 			}
@@ -207,44 +217,47 @@ pub fn floor_touch_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World
 
 		let mut command_buffer = CommandBuffer::new(world);
 
-		for touch_event in touch_event_channel.read(&mut touch_event_reader) {
-			if touch_event.collision.is_some() {
-				continue;
-			}
+		{
+			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
 
-			let linedef_ref =
-				if let Some(linedef_ref) = world.get_component::<LinedefRef>(touch_event.touched) {
+			for touch_event in touch_event_channel.read(&mut touch_event_reader) {
+				if touch_event.collision.is_some() {
+					continue;
+				}
+
+				let linedef_ref = if let Some(linedef_ref) =
+					world.get_component::<LinedefRef>(touch_event.touched)
+				{
 					linedef_ref
 				} else {
 					continue;
 				};
-			let map_dynamic = unsafe {
-				world
-					.get_component_mut_unchecked::<MapDynamic>(linedef_ref.map_entity)
-					.unwrap()
-			};
-			let map = asset_storage.get(&map_dynamic.map).unwrap();
-			let linedef = &map.linedefs[linedef_ref.index];
+				let map_dynamic = map_dynamic_world
+					.get_component_mut::<MapDynamic>(linedef_ref.map_entity)
+					.unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
+				let linedef = &map.linedefs[linedef_ref.index];
 
-			match world
-				.get_component::<TouchAction>(touch_event.touched)
-				.as_deref()
-			{
-				Some(TouchAction::FloorTouch(floor_touch)) => {
-					if activate_with_tag(
-						&floor_touch.params,
-						&mut command_buffer,
-						linedef.sector_tag,
-						world,
-						map,
-						map_dynamic.as_ref(),
-					) {
-						if !floor_touch.retrigger {
-							command_buffer.remove_component::<TouchAction>(touch_event.touched);
+				match world
+					.get_component::<TouchAction>(touch_event.touched)
+					.as_deref()
+				{
+					Some(TouchAction::FloorTouch(floor_touch)) => {
+						if activate_with_tag(
+							&floor_touch.params,
+							&mut command_buffer,
+							linedef.sector_tag,
+							&world,
+							map,
+							map_dynamic.as_ref(),
+						) {
+							if !floor_touch.retrigger {
+								command_buffer.remove_component::<TouchAction>(touch_event.touched);
+							}
 						}
 					}
+					_ => {}
 				}
-				_ => {}
 			}
 		}
 
@@ -303,11 +316,11 @@ fn activate(
 	);
 }
 
-fn activate_with_tag(
+fn activate_with_tag<W: EntityStore>(
 	params: &FloorParams,
 	command_buffer: &mut CommandBuffer,
 	sector_tag: u16,
-	world: &World,
+	world: &W,
 	map: &Map,
 	map_dynamic: &MapDynamic,
 ) -> bool {
@@ -322,7 +335,8 @@ fn activate_with_tag(
 	{
 		let sector_entity = map_dynamic.sectors[sector_index].entity;
 
-		if world.has_component::<FloorActive>(sector_entity) {
+		// TODO has_component
+		if world.get_component::<FloorActive>(sector_entity).is_some() {
 			continue;
 		}
 
