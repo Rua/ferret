@@ -3,13 +3,14 @@ use crate::{
 	audio::Sound,
 	doom::{
 		client::{UseAction, UseEvent},
+		components::Transform,
 		map::{LinedefRef, Map, MapDynamic, SectorRef},
-		physics::{SectorTracer, TouchAction, TouchEvent},
+		physics::{BoxCollider, SectorTracer, TouchAction, TouchEvent},
 		switch::{SwitchActive, SwitchParams},
 	},
 };
 use legion::prelude::{
-	CommandBuffer, Entity, EntityStore, IntoQuery, Read, ResourceSet, Resources, World, Write,
+	CommandBuffer, Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder, Write,
 };
 use shrev::EventChannel;
 use std::time::Duration;
@@ -43,18 +44,17 @@ pub enum TargetHeight {
 	HighestNeighbourFloor,
 }
 
-pub fn floor_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
-	Box::new(move |world, resources| {
-		let (asset_storage, delta, mut sound_queue) = <(
-			Read<AssetStorage>,
-			Read<Duration>,
-			Write<Vec<(AssetHandle<Sound>, Entity)>>,
-		)>::fetch_mut(resources);
-
-		let mut command_buffer = CommandBuffer::new(world);
-
-		{
-			let query = <(Read<SectorRef>, Write<FloorActive>)>::query();
+pub fn floor_active_system() -> Box<dyn Runnable> {
+	SystemBuilder::new("floor_active_system")
+		.read_resource::<AssetStorage>()
+		.read_resource::<Duration>()
+		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
+		.with_query(<(Read<SectorRef>, Write<FloorActive>)>::query())
+		.read_component::<BoxCollider>() // used by SectorTracer
+		.read_component::<Transform>() // used by SectorTracer
+		.write_component::<MapDynamic>()
+		.build_thread_local(move |command_buffer, world, resources, query| {
+			let (asset_storage, delta, sound_queue) = resources;
 			let (mut query_world, mut world) = world.split_for_query(&query);
 			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
 			let tracer = SectorTracer { world: &world };
@@ -69,7 +69,7 @@ pub fn floor_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 				let sector = &map.sectors[sector_ref.index];
 				let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 
-				if let Some(new_time) = floor_active.move_sound_time_left.checked_sub(*delta) {
+				if let Some(new_time) = floor_active.move_sound_time_left.checked_sub(**delta) {
 					floor_active.move_sound_time_left = new_time;
 				} else {
 					floor_active.move_sound_time_left = floor_active.move_sound_time;
@@ -113,10 +113,7 @@ pub fn floor_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 					command_buffer.remove_component::<FloorActive>(entity);
 				}
 			}
-		}
-
-		command_buffer.write(world);
-	})
+		})
 }
 
 #[derive(Clone, Debug)]
@@ -125,24 +122,22 @@ pub struct FloorSwitchUse {
 	pub switch_params: SwitchParams,
 }
 
-pub fn floor_switch_system(
-	resources: &mut Resources,
-) -> Box<dyn FnMut(&mut World, &mut Resources)> {
+pub fn floor_switch_system(resources: &mut Resources) -> Box<dyn Runnable> {
 	let mut use_event_reader = resources
 		.get_mut::<EventChannel<UseEvent>>()
 		.unwrap()
 		.register_reader();
 
-	Box::new(move |world, resources| {
-		let (asset_storage, use_event_channel, mut sound_queue) = <(
-			Read<AssetStorage>,
-			Read<EventChannel<UseEvent>>,
-			Write<Vec<(AssetHandle<Sound>, Entity)>>,
-		)>::fetch_mut(resources);
-
-		let mut command_buffer = CommandBuffer::new(world);
-
-		{
+	SystemBuilder::new("floor_switch_system")
+		.read_resource::<AssetStorage>()
+		.read_resource::<EventChannel<UseEvent>>()
+		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
+		.read_component::<FloorActive>() // used by activate_with_tag
+		.read_component::<LinedefRef>()
+		.read_component::<UseAction>()
+		.write_component::<MapDynamic>()
+		.build_thread_local(move |command_buffer, world, resources, _| {
+			let (asset_storage, use_event_channel, sound_queue) = resources;
 			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
 
 			for use_event in use_event_channel.read(&mut use_event_reader) {
@@ -160,17 +155,13 @@ pub fn floor_switch_system(
 					.as_deref()
 				{
 					// Skip if switch is already in active state
-					// TODO has_component
-					if world
-						.get_component::<SwitchActive>(use_event.linedef_entity)
-						.is_some()
-					{
+					if world.has_component::<SwitchActive>(use_event.linedef_entity) {
 						continue;
 					}
 
 					let activated = activate_with_tag(
 						&floor_use.params,
-						&mut command_buffer,
+						command_buffer,
 						linedef.sector_tag,
 						&world,
 						map,
@@ -180,7 +171,7 @@ pub fn floor_switch_system(
 					if activated {
 						let activated = crate::doom::switch::activate(
 							&floor_use.switch_params,
-							&mut command_buffer,
+							command_buffer,
 							sound_queue.as_mut(),
 							linedef_ref.index,
 							map,
@@ -193,10 +184,7 @@ pub fn floor_switch_system(
 					}
 				}
 			}
-		}
-
-		command_buffer.write(world);
-	})
+		})
 }
 
 #[derive(Clone, Debug)]
@@ -205,19 +193,21 @@ pub struct FloorTouch {
 	pub retrigger: bool,
 }
 
-pub fn floor_touch_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mut Resources)> {
+pub fn floor_touch_system(resources: &mut Resources) -> Box<dyn Runnable> {
 	let mut touch_event_reader = resources
 		.get_mut::<EventChannel<TouchEvent>>()
 		.unwrap()
 		.register_reader();
 
-	Box::new(move |world, resources| {
-		let (asset_storage, touch_event_channel) =
-			<(Read<AssetStorage>, Read<EventChannel<TouchEvent>>)>::fetch(resources);
-
-		let mut command_buffer = CommandBuffer::new(world);
-
-		{
+	SystemBuilder::new("floor_touch_system")
+		.read_resource::<AssetStorage>()
+		.read_resource::<EventChannel<TouchEvent>>()
+		.read_component::<FloorActive>() // used by activate_with_tag
+		.read_component::<LinedefRef>()
+		.read_component::<TouchAction>()
+		.write_component::<MapDynamic>()
+		.build_thread_local(move |command_buffer, world, resources, _| {
+			let (asset_storage, touch_event_channel) = resources;
 			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
 
 			for touch_event in touch_event_channel.read(&mut touch_event_reader) {
@@ -245,7 +235,7 @@ pub fn floor_touch_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World
 					Some(TouchAction::FloorTouch(floor_touch)) => {
 						if activate_with_tag(
 							&floor_touch.params,
-							&mut command_buffer,
+							command_buffer,
 							linedef.sector_tag,
 							&world,
 							map,
@@ -259,10 +249,7 @@ pub fn floor_touch_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World
 					_ => {}
 				}
 			}
-		}
-
-		command_buffer.write(world);
-	})
+		})
 }
 
 fn activate(
@@ -335,8 +322,7 @@ fn activate_with_tag<W: EntityStore>(
 	{
 		let sector_entity = map_dynamic.sectors[sector_index].entity;
 
-		// TODO has_component
-		if world.get_component::<FloorActive>(sector_entity).is_some() {
+		if world.has_component::<FloorActive>(sector_entity) {
 			continue;
 		}
 

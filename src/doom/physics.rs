@@ -14,7 +14,7 @@ use arrayvec::ArrayVec;
 use bitflags::bitflags;
 use lazy_static::lazy_static;
 use legion::prelude::{
-	component, Entity, EntityStore, IntoQuery, Read, ResourceSet, Resources, World, Write,
+	component, Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder,
 };
 use nalgebra::Vector3;
 use shrev::EventChannel;
@@ -24,112 +24,115 @@ use std::time::Duration;
 #[derive(Default)]
 pub struct PhysicsSystem;
 
-pub fn physics_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mut Resources)> {
+pub fn physics_system(resources: &mut Resources) -> Box<dyn Runnable> {
 	resources.insert(EventChannel::<StepEvent>::new());
 	resources.insert(EventChannel::<TouchEvent>::new());
 
-	Box::new(move |world, resources| {
-		let (asset_storage, delta, mut quadtree, mut step_event_channel, mut touch_event_channel) =
-			<(
-				Read<AssetStorage>,
-				Read<Duration>,
-				Write<Quadtree>,
-				Write<EventChannel<StepEvent>>,
-				Write<EventChannel<TouchEvent>>,
-			)>::fetch_mut(resources);
+	SystemBuilder::new("physics_system")
+		.read_resource::<AssetStorage>()
+		.read_resource::<Duration>()
+		.write_resource::<Quadtree>()
+		.write_resource::<EventChannel<StepEvent>>()
+		.write_resource::<EventChannel<TouchEvent>>()
+		.read_component::<BoxCollider>()
+		.read_component::<MapDynamic>()
+		.write_component::<Transform>()
+		.write_component::<Velocity>()
+		.build_thread_local(move |_, world, resources, _| {
+			let (asset_storage, delta, quadtree, step_event_channel, touch_event_channel) =
+				resources;
+			let (map_dynamic_world, mut world) = world.split::<Read<MapDynamic>>();
+			let map_dynamic = <Read<MapDynamic>>::query()
+				.iter(&map_dynamic_world)
+				.next()
+				.unwrap();
+			let map = asset_storage.get(&map_dynamic.map).unwrap();
 
-		let (map_dynamic_world, mut world) = world.split::<Read<MapDynamic>>();
-		let map_dynamic = <Read<MapDynamic>>::query()
-			.iter(&map_dynamic_world)
-			.next()
-			.unwrap();
-		let map = asset_storage.get(&map_dynamic.map).unwrap();
+			// Clone the mask so that transform_component is free to be borrowed during the loop
+			let entities: Vec<Entity> = <Read<Transform>>::query()
+				.filter(component::<BoxCollider>() & component::<Velocity>())
+				.iter_entities(&world)
+				.map(|(e, _)| e)
+				.collect();
 
-		// Clone the mask so that transform_component is free to be borrowed during the loop
-		let entities: Vec<Entity> = <Read<Transform>>::query()
-			.filter(component::<BoxCollider>() & component::<Velocity>())
-			.iter_entities(&world)
-			.map(|(e, _)| e)
-			.collect();
+			for entity in entities {
+				let mut new_position = world.get_component::<Transform>(entity).unwrap().position;
+				let mut new_velocity = world.get_component::<Velocity>(entity).unwrap().velocity;
+				let entity_bbox = {
+					let box_collider = world.get_component::<BoxCollider>(entity).unwrap();
+					AABB3::from_radius_height(box_collider.radius, box_collider.height)
+				};
 
-		for entity in entities {
-			let mut new_position = world.get_component::<Transform>(entity).unwrap().position;
-			let mut new_velocity = world.get_component::<Velocity>(entity).unwrap().velocity;
-			let entity_bbox = {
-				let box_collider = world.get_component::<BoxCollider>(entity).unwrap();
-				AABB3::from_radius_height(box_collider.radius, box_collider.height)
-			};
+				let mut step_events: SmallVec<[StepEvent; 8]> = SmallVec::new();
+				let mut touch_events: SmallVec<[TouchEvent; 8]> = SmallVec::new();
 
-			let mut step_events: SmallVec<[StepEvent; 8]> = SmallVec::new();
-			let mut touch_events: SmallVec<[TouchEvent; 8]> = SmallVec::new();
+				if new_velocity == Vector3::zeros() {
+					continue;
+				}
 
-			if new_velocity == Vector3::zeros() {
-				continue;
+				quadtree.remove(entity);
+
+				let tracer = EntityTracer {
+					map,
+					map_dynamic: map_dynamic.as_ref(),
+					quadtree: &quadtree,
+					world: &world,
+				};
+
+				// Check for ground
+				let trace = tracer.trace(
+					&entity_bbox.offset(new_position),
+					Vector3::new(0.0, 0.0, -0.25),
+					SolidMask::NON_MONSTER, // TODO solid mask
+				);
+
+				if let Some(collision) = trace.collision {
+					// Entity is on ground, apply friction
+					// TODO make this work with any ground normal
+					let factor = FRICTION.powf(delta.as_secs_f32());
+					new_velocity[0] *= factor;
+					new_velocity[1] *= factor;
+
+					// Send touch event
+					touch_events.push(TouchEvent {
+						toucher: entity,
+						touched: collision.entity,
+						collision: None,
+					});
+				} else {
+					// Entity isn't on ground, apply gravity
+					new_velocity[2] -= GRAVITY * delta.as_secs_f32();
+				}
+
+				// Apply the move
+				step_slide_move(
+					&tracer,
+					&mut new_position,
+					&mut new_velocity,
+					&mut step_events,
+					&mut touch_events,
+					entity,
+					&entity_bbox,
+					SolidMask::NON_MONSTER, // TODO solid mask
+					**delta,
+				);
+
+				// Set new position and velocity
+				world
+					.get_component_mut::<Transform>(entity)
+					.unwrap()
+					.position = new_position;
+				world
+					.get_component_mut::<Velocity>(entity)
+					.unwrap()
+					.velocity = new_velocity;
+				quadtree.insert(entity, &AABB2::from(&entity_bbox.offset(new_position)));
+
+				// Send events
+				step_event_channel.iter_write(step_events);
+				touch_event_channel.iter_write(touch_events);
 			}
-
-			quadtree.remove(entity);
-
-			let tracer = EntityTracer {
-				map,
-				map_dynamic: map_dynamic.as_ref(),
-				quadtree: &quadtree,
-				world: &world,
-			};
-
-			// Check for ground
-			let trace = tracer.trace(
-				&entity_bbox.offset(new_position),
-				Vector3::new(0.0, 0.0, -0.25),
-				SolidMask::NON_MONSTER, // TODO solid mask
-			);
-
-			if let Some(collision) = trace.collision {
-				// Entity is on ground, apply friction
-				// TODO make this work with any ground normal
-				let factor = FRICTION.powf(delta.as_secs_f32());
-				new_velocity[0] *= factor;
-				new_velocity[1] *= factor;
-
-				// Send touch event
-				touch_events.push(TouchEvent {
-					toucher: entity,
-					touched: collision.entity,
-					collision: None,
-				});
-			} else {
-				// Entity isn't on ground, apply gravity
-				new_velocity[2] -= GRAVITY * delta.as_secs_f32();
-			}
-
-			// Apply the move
-			step_slide_move(
-				&tracer,
-				&mut new_position,
-				&mut new_velocity,
-				&mut step_events,
-				&mut touch_events,
-				entity,
-				&entity_bbox,
-				SolidMask::NON_MONSTER, // TODO solid mask
-				*delta,
-			);
-
-			// Set new position and velocity
-			world
-				.get_component_mut::<Transform>(entity)
-				.unwrap()
-				.position = new_position;
-			world
-				.get_component_mut::<Velocity>(entity)
-				.unwrap()
-				.velocity = new_velocity;
-			quadtree.insert(entity, &AABB2::from(&entity_bbox.offset(new_position)));
-
-			// Send events
-			step_event_channel.iter_write(step_events);
-			touch_event_channel.iter_write(touch_events);
-		}
-	})
+		})
 }
 
 fn step_slide_move<W: EntityStore>(

@@ -267,14 +267,14 @@ impl Map {
 			.unwrap_or(32768.0)
 	}
 
-	pub fn highest_neighbour_ceiling(&self, map_dynamic: &MapDynamic, sector_index: usize) -> f32 {
+	/*pub fn highest_neighbour_ceiling(&self, map_dynamic: &MapDynamic, sector_index: usize) -> f32 {
 		self.sectors[sector_index]
 			.neighbours
 			.iter()
 			.map(|index| map_dynamic.sectors[*index].interval.max)
 			.max_by(|x, y| x.partial_cmp(y).unwrap())
 			.unwrap_or(0.0)
-	}
+	}*/
 }
 
 pub fn spawn_things(

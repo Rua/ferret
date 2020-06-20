@@ -5,20 +5,21 @@ use crate::{
 		map::{MapDynamic, SectorRef},
 	},
 };
-use legion::prelude::{EntityStore, IntoQuery, Read, ResourceSet, Resources, World, Write};
+use legion::prelude::{EntityStore, IntoQuery, Read, Runnable, SystemBuilder, Write};
 use rand::Rng;
 use rand_pcg::Pcg64Mcg;
 use std::time::Duration;
 
-pub fn light_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
-	Box::new(move |world, resources| {
-		let (asset_storage, delta, mut rng) =
-			<(Read<AssetStorage>, Read<Duration>, Write<Pcg64Mcg>)>::fetch_mut(resources);
-
-		{
-			let query = <(Read<SectorRef>, Write<LightFlash>)>::query();
-			let (mut query_world, mut world) = world.split_for_query(&query);
-			let (mut map_dynamic_world, _world) = world.split::<Write<MapDynamic>>();
+pub fn light_flash_system() -> Box<dyn Runnable> {
+	SystemBuilder::new("light_flash_system")
+		.read_resource::<AssetStorage>()
+		.read_resource::<Duration>()
+		.write_resource::<Pcg64Mcg>()
+		.with_query(<(Read<SectorRef>, Write<LightFlash>)>::query())
+		.write_component::<MapDynamic>()
+		.build_thread_local(move |_, world, resources, query| {
+			let (asset_storage, delta, rng) = resources;
+			let (mut query_world, mut map_dynamic_world) = world.split_for_query(&query);
 
 			for (sector_ref, mut light_flash) in query.iter_mut(&mut query_world) {
 				let mut map_dynamic = map_dynamic_world
@@ -27,7 +28,7 @@ pub fn light_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 				let map_dynamic = map_dynamic.as_mut();
 				let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 
-				if let Some(new_time) = light_flash.time_left.checked_sub(*delta) {
+				if let Some(new_time) = light_flash.time_left.checked_sub(**delta) {
 					light_flash.time_left = new_time;
 				} else {
 					light_flash.state = !light_flash.state;
@@ -74,16 +75,42 @@ pub fn light_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 					}
 				}
 			}
-		}
+		})
+}
 
-		{
-			let query = <(Read<SectorRef>, Write<LightGlow>)>::query();
-			let (mut query_world, mut world) = world.split_for_query(&query);
-			let (mut map_dynamic_world, _world) = world.split::<Write<MapDynamic>>();
+#[derive(Clone, Copy, Debug, Default)]
+pub struct LightFlash {
+	pub on_time: Duration,
+	pub off_time: Duration,
+	pub time_left: Duration,
+	pub state: bool,
+	pub flash_type: LightFlashType,
+}
 
-			for (sector_ref, mut light_glow) in
-				<(Read<SectorRef>, Write<LightGlow>)>::query().iter_mut(&mut query_world)
-			{
+#[derive(Clone, Copy, Debug)]
+pub enum LightFlashType {
+	Broken,
+	Strobe,
+	StrobeUnSync(Duration),
+}
+
+impl Default for LightFlashType {
+	fn default() -> LightFlashType {
+		LightFlashType::Broken
+	}
+}
+
+pub fn light_glow_system() -> Box<dyn Runnable> {
+	SystemBuilder::new("light_glow_system")
+		.read_resource::<AssetStorage>()
+		.read_resource::<Duration>()
+		.with_query(<(Read<SectorRef>, Write<LightGlow>)>::query())
+		.write_component::<MapDynamic>()
+		.build_thread_local(move |_, world, resources, query| {
+			let (asset_storage, delta) = resources;
+			let (mut query_world, mut map_dynamic_world) = world.split_for_query(&query);
+
+			for (sector_ref, mut light_glow) in query.iter_mut(&mut query_world) {
 				let mut map_dynamic = map_dynamic_world
 					.get_component_mut::<MapDynamic>(sector_ref.map_entity)
 					.unwrap();
@@ -117,30 +144,7 @@ pub fn light_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 					}
 				}
 			}
-		}
-	})
-}
-
-#[derive(Clone, Copy, Debug, Default)]
-pub struct LightFlash {
-	pub on_time: Duration,
-	pub off_time: Duration,
-	pub time_left: Duration,
-	pub state: bool,
-	pub flash_type: LightFlashType,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum LightFlashType {
-	Broken,
-	Strobe,
-	StrobeUnSync(Duration),
-}
-
-impl Default for LightFlashType {
-	fn default() -> LightFlashType {
-		LightFlashType::Broken
-	}
+		})
 }
 
 #[derive(Clone, Copy, Debug, Default)]

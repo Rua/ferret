@@ -3,14 +3,15 @@ use crate::{
 	audio::Sound,
 	doom::{
 		client::{UseAction, UseEvent},
+		components::Transform,
 		map::{LinedefRef, Map, MapDynamic, SectorRef},
-		physics::{SectorTracer, TouchAction, TouchEvent},
+		physics::{BoxCollider, SectorTracer, TouchAction, TouchEvent},
 		switch::{SwitchActive, SwitchParams},
 	},
 	geometry::Side,
 };
 use legion::prelude::{
-	CommandBuffer, Entity, EntityStore, IntoQuery, Read, ResourceSet, Resources, World, Write,
+	CommandBuffer, Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder, Write,
 };
 use shrev::EventChannel;
 use std::time::Duration;
@@ -51,20 +52,19 @@ pub struct DoorParams {
 	pub close_sound: AssetHandle<Sound>,
 }
 
-pub fn door_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
-	Box::new(move |world, resources| {
-		let (asset_storage, delta, mut sound_queue) = <(
-			Read<AssetStorage>,
-			Read<Duration>,
-			Write<Vec<(AssetHandle<Sound>, Entity)>>,
-		)>::fetch_mut(resources);
-
-		let mut command_buffer = CommandBuffer::new(world);
-
-		{
-			let query = <(Read<SectorRef>, Write<DoorActive>)>::query();
-			let (mut query_world, mut world) = world.split_for_query(&query);
-			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
+pub fn door_active_system() -> Box<dyn Runnable> {
+	SystemBuilder::new("door_active_system")
+		.read_resource::<AssetStorage>()
+		.read_resource::<Duration>()
+		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
+		.with_query(<(Read<SectorRef>, Write<DoorActive>)>::query())
+		.read_component::<BoxCollider>() // used by SectorTracer
+		.read_component::<Transform>() // used by SectorTracer
+		.write_component::<MapDynamic>()
+		.build_thread_local(move |command_buffer, world, resources, query| {
+			let (asset_storage, delta, sound_queue) = resources;
+			let (mut map_dynamic_world, mut world) = world.split::<Write<MapDynamic>>();
+			let (mut query_world, world) = world.split_for_query(&query);
 			let tracer = SectorTracer { world: &world };
 
 			for (entity, (sector_ref, mut door_active)) in query.iter_entities_mut(&mut query_world)
@@ -78,7 +78,7 @@ pub fn door_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 
 				let new_state = match door_active.state {
 					DoorState::Closed => {
-						if let Some(new_time) = door_active.time_left.checked_sub(*delta) {
+						if let Some(new_time) = door_active.time_left.checked_sub(**delta) {
 							door_active.time_left = new_time;
 							None
 						} else {
@@ -102,7 +102,7 @@ pub fn door_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 						}
 					}
 					DoorState::Open => {
-						if let Some(new_time) = door_active.time_left.checked_sub(*delta) {
+						if let Some(new_time) = door_active.time_left.checked_sub(**delta) {
 							door_active.time_left = new_time;
 							None
 						} else {
@@ -170,10 +170,7 @@ pub fn door_active_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 					}
 				}
 			}
-		}
-
-		command_buffer.write(world);
-	})
+		})
 }
 
 #[derive(Clone, Debug)]
@@ -182,19 +179,21 @@ pub struct DoorUse {
 	pub retrigger: bool,
 }
 
-pub fn door_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mut Resources)> {
+pub fn door_use_system(resources: &mut Resources) -> Box<dyn Runnable> {
 	let mut use_event_reader = resources
 		.get_mut::<EventChannel<UseEvent>>()
 		.unwrap()
 		.register_reader();
 
-	Box::new(move |world, resources| {
-		let (asset_storage, use_event_channel) =
-			<(Read<AssetStorage>, Read<EventChannel<UseEvent>>)>::fetch_mut(resources);
-
-		let mut command_buffer = CommandBuffer::new(world);
-
-		{
+	SystemBuilder::new("door_use_system")
+		.read_resource::<AssetStorage>()
+		.read_resource::<EventChannel<UseEvent>>()
+		.read_component::<LinedefRef>()
+		.read_component::<MapDynamic>()
+		.read_component::<UseAction>()
+		.write_component::<DoorActive>()
+		.build_thread_local(move |command_buffer, world, resources, _| {
+			let (asset_storage, use_event_channel) = resources;
 			let (mut door_active_world, world) = world.split::<Write<DoorActive>>();
 
 			for use_event in use_event_channel.read(&mut use_event_reader) {
@@ -235,7 +234,7 @@ pub fn door_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &
 						} else {
 							activate(
 								&door_use.params,
-								&mut command_buffer,
+								command_buffer,
 								sector_index,
 								&map,
 								&map_dynamic,
@@ -251,10 +250,7 @@ pub fn door_use_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &
 					}
 				}
 			}
-		}
-
-		command_buffer.write(world);
-	})
+		})
 }
 
 #[derive(Clone, Debug)]
@@ -263,22 +259,23 @@ pub struct DoorSwitchUse {
 	pub switch_params: SwitchParams,
 }
 
-pub fn door_switch_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mut Resources)> {
+pub fn door_switch_system(resources: &mut Resources) -> Box<dyn Runnable> {
 	let mut use_event_reader = resources
 		.get_mut::<EventChannel<UseEvent>>()
 		.unwrap()
 		.register_reader();
 
-	Box::new(move |world, resources| {
-		let (asset_storage, use_event_channel, mut sound_queue) = <(
-			Read<AssetStorage>,
-			Read<EventChannel<UseEvent>>,
-			Write<Vec<(AssetHandle<Sound>, Entity)>>,
-		)>::fetch_mut(resources);
-
-		let mut command_buffer = CommandBuffer::new(world);
-
-		{
+	SystemBuilder::new("door_switch_system")
+		.read_resource::<AssetStorage>()
+		.read_resource::<EventChannel<UseEvent>>()
+		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
+		.read_component::<DoorActive>() // used by activate_with_tag
+		.read_component::<LinedefRef>()
+		.read_component::<SwitchActive>()
+		.read_component::<UseAction>()
+		.write_component::<MapDynamic>()
+		.build_thread_local(move |command_buffer, world, resources, _| {
+			let (asset_storage, use_event_channel, sound_queue) = resources;
 			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
 
 			for use_event in use_event_channel.read(&mut use_event_reader) {
@@ -296,17 +293,13 @@ pub fn door_switch_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World
 					.as_deref()
 				{
 					// Skip if switch is already in active state
-					// TODO change to has_component once that's available on EntityStore
-					if world
-						.get_component::<SwitchActive>(use_event.linedef_entity)
-						.is_some()
-					{
+					if world.has_component::<SwitchActive>(use_event.linedef_entity) {
 						continue;
 					}
 
 					let activated = activate_with_tag(
 						&door_use.params,
-						&mut command_buffer,
+						command_buffer,
 						linedef.sector_tag,
 						&world,
 						map,
@@ -316,7 +309,7 @@ pub fn door_switch_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World
 					if activated {
 						let activated = crate::doom::switch::activate(
 							&door_use.switch_params,
-							&mut command_buffer,
+							command_buffer,
 							sound_queue.as_mut(),
 							linedef_ref.index,
 							map,
@@ -329,10 +322,7 @@ pub fn door_switch_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World
 					}
 				}
 			}
-		}
-
-		command_buffer.write(world);
-	})
+		})
 }
 
 #[derive(Clone, Debug)]
@@ -341,19 +331,21 @@ pub struct DoorTouch {
 	pub retrigger: bool,
 }
 
-pub fn door_touch_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World, &mut Resources)> {
+pub fn door_touch_system(resources: &mut Resources) -> Box<dyn Runnable> {
 	let mut touch_event_reader = resources
 		.get_mut::<EventChannel<TouchEvent>>()
 		.unwrap()
 		.register_reader();
 
-	Box::new(move |world, resources| {
-		let (asset_storage, touch_event_channel) =
-			<(Read<AssetStorage>, Read<EventChannel<TouchEvent>>)>::fetch(resources);
-
-		let mut command_buffer = CommandBuffer::new(world);
-
-		{
+	SystemBuilder::new("door_touch_system")
+		.read_resource::<AssetStorage>()
+		.read_resource::<EventChannel<TouchEvent>>()
+		.read_component::<DoorActive>() // used by activate_with_tag
+		.read_component::<LinedefRef>()
+		.read_component::<TouchAction>()
+		.write_component::<MapDynamic>()
+		.build_thread_local(move |command_buffer, world, resources, _| {
+			let (asset_storage, touch_event_channel) = resources;
 			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
 
 			for touch_event in touch_event_channel.read(&mut touch_event_reader) {
@@ -381,7 +373,7 @@ pub fn door_touch_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World,
 					Some(TouchAction::DoorTouch(door_touch)) => {
 						if activate_with_tag(
 							&door_touch.params,
-							&mut command_buffer,
+							command_buffer,
 							linedef.sector_tag,
 							&world,
 							map,
@@ -395,10 +387,7 @@ pub fn door_touch_system(resources: &mut Resources) -> Box<dyn FnMut(&mut World,
 					_ => {}
 				}
 			}
-		}
-
-		command_buffer.write(world);
-	})
+		})
 }
 
 fn activate(
@@ -456,8 +445,7 @@ fn activate_with_tag<W: EntityStore>(
 	{
 		let sector_entity = map_dynamic.sectors[sector_index].entity;
 
-		// TODO has_component
-		if world.get_component::<DoorActive>(sector_entity).is_some() {
+		if world.has_component::<DoorActive>(sector_entity) {
 			continue;
 		}
 

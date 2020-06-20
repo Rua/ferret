@@ -17,7 +17,7 @@ crossbeam-channel = "0.4.2"
 derivative = "2.1"
 fnv = "1.0"
 lazy_static = "1.4"
-legion = "0.2.2"
+legion = {git = "https://github.com/TomGillen/legion"}
 log = {version = "0.4.8", features = ["std"]}
 nalgebra = "0.21.0"
 num-traits = "0.2.11"

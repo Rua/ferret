@@ -20,10 +20,7 @@ use crate::{
 };
 use anyhow::{bail, Context};
 use clap::{App, Arg, ArgMatches};
-use legion::{
-	prelude::{Entity, IntoQuery, Read, ResourceSet, Resources, World, Write},
-	systems::schedule::Builder,
-};
+use legion::prelude::{Entity, IntoQuery, Read, ResourceSet, Resources, Schedule, World, Write};
 use nalgebra::{Matrix4, Vector3};
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
@@ -161,24 +158,30 @@ fn main() -> anyhow::Result<()> {
 	command_sender.send(format!("map {}", map)).ok();
 
 	// Create systems
-	let mut render_system = doom::render::render_system();
-	let mut sound_system = doom::sound::sound_system();
-	let mut update_dispatcher = Builder::default()
-		.add_thread_local_fn(doom::client::player_command_system())
-		.add_thread_local_fn(doom::client::player_move_system())
-		.add_thread_local_fn(doom::client::player_use_system(&mut resources))
-		.add_thread_local_fn(doom::physics::physics_system(&mut resources))
-		.add_thread_local_fn(doom::camera::camera_system(&mut resources))
-		.add_thread_local_fn(doom::door::door_use_system(&mut resources))
-		.add_thread_local_fn(doom::door::door_switch_system(&mut resources))
-		.add_thread_local_fn(doom::door::door_touch_system(&mut resources))
-		.add_thread_local_fn(doom::door::door_active_system())
-		.add_thread_local_fn(doom::floor::floor_switch_system(&mut resources))
-		.add_thread_local_fn(doom::floor::floor_touch_system(&mut resources))
-		.add_thread_local_fn(doom::floor::floor_active_system())
-		.add_thread_local_fn(doom::light::light_system())
-		.add_thread_local_fn(doom::switch::switch_active_system())
-		.add_thread_local_fn(doom::texture::texture_system())
+	#[rustfmt::skip]
+	let mut update_dispatcher = Schedule::builder()
+		.add_thread_local(doom::client::player_command_system()).flush()
+		.add_thread_local(doom::client::player_move_system()).flush()
+		.add_thread_local(doom::client::player_use_system(&mut resources)).flush()
+		.add_thread_local(doom::physics::physics_system(&mut resources)).flush()
+		.add_thread_local(doom::camera::camera_system(&mut resources)).flush()
+		.add_thread_local(doom::door::door_use_system(&mut resources)).flush()
+		.add_thread_local(doom::door::door_switch_system(&mut resources)).flush()
+		.add_thread_local(doom::door::door_touch_system(&mut resources)).flush()
+		.add_thread_local(doom::door::door_active_system()).flush()
+		.add_thread_local(doom::floor::floor_switch_system(&mut resources)).flush()
+		.add_thread_local(doom::floor::floor_touch_system(&mut resources)).flush()
+		.add_thread_local(doom::floor::floor_active_system()).flush()
+		.add_thread_local(doom::light::light_flash_system()).flush()
+		.add_thread_local(doom::light::light_glow_system()).flush()
+		.add_thread_local(doom::switch::switch_active_system()).flush()
+		.add_thread_local(doom::texture::texture_animation_system()).flush()
+		.add_thread_local(doom::texture::texture_scroll_system()).flush()
+		.build();
+
+	let mut output_dispatcher = Schedule::builder()
+		.add_thread_local_fn(doom::render::render_system())
+		.add_thread_local_fn(doom::sound::sound_system())
 		.build();
 
 	// Create world
@@ -296,11 +299,8 @@ fn main() -> anyhow::Result<()> {
 			}
 		}
 
-		// Update sound
-		sound_system(&mut world, &mut resources);
-
-		// Draw frame
-		render_system(&mut world, &mut resources);
+		// Update video and sound
+		output_dispatcher.execute(&mut world, &mut resources);
 	}
 
 	Ok(())
