@@ -42,6 +42,10 @@ impl EntityTemplate {
 			(*dyn_component).add_to_entity(entity, command_buffer);
 		}
 	}
+
+	pub fn len(&self) -> usize {
+		self.components.len()
+	}
 }
 
 impl Asset for EntityTemplate {

@@ -25,10 +25,10 @@ pub struct DoorActive {
 	pub time_left: Duration,
 	pub can_reverse: bool,
 
-	pub open_sound: AssetHandle<Sound>,
+	pub open_sound: Option<AssetHandle<Sound>>,
 	pub open_height: f32,
 
-	pub close_sound: AssetHandle<Sound>,
+	pub close_sound: Option<AssetHandle<Sound>>,
 	pub close_height: f32,
 }
 
@@ -48,8 +48,8 @@ pub struct DoorParams {
 	pub wait_time: Duration,
 	pub can_reverse: bool,
 
-	pub open_sound: AssetHandle<Sound>,
-	pub close_sound: AssetHandle<Sound>,
+	pub open_sound: Option<AssetHandle<Sound>>,
+	pub close_sound: Option<AssetHandle<Sound>>,
 }
 
 pub fn door_active_system() -> Box<dyn Runnable> {
@@ -155,13 +155,17 @@ pub fn door_active_system() -> Box<dyn Runnable> {
 
 						match new_state {
 							DoorState::Opening => {
-								sound_queue.push((door_active.open_sound.clone(), entity));
+								if let Some(sound) = &door_active.open_sound {
+									sound_queue.push((sound.clone(), entity));
+								}
 							}
 							DoorState::Open => {
 								door_active.time_left = door_active.wait_time;
 							}
 							DoorState::Closing => {
-								sound_queue.push((door_active.close_sound.clone(), entity));
+								if let Some(sound) = &door_active.close_sound {
+									sound_queue.push((sound.clone(), entity));
+								}
 							}
 							DoorState::Closed => {
 								door_active.time_left = door_active.wait_time;

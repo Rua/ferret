@@ -19,24 +19,24 @@ use std::time::Duration;
 pub struct FloorActive {
 	pub speed: f32,
 	pub target_height: f32,
-	pub move_sound: AssetHandle<Sound>,
+	pub move_sound: Option<AssetHandle<Sound>>,
 	pub move_sound_time: Duration,
 	pub move_sound_time_left: Duration,
-	pub finish_sound: AssetHandle<Sound>,
+	pub finish_sound: Option<AssetHandle<Sound>>,
 }
 
 #[derive(Clone, Debug)]
 pub struct FloorParams {
 	pub speed: f32,
-	pub target_height_base: TargetHeight,
+	pub target_height_base: FloorTargetHeight,
 	pub target_height_offset: f32,
-	pub move_sound: AssetHandle<Sound>,
+	pub move_sound: Option<AssetHandle<Sound>>,
 	pub move_sound_time: Duration,
-	pub finish_sound: AssetHandle<Sound>,
+	pub finish_sound: Option<AssetHandle<Sound>>,
 }
 
 #[derive(Clone, Copy, Debug)]
-pub enum TargetHeight {
+pub enum FloorTargetHeight {
 	Current,
 	LowestNeighbourFloor,
 	LowestNeighbourFloorAbove,
@@ -73,7 +73,10 @@ pub fn floor_active_system() -> Box<dyn Runnable> {
 					floor_active.move_sound_time_left = new_time;
 				} else {
 					floor_active.move_sound_time_left = floor_active.move_sound_time;
-					sound_queue.push((floor_active.move_sound.clone(), entity));
+
+					if let Some(sound) = &floor_active.move_sound {
+						sound_queue.push((sound.clone(), entity));
+					}
 				}
 
 				let done = {
@@ -109,7 +112,10 @@ pub fn floor_active_system() -> Box<dyn Runnable> {
 				};
 
 				if done {
-					sound_queue.push((floor_active.finish_sound.clone(), entity));
+					if let Some(sound) = &floor_active.finish_sound {
+						sound_queue.push((sound.clone(), entity));
+					}
+
 					command_buffer.remove_component::<FloorActive>(entity);
 				}
 			}
@@ -262,15 +268,15 @@ fn activate(
 	let sector_dynamic = &map_dynamic.sectors[sector_index];
 
 	let target_height = match params.target_height_base {
-		TargetHeight::Current => sector_dynamic.interval.min + params.target_height_offset,
-		TargetHeight::LowestNeighbourFloor => {
+		FloorTargetHeight::Current => sector_dynamic.interval.min + params.target_height_offset,
+		FloorTargetHeight::LowestNeighbourFloor => {
 			map.lowest_neighbour_floor(map_dynamic, sector_index) + params.target_height_offset
 		}
-		TargetHeight::LowestNeighbourFloorAbove => {
+		FloorTargetHeight::LowestNeighbourFloorAbove => {
 			map.lowest_neighbour_floor_above(map_dynamic, sector_index, sector_dynamic.interval.min)
 				+ params.target_height_offset
 		}
-		TargetHeight::LowestNeighbourCeiling => {
+		FloorTargetHeight::LowestNeighbourCeiling => {
 			let mut target_height = map.lowest_neighbour_ceiling(map_dynamic, sector_index);
 
 			if target_height > sector_dynamic.interval.min {
@@ -279,7 +285,7 @@ fn activate(
 
 			target_height + params.target_height_offset
 		}
-		TargetHeight::HighestNeighbourFloor => {
+		FloorTargetHeight::HighestNeighbourFloor => {
 			let target_height = map.highest_neighbour_floor(map_dynamic, sector_index);
 
 			if target_height != sector_dynamic.interval.min {

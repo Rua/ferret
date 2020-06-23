@@ -9,6 +9,7 @@ pub mod input;
 pub mod light;
 pub mod map;
 pub mod physics;
+pub mod plat;
 pub mod render;
 pub mod sound;
 pub mod sprite;

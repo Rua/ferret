@@ -9,6 +9,7 @@ use crate::{
 		input::{BoolInput, FloatInput, UserCommand},
 		map::MapDynamic,
 		physics::{BoxCollider, EntityTracer, SolidMask},
+		plat::PlatSwitchUse,
 	},
 	geometry::{Line2, AABB3},
 	input::{Bindings, InputState},
@@ -220,6 +221,7 @@ pub enum UseAction {
 	DoorUse(DoorUse),
 	DoorSwitchUse(DoorSwitchUse),
 	FloorSwitchUse(FloorSwitchUse),
+	PlatSwitchUse(PlatSwitchUse),
 }
 
 #[derive(Clone, Copy, Debug)]

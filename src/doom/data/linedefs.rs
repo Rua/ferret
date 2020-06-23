@@ -5,8 +5,9 @@ use crate::{
 		client::UseAction,
 		data::{FRAME_RATE, FRAME_TIME},
 		door::{DoorParams, DoorState, DoorSwitchUse, DoorTouch, DoorUse},
-		floor::{FloorParams, FloorSwitchUse, FloorTouch, TargetHeight},
+		floor::{FloorParams, FloorSwitchUse, FloorTargetHeight, FloorTouch},
 		physics::TouchAction,
+		plat::{PlatParams, PlatSwitchUse, PlatTargetHeight},
 		switch::SwitchParams,
 		texture::TextureScroll,
 		wad::WadLoader,
@@ -46,8 +47,8 @@ impl LinedefTypes {
 					wait_time: 150 * FRAME_TIME,
 					can_reverse: true,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 			}));
         let handle = asset_storage.insert(template);
@@ -64,8 +65,8 @@ impl LinedefTypes {
 					wait_time: 150 * FRAME_TIME,
 					can_reverse: true,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -83,8 +84,8 @@ impl LinedefTypes {
 					wait_time: 150 * FRAME_TIME,
 					can_reverse: true,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -102,8 +103,8 @@ impl LinedefTypes {
 					wait_time: 150 * FRAME_TIME,
 					can_reverse: true,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -120,8 +121,8 @@ impl LinedefTypes {
 					wait_time: 150 * FRAME_TIME,
 					can_reverse: true,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -142,8 +143,8 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -161,8 +162,8 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -180,8 +181,8 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -199,8 +200,8 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -217,8 +218,8 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -239,11 +240,11 @@ impl LinedefTypes {
 					wait_time: 150 * FRAME_TIME,
 					can_reverse: true,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: Some(35 * FRAME_TIME),
 				},
 			}));
@@ -260,11 +261,11 @@ impl LinedefTypes {
 					wait_time: 150 * FRAME_TIME,
 					can_reverse: true,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: Some(35 * FRAME_TIME),
 				},
 			}));
@@ -281,11 +282,11 @@ impl LinedefTypes {
 					wait_time: 150 * FRAME_TIME,
 					can_reverse: true,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -302,11 +303,11 @@ impl LinedefTypes {
 					wait_time: 150 * FRAME_TIME,
 					can_reverse: true,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -327,11 +328,11 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: Some(35 * FRAME_TIME),
 				},
 			}));
@@ -348,11 +349,11 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: Some(35 * FRAME_TIME),
 				},
 			}));
@@ -370,11 +371,11 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: Some(35 * FRAME_TIME),
 				},
 			}));
@@ -392,11 +393,11 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: Some(35 * FRAME_TIME),
 				},
 			}));
@@ -414,11 +415,11 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: Some(35 * FRAME_TIME),
 				},
 			}));
@@ -435,11 +436,11 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -456,11 +457,11 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -478,11 +479,11 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -500,11 +501,11 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -522,11 +523,11 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -547,11 +548,11 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: Some(35 * FRAME_TIME),
 				},
 			}));
@@ -568,11 +569,11 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: Some(35 * FRAME_TIME),
 				},
 			}));
@@ -589,11 +590,11 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -610,11 +611,11 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -635,8 +636,8 @@ impl LinedefTypes {
 					wait_time: 150 * FRAME_TIME,
 					can_reverse: true,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -653,8 +654,8 @@ impl LinedefTypes {
 					wait_time: 150 * FRAME_TIME,
 					can_reverse: true,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -671,8 +672,8 @@ impl LinedefTypes {
 					wait_time: 150 * FRAME_TIME,
 					can_reverse: true,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -689,8 +690,8 @@ impl LinedefTypes {
 					wait_time: 150 * FRAME_TIME,
 					can_reverse: true,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -711,8 +712,8 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -729,8 +730,8 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -747,8 +748,8 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -765,8 +766,8 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -787,8 +788,8 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -805,8 +806,8 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -823,8 +824,8 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -841,8 +842,8 @@ impl LinedefTypes {
 					wait_time: Duration::default(),
 					can_reverse: false,
 
-					open_sound: asset_storage.load("DSBDOPN", &mut *loader),
-					close_sound: asset_storage.load("DSBDCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSBDOPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSBDCLS", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -863,8 +864,8 @@ impl LinedefTypes {
 					wait_time: 30 * FRAME_TIME,
 					can_reverse: true,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -881,8 +882,8 @@ impl LinedefTypes {
 					wait_time: 30 * FRAME_TIME,
 					can_reverse: true,
 
-					open_sound: asset_storage.load("DSDOROPN", &mut *loader),
-					close_sound: asset_storage.load("DSDORCLS", &mut *loader),
+					open_sound: Some(asset_storage.load("DSDOROPN", &mut *loader)),
+					close_sound: Some(asset_storage.load("DSDORCLS", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -898,14 +899,14 @@ impl LinedefTypes {
 			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::Current,
+					target_height_base: FloorTargetHeight::Current,
 					target_height_offset: 512.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -921,14 +922,14 @@ impl LinedefTypes {
 			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourFloor,
+					target_height_base: FloorTargetHeight::LowestNeighbourFloor,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: Some(35 * FRAME_TIME),
 				},
 			}));
@@ -940,14 +941,14 @@ impl LinedefTypes {
 			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourFloor,
+					target_height_base: FloorTargetHeight::LowestNeighbourFloor,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -963,14 +964,14 @@ impl LinedefTypes {
 			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourFloorAbove,
+					target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: Some(35 * FRAME_TIME),
 				},
 			}));
@@ -982,14 +983,14 @@ impl LinedefTypes {
 			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourFloorAbove,
+					target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -1001,14 +1002,14 @@ impl LinedefTypes {
 			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
 				params: FloorParams {
 					speed: 4.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourFloorAbove,
+					target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: Some(35 * FRAME_TIME),
 				},
 			}));
@@ -1020,14 +1021,14 @@ impl LinedefTypes {
 			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
 				params: FloorParams {
 					speed: 4.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourFloorAbove,
+					target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -1043,14 +1044,14 @@ impl LinedefTypes {
 			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourCeiling,
+					target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: Some(35 * FRAME_TIME),
 				},
 			}));
@@ -1062,14 +1063,14 @@ impl LinedefTypes {
 			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourCeiling,
+					target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -1082,14 +1083,14 @@ impl LinedefTypes {
 			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourCeiling,
+					target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
 					target_height_offset: -8.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: Some(35 * FRAME_TIME),
 				},
 			}));
@@ -1102,14 +1103,14 @@ impl LinedefTypes {
 			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourCeiling,
+					target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
 					target_height_offset: -8.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -1125,14 +1126,14 @@ impl LinedefTypes {
 			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::HighestNeighbourFloor,
+					target_height_base: FloorTargetHeight::HighestNeighbourFloor,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: Some(35 * FRAME_TIME),
 				},
 			}));
@@ -1144,14 +1145,14 @@ impl LinedefTypes {
 			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::HighestNeighbourFloor,
+					target_height_base: FloorTargetHeight::HighestNeighbourFloor,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -1163,14 +1164,14 @@ impl LinedefTypes {
 			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
 				params: FloorParams {
 					speed: 4.0 * FRAME_RATE,
-					target_height_base: TargetHeight::HighestNeighbourFloor,
+					target_height_base: FloorTargetHeight::HighestNeighbourFloor,
 					target_height_offset: 8.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: Some(35 * FRAME_TIME),
 				},
 			}));
@@ -1182,14 +1183,14 @@ impl LinedefTypes {
 			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
 				params: FloorParams {
 					speed: 4.0 * FRAME_RATE,
-					target_height_base: TargetHeight::HighestNeighbourFloor,
+					target_height_base: FloorTargetHeight::HighestNeighbourFloor,
 					target_height_offset: 8.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				switch_params: SwitchParams {
-					sound: asset_storage.load("DSSWTCHN", &mut *loader),
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
 					retrigger_time: None,
 				},
 			}));
@@ -1205,11 +1206,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::Current,
+					target_height_base: FloorTargetHeight::Current,
 					target_height_offset: 24.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -1221,11 +1222,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::Current,
+					target_height_base: FloorTargetHeight::Current,
 					target_height_offset: 24.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -1238,11 +1239,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::Current,
+					target_height_base: FloorTargetHeight::Current,
 					target_height_offset: 24.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -1255,11 +1256,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::Current,
+					target_height_base: FloorTargetHeight::Current,
 					target_height_offset: 24.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -1275,11 +1276,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourFloor,
+					target_height_base: FloorTargetHeight::LowestNeighbourFloor,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -1291,11 +1292,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourFloor,
+					target_height_base: FloorTargetHeight::LowestNeighbourFloor,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -1308,11 +1309,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourFloor,
+					target_height_base: FloorTargetHeight::LowestNeighbourFloor,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -1325,11 +1326,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourFloor,
+					target_height_base: FloorTargetHeight::LowestNeighbourFloor,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -1345,11 +1346,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourFloorAbove,
+					target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -1361,11 +1362,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourFloorAbove,
+					target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -1377,11 +1378,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 4.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourFloorAbove,
+					target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -1393,11 +1394,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 4.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourFloorAbove,
+					target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -1413,11 +1414,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourCeiling,
+					target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -1429,11 +1430,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourCeiling,
+					target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -1446,11 +1447,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourCeiling,
+					target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
 					target_height_offset: -8.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -1463,11 +1464,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::LowestNeighbourCeiling,
+					target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
 					target_height_offset: -8.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -1483,11 +1484,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::HighestNeighbourFloor,
+					target_height_base: FloorTargetHeight::HighestNeighbourFloor,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -1499,11 +1500,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 1.0 * FRAME_RATE,
-					target_height_base: TargetHeight::HighestNeighbourFloor,
+					target_height_base: FloorTargetHeight::HighestNeighbourFloor,
 					target_height_offset: 0.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -1515,11 +1516,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 4.0 * FRAME_RATE,
-					target_height_base: TargetHeight::HighestNeighbourFloor,
+					target_height_base: FloorTargetHeight::HighestNeighbourFloor,
 					target_height_offset: 8.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: true,
 			}));
@@ -1531,11 +1532,11 @@ impl LinedefTypes {
 			.with_component(TouchAction::FloorTouch(FloorTouch {
 				params: FloorParams {
 					speed: 4.0 * FRAME_RATE,
-					target_height_base: TargetHeight::HighestNeighbourFloor,
+					target_height_base: FloorTargetHeight::HighestNeighbourFloor,
 					target_height_offset: 8.0,
-					move_sound: asset_storage.load("DSSTNMOV", &mut *loader),
+					move_sound: Some(asset_storage.load("DSSTNMOV", &mut *loader)),
 					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: asset_storage.load("DSPSTOP", &mut *loader),
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
 				},
 				retrigger: false,
 			}));
@@ -1677,7 +1678,28 @@ impl LinedefTypes {
 		let handle = asset_storage.insert(template);
         doomednums.insert(57, handle);
 
-        let template = EntityTemplate::new();
+        let template = EntityTemplate::new()
+			.with_component(UseAction::PlatSwitchUse(PlatSwitchUse {
+				params: PlatParams {
+					speed: 4.0 * FRAME_RATE,
+					wait_time: 105 * FRAME_TIME,
+					can_reverse: true,
+
+					start_sound: Some(asset_storage.load("DSPSTART", &mut *loader)),
+					move_sound: None,
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
+
+					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+					low_height_offset: 0.0,
+					high_height_base: PlatTargetHeight::Current,
+					high_height_offset: 0.0,
+				},
+				switch_params: SwitchParams {
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
+					retrigger_time: None,
+				},
+			}));
 		let handle = asset_storage.insert(template);
         doomednums.insert(62, handle);
 

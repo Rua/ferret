@@ -174,6 +174,8 @@ fn main() -> anyhow::Result<()> {
 		.add_thread_local(doom::floor::floor_active_system()).flush()
 		.add_thread_local(doom::light::light_flash_system()).flush()
 		.add_thread_local(doom::light::light_glow_system()).flush()
+		.add_thread_local(doom::plat::plat_switch_system(&mut resources)).flush()
+		.add_thread_local(doom::plat::plat_active_system()).flush()
 		.add_thread_local(doom::switch::switch_active_system()).flush()
 		.add_thread_local(doom::texture::texture_animation_system()).flush()
 		.add_thread_local(doom::texture::texture_scroll_system()).flush()

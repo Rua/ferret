@@ -288,7 +288,7 @@ pub fn spawn_things(
 
 	let mut command_buffer = CommandBuffer::new(world);
 
-	for (_i, thing) in things.into_iter().enumerate() {
+	for (i, thing) in things.into_iter().enumerate() {
 		if thing.flags.intersects(ThingFlags::DMONLY) {
 			continue;
 		}
@@ -298,10 +298,13 @@ pub fn spawn_things(
 		}
 
 		// Fetch entity template
-		let handle = entity_types
-			.doomednums
-			.get(&thing.doomednum)
-			.ok_or(anyhow!("Doomednum not found: {}", thing.doomednum))?;
+		let handle = match entity_types.doomednums.get(&thing.doomednum) {
+			Some(some) => some,
+			None => {
+				log::warn!("Thing {} has invalid thing type {}", i, thing.doomednum);
+				continue;
+			}
+		};
 		let template = asset_storage.get(handle).unwrap();
 
 		// Create entity and add components
@@ -448,15 +451,28 @@ pub fn spawn_map_entities(
 		}
 
 		// Fetch and add entity template
-		let handle = linedef_types
-			.doomednums
-			.get(&linedef.special_type)
-			.ok_or(anyhow!(
-				"Linedef special type not found: {}",
-				linedef.special_type
-			))?;
+		let handle = match linedef_types.doomednums.get(&linedef.special_type) {
+			Some(some) => some,
+			None => {
+				log::warn!(
+					"Linedef {} has invalid special type {}",
+					i,
+					linedef.special_type
+				);
+				continue;
+			}
+		};
+
 		let template = asset_storage.get(handle).unwrap();
 		template.add_to_entity(entity, &mut command_buffer);
+
+		if template.len() == 0 {
+			log::debug!(
+				"Linedef {} has special type {} with empty template",
+				i,
+				linedef.special_type
+			);
+		}
 	}
 
 	// Create sector entities
@@ -503,15 +519,28 @@ pub fn spawn_map_entities(
 		}
 
 		// Fetch and add entity template
-		let handle = sector_types
-			.doomednums
-			.get(&sector.special_type)
-			.ok_or(anyhow!(
-				"Sector special type not found: {}",
-				sector.special_type
-			))?;
+		let handle = match sector_types.doomednums.get(&sector.special_type) {
+			Some(some) => some,
+			None => {
+				log::warn!(
+					"Sector {} has invalid special type {}",
+					i,
+					sector.special_type
+				);
+				continue;
+			}
+		};
+
 		let template = asset_storage.get(handle).unwrap();
 		template.add_to_entity(entity, &mut command_buffer);
+
+		if template.len() == 0 {
+			log::debug!(
+				"Sector {} has special type {} with empty template",
+				i,
+				sector.special_type
+			);
+		}
 	}
 
 	command_buffer.add_component(map_entity, map_dynamic);

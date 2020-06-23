@@ -13,13 +13,13 @@ use std::time::Duration;
 
 #[derive(Clone, Debug)]
 pub struct SwitchParams {
-	pub sound: AssetHandle<Sound>,
+	pub sound: Option<AssetHandle<Sound>>,
 	pub retrigger_time: Option<Duration>,
 }
 
 #[derive(Clone, Debug)]
 pub struct SwitchActive {
-	pub sound: AssetHandle<Sound>,
+	pub sound: Option<AssetHandle<Sound>>,
 	pub texture: AssetHandle<Wall>,
 	pub texture_slot: SidedefSlot,
 	pub time_left: Duration,
@@ -56,7 +56,11 @@ pub fn switch_active_system() -> Box<dyn Runnable> {
 
 					sidedef_dynamic.textures[switch_active.texture_slot as usize] =
 						TextureType::Normal(switch_active.texture.clone());
-					sound_queue.push((switch_active.sound.clone(), sector_entity));
+
+					if let Some(sound) = &switch_active.sound {
+						sound_queue.push((sound.clone(), sector_entity));
+					}
+
 					command_buffer.remove_component::<SwitchActive>(entity);
 				}
 			}
@@ -91,7 +95,10 @@ pub fn activate(
 
 				// Play sound
 				let sector_entity = map_dynamic.sectors[sidedef.sector_index].entity;
-				sound_queue.push((params.sound.clone(), sector_entity));
+
+				if let Some(sound) = &params.sound {
+					sound_queue.push((sound.clone(), sector_entity));
+				}
 
 				if let Some(time_left) = params.retrigger_time {
 					command_buffer.add_component(
