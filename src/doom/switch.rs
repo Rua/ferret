@@ -74,13 +74,11 @@ pub fn activate(
 	linedef_index: usize,
 	map: &Map,
 	map_dynamic: &mut MapDynamic,
-) -> bool {
+) {
 	let linedef = &map.linedefs[linedef_index];
 	let sidedef = linedef.sidedefs[0].as_ref().unwrap();
 	let linedef_dynamic = &mut map_dynamic.linedefs[linedef_index];
 	let sidedef_dynamic = linedef_dynamic.sidedefs[0].as_mut().unwrap();
-
-	let mut activated = false;
 
 	for slot in [SidedefSlot::Top, SidedefSlot::Middle, SidedefSlot::Bottom]
 		.iter()
@@ -88,15 +86,12 @@ pub fn activate(
 	{
 		if let TextureType::Normal(texture) = &mut sidedef_dynamic.textures[slot as usize] {
 			if let Some(new) = map.switches.get(texture) {
-				activated = true;
-
 				// Change texture
 				let old = std::mem::replace(texture, new.clone());
 
 				// Play sound
-				let sector_entity = map_dynamic.sectors[sidedef.sector_index].entity;
-
 				if let Some(sound) = &params.sound {
+					let sector_entity = map_dynamic.sectors[sidedef.sector_index].entity;
 					sound_queue.push((sound.clone(), sector_entity));
 				}
 
@@ -116,6 +111,4 @@ pub fn activate(
 			}
 		}
 	}
-
-	activated
 }

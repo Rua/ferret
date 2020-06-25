@@ -316,7 +316,7 @@ pub fn door_switch_system(resources: &mut Resources) -> Box<dyn Runnable> {
 					);
 
 					if activated {
-						let activated = crate::doom::switch::activate(
+						crate::doom::switch::activate(
 							&door_use.switch_params,
 							command_buffer,
 							sound_queue.as_mut(),
@@ -325,7 +325,7 @@ pub fn door_switch_system(resources: &mut Resources) -> Box<dyn Runnable> {
 							map_dynamic.as_mut(),
 						);
 
-						if activated && door_use.switch_params.retrigger_time.is_none() {
+						if door_use.switch_params.retrigger_time.is_none() {
 							command_buffer.remove_component::<UseAction>(use_event.linedef_entity);
 						}
 					}

@@ -180,7 +180,7 @@ pub fn floor_switch_system(resources: &mut Resources) -> Box<dyn Runnable> {
 					);
 
 					if activated {
-						let activated = crate::doom::switch::activate(
+						crate::doom::switch::activate(
 							&floor_use.switch_params,
 							command_buffer,
 							sound_queue.as_mut(),
@@ -189,7 +189,7 @@ pub fn floor_switch_system(resources: &mut Resources) -> Box<dyn Runnable> {
 							map_dynamic.as_mut(),
 						);
 
-						if activated && floor_use.switch_params.retrigger_time.is_none() {
+						if floor_use.switch_params.retrigger_time.is_none() {
 							command_buffer.remove_component::<UseAction>(use_event.linedef_entity);
 						}
 					}
