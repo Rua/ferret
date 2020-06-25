@@ -9,6 +9,7 @@ use crate::{
 		switch::{SwitchActive, SwitchParams},
 	},
 	geometry::Side,
+	quadtree::Quadtree,
 };
 use legion::prelude::{
 	CommandBuffer, Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder, Write,
@@ -56,16 +57,20 @@ pub fn door_active_system() -> Box<dyn Runnable> {
 	SystemBuilder::new("door_active_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Duration>()
+		.read_resource::<Quadtree>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<(Read<SectorRef>, Write<DoorActive>)>::query())
 		.read_component::<BoxCollider>() // used by SectorTracer
 		.read_component::<Transform>() // used by SectorTracer
 		.write_component::<MapDynamic>()
 		.build_thread_local(move |command_buffer, world, resources, query| {
-			let (asset_storage, delta, sound_queue) = resources;
+			let (asset_storage, delta, quadtree, sound_queue) = resources;
 			let (mut map_dynamic_world, mut world) = world.split::<Write<MapDynamic>>();
 			let (mut query_world, world) = world.split_for_query(&query);
-			let tracer = SectorTracer { world: &world };
+			let tracer = SectorTracer {
+				quadtree,
+				world: &world,
+			};
 
 			for (entity, (sector_ref, mut door_active)) in query.iter_entities_mut(&mut query_world)
 			{
@@ -125,7 +130,7 @@ pub fn door_active_system() -> Box<dyn Runnable> {
 						);
 
 						// TODO use fraction
-						if trace.collision.is_some() {
+						if trace.collision {
 							if door_active.can_reverse {
 								// Re-open the door
 								Some(DoorState::Opening)

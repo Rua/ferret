@@ -7,7 +7,7 @@ use crate::{
 		door::{DoorParams, DoorState, DoorSwitchUse, DoorTouch, DoorUse},
 		floor::{FloorParams, FloorSwitchUse, FloorTargetHeight, FloorTouch},
 		physics::TouchAction,
-		plat::{PlatParams, PlatSwitchUse, PlatTargetHeight},
+		plat::{PlatParams, PlatSwitchUse, PlatTargetHeight, PlatTouch},
 		switch::SwitchParams,
 		texture::TextureScroll,
 		wad::WadLoader,
@@ -1747,7 +1747,25 @@ impl LinedefTypes {
 		let handle = asset_storage.insert(template);
         doomednums.insert(87, handle);
 
-        let template = EntityTemplate::new();
+        let template = EntityTemplate::new()
+			.with_component(TouchAction::PlatTouch(PlatTouch {
+				params: PlatParams {
+					speed: 4.0 * FRAME_RATE,
+					wait_time: 105 * FRAME_TIME,
+					can_reverse: true,
+
+					start_sound: Some(asset_storage.load("DSPSTART", &mut *loader)),
+					move_sound: None,
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
+
+					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+					low_height_offset: 0.0,
+					high_height_base: PlatTargetHeight::Current,
+					high_height_offset: 0.0,
+				},
+				retrigger: true,
+			}));
 		let handle = asset_storage.insert(template);
         doomednums.insert(88, handle);
 

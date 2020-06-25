@@ -5,9 +5,10 @@ use crate::{
 		client::{UseAction, UseEvent},
 		components::Transform,
 		map::{LinedefRef, Map, MapDynamic, SectorRef},
-		physics::{BoxCollider, SectorTracer},
+		physics::{BoxCollider, SectorPushTracer, TouchAction, TouchEvent},
 		switch::{SwitchActive, SwitchParams},
 	},
+	quadtree::Quadtree,
 };
 use legion::prelude::{
 	CommandBuffer, Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder, Write,
@@ -67,16 +68,16 @@ pub fn plat_active_system() -> Box<dyn Runnable> {
 	SystemBuilder::new("plat_active_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Duration>()
+		.read_resource::<Quadtree>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<(Read<SectorRef>, Write<PlatActive>)>::query())
 		.read_component::<BoxCollider>() // used by SectorTracer
-		.read_component::<Transform>() // used by SectorTracer
 		.write_component::<MapDynamic>()
+		.write_component::<Transform>()
 		.build_thread_local(move |command_buffer, world, resources, query| {
-			let (asset_storage, delta, sound_queue) = resources;
+			let (asset_storage, delta, quadtree, sound_queue) = resources;
 			let (mut map_dynamic_world, mut world) = world.split::<Write<MapDynamic>>();
-			let (mut query_world, world) = world.split_for_query(&query);
-			let tracer = SectorTracer { world: &world };
+			let (mut query_world, mut world) = world.split_for_query(&query);
 
 			for (entity, (sector_ref, mut plat_active)) in query.iter_entities_mut(&mut query_world)
 			{
@@ -85,7 +86,6 @@ pub fn plat_active_system() -> Box<dyn Runnable> {
 					.unwrap();
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 				let sector = &map.sectors[sector_ref.index];
-				let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 
 				let new_state = match plat_active.state {
 					PlatState::GoingDown => {
@@ -102,6 +102,7 @@ pub fn plat_active_system() -> Box<dyn Runnable> {
 						}
 
 						let move_step = -plat_active.speed * delta.as_secs_f32();
+						let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 						sector_dynamic.interval.min += move_step;
 
 						if sector_dynamic.interval.min < plat_active.low_height {
@@ -125,16 +126,38 @@ pub fn plat_active_system() -> Box<dyn Runnable> {
 						}
 
 						// Check if we bumped something on the way
-						let move_step = plat_active.speed * delta.as_secs_f32();
+						let current_height = map_dynamic.sectors[sector_ref.index].interval.min;
+						let distance_left = plat_active.high_height - current_height;
+						let move_step = plat_active.speed * delta.as_secs_f32().min(distance_left);
+
+						let tracer = SectorPushTracer {
+							map,
+							map_dynamic: &map_dynamic,
+							quadtree,
+							world: &world,
+						};
+
 						let trace = tracer.trace(
-							sector_dynamic.interval.min,
+							current_height,
 							1.0,
 							move_step,
 							sector.subsectors.iter().map(|i| &map.subsectors[*i]),
 						);
 
-						// TODO use fraction
-						if trace.collision.is_some() {
+						// Push the entities out of the way
+						for pushed_entity in trace.pushed_entities.iter() {
+							let mut transform = world
+								.get_component_mut::<Transform>(pushed_entity.entity)
+								.unwrap();
+							transform.position += pushed_entity.move_step;
+						}
+
+						// Move the plat into place
+						let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
+						sector_dynamic.interval.min += trace.move_step;
+
+						if trace.fraction < 1.0 {
+							// We got obstructed on the way up
 							if plat_active.can_reverse {
 								Some(PlatState::GoingDown)
 							} else {
@@ -142,9 +165,8 @@ pub fn plat_active_system() -> Box<dyn Runnable> {
 								None
 							}
 						} else {
-							sector_dynamic.interval.min += move_step;
-
-							if sector_dynamic.interval.min >= plat_active.high_height {
+							if trace.move_step == distance_left {
+								// Reached target height
 								sector_dynamic.interval.min = plat_active.high_height;
 								Some(PlatState::Waiting)
 							} else {
@@ -157,6 +179,8 @@ pub fn plat_active_system() -> Box<dyn Runnable> {
 							plat_active.time_left = new_time;
 							None
 						} else {
+							let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
+
 							if sector_dynamic.interval.min == plat_active.low_height {
 								Some(PlatState::GoingUp)
 							} else {
@@ -181,6 +205,7 @@ pub fn plat_active_system() -> Box<dyn Runnable> {
 								sound_queue.push((sound.clone(), entity));
 							}
 
+							let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 							if sector_dynamic.interval.min == plat_active.high_height {
 								command_buffer.remove_component::<PlatActive>(entity);
 							} else {
@@ -260,6 +285,71 @@ pub fn plat_switch_system(resources: &mut Resources) -> Box<dyn Runnable> {
 							command_buffer.remove_component::<UseAction>(use_event.linedef_entity);
 						}
 					}
+				}
+			}
+		})
+}
+
+#[derive(Clone, Debug)]
+pub struct PlatTouch {
+	pub params: PlatParams,
+	pub retrigger: bool,
+}
+
+pub fn plat_touch_system(resources: &mut Resources) -> Box<dyn Runnable> {
+	let mut touch_event_reader = resources
+		.get_mut::<EventChannel<TouchEvent>>()
+		.unwrap()
+		.register_reader();
+
+	SystemBuilder::new("plat_touch_system")
+		.read_resource::<AssetStorage>()
+		.read_resource::<EventChannel<TouchEvent>>()
+		.read_component::<PlatActive>() // used by activate_with_tag
+		.read_component::<LinedefRef>()
+		.read_component::<TouchAction>()
+		.write_component::<MapDynamic>()
+		.build_thread_local(move |command_buffer, world, resources, _| {
+			let (asset_storage, touch_event_channel) = resources;
+			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
+
+			for touch_event in touch_event_channel.read(&mut touch_event_reader) {
+				if touch_event.collision.is_some() {
+					continue;
+				}
+
+				let linedef_ref = if let Some(linedef_ref) =
+					world.get_component::<LinedefRef>(touch_event.touched)
+				{
+					linedef_ref
+				} else {
+					continue;
+				};
+				let map_dynamic = map_dynamic_world
+					.get_component_mut::<MapDynamic>(linedef_ref.map_entity)
+					.unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
+				let linedef = &map.linedefs[linedef_ref.index];
+
+				match world
+					.get_component::<TouchAction>(touch_event.touched)
+					.as_deref()
+				{
+					Some(TouchAction::PlatTouch(plat_touch)) => {
+						if activate_with_tag(
+							&plat_touch.params,
+							command_buffer,
+							linedef.sector_tag,
+							&world,
+							map,
+							map_dynamic.as_ref(),
+						) {
+							if !plat_touch.retrigger {
+								command_buffer.remove_component::<TouchAction>(touch_event.touched);
+							}
+						}
+					}
+					_ => {}
 				}
 			}
 		})

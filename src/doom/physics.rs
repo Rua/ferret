@@ -6,6 +6,7 @@ use crate::{
 		door::DoorTouch,
 		floor::FloorTouch,
 		map::{Map, MapDynamic, NodeChild, Subsector},
+		plat::PlatTouch,
 	},
 	geometry::{Interval, Plane3, AABB2, AABB3},
 	quadtree::Quadtree,
@@ -259,6 +260,7 @@ pub struct TouchEventCollision {
 pub enum TouchAction {
 	DoorTouch(DoorTouch),
 	FloorTouch(FloorTouch),
+	PlatTouch(PlatTouch),
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -282,15 +284,15 @@ pub struct EntityTracer<'a, W: EntityStore> {
 }
 
 #[derive(Clone, Debug)]
-pub struct Trace {
+pub struct EntityTrace {
 	pub fraction: f32,
 	pub move_step: Vector3<f32>,
-	pub collision: Option<TraceCollision>,
+	pub collision: Option<EntityTraceCollision>,
 	pub touched: SmallVec<[Entity; 4]>,
 }
 
 #[derive(Clone, Debug)]
-pub struct TraceCollision {
+pub struct EntityTraceCollision {
 	pub entity: Entity,
 	pub normal: Vector3<f32>,
 	pub step_z: Option<f32>,
@@ -304,9 +306,8 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 		entity_bbox: &AABB3,
 		move_step: Vector3<f32>,
 		entity_solid_mask: SolidMask,
-	) -> Trace {
+	) -> EntityTrace {
 		let mut trace_fraction = 1.0;
-		let mut trace_move_step = move_step;
 		let mut trace_collision = None;
 		let mut trace_touched: SmallVec<[(f32, Entity); 8]> = SmallVec::new();
 
@@ -382,8 +383,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 										|| fraction == trace_fraction && normal[2] == 0.0
 									{
 										trace_fraction = fraction;
-										trace_move_step = move_step * fraction;
-										trace_collision = Some(TraceCollision {
+										trace_collision = Some(EntityTraceCollision {
 											entity: linedef_dynamic.entity,
 											normal,
 											step_z: if step
@@ -419,8 +419,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 									|| fraction == trace_fraction && normal[2] == 0.0
 								{
 									trace_fraction = fraction;
-									trace_move_step = move_step * fraction;
-									trace_collision = Some(TraceCollision {
+									trace_collision = Some(EntityTraceCollision {
 										entity: linedef_dynamic.entity,
 										normal,
 										step_z: None,
@@ -465,8 +464,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 										&& normal[0] == 0.0 && normal[1] == 0.0
 								{
 									trace_fraction = fraction;
-									trace_move_step = move_step * fraction;
-									trace_collision = Some(TraceCollision {
+									trace_collision = Some(EntityTraceCollision {
 										entity: sector_dynamic.entity,
 										normal,
 										step_z: None,
@@ -517,8 +515,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						if entity_solid_mask.intersects(box_collider.solid_mask) {
 							if fraction < trace_fraction {
 								trace_fraction = fraction;
-								trace_move_step = move_step * fraction;
-								trace_collision = Some(TraceCollision {
+								trace_collision = Some(EntityTraceCollision {
 									entity,
 									normal,
 									step_z: Some(other_bbox[2].max + DISTANCE_EPSILON),
@@ -532,9 +529,9 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 				}
 			});
 
-		Trace {
+		EntityTrace {
 			fraction: trace_fraction,
-			move_step: trace_move_step,
+			move_step: move_step * trace_fraction,
 			collision: trace_collision,
 			touched: trace_touched.into_iter().map(|(_, e)| e).collect(),
 		}
@@ -542,7 +539,15 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 }
 
 pub struct SectorTracer<'a, W: EntityStore> {
+	pub quadtree: &'a Quadtree,
 	pub world: &'a W,
+}
+
+#[derive(Clone, Debug)]
+pub struct SectorTrace {
+	pub fraction: f32,
+	pub move_step: Vector3<f32>,
+	pub collision: bool,
 }
 
 impl<'a, W: EntityStore> SectorTracer<'a, W> {
@@ -552,13 +557,12 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 		normal: f32,
 		move_step: f32,
 		subsectors: impl Iterator<Item = &'b Subsector> + Clone,
-	) -> Trace {
+	) -> SectorTrace {
 		let normal = Vector3::new(0.0, 0.0, normal);
 		let move_step = Vector3::new(0.0, 0.0, move_step);
 
 		let mut trace_fraction = 1.0;
-		let mut trace_move_step = move_step;
-		let mut trace_collision = None;
+		let mut trace_collision = false;
 		let mut trace_touched: SmallVec<[(f32, Entity); 8]> = SmallVec::new();
 
 		let z_planes = [
@@ -582,12 +586,7 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 				if let Some((fraction, _)) = trace_planes(&entity_bbox, -move_step, iter) {
 					if fraction < trace_fraction {
 						trace_fraction = fraction;
-						trace_move_step = move_step * fraction;
-						trace_collision = Some(TraceCollision {
-							entity,
-							normal: -normal,
-							step_z: None,
-						});
+						trace_collision = true;
 						trace_touched.retain(|(f, _)| *f <= fraction);
 					} else if fraction <= trace_fraction {
 						trace_touched.push((fraction, entity));
@@ -596,11 +595,111 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 			}
 		}
 
-		Trace {
+		SectorTrace {
 			fraction: trace_fraction,
-			move_step: trace_move_step,
+			move_step: move_step * trace_fraction,
 			collision: trace_collision,
-			touched: trace_touched.into_iter().map(|(_, e)| e).collect(),
+		}
+	}
+}
+
+pub struct SectorPushTracer<'a, W: EntityStore> {
+	pub map: &'a Map,
+	pub map_dynamic: &'a MapDynamic,
+	pub quadtree: &'a Quadtree,
+	pub world: &'a W,
+}
+
+#[derive(Clone, Debug)]
+pub struct SectorPushTrace {
+	pub fraction: f32,
+	pub move_step: f32,
+	pub pushed_entities: SmallVec<[SectorPushTraceEntity; 8]>,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct SectorPushTraceEntity {
+	pub entity: Entity,
+	pub move_step: Vector3<f32>,
+}
+
+impl<'a, W: EntityStore> SectorPushTracer<'a, W> {
+	pub fn trace<'b>(
+		&self,
+		distance: f32,
+		normal: f32,
+		move_step: f32,
+		subsectors: impl Iterator<Item = &'b Subsector> + Clone,
+	) -> SectorPushTrace {
+		let normal = Vector3::new(0.0, 0.0, normal);
+		let move_step3 = Vector3::new(0.0, 0.0, move_step);
+
+		let mut trace_fraction = 1.0;
+		let mut trace_touched = SmallVec::<[(f32, Entity); 8]>::new();
+
+		let z_planes = [
+			Plane3::new(distance, normal),
+			Plane3::new(-distance, -normal),
+		];
+
+		let entity_tracer = EntityTracer {
+			map: self.map,
+			map_dynamic: self.map_dynamic,
+			quadtree: self.quadtree,
+			world: self.world,
+		};
+
+		for (entity, (transform, box_collider)) in
+			<(Read<Transform>, Read<BoxCollider>)>::query().iter_entities(self.world)
+		{
+			let entity_bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height)
+				.offset(transform.position);
+			let entity_bbox2 = AABB2::from(&entity_bbox);
+
+			for subsector in subsectors
+				.clone()
+				.filter(|s| entity_bbox2.overlaps(&s.bbox))
+			{
+				let iter = subsector.planes.iter().chain(z_planes.iter());
+
+				if let Some((hit_fraction, _)) = trace_planes(&entity_bbox, -move_step3, iter) {
+					if hit_fraction < 1.0 {
+						let remainder = 1.0 - hit_fraction;
+						let entity_move_step = remainder * move_step3;
+
+						// TODO solid mask
+						let trace = entity_tracer.trace(
+							&entity_bbox,
+							entity_move_step,
+							SolidMask::NON_MONSTER,
+						);
+						let total_fraction = hit_fraction + remainder * trace.fraction;
+
+						if total_fraction < trace_fraction {
+							trace_fraction = total_fraction;
+							trace_touched.retain(|(f, _)| *f <= total_fraction);
+						}
+
+						if hit_fraction <= total_fraction {
+							trace_touched.push((hit_fraction, entity));
+						}
+
+						break;
+					}
+				}
+			}
+		}
+
+		SectorPushTrace {
+			fraction: trace_fraction,
+			move_step: move_step * trace_fraction,
+			pushed_entities: trace_touched
+				.into_iter()
+				.map(|(hit_fraction, entity)| SectorPushTraceEntity {
+					entity,
+					move_step: move_step3 * (trace_fraction - hit_fraction),
+				})
+				.collect(),
 		}
 	}
 }
