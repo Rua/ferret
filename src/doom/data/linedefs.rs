@@ -1544,6 +1544,210 @@ impl LinedefTypes {
         doomednums.insert(36, handle);
 
 		/*
+			Switch plats, current - lowest neighbour floor
+		*/
+
+		// Retrigger, slow
+		let template = EntityTemplate::new()
+			.with_component(UseAction::PlatSwitchUse(PlatSwitchUse {
+				params: PlatParams {
+					speed: 4.0 * FRAME_RATE,
+					wait_time: 105 * FRAME_TIME,
+					can_reverse: true,
+
+					start_sound: Some(asset_storage.load("DSPSTART", &mut *loader)),
+					move_sound: None,
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
+
+					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+					low_height_offset: 0.0,
+					high_height_base: PlatTargetHeight::Current,
+					high_height_offset: 0.0,
+				},
+				switch_params: SwitchParams {
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
+			}));
+		let handle = asset_storage.insert(template);
+		doomednums.insert(62, handle);
+
+		// Retrigger, fast
+		let template = EntityTemplate::new()
+			.with_component(UseAction::PlatSwitchUse(PlatSwitchUse {
+				params: PlatParams {
+					speed: 8.0 * FRAME_RATE,
+					wait_time: 105 * FRAME_TIME,
+					can_reverse: true,
+
+					start_sound: Some(asset_storage.load("DSPSTART", &mut *loader)),
+					move_sound: None,
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
+
+					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+					low_height_offset: 0.0,
+					high_height_base: PlatTargetHeight::Current,
+					high_height_offset: 0.0,
+				},
+				switch_params: SwitchParams {
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
+					retrigger_time: Some(35 * FRAME_TIME),
+				},
+			}));
+		let handle = asset_storage.insert(template);
+		doomednums.insert(123, handle);
+
+		// No retrigger, slow
+		let template = EntityTemplate::new()
+			.with_component(UseAction::PlatSwitchUse(PlatSwitchUse {
+				params: PlatParams {
+					speed: 4.0 * FRAME_RATE,
+					wait_time: 105 * FRAME_TIME,
+					can_reverse: true,
+
+					start_sound: Some(asset_storage.load("DSPSTART", &mut *loader)),
+					move_sound: None,
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
+
+					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+					low_height_offset: 0.0,
+					high_height_base: PlatTargetHeight::Current,
+					high_height_offset: 0.0,
+				},
+				switch_params: SwitchParams {
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
+					retrigger_time: None,
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(21, handle);
+
+		// No retrigger, fast
+		let template = EntityTemplate::new()
+			.with_component(UseAction::PlatSwitchUse(PlatSwitchUse {
+				params: PlatParams {
+					speed: 8.0 * FRAME_RATE,
+					wait_time: 105 * FRAME_TIME,
+					can_reverse: true,
+
+					start_sound: Some(asset_storage.load("DSPSTART", &mut *loader)),
+					move_sound: None,
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
+
+					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+					low_height_offset: 0.0,
+					high_height_base: PlatTargetHeight::Current,
+					high_height_offset: 0.0,
+				},
+				switch_params: SwitchParams {
+					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
+					retrigger_time: None,
+				},
+			}));
+		let handle = asset_storage.insert(template);
+        doomednums.insert(122, handle);
+
+		/*
+			Linedef touch plats, current - lowest neighbour floor
+		*/
+
+		// Retrigger, slow
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::PlatTouch(PlatTouch {
+				params: PlatParams {
+					speed: 4.0 * FRAME_RATE,
+					wait_time: 105 * FRAME_TIME,
+					can_reverse: true,
+
+					start_sound: Some(asset_storage.load("DSPSTART", &mut *loader)),
+					move_sound: None,
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
+
+					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+					low_height_offset: 0.0,
+					high_height_base: PlatTargetHeight::Current,
+					high_height_offset: 0.0,
+				},
+				retrigger: true,
+			}));
+		let handle = asset_storage.insert(template);
+		doomednums.insert(88, handle);
+
+		// Retrigger, fast
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::PlatTouch(PlatTouch {
+				params: PlatParams {
+					speed: 8.0 * FRAME_RATE,
+					wait_time: 105 * FRAME_TIME,
+					can_reverse: true,
+
+					start_sound: Some(asset_storage.load("DSPSTART", &mut *loader)),
+					move_sound: None,
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
+
+					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+					low_height_offset: 0.0,
+					high_height_base: PlatTargetHeight::Current,
+					high_height_offset: 0.0,
+				},
+				retrigger: true,
+			}));
+		let handle = asset_storage.insert(template);
+		doomednums.insert(120, handle);
+
+		// No retrigger, slow
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::PlatTouch(PlatTouch {
+				params: PlatParams {
+					speed: 4.0 * FRAME_RATE,
+					wait_time: 105 * FRAME_TIME,
+					can_reverse: true,
+
+					start_sound: Some(asset_storage.load("DSPSTART", &mut *loader)),
+					move_sound: None,
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
+
+					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+					low_height_offset: 0.0,
+					high_height_base: PlatTargetHeight::Current,
+					high_height_offset: 0.0,
+				},
+				retrigger: false,
+			}));
+		let handle = asset_storage.insert(template);
+		doomednums.insert(10, handle);
+
+		// No retrigger, fast
+		let template = EntityTemplate::new()
+			.with_component(TouchAction::PlatTouch(PlatTouch {
+				params: PlatParams {
+					speed: 8.0 * FRAME_RATE,
+					wait_time: 105 * FRAME_TIME,
+					can_reverse: true,
+
+					start_sound: Some(asset_storage.load("DSPSTART", &mut *loader)),
+					move_sound: None,
+					move_sound_time: 8 * FRAME_TIME,
+					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
+
+					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+					low_height_offset: 0.0,
+					high_height_base: PlatTargetHeight::Current,
+					high_height_offset: 0.0,
+				},
+				retrigger: false,
+			}));
+		let handle = asset_storage.insert(template);
+		doomednums.insert(121, handle);
+
+		/*
 			Other
 		*/
 
@@ -1562,10 +1766,6 @@ impl LinedefTypes {
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
         doomednums.insert(9, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(10, handle);
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
@@ -1594,10 +1794,6 @@ impl LinedefTypes {
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
         doomednums.insert(20, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(21, handle);
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
@@ -1678,31 +1874,6 @@ impl LinedefTypes {
 		let handle = asset_storage.insert(template);
         doomednums.insert(57, handle);
 
-        let template = EntityTemplate::new()
-			.with_component(UseAction::PlatSwitchUse(PlatSwitchUse {
-				params: PlatParams {
-					speed: 4.0 * FRAME_RATE,
-					wait_time: 105 * FRAME_TIME,
-					can_reverse: true,
-
-					start_sound: Some(asset_storage.load("DSPSTART", &mut *loader)),
-					move_sound: None,
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
-
-					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
-					low_height_offset: 0.0,
-					high_height_base: PlatTargetHeight::Current,
-					high_height_offset: 0.0,
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("DSSWTCHN", &mut *loader)),
-					retrigger_time: None,
-				},
-			}));
-		let handle = asset_storage.insert(template);
-        doomednums.insert(62, handle);
-
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
         doomednums.insert(66, handle);
@@ -1747,28 +1918,6 @@ impl LinedefTypes {
 		let handle = asset_storage.insert(template);
         doomednums.insert(87, handle);
 
-        let template = EntityTemplate::new()
-			.with_component(TouchAction::PlatTouch(PlatTouch {
-				params: PlatParams {
-					speed: 4.0 * FRAME_RATE,
-					wait_time: 105 * FRAME_TIME,
-					can_reverse: true,
-
-					start_sound: Some(asset_storage.load("DSPSTART", &mut *loader)),
-					move_sound: None,
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("DSPSTOP", &mut *loader)),
-
-					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
-					low_height_offset: 0.0,
-					high_height_base: PlatTargetHeight::Current,
-					high_height_offset: 0.0,
-				},
-				retrigger: true,
-			}));
-		let handle = asset_storage.insert(template);
-        doomednums.insert(88, handle);
-
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
         doomednums.insert(89, handle);
@@ -1792,22 +1941,6 @@ impl LinedefTypes {
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
         doomednums.insert(104, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(120, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(121, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(122, handle);
-
-        let template = EntityTemplate::new();
-		let handle = asset_storage.insert(template);
-        doomednums.insert(123, handle);
 
         let template = EntityTemplate::new();
 		let handle = asset_storage.insert(template);
