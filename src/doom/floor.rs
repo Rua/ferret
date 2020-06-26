@@ -145,6 +145,7 @@ pub fn floor_switch_system(resources: &mut Resources) -> Box<dyn Runnable> {
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.read_component::<FloorActive>() // used by activate_with_tag
 		.read_component::<LinedefRef>()
+		.read_component::<SwitchActive>()
 		.read_component::<UseAction>()
 		.write_component::<MapDynamic>()
 		.build_thread_local(move |command_buffer, world, resources, _| {
