@@ -2,6 +2,7 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	audio::Sound,
 	doom::{
+		camera::Camera,
 		components::{Transform, Velocity},
 		data::{FORWARD_ACCEL, STRAFE_ACCEL},
 		door::{DoorSwitchUse, DoorUse},
@@ -204,6 +205,56 @@ pub fn player_use_system(resources: &mut Resources) -> Box<dyn Runnable> {
 							use_event_channel.single_write(UseEvent { linedef_entity });
 						} else {
 							sound_queue.push((user.error_sound.clone(), entity));
+						}
+					}
+				}
+			}
+		})
+}
+
+pub fn player_attack_system(_resources: &mut Resources) -> Box<dyn Runnable> {
+	SystemBuilder::new("player_attack_system")
+		.read_resource::<AssetStorage>()
+		.read_resource::<Client>()
+		.write_resource::<Quadtree>()
+		.read_component::<BoxCollider>()
+		.read_component::<Camera>()
+		.read_component::<MapDynamic>()
+		.read_component::<Transform>()
+		.build_thread_local(move |command_buffer, world, resources, _| {
+			let (asset_storage, client, quadtree) = resources;
+
+			if let Some(client_entity) = client.entity {
+				if client.command.attack && !client.previous_command.attack {
+					let transform = world.get_component::<Transform>(client_entity).unwrap();
+					let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
+					let map = asset_storage.get(&map_dynamic.map).unwrap();
+
+					let tracer = EntityTracer {
+						map,
+						map_dynamic: map_dynamic.as_ref(),
+						quadtree: &quadtree,
+						world,
+					};
+
+					const ATTACKRANGE: f32 = 2000.0;
+					let axes = crate::geometry::angles_to_axes(transform.rotation);
+					let mut position = transform.position;
+
+					if let Some(camera) = world.get_component::<Camera>(client_entity) {
+						position += camera.base + camera.offset;
+					}
+
+					let trace = tracer.trace(
+						&AABB3::from_point(position),
+						axes[0] * ATTACKRANGE,
+						SolidMask::all(),
+					);
+
+					if let Some(collision) = trace.collision {
+						if world.has_component::<BoxCollider>(collision.entity) {
+							command_buffer.delete(collision.entity);
+							quadtree.remove(collision.entity);
 						}
 					}
 				}
