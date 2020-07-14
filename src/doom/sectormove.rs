@@ -7,6 +7,7 @@ use crate::{
 		physics::{BoxCollider, SectorPushTracer},
 	},
 	quadtree::Quadtree,
+	timer::Timer,
 };
 use legion::prelude::{
 	Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder, Write,
@@ -19,8 +20,7 @@ pub struct SectorMove {
 	pub velocity: f32,
 	pub target: f32,
 	pub sound: Option<AssetHandle<Sound>>,
-	pub sound_time: Duration,
-	pub sound_time_left: Duration,
+	pub sound_timer: Timer,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -64,13 +64,11 @@ pub fn sector_move_system(resources: &mut Resources) -> Box<dyn Runnable> {
 					let sector = &map.sectors[sector_ref.index];
 					let mut event_type = None;
 
-					if sector_move.sound.is_some() {
-						if let Some(new_time) = sector_move.sound_time_left.checked_sub(**delta) {
-							sector_move.sound_time_left = new_time;
-						} else {
-							sector_move.sound_time_left = sector_move.sound_time;
-							sound_queue.push((sector_move.sound.as_ref().unwrap().clone(), entity));
-						}
+					sector_move.sound_timer.tick(**delta);
+
+					if sector_move.sound_timer.is_zero() && sector_move.sound.is_some() {
+						sector_move.sound_timer.reset();
+						sound_queue.push((sector_move.sound.as_ref().unwrap().clone(), entity));
 					}
 
 					let mut move_step = sector_move.velocity * delta.as_secs_f32();

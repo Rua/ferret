@@ -9,6 +9,7 @@ use crate::{
 		sectormove::{SectorMove, SectorMoveEvent, SectorMoveEventType},
 		switch::{SwitchActive, SwitchParams},
 	},
+	timer::Timer,
 };
 use legion::prelude::{
 	CommandBuffer, Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder, Write,
@@ -19,8 +20,7 @@ use std::time::Duration;
 #[derive(Clone, Debug)]
 pub struct PlatActive {
 	pub speed: f32,
-	pub wait_time: Duration,
-	pub time_left: Duration,
+	pub wait_timer: Timer,
 	pub can_reverse: bool,
 
 	pub start_sound: Option<AssetHandle<Sound>>,
@@ -81,9 +81,9 @@ pub fn plat_active_system(resources: &mut Resources) -> Box<dyn Runnable> {
 						.unwrap();
 
 					if sector_move.velocity == 0.0 {
-						if let Some(new_time) = plat_active.time_left.checked_sub(**delta) {
-							plat_active.time_left = new_time;
-						} else {
+						plat_active.wait_timer.tick(**delta);
+
+						if plat_active.wait_timer.is_zero() {
 							if let Some(sound) = &plat_active.start_sound {
 								sound_queue.push((sound.clone(), entity));
 							}
@@ -148,7 +148,7 @@ pub fn plat_active_system(resources: &mut Resources) -> Box<dyn Runnable> {
 								if sector_dynamic.interval.min == plat_active.high_height {
 									command_buffer.remove_component::<PlatActive>(event.entity);
 								} else {
-									plat_active.time_left = plat_active.wait_time;
+									plat_active.wait_timer.reset();
 								}
 							}
 						}
@@ -324,8 +324,7 @@ fn activate(
 			velocity: 0.0,
 			target: sector_dynamic.interval.min,
 			sound: params.move_sound.clone(),
-			sound_time: params.move_sound_time,
-			sound_time_left: Duration::default(),
+			sound_timer: Timer::new(params.move_sound_time),
 		},
 	);
 
@@ -333,8 +332,7 @@ fn activate(
 		sector_dynamic.entity,
 		PlatActive {
 			speed: params.speed,
-			wait_time: params.wait_time,
-			time_left: Duration::default(),
+			wait_timer: Timer::new_zero(params.wait_time),
 			can_reverse: params.can_reverse,
 
 			start_sound: params.start_sound.clone(),

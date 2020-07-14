@@ -14,6 +14,7 @@ use crate::{
 		physics::SolidMask,
 	},
 	geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2},
+	timer::Timer,
 };
 use anyhow::anyhow;
 use bitflags::bitflags;
@@ -56,7 +57,7 @@ pub struct Anim<T> {
 #[derive(Clone, Copy, Debug)]
 pub struct AnimState {
 	pub frame: usize,
-	pub time_left: Duration,
+	pub timer: Timer,
 }
 
 pub struct Thing {
@@ -394,7 +395,7 @@ pub fn spawn_map_entities(
 				k.clone(),
 				AnimState {
 					frame: 0,
-					time_left: v.frame_time,
+					timer: Timer::new(v.frame_time),
 				},
 			)
 		})
@@ -407,7 +408,7 @@ pub fn spawn_map_entities(
 				k.clone(),
 				AnimState {
 					frame: 0,
-					time_left: v.frame_time,
+					timer: Timer::new(v.frame_time),
 				},
 			)
 		})

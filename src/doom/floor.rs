@@ -9,6 +9,7 @@ use crate::{
 		switch::{SwitchActive, SwitchParams},
 	},
 	quadtree::Quadtree,
+	timer::Timer,
 };
 use legion::prelude::{
 	CommandBuffer, Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder, Write,
@@ -21,8 +22,7 @@ pub struct FloorActive {
 	pub speed: f32,
 	pub target_height: f32,
 	pub move_sound: Option<AssetHandle<Sound>>,
-	pub move_sound_time: Duration,
-	pub move_sound_time_left: Duration,
+	pub move_sound_timer: Timer,
 	pub finish_sound: Option<AssetHandle<Sound>>,
 }
 
@@ -74,10 +74,10 @@ pub fn floor_active_system() -> Box<dyn Runnable> {
 				let sector = &map.sectors[sector_ref.index];
 				let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 
-				if let Some(new_time) = floor_active.move_sound_time_left.checked_sub(**delta) {
-					floor_active.move_sound_time_left = new_time;
-				} else {
-					floor_active.move_sound_time_left = floor_active.move_sound_time;
+				floor_active.move_sound_timer.tick(**delta);
+
+				if floor_active.move_sound_timer.is_zero() {
+					floor_active.move_sound_timer.reset();
 
 					if let Some(sound) = &floor_active.move_sound {
 						sound_queue.push((sound.clone(), entity));
@@ -308,8 +308,7 @@ fn activate(
 			speed: params.speed,
 			target_height,
 			move_sound: params.move_sound.clone(),
-			move_sound_time: params.move_sound_time,
-			move_sound_time_left: Duration::default(),
+			move_sound_timer: Timer::new_zero(params.move_sound_time),
 			finish_sound: params.finish_sound.clone(),
 		},
 	);

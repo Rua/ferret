@@ -5,6 +5,7 @@ use crate::{
 		textures::{TextureType, Wall},
 		LinedefRef, Map, MapDynamic, SidedefSlot,
 	},
+	timer::Timer,
 };
 use legion::prelude::{
 	CommandBuffer, Entity, EntityStore, IntoQuery, Read, Runnable, SystemBuilder, Write,
@@ -22,7 +23,7 @@ pub struct SwitchActive {
 	pub sound: Option<AssetHandle<Sound>>,
 	pub texture: AssetHandle<Wall>,
 	pub texture_slot: SidedefSlot,
-	pub time_left: Duration,
+	pub timer: Timer,
 }
 
 pub fn switch_active_system() -> Box<dyn Runnable> {
@@ -40,9 +41,9 @@ pub fn switch_active_system() -> Box<dyn Runnable> {
 			for (entity, (linedef_ref, mut switch_active)) in
 				query.iter_entities_mut(&mut query_world)
 			{
-				if let Some(new_time) = switch_active.time_left.checked_sub(**delta) {
-					switch_active.time_left = new_time;
-				} else {
+				switch_active.timer.tick(**delta);
+
+				if switch_active.timer.is_zero() {
 					let mut map_dynamic = map_dynamic_world
 						.get_component_mut::<MapDynamic>(linedef_ref.map_entity)
 						.unwrap();
@@ -102,7 +103,7 @@ pub fn activate(
 							sound: params.sound.clone(),
 							texture: old,
 							texture_slot: slot,
-							time_left,
+							timer: Timer::new(time_left),
 						},
 					);
 				}

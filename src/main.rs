@@ -9,6 +9,7 @@ mod input;
 mod logger;
 mod quadtree;
 mod renderer;
+mod timer;
 
 use crate::{
 	assets::{AssetHandle, AssetStorage, DataSource},

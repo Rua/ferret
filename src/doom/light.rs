@@ -4,6 +4,7 @@ use crate::{
 		data::FRAME_TIME,
 		map::{MapDynamic, SectorRef},
 	},
+	timer::Timer,
 };
 use legion::prelude::{EntityStore, IntoQuery, Read, Runnable, SystemBuilder, Write};
 use rand::Rng;
@@ -28,9 +29,9 @@ pub fn light_flash_system() -> Box<dyn Runnable> {
 				let map_dynamic = map_dynamic.as_mut();
 				let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 
-				if let Some(new_time) = light_flash.time_left.checked_sub(**delta) {
-					light_flash.time_left = new_time;
-				} else {
+				light_flash.timer.tick(**delta);
+
+				if light_flash.timer.is_zero() {
 					light_flash.state = !light_flash.state;
 					let map = asset_storage.get(&map_dynamic.map).unwrap();
 					let sector = &map.sectors[sector_ref.index];
@@ -43,36 +44,37 @@ pub fn light_flash_system() -> Box<dyn Runnable> {
 						.min_by(|x, y| x.partial_cmp(y).unwrap())
 						.unwrap_or(0.0);
 
-					match light_flash.flash_type {
+					let new_time = match light_flash.flash_type {
 						LightFlashType::Broken => {
 							if light_flash.state {
-								light_flash.time_left =
-									light_flash.on_time * (rng.gen::<bool>() as u32) + FRAME_TIME;
 								sector_dynamic.light_level = max_light;
+								light_flash.on_time * (rng.gen::<bool>() as u32) + FRAME_TIME
 							} else {
-								light_flash.time_left =
-									light_flash.off_time.mul_f64(rng.gen::<f64>()) + FRAME_TIME;
 								sector_dynamic.light_level = min_light;
+								light_flash.off_time.mul_f64(rng.gen::<f64>()) + FRAME_TIME
 							}
 						}
 						LightFlashType::Strobe => {
 							if light_flash.state {
-								light_flash.time_left = light_flash.on_time;
 								sector_dynamic.light_level = max_light;
+								light_flash.on_time
 							} else {
-								light_flash.time_left = light_flash.off_time;
 								sector_dynamic.light_level = if min_light == max_light {
 									0.0
 								} else {
 									min_light
 								};
+
+								light_flash.off_time
 							}
 						}
 						LightFlashType::StrobeUnSync(time) => {
-							light_flash.time_left = time.mul_f64(rng.gen::<f64>()) + FRAME_TIME;
 							light_flash.flash_type = LightFlashType::Strobe;
+							time.mul_f64(rng.gen::<f64>()) + FRAME_TIME
 						}
-					}
+					};
+
+					light_flash.timer.set_time(new_time);
 				}
 			}
 		})
@@ -82,7 +84,7 @@ pub fn light_flash_system() -> Box<dyn Runnable> {
 pub struct LightFlash {
 	pub on_time: Duration,
 	pub off_time: Duration,
-	pub time_left: Duration,
+	pub timer: Timer,
 	pub state: bool,
 	pub flash_type: LightFlashType,
 }

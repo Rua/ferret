@@ -6,6 +6,11 @@ use legion::prelude::{EntityStore, IntoQuery, Read, Runnable, SystemBuilder, Wri
 use nalgebra::Vector2;
 use std::time::Duration;
 
+#[derive(Clone, Copy, Debug)]
+pub struct TextureScroll {
+	pub speed: Vector2<f32>,
+}
+
 pub fn texture_animation_system() -> Box<dyn Runnable> {
 	SystemBuilder::new("texture_animation_system")
 		.read_resource::<AssetStorage>()
@@ -18,24 +23,24 @@ pub fn texture_animation_system() -> Box<dyn Runnable> {
 				let map_dynamic = map_dynamic.as_mut();
 
 				for (handle, anim_state) in map_dynamic.anim_states_flat.iter_mut() {
-					if let Some(time_left) = anim_state.time_left.checked_sub(**delta) {
-						anim_state.time_left = time_left;
-					} else {
+					anim_state.timer.tick(**delta);
+
+					if anim_state.timer.is_zero() {
 						let map = asset_storage.get(&map_dynamic.map).unwrap();
 						let anim = &map.anims_flat[handle];
 						anim_state.frame = (anim_state.frame + 1) % anim.frames.len();
-						anim_state.time_left = anim.frame_time;
+						anim_state.timer.reset();
 					}
 				}
 
 				for (handle, anim_state) in map_dynamic.anim_states_wall.iter_mut() {
-					if let Some(time_left) = anim_state.time_left.checked_sub(**delta) {
-						anim_state.time_left = time_left;
-					} else {
+					anim_state.timer.tick(**delta);
+
+					if anim_state.timer.is_zero() {
 						let map = asset_storage.get(&map_dynamic.map).unwrap();
 						let anim = &map.anims_wall[handle];
 						anim_state.frame = (anim_state.frame + 1) % anim.frames.len();
-						anim_state.time_left = anim.frame_time;
+						anim_state.timer.reset();
 					}
 				}
 			}
@@ -60,9 +65,4 @@ pub fn texture_scroll_system() -> Box<dyn Runnable> {
 				linedef_dynamic.texture_offset += texture_scroll.speed * delta.as_secs_f32();
 			}
 		})
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct TextureScroll {
-	pub speed: Vector2<f32>,
 }

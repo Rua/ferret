@@ -10,6 +10,7 @@ use crate::{
 	},
 	geometry::Side,
 	quadtree::Quadtree,
+	timer::Timer,
 };
 use legion::prelude::{
 	CommandBuffer, Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder, Write,
@@ -22,8 +23,7 @@ pub struct DoorActive {
 	pub state: DoorState,
 	pub end_state: DoorState,
 	pub speed: f32,
-	pub wait_time: Duration,
-	pub time_left: Duration,
+	pub wait_timer: Timer,
 	pub can_reverse: bool,
 
 	pub open_sound: Option<AssetHandle<Sound>>,
@@ -83,16 +83,17 @@ pub fn door_active_system() -> Box<dyn Runnable> {
 
 				let new_state = match door_active.state {
 					DoorState::Closed => {
-						if let Some(new_time) = door_active.time_left.checked_sub(**delta) {
-							door_active.time_left = new_time;
-							None
-						} else {
+						door_active.wait_timer.tick(**delta);
+
+						if door_active.wait_timer.is_zero() {
 							if sector_dynamic.interval.max == door_active.open_height {
 								// Already open
 								Some(DoorState::Open)
 							} else {
 								Some(DoorState::Opening)
 							}
+						} else {
+							None
 						}
 					}
 					DoorState::Opening => {
@@ -107,16 +108,17 @@ pub fn door_active_system() -> Box<dyn Runnable> {
 						}
 					}
 					DoorState::Open => {
-						if let Some(new_time) = door_active.time_left.checked_sub(**delta) {
-							door_active.time_left = new_time;
-							None
-						} else {
+						door_active.wait_timer.tick(**delta);
+
+						if door_active.wait_timer.is_zero() {
 							if sector_dynamic.interval.max == door_active.close_height {
 								// Already closed
 								Some(DoorState::Closed)
 							} else {
 								Some(DoorState::Closing)
 							}
+						} else {
+							None
 						}
 					}
 					DoorState::Closing => {
@@ -165,7 +167,7 @@ pub fn door_active_system() -> Box<dyn Runnable> {
 								}
 							}
 							DoorState::Open => {
-								door_active.time_left = door_active.wait_time;
+								door_active.wait_timer.reset();
 							}
 							DoorState::Closing => {
 								if let Some(sound) = &door_active.close_sound {
@@ -173,7 +175,7 @@ pub fn door_active_system() -> Box<dyn Runnable> {
 								}
 							}
 							DoorState::Closed => {
-								door_active.time_left = door_active.wait_time;
+								door_active.wait_timer.reset();
 							}
 						}
 					}
@@ -227,7 +229,7 @@ pub fn door_use_system(resources: &mut Resources) -> Box<dyn Runnable> {
 							door_active_world.get_component_mut::<DoorActive>(sector_entity)
 						{
 							if door_use.params.can_reverse {
-								door_active.time_left = Duration::default();
+								door_active.wait_timer.set_zero();
 
 								match door_active.state {
 									DoorState::Closing | DoorState::Closed => {
@@ -422,8 +424,7 @@ fn activate(
 			state: params.start_state,
 			end_state: params.end_state,
 			speed: params.speed,
-			wait_time: params.wait_time,
-			time_left: Duration::default(),
+			wait_timer: Timer::new_zero(params.wait_time),
 			can_reverse: params.can_reverse,
 
 			open_sound: params.open_sound.clone(),
