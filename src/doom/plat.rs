@@ -5,10 +5,10 @@ use crate::{
 		client::{UseAction, UseEvent},
 		components::Transform,
 		map::{LinedefRef, Map, MapDynamic, SectorRef},
-		physics::{BoxCollider, SectorPushTracer, TouchAction, TouchEvent},
+		physics::{BoxCollider, TouchAction, TouchEvent},
+		sectormove::{SectorMove, SectorMoveEvent, SectorMoveEventType},
 		switch::{SwitchActive, SwitchParams},
 	},
-	quadtree::Quadtree,
 };
 use legion::prelude::{
 	CommandBuffer, Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder, Write,
@@ -18,27 +18,16 @@ use std::time::Duration;
 
 #[derive(Clone, Debug)]
 pub struct PlatActive {
-	pub state: PlatState,
 	pub speed: f32,
 	pub wait_time: Duration,
 	pub time_left: Duration,
 	pub can_reverse: bool,
 
 	pub start_sound: Option<AssetHandle<Sound>>,
-	pub move_sound: Option<AssetHandle<Sound>>,
-	pub move_sound_time: Duration,
-	pub move_sound_time_left: Duration,
 	pub finish_sound: Option<AssetHandle<Sound>>,
 
 	pub low_height: f32,
 	pub high_height: f32,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum PlatState {
-	GoingDown,
-	GoingUp,
-	Waiting,
 }
 
 #[derive(Clone, Debug)]
@@ -64,152 +53,103 @@ pub enum PlatTargetHeight {
 	LowestNeighbourFloor,
 }
 
-pub fn plat_active_system() -> Box<dyn Runnable> {
+pub fn plat_active_system(resources: &mut Resources) -> Box<dyn Runnable> {
+	let mut sector_move_event_reader = resources
+		.get_mut::<EventChannel<SectorMoveEvent>>()
+		.unwrap()
+		.register_reader();
+
 	SystemBuilder::new("plat_active_system")
-		.read_resource::<AssetStorage>()
 		.read_resource::<Duration>()
-		.read_resource::<Quadtree>()
+		.read_resource::<EventChannel<SectorMoveEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
-		.with_query(<(Read<SectorRef>, Write<PlatActive>)>::query())
+		.with_query(<(Read<SectorRef>, Write<PlatActive>, Write<SectorMove>)>::query())
 		.read_component::<BoxCollider>() // used by SectorTracer
 		.write_component::<MapDynamic>()
 		.write_component::<Transform>()
 		.build_thread_local(move |command_buffer, world, resources, query| {
-			let (asset_storage, delta, quadtree, sound_queue) = resources;
-			let (mut map_dynamic_world, mut world) = world.split::<Write<MapDynamic>>();
-			let (mut query_world, mut world) = world.split_for_query(&query);
+			let (delta, sector_move_event_channel, sound_queue) = resources;
 
-			for (entity, (sector_ref, mut plat_active)) in query.iter_entities_mut(&mut query_world)
 			{
-				let mut map_dynamic = map_dynamic_world
-					.get_component_mut::<MapDynamic>(sector_ref.map_entity)
-					.unwrap();
-				let map = asset_storage.get(&map_dynamic.map).unwrap();
-				let sector = &map.sectors[sector_ref.index];
+				let (mut query_world, world) = world.split_for_query(&query);
 
-				let new_state = match plat_active.state {
-					PlatState::GoingDown => {
-						if let Some(new_time) =
-							plat_active.move_sound_time_left.checked_sub(**delta)
-						{
-							plat_active.move_sound_time_left = new_time;
-						} else {
-							plat_active.move_sound_time_left = plat_active.move_sound_time;
+				for (entity, (sector_ref, mut plat_active, mut sector_move)) in
+					query.iter_entities_mut(&mut query_world)
+				{
+					let map_dynamic = world
+						.get_component::<MapDynamic>(sector_ref.map_entity)
+						.unwrap();
 
-							if let Some(sound) = &plat_active.move_sound {
-								sound_queue.push((sound.clone(), entity));
-							}
-						}
-
-						let move_step = -plat_active.speed * delta.as_secs_f32();
-						let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
-						sector_dynamic.interval.min += move_step;
-
-						if sector_dynamic.interval.min < plat_active.low_height {
-							sector_dynamic.interval.min = plat_active.low_height;
-							Some(PlatState::Waiting)
-						} else {
-							None
-						}
-					}
-					PlatState::GoingUp => {
-						if let Some(new_time) =
-							plat_active.move_sound_time_left.checked_sub(**delta)
-						{
-							plat_active.move_sound_time_left = new_time;
-						} else {
-							plat_active.move_sound_time_left = plat_active.move_sound_time;
-
-							if let Some(sound) = &plat_active.move_sound {
-								sound_queue.push((sound.clone(), entity));
-							}
-						}
-
-						// Check if we bumped something on the way
-						let current_height = map_dynamic.sectors[sector_ref.index].interval.min;
-						let distance_left = plat_active.high_height - current_height;
-						let move_step = plat_active.speed * delta.as_secs_f32().min(distance_left);
-
-						let tracer = SectorPushTracer {
-							map,
-							map_dynamic: &map_dynamic,
-							quadtree,
-							world: &world,
-						};
-
-						let trace = tracer.trace(
-							current_height,
-							1.0,
-							move_step,
-							sector.subsectors.iter().map(|i| &map.subsectors[*i]),
-						);
-
-						// Push the entities out of the way
-						for pushed_entity in trace.pushed_entities.iter() {
-							let mut transform = world
-								.get_component_mut::<Transform>(pushed_entity.entity)
-								.unwrap();
-							transform.position += pushed_entity.move_step;
-						}
-
-						// Move the plat into place
-						let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
-						sector_dynamic.interval.min += trace.move_step;
-
-						if trace.fraction < 1.0 {
-							// We got obstructed on the way up
-							if plat_active.can_reverse {
-								Some(PlatState::GoingDown)
-							} else {
-								// Hang there until the obstruction is gone
-								None
-							}
-						} else {
-							if trace.move_step == distance_left {
-								// Reached target height
-								sector_dynamic.interval.min = plat_active.high_height;
-								Some(PlatState::Waiting)
-							} else {
-								None
-							}
-						}
-					}
-					PlatState::Waiting => {
+					if sector_move.velocity == 0.0 {
 						if let Some(new_time) = plat_active.time_left.checked_sub(**delta) {
 							plat_active.time_left = new_time;
-							None
 						} else {
-							let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
-
-							if sector_dynamic.interval.min == plat_active.low_height {
-								Some(PlatState::GoingUp)
-							} else {
-								Some(PlatState::GoingDown)
-							}
-						}
-					}
-				};
-
-				// State transition
-				if let Some(new_state) = new_state {
-					plat_active.state = new_state;
-
-					match new_state {
-						PlatState::GoingDown | PlatState::GoingUp => {
 							if let Some(sound) = &plat_active.start_sound {
 								sound_queue.push((sound.clone(), entity));
 							}
-						}
-						PlatState::Waiting => {
-							if let Some(sound) = &plat_active.finish_sound {
-								sound_queue.push((sound.clone(), entity));
-							}
 
-							let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
-							if sector_dynamic.interval.min == plat_active.high_height {
-								command_buffer.remove_component::<PlatActive>(entity);
+							let sector_dynamic = &map_dynamic.sectors[sector_ref.index];
+
+							if sector_dynamic.interval.min == plat_active.low_height {
+								sector_move.velocity = plat_active.speed;
+								sector_move.target = plat_active.high_height;
 							} else {
-								plat_active.time_left = plat_active.wait_time;
+								sector_move.velocity = -plat_active.speed;
+								sector_move.target = plat_active.low_height;
+							}
+						}
+					}
+				}
+			}
+
+			{
+				let (mut sector_move_world, mut world) = world.split::<Write<SectorMove>>();
+				let (mut plat_active_world, world) = world.split::<Write<PlatActive>>();
+
+				for event in sector_move_event_channel.read(&mut sector_move_event_reader) {
+					let mut sector_move = sector_move_world
+						.get_component_mut::<SectorMove>(event.entity)
+						.unwrap();
+
+					if sector_move.velocity != 0.0 {
+						let mut plat_active = plat_active_world
+							.get_component_mut::<PlatActive>(event.entity)
+							.unwrap();
+						let sector_ref = world.get_component::<SectorRef>(event.entity).unwrap();
+						let map_dynamic = world
+							.get_component::<MapDynamic>(sector_ref.map_entity)
+							.unwrap();
+
+						match event.event_type {
+							SectorMoveEventType::Collided => {
+								if plat_active.can_reverse {
+									if let Some(sound) = &plat_active.start_sound {
+										sound_queue.push((sound.clone(), event.entity));
+									}
+
+									sector_move.velocity = -sector_move.velocity;
+
+									if sector_move.velocity > 0.0 {
+										sector_move.target = plat_active.high_height;
+									} else {
+										sector_move.target = plat_active.low_height;
+									}
+								}
+							}
+							SectorMoveEventType::TargetReached => {
+								if let Some(sound) = &plat_active.finish_sound {
+									sound_queue.push((sound.clone(), event.entity));
+								}
+
+								let sector_dynamic = &map_dynamic.sectors[sector_ref.index];
+								sector_move.velocity = 0.0;
+								sector_move.target = sector_dynamic.interval.min;
+
+								if sector_dynamic.interval.min == plat_active.high_height {
+									command_buffer.remove_component::<PlatActive>(event.entity);
+								} else {
+									plat_active.time_left = plat_active.wait_time;
+								}
 							}
 						}
 					}
@@ -380,17 +320,24 @@ fn activate(
 
 	command_buffer.add_component(
 		sector_dynamic.entity,
+		SectorMove {
+			velocity: 0.0,
+			target: sector_dynamic.interval.min,
+			sound: params.move_sound.clone(),
+			sound_time: params.move_sound_time,
+			sound_time_left: Duration::default(),
+		},
+	);
+
+	command_buffer.add_component(
+		sector_dynamic.entity,
 		PlatActive {
-			state: PlatState::Waiting,
 			speed: params.speed,
 			wait_time: params.wait_time,
 			time_left: Duration::default(),
 			can_reverse: params.can_reverse,
 
 			start_sound: params.start_sound.clone(),
-			move_sound: params.move_sound.clone(),
-			move_sound_time: params.move_sound_time,
-			move_sound_time_left: Duration::default(),
 			finish_sound: params.finish_sound.clone(),
 
 			high_height,
