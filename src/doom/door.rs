@@ -66,7 +66,6 @@ pub fn door_active_system(resources: &mut Resources) -> Box<dyn Runnable> {
 		.write_component::<MapDynamic>()
 		.build_thread_local(move |command_buffer, world, resources, query| {
 			let (delta, sector_move_event_channel, sound_queue) = resources;
-			println!("start");
 
 			for (entity, (mut ceiling_move, mut door_active)) in query.iter_entities_mut(world) {
 				let sector_move = &mut ceiling_move.0;
