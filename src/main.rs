@@ -371,13 +371,9 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 
 	// Load entity type data
 	log::info!("Loading entity data...");
-	let mobj_types = doom::data::MobjTypes::new(resources);
-	let sector_types = doom::data::SectorTypes::new(resources);
-	let linedef_types = doom::data::LinedefTypes::new(resources);
-
-	resources.insert(mobj_types);
-	resources.insert(sector_types);
-	resources.insert(linedef_types);
+	doom::data::mobjs::load(resources);
+	doom::data::sectors::load(resources);
+	doom::data::linedefs::load(resources);
 
 	// Load sprite images
 	{

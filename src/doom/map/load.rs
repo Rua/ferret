@@ -219,7 +219,15 @@ fn build_sectors(
 				},
 			],
 			light_level: chunk.read_u16::<LE>()? as f32 / 255.0,
-			special_type: chunk.read_u16::<LE>()?,
+			special_type: {
+				let special_type = chunk.read_u16::<LE>()?;
+
+				if special_type == 0 {
+					None
+				} else {
+					Some(special_type)
+				}
+			},
 			sector_tag: chunk.read_u16::<LE>()?,
 			linedefs: Vec::new(),
 			neighbours: Vec::new(),
@@ -448,7 +456,11 @@ fn build_linedefs(
 			} else {
 				SolidMask::empty()
 			},
-			special_type,
+			special_type: if special_type == 0 {
+				None
+			} else {
+				Some(special_type)
+			},
 			sector_tag,
 			sidedefs,
 		});
@@ -920,7 +932,7 @@ pub fn build_things(data: &[u8]) -> anyhow::Result<Vec<Thing>> {
 				chunk.read_i16::<LE>()? as f32,
 			),
 			angle: Angle::from_degrees(chunk.read_u16::<LE>()? as f64),
-			doomednum: chunk.read_u16::<LE>()?,
+			r#type: chunk.read_u16::<LE>()?,
 			flags: ThingFlags::from_bits_truncate(chunk.read_u16::<LE>()?),
 		});
 	}

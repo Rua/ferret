@@ -6,7 +6,7 @@ use crate::{
 	assets::{AssetHandle, AssetStorage},
 	doom::{
 		components::{SpawnOnCeiling, SpawnPoint, Transform},
-		data::{LinedefTypes, MobjTypes, SectorTypes},
+		entitytemplate::{EntityTemplate, EntityTypeId},
 		map::{
 			load::LinedefFlags,
 			textures::{Flat, TextureType, Wall},
@@ -16,7 +16,7 @@ use crate::{
 	geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2},
 	timer::Timer,
 };
-use anyhow::anyhow;
+use anyhow::bail;
 use bitflags::bitflags;
 use fnv::FnvHashMap;
 use legion::prelude::{
@@ -63,7 +63,7 @@ pub struct AnimState {
 pub struct Thing {
 	pub position: Vector2<f32>,
 	pub angle: Angle,
-	pub doomednum: u16,
+	pub r#type: u16,
 	pub flags: ThingFlags,
 }
 
@@ -86,7 +86,7 @@ pub struct Linedef {
 	pub bbox: AABB2,
 	pub flags: LinedefFlags,
 	pub solid_mask: SolidMask,
-	pub special_type: u16,
+	pub special_type: Option<u16>,
 	pub sector_tag: u16,
 	pub sidedefs: [Option<Sidedef>; 2],
 }
@@ -158,7 +158,7 @@ pub struct Sector {
 	pub interval: Interval,
 	pub textures: [TextureType<Flat>; 2],
 	pub light_level: f32,
-	pub special_type: u16,
+	pub special_type: Option<u16>,
 	pub sector_tag: u16,
 	pub linedefs: Vec<usize>,
 	pub subsectors: Vec<usize>,
@@ -178,7 +178,7 @@ pub struct SectorDynamic {
 	pub interval: Interval,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct SectorRef {
 	pub map_entity: Entity,
 	pub index: usize,
@@ -284,8 +284,7 @@ pub fn spawn_things(
 	resources: &mut Resources,
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
-	let (asset_storage, entity_types) =
-		<(Read<AssetStorage>, Read<MobjTypes>)>::fetch_mut(resources);
+	let asset_storage = <Read<AssetStorage>>::fetch_mut(resources);
 
 	let mut command_buffer = CommandBuffer::new(world);
 
@@ -299,14 +298,17 @@ pub fn spawn_things(
 		}
 
 		// Fetch entity template
-		let handle = match entity_types.doomednums.get(&thing.doomednum) {
-			Some(some) => some,
+		let template = match asset_storage
+			.iter::<EntityTemplate>()
+			.unwrap()
+			.find(|(_, template)| template.type_id == Some(EntityTypeId::Thing(thing.r#type)))
+		{
+			Some(entry) => entry.1,
 			None => {
-				log::warn!("Thing {} has invalid thing type {}", i, thing.doomednum);
+				log::warn!("Thing {} has invalid thing type {}", i, thing.r#type);
 				continue;
 			}
 		};
-		let template = asset_storage.get(handle).unwrap();
 
 		// Create entity and add components
 		let entity = command_buffer.insert((), vec![()])[0];
@@ -359,13 +361,11 @@ pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Res
 		.unwrap();
 
 	// Fetch entity template
-	let (asset_storage, entity_types) =
-		<(Read<AssetStorage>, Read<MobjTypes>)>::fetch_mut(resources);
-	let handle = entity_types
-		.names
-		.get("PLAYER")
-		.ok_or(anyhow!("Entity type not found: {}", "PLAYER"))?;
-	let template = asset_storage.get(handle).unwrap();
+	let asset_storage = <Read<AssetStorage>>::fetch_mut(resources);
+	let template = match asset_storage.get_by_name::<EntityTemplate>("PLAYER") {
+		Some(template) => template,
+		None => bail!("Entity type not found: {}", "PLAYER"),
+	};
 
 	// Create entity and add components
 	let entity = command_buffer.insert((), vec![()])[0];
@@ -385,8 +385,7 @@ pub fn spawn_map_entities(
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
 	let mut command_buffer = CommandBuffer::new(world);
-	let (asset_storage, linedef_types, sector_types) =
-		<(Read<AssetStorage>, Read<LinedefTypes>, Read<SectorTypes>)>::fetch(resources);
+	let asset_storage = <Read<AssetStorage>>::fetch(resources);
 	let map = asset_storage.get(&map_handle).unwrap();
 
 	// Create map entity
@@ -451,34 +450,31 @@ pub fn spawn_map_entities(
 			},
 		);
 
-		if linedef.special_type == 0 {
-			continue;
-		}
+		if let Some(special_type) = linedef.special_type {
+			// Fetch and add entity template
+			let template = match asset_storage
+				.iter::<EntityTemplate>()
+				.unwrap()
+				.find(|(_, template)| template.type_id == Some(EntityTypeId::Linedef(special_type)))
+			{
+				Some(entry) => entry.1,
+				None => {
+					log::warn!("Linedef {} has invalid special type {}", i, special_type);
+					continue;
+				}
+			};
 
-		// Fetch and add entity template
-		let handle = match linedef_types.doomednums.get(&linedef.special_type) {
-			Some(some) => some,
-			None => {
-				log::warn!(
-					"Linedef {} has invalid special type {}",
+			template
+				.components
+				.add_to_entity(entity, &mut command_buffer);
+
+			if template.components.len() == 0 {
+				log::debug!(
+					"Linedef {} has special type {} with empty template",
 					i,
-					linedef.special_type
+					special_type
 				);
-				continue;
 			}
-		};
-
-		let template = asset_storage.get(handle).unwrap();
-		template
-			.components
-			.add_to_entity(entity, &mut command_buffer);
-
-		if template.components.len() == 0 {
-			log::debug!(
-				"Linedef {} has special type {} with empty template",
-				i,
-				linedef.special_type
-			);
 		}
 	}
 
@@ -521,34 +517,31 @@ pub fn spawn_map_entities(
 			},
 		);
 
-		if sector.special_type == 0 {
-			continue;
-		}
+		if let Some(special_type) = sector.special_type {
+			// Fetch and add entity template
+			let template = match asset_storage
+				.iter::<EntityTemplate>()
+				.unwrap()
+				.find(|(_, template)| template.type_id == Some(EntityTypeId::Sector(special_type)))
+			{
+				Some(entry) => entry.1,
+				None => {
+					log::warn!("Sector {} has invalid special type {}", i, special_type);
+					continue;
+				}
+			};
 
-		// Fetch and add entity template
-		let handle = match sector_types.doomednums.get(&sector.special_type) {
-			Some(some) => some,
-			None => {
-				log::warn!(
-					"Sector {} has invalid special type {}",
+			template
+				.components
+				.add_to_entity(entity, &mut command_buffer);
+
+			if template.components.len() == 0 {
+				log::debug!(
+					"Sector {} has special type {} with empty template",
 					i,
-					sector.special_type
+					special_type
 				);
-				continue;
 			}
-		};
-
-		let template = asset_storage.get(handle).unwrap();
-		template
-			.components
-			.add_to_entity(entity, &mut command_buffer);
-
-		if template.components.len() == 0 {
-			log::debug!(
-				"Sector {} has special type {} with empty template",
-				i,
-				sector.special_type
-			);
 		}
 	}
 

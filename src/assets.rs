@@ -32,12 +32,29 @@ impl AssetStorage {
 	}
 
 	#[inline]
+	pub fn iter<A: Asset>(&self) -> Option<impl Iterator<Item = (&AssetHandle<A>, &A::Data)>> {
+		self.storages
+			.get(&TypeId::of::<A>())
+			.map(|entry| entry.downcast_ref::<AssetStorageTyped<A>>().unwrap().iter())
+	}
+
+	#[inline]
 	pub fn handle_for<A: Asset>(&self, name: &str) -> Option<AssetHandle<A>> {
 		self.storages.get(&TypeId::of::<A>()).and_then(|entry| {
 			entry
 				.downcast_ref::<AssetStorageTyped<A>>()
 				.unwrap()
 				.handle_for(name)
+		})
+	}
+
+	#[inline]
+	pub fn get_by_name<A: Asset>(&self, name: &str) -> Option<&A::Data> {
+		self.storages.get(&TypeId::of::<A>()).and_then(|entry| {
+			entry
+				.downcast_ref::<AssetStorageTyped<A>>()
+				.unwrap()
+				.get_by_name(name)
 		})
 	}
 
@@ -49,6 +66,16 @@ impl AssetStorage {
 			.downcast_mut::<AssetStorageTyped<A>>()
 			.unwrap()
 			.insert(data)
+	}
+
+	#[inline]
+	pub fn insert_with_name<A: Asset>(&mut self, name: &str, data: A::Data) -> AssetHandle<A> {
+		self.storages
+			.entry(TypeId::of::<A>())
+			.or_insert_with(|| Box::new(AssetStorageTyped::<A>::default()))
+			.downcast_mut::<AssetStorageTyped<A>>()
+			.unwrap()
+			.insert_with_name(name, data)
 	}
 
 	#[inline]
@@ -121,9 +148,20 @@ impl<A: Asset> AssetStorageTyped<A> {
 		self.assets.get(&handle.id())
 	}
 
+	fn iter(&self) -> impl Iterator<Item = (&AssetHandle<A>, &A::Data)> {
+		self.handles
+			.iter()
+			.map(move |handle| (handle, self.assets.get(&handle.id()).unwrap()))
+	}
+
 	#[inline]
 	fn handle_for(&self, name: &str) -> Option<AssetHandle<A>> {
 		self.names.get(name).and_then(WeakHandle::upgrade)
+	}
+
+	#[inline]
+	fn get_by_name(&self, name: &str) -> Option<&A::Data> {
+		self.handle_for(name).and_then(|handle| self.get(&handle))
 	}
 
 	#[inline]
@@ -145,6 +183,21 @@ impl<A: Asset> AssetStorageTyped<A> {
 		self.assets.insert(handle.id(), data);
 		self.handles.push(handle.clone());
 		handle
+	}
+
+	#[inline]
+	fn insert_with_name(&mut self, name: &str, data: A::Data) -> AssetHandle<A> {
+		match self.handle_for(name) {
+			Some(handle) => {
+				self.assets.insert(handle.id(), data);
+				handle
+			}
+			None => {
+				let handle = self.insert(data);
+				self.names.insert(name.to_owned(), handle.downgrade());
+				handle
+			}
+		}
 	}
 
 	fn load(&mut self, name: &str, source: &mut impl DataSource) -> AssetHandle<A> {

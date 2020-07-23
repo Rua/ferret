@@ -1,4 +1,3 @@
-use crate::assets::{Asset, DataSource};
 use fnv::FnvHashMap;
 use legion::{
 	prelude::{CommandBuffer, Entity},
@@ -37,20 +36,5 @@ impl EntityComponents {
 
 	pub fn len(&self) -> usize {
 		self.0.len()
-	}
-}
-
-#[derive(Default)]
-pub struct EntityTemplate {
-	pub components: EntityComponents,
-}
-
-impl Asset for EntityTemplate {
-	type Data = Self;
-	type Intermediate = Self;
-	const NAME: &'static str = "EntityTemplate";
-
-	fn import(_name: &str, _source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
-		unimplemented!();
 	}
 }

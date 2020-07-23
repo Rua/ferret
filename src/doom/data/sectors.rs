@@ -1,169 +1,174 @@
 use crate::{
-	assets::{AssetHandle, AssetStorage},
-	component::{EntityComponents, EntityTemplate},
+	assets::AssetStorage,
+	component::EntityComponents,
 	doom::{
 		data::{FRAME_RATE, FRAME_TIME},
+		entitytemplate::{EntityTemplate, EntityTypeId},
 		light::{LightFlash, LightFlashType, LightGlow},
 	},
 };
-use fnv::FnvHashMap;
 use legion::prelude::{ResourceSet, Resources, Write};
 
-pub struct SectorTypes {
-	pub doomednums: FnvHashMap<u16, AssetHandle<EntityTemplate>>,
-}
+#[rustfmt::skip]
+pub fn load(resources: &mut Resources) {
+	let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
 
-impl SectorTypes {
-	#[rustfmt::skip]
-	pub fn new(resources: &mut Resources) -> SectorTypes {
-		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
+	// Blink random
+	let template = EntityTemplate {
+		name: None,
+		type_id: Some(EntityTypeId::Sector(1)),
+		components: EntityComponents::new()
+			.with_component(LightFlash {
+				off_time: 8 * FRAME_TIME,
+				on_time: 64 * FRAME_TIME,
+				..LightFlash::default()
+			})
+	};
+	asset_storage.insert::<EntityTemplate>(template);
 
-		let mut doomednums = FnvHashMap::default();
+	// Fast strobe unsynchronised
+	let template = EntityTemplate {
+		name: None,
+		type_id: Some(EntityTypeId::Sector(2)),
+		components: EntityComponents::new()
+			.with_component(LightFlash {
+				flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
+				off_time: 15 * FRAME_TIME,
+				on_time: 5 * FRAME_TIME,
+				..LightFlash::default()
+			})
+	};
+	asset_storage.insert::<EntityTemplate>(template);
 
-		// Blink random
-		let template = EntityTemplate {
-			components: EntityComponents::new()
-				.with_component(LightFlash {
-					off_time: 8 * FRAME_TIME,
-					on_time: 64 * FRAME_TIME,
-					..LightFlash::default()
-				})
-		};
-		let handle = asset_storage.insert(template);
-		doomednums.insert(1, handle);
+	// Slow strobe unsynchronised
+	let template = EntityTemplate {
+		name: None,
+		type_id: Some(EntityTypeId::Sector(3)),
+		components: EntityComponents::new()
+			.with_component(LightFlash {
+				flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
+				off_time: 35 * FRAME_TIME,
+				on_time: 5 * FRAME_TIME,
+				..LightFlash::default()
+			})
+	};
+	asset_storage.insert::<EntityTemplate>(template);
 
-		// Fast strobe unsynchronised
-		let template = EntityTemplate {
-			components: EntityComponents::new()
-				.with_component(LightFlash {
-					flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
-					off_time: 15 * FRAME_TIME,
-					on_time: 5 * FRAME_TIME,
-					..LightFlash::default()
-				})
-		};
-		let handle = asset_storage.insert(template);
-		doomednums.insert(2, handle);
+	// Fast strobe unsynchronised + 20% damage
+	let template = EntityTemplate {
+		name: None,
+		type_id: Some(EntityTypeId::Sector(4)),
+		components: EntityComponents::new()
+			.with_component(LightFlash {
+				flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
+				off_time: 15 * FRAME_TIME,
+				on_time: 5 * FRAME_TIME,
+				..LightFlash::default()
+			})
+	};
+	asset_storage.insert::<EntityTemplate>(template);
 
-		// Slow strobe unsynchronised
-		let template = EntityTemplate {
-			components: EntityComponents::new()
-				.with_component(LightFlash {
-					flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
-					off_time: 35 * FRAME_TIME,
-					on_time: 5 * FRAME_TIME,
-					..LightFlash::default()
-				})
-		};
-		let handle = asset_storage.insert(template);
-		doomednums.insert(3, handle);
+	// 10% damage
+	let template = EntityTemplate {
+		name: None,
+		type_id: Some(EntityTypeId::Sector(5)),
+		components: EntityComponents::new()
+	};
+	asset_storage.insert::<EntityTemplate>(template);
 
-		// Fast strobe unsynchronised + 20% damage
-		let template = EntityTemplate {
-			components: EntityComponents::new()
-				.with_component(LightFlash {
-					flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
-					off_time: 15 * FRAME_TIME,
-					on_time: 5 * FRAME_TIME,
-					..LightFlash::default()
-				})
-		};
-		let handle = asset_storage.insert(template);
-		doomednums.insert(4, handle);
+	// 5% damage
+	let template = EntityTemplate {
+		name: None,
+		type_id: Some(EntityTypeId::Sector(7)),
+		components: EntityComponents::new()
+	};
+	asset_storage.insert::<EntityTemplate>(template);
 
-		// 10% damage
-		let template = EntityTemplate {
-			components: EntityComponents::new()
-		};
-		let handle = asset_storage.insert(template);
-		doomednums.insert(5, handle);
+	// Glow
+	let template = EntityTemplate {
+		name: None,
+		type_id: Some(EntityTypeId::Sector(8)),
+		components: EntityComponents::new()
+			.with_component(LightGlow {
+				speed: (8.0 / 256.0) * FRAME_RATE,
+				..LightGlow::default()
+			})
+	};
+	asset_storage.insert::<EntityTemplate>(template);
 
-		// 5% damage
-		let template = EntityTemplate {
-			components: EntityComponents::new()
-		};
-		let handle = asset_storage.insert(template);
-		doomednums.insert(7, handle);
+	// Secret
+	let template = EntityTemplate {
+		name: None,
+		type_id: Some(EntityTypeId::Sector(9)),
+		components: EntityComponents::new()
+	};
+	asset_storage.insert::<EntityTemplate>(template);
 
-		// Glow
-		let template = EntityTemplate {
-			components: EntityComponents::new()
-				.with_component(LightGlow {
-					speed: (8.0 / 256.0) * FRAME_RATE,
-					..LightGlow::default()
-				})
-		};
-		let handle = asset_storage.insert(template);
-		doomednums.insert(8, handle);
+	// Door close 30 s after level start
+	let template = EntityTemplate {
+		name: None,
+		type_id: Some(EntityTypeId::Sector(10)),
+		components: EntityComponents::new()
+	};
+	asset_storage.insert::<EntityTemplate>(template);
 
-		// Secret
-		let template = EntityTemplate {
-			components: EntityComponents::new()
-		};
-		let handle = asset_storage.insert(template);
-		doomednums.insert(9, handle);
+	// 20% damage, end map on death
+	let template = EntityTemplate {
+		name: None,
+		type_id: Some(EntityTypeId::Sector(11)),
+		components: EntityComponents::new()
+	};
+	asset_storage.insert::<EntityTemplate>(template);
 
-		// Door close 30 s after level start
-		let template = EntityTemplate {
-			components: EntityComponents::new()
-		};
-		let handle = asset_storage.insert(template);
-		doomednums.insert(10, handle);
+	// Slow strobe
+	let template = EntityTemplate {
+		name: None,
+		type_id: Some(EntityTypeId::Sector(12)),
+		components: EntityComponents::new()
+			.with_component(LightFlash {
+				flash_type: LightFlashType::Strobe,
+				off_time: 35 * FRAME_TIME,
+				on_time: 5 * FRAME_TIME,
+				..LightFlash::default()
+			})
+	};
+	asset_storage.insert::<EntityTemplate>(template);
 
-		// 20% damage, end map on death
-		let template = EntityTemplate {
-			components: EntityComponents::new()
-		};
-		let handle = asset_storage.insert(template);
-		doomednums.insert(11, handle);
+	// Fast strobe
+	let template = EntityTemplate {
+		name: None,
+		type_id: Some(EntityTypeId::Sector(13)),
+		components: EntityComponents::new()
+			.with_component(LightFlash {
+				flash_type: LightFlashType::Strobe,
+				off_time: 15 * FRAME_TIME,
+				on_time: 5 * FRAME_TIME,
+				..LightFlash::default()
+			})
+	};
+	asset_storage.insert::<EntityTemplate>(template);
 
-		// Slow strobe
-		let template = EntityTemplate {
-			components: EntityComponents::new()
-				.with_component(LightFlash {
-					flash_type: LightFlashType::Strobe,
-					off_time: 35 * FRAME_TIME,
-					on_time: 5 * FRAME_TIME,
-					..LightFlash::default()
-				})
-		};
-		let handle = asset_storage.insert(template);
-		doomednums.insert(12, handle);
+	// Door open 300 s after level start
+	let template = EntityTemplate {
+		name: None,
+		type_id: Some(EntityTypeId::Sector(14)),
+		components: EntityComponents::new()
+	};
+	asset_storage.insert::<EntityTemplate>(template);
 
-		// Fast strobe
-		let template = EntityTemplate {
-			components: EntityComponents::new()
-				.with_component(LightFlash {
-					flash_type: LightFlashType::Strobe,
-					off_time: 15 * FRAME_TIME,
-					on_time: 5 * FRAME_TIME,
-					..LightFlash::default()
-				})
-		};
-		let handle = asset_storage.insert(template);
-		doomednums.insert(13, handle);
+	// 20% damage
+	let template = EntityTemplate {
+		name: None,
+		type_id: Some(EntityTypeId::Sector(16)),
+		components: EntityComponents::new()
+	};
+	asset_storage.insert::<EntityTemplate>(template);
 
-		// Door open 300 s after level start
-		let template = EntityTemplate {
-			components: EntityComponents::new()
-		};
-		let handle = asset_storage.insert(template);
-		doomednums.insert(14, handle);
-
-		// 20% damage
-		let template = EntityTemplate {
-			components: EntityComponents::new()
-		};
-		let handle = asset_storage.insert(template);
-		doomednums.insert(16, handle);
-
-		// Random flicker
-		let template = EntityTemplate {
-			components: EntityComponents::new()
-		};
-		let handle = asset_storage.insert(template);
-		doomednums.insert(17, handle);
-
-		SectorTypes { doomednums }
-	}
+	// Random flicker
+	let template = EntityTemplate {
+		name: None,
+		type_id: Some(EntityTypeId::Sector(17)),
+		components: EntityComponents::new()
+	};
+	asset_storage.insert::<EntityTemplate>(template);
 }

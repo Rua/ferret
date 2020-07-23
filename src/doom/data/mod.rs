@@ -1,13 +1,10 @@
 pub mod anims;
 mod bindings;
-mod linedefs;
-mod mobjs;
-mod sectors;
+pub mod linedefs;
+pub mod mobjs;
+pub mod sectors;
 
 pub use bindings::get_bindings;
-pub use linedefs::LinedefTypes;
-pub use mobjs::MobjTypes;
-pub use sectors::SectorTypes;
 
 use lazy_static::lazy_static;
 use std::time::Duration;

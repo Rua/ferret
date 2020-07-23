@@ -3,6 +3,7 @@ pub mod client;
 pub mod components;
 pub mod data;
 pub mod door;
+pub mod entitytemplate;
 pub mod floor;
 pub mod image;
 pub mod input;
