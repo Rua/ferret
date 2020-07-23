@@ -16,36 +16,33 @@ impl<T: Component + Clone> DynComponent for T {
 	}
 }
 
-pub struct EntityTemplate {
-	components: FnvHashMap<TypeId, Box<dyn DynComponent>>,
-}
+#[derive(Default)]
+pub struct EntityComponents(FnvHashMap<TypeId, Box<dyn DynComponent>>);
 
-impl EntityTemplate {
-	pub fn new() -> EntityTemplate {
-		EntityTemplate {
-			components: FnvHashMap::default(),
-		}
-	}
-
-	pub fn add_component<T: Component + Clone>(&mut self, component: T) {
-		self.components
-			.insert(TypeId::of::<T>(), Box::from(component));
+impl EntityComponents {
+	pub fn new() -> EntityComponents {
+		EntityComponents(FnvHashMap::default())
 	}
 
 	pub fn with_component<T: Component + Clone>(mut self, component: T) -> Self {
-		self.add_component(component);
+		self.0.insert(TypeId::of::<T>(), Box::from(component));
 		self
 	}
 
 	pub fn add_to_entity(&self, entity: Entity, command_buffer: &mut CommandBuffer) {
-		for dyn_component in self.components.values() {
+		for dyn_component in self.0.values() {
 			(*dyn_component).add_to_entity(entity, command_buffer);
 		}
 	}
 
 	pub fn len(&self) -> usize {
-		self.components.len()
+		self.0.len()
 	}
+}
+
+#[derive(Default)]
+pub struct EntityTemplate {
+	pub components: EntityComponents,
 }
 
 impl Asset for EntityTemplate {

@@ -310,7 +310,9 @@ pub fn spawn_things(
 
 		// Create entity and add components
 		let entity = command_buffer.insert((), vec![()])[0];
-		template.add_to_entity(entity, &mut command_buffer);
+		template
+			.components
+			.add_to_entity(entity, &mut command_buffer);
 
 		// Set entity transform
 		let z = {
@@ -367,7 +369,9 @@ pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Res
 
 	// Create entity and add components
 	let entity = command_buffer.insert((), vec![()])[0];
-	template.add_to_entity(entity, &mut command_buffer);
+	template
+		.components
+		.add_to_entity(entity, &mut command_buffer);
 	command_buffer.add_component(entity, transform);
 
 	command_buffer.write(world);
@@ -465,9 +469,11 @@ pub fn spawn_map_entities(
 		};
 
 		let template = asset_storage.get(handle).unwrap();
-		template.add_to_entity(entity, &mut command_buffer);
+		template
+			.components
+			.add_to_entity(entity, &mut command_buffer);
 
-		if template.len() == 0 {
+		if template.components.len() == 0 {
 			log::debug!(
 				"Linedef {} has special type {} with empty template",
 				i,
@@ -533,9 +539,11 @@ pub fn spawn_map_entities(
 		};
 
 		let template = asset_storage.get(handle).unwrap();
-		template.add_to_entity(entity, &mut command_buffer);
+		template
+			.components
+			.add_to_entity(entity, &mut command_buffer);
 
-		if template.len() == 0 {
+		if template.components.len() == 0 {
 			log::debug!(
 				"Sector {} has special type {} with empty template",
 				i,
