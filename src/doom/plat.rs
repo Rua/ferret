@@ -4,15 +4,15 @@ use crate::{
 	doom::{
 		client::{UseAction, UseEvent},
 		components::Transform,
-		map::{LinedefRef, Map, MapDynamic, SectorRef},
+		map::{LinedefRef, Map, MapDynamic},
 		physics::{BoxCollider, TouchAction, TouchEvent},
-		sectormove::{SectorMove, SectorMoveEvent, SectorMoveEventType},
+		sectormove::{FloorMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
 		switch::{SwitchActive, SwitchParams},
 	},
 	timer::Timer,
 };
 use legion::prelude::{
-	CommandBuffer, Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder, Write,
+	CommandBuffer, Entity, EntityStore, IntoQuery, Resources, Runnable, SystemBuilder, Write,
 };
 use shrev::EventChannel;
 use std::time::Duration;
@@ -63,94 +63,86 @@ pub fn plat_active_system(resources: &mut Resources) -> Box<dyn Runnable> {
 		.read_resource::<Duration>()
 		.read_resource::<EventChannel<SectorMoveEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
-		.with_query(<(Read<SectorRef>, Write<PlatActive>, Write<SectorMove>)>::query())
+		.with_query(<(Write<FloorMove>, Write<PlatActive>)>::query())
 		.read_component::<BoxCollider>() // used by SectorTracer
 		.write_component::<MapDynamic>()
 		.write_component::<Transform>()
 		.build_thread_local(move |command_buffer, world, resources, query| {
 			let (delta, sector_move_event_channel, sound_queue) = resources;
 
-			{
-				let (mut query_world, world) = world.split_for_query(&query);
+			for (entity, (mut floor_move, mut plat_active)) in query.iter_entities_mut(world) {
+				let sector_move = &mut floor_move.0;
 
-				for (entity, (sector_ref, mut plat_active, mut sector_move)) in
-					query.iter_entities_mut(&mut query_world)
-				{
-					let map_dynamic = world
-						.get_component::<MapDynamic>(sector_ref.map_entity)
-						.unwrap();
+				if sector_move.velocity != 0.0 {
+					continue;
+				}
 
-					if sector_move.velocity == 0.0 {
-						plat_active.wait_timer.tick(**delta);
+				plat_active.wait_timer.tick(**delta);
 
-						if plat_active.wait_timer.is_zero() {
-							if let Some(sound) = &plat_active.start_sound {
-								sound_queue.push((sound.clone(), entity));
-							}
+				if plat_active.wait_timer.is_zero() {
+					if let Some(sound) = &plat_active.start_sound {
+						sound_queue.push((sound.clone(), entity));
+					}
 
-							let sector_dynamic = &map_dynamic.sectors[sector_ref.index];
-
-							if sector_dynamic.interval.min == plat_active.low_height {
-								sector_move.velocity = plat_active.speed;
-								sector_move.target = plat_active.high_height;
-							} else {
-								sector_move.velocity = -plat_active.speed;
-								sector_move.target = plat_active.low_height;
-							}
-						}
+					if sector_move.target == plat_active.low_height {
+						sector_move.velocity = plat_active.speed;
+						sector_move.target = plat_active.high_height;
+					} else {
+						sector_move.velocity = -plat_active.speed;
+						sector_move.target = plat_active.low_height;
 					}
 				}
 			}
 
+			let (mut floor_move_world, mut world) = world.split::<Write<FloorMove>>();
+			let (mut plat_active_world, _world) = world.split::<Write<PlatActive>>();
+
+			for event in sector_move_event_channel
+				.read(&mut sector_move_event_reader)
+				.filter(|e| e.normal == 1.0)
 			{
-				let (mut sector_move_world, mut world) = world.split::<Write<SectorMove>>();
-				let (mut plat_active_world, world) = world.split::<Write<PlatActive>>();
+				let floor_move = floor_move_world.get_component_mut::<FloorMove>(event.entity);
+				let plat_active = plat_active_world.get_component_mut::<PlatActive>(event.entity);
 
-				for event in sector_move_event_channel.read(&mut sector_move_event_reader) {
-					let mut sector_move = sector_move_world
-						.get_component_mut::<SectorMove>(event.entity)
-						.unwrap();
+				if floor_move.is_none() || plat_active.is_none() {
+					continue;
+				}
 
-					if sector_move.velocity != 0.0 {
-						let mut plat_active = plat_active_world
-							.get_component_mut::<PlatActive>(event.entity)
-							.unwrap();
-						let sector_ref = world.get_component::<SectorRef>(event.entity).unwrap();
-						let map_dynamic = world
-							.get_component::<MapDynamic>(sector_ref.map_entity)
-							.unwrap();
+				let sector_move = &mut floor_move.unwrap().0;
+				let mut plat_active = plat_active.unwrap();
 
-						match event.event_type {
-							SectorMoveEventType::Collided => {
-								if plat_active.can_reverse {
-									if let Some(sound) = &plat_active.start_sound {
-										sound_queue.push((sound.clone(), event.entity));
-									}
+				if sector_move.velocity == 0.0 {
+					continue;
+				}
 
-									sector_move.velocity = -sector_move.velocity;
+				match event.event_type {
+					SectorMoveEventType::Collided => {
+						if plat_active.can_reverse {
+							sector_move.velocity = -sector_move.velocity;
 
-									if sector_move.velocity > 0.0 {
-										sector_move.target = plat_active.high_height;
-									} else {
-										sector_move.target = plat_active.low_height;
-									}
-								}
+							if sector_move.velocity < 0.0 {
+								sector_move.target = plat_active.low_height;
+							} else {
+								sector_move.target = plat_active.high_height;
 							}
-							SectorMoveEventType::TargetReached => {
-								if let Some(sound) = &plat_active.finish_sound {
-									sound_queue.push((sound.clone(), event.entity));
-								}
 
-								let sector_dynamic = &map_dynamic.sectors[sector_ref.index];
-								sector_move.velocity = 0.0;
-								sector_move.target = sector_dynamic.interval.min;
-
-								if sector_dynamic.interval.min == plat_active.high_height {
-									command_buffer.remove_component::<PlatActive>(event.entity);
-								} else {
-									plat_active.wait_timer.reset();
-								}
+							if let Some(sound) = &plat_active.start_sound {
+								sound_queue.push((sound.clone(), event.entity));
 							}
+						}
+					}
+					SectorMoveEventType::TargetReached => {
+						sector_move.velocity = 0.0;
+
+						if let Some(sound) = &plat_active.finish_sound {
+							sound_queue.push((sound.clone(), event.entity));
+						}
+
+						if sector_move.target == plat_active.high_height {
+							command_buffer.remove_component::<FloorMove>(event.entity);
+							command_buffer.remove_component::<PlatActive>(event.entity);
+						} else {
+							plat_active.wait_timer.reset();
 						}
 					}
 				}
@@ -320,12 +312,12 @@ fn activate(
 
 	command_buffer.add_component(
 		sector_dynamic.entity,
-		SectorMove {
+		FloorMove(SectorMove {
 			velocity: 0.0,
 			target: sector_dynamic.interval.min,
 			sound: params.move_sound.clone(),
 			sound_timer: Timer::new(params.move_sound_time),
-		},
+		}),
 	);
 
 	command_buffer.add_component(

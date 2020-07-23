@@ -3,17 +3,16 @@ use crate::{
 	audio::Sound,
 	doom::{
 		client::{UseAction, UseEvent},
-		components::Transform,
-		map::{LinedefRef, Map, MapDynamic, SectorRef},
-		physics::{BoxCollider, SectorTracer, TouchAction, TouchEvent},
+		map::{LinedefRef, Map, MapDynamic},
+		physics::{TouchAction, TouchEvent},
+		sectormove::{CeilingMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
 		switch::{SwitchActive, SwitchParams},
 	},
 	geometry::Side,
-	quadtree::Quadtree,
 	timer::Timer,
 };
 use legion::prelude::{
-	CommandBuffer, Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder, Write,
+	CommandBuffer, Entity, EntityStore, IntoQuery, Resources, Runnable, SystemBuilder, Write,
 };
 use shrev::EventChannel;
 use std::time::Duration;
@@ -53,130 +52,106 @@ pub struct DoorParams {
 	pub close_sound: Option<AssetHandle<Sound>>,
 }
 
-pub fn door_active_system() -> Box<dyn Runnable> {
+pub fn door_active_system(resources: &mut Resources) -> Box<dyn Runnable> {
+	let mut sector_move_event_reader = resources
+		.get_mut::<EventChannel<SectorMoveEvent>>()
+		.unwrap()
+		.register_reader();
+
 	SystemBuilder::new("door_active_system")
-		.read_resource::<AssetStorage>()
 		.read_resource::<Duration>()
-		.read_resource::<Quadtree>()
+		.read_resource::<EventChannel<SectorMoveEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
-		.with_query(<(Read<SectorRef>, Write<DoorActive>)>::query())
-		.read_component::<BoxCollider>() // used by SectorTracer
-		.read_component::<Transform>() // used by SectorTracer
+		.with_query(<(Write<CeilingMove>, Write<DoorActive>)>::query())
 		.write_component::<MapDynamic>()
 		.build_thread_local(move |command_buffer, world, resources, query| {
-			let (asset_storage, delta, quadtree, sound_queue) = resources;
-			let (mut map_dynamic_world, mut world) = world.split::<Write<MapDynamic>>();
-			let (mut query_world, world) = world.split_for_query(&query);
-			let tracer = SectorTracer {
-				quadtree,
-				world: &world,
-			};
+			let (delta, sector_move_event_channel, sound_queue) = resources;
+			println!("start");
 
-			for (entity, (sector_ref, mut door_active)) in query.iter_entities_mut(&mut query_world)
-			{
-				let mut map_dynamic = map_dynamic_world
-					.get_component_mut::<MapDynamic>(sector_ref.map_entity)
-					.unwrap();
-				let map = asset_storage.get(&map_dynamic.map).unwrap();
-				let sector = &map.sectors[sector_ref.index];
-				let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
+			for (entity, (mut ceiling_move, mut door_active)) in query.iter_entities_mut(world) {
+				let sector_move = &mut ceiling_move.0;
 
-				let new_state = match door_active.state {
-					DoorState::Closed => {
-						door_active.wait_timer.tick(**delta);
+				if sector_move.velocity != 0.0 {
+					continue;
+				}
 
-						if door_active.wait_timer.is_zero() {
-							if sector_dynamic.interval.max == door_active.open_height {
-								// Already open
-								Some(DoorState::Open)
-							} else {
-								Some(DoorState::Opening)
-							}
-						} else {
-							None
-						}
-					}
-					DoorState::Opening => {
-						let move_step = door_active.speed * delta.as_secs_f32();
-						sector_dynamic.interval.max += move_step;
+				door_active.wait_timer.tick(**delta);
 
-						if sector_dynamic.interval.max > door_active.open_height {
-							sector_dynamic.interval.max = door_active.open_height;
-							Some(DoorState::Open)
-						} else {
-							None
-						}
-					}
-					DoorState::Open => {
-						door_active.wait_timer.tick(**delta);
-
-						if door_active.wait_timer.is_zero() {
-							if sector_dynamic.interval.max == door_active.close_height {
-								// Already closed
-								Some(DoorState::Closed)
-							} else {
-								Some(DoorState::Closing)
-							}
-						} else {
-							None
-						}
-					}
-					DoorState::Closing => {
-						// Check if the door bumped something on the way down
-						let move_step = -door_active.speed * delta.as_secs_f32();
-						let trace = tracer.trace(
-							-sector_dynamic.interval.max,
-							-1.0,
-							move_step,
-							sector.subsectors.iter().map(|i| &map.subsectors[*i]),
-						);
-
-						// TODO use fraction
-						if trace.collision {
-							if door_active.can_reverse {
-								// Re-open the door
-								Some(DoorState::Opening)
-							} else {
-								// Hang there until the obstruction is gone
-								None
-							}
-						} else {
-							sector_dynamic.interval.max += move_step;
-
-							if sector_dynamic.interval.max <= door_active.close_height {
-								sector_dynamic.interval.max = door_active.close_height;
-								Some(DoorState::Closed)
-							} else {
-								None
-							}
-						}
-					}
-				};
-
-				// State transition
-				if let Some(new_state) = new_state {
-					if new_state == door_active.end_state {
-						command_buffer.remove_component::<DoorActive>(entity);
+				if door_active.wait_timer.is_zero() {
+					let sound = if sector_move.target == door_active.close_height {
+						door_active.state = DoorState::Opening;
+						sector_move.velocity = door_active.speed;
+						sector_move.target = door_active.open_height;
+						&door_active.open_sound
 					} else {
-						door_active.state = new_state;
+						door_active.state = DoorState::Closing;
+						sector_move.velocity = -door_active.speed;
+						sector_move.target = door_active.close_height;
+						&door_active.close_sound
+					};
 
-						match new_state {
-							DoorState::Opening => {
-								if let Some(sound) = &door_active.open_sound {
-									sound_queue.push((sound.clone(), entity));
-								}
+					if let Some(sound) = sound {
+						sound_queue.push((sound.clone(), entity));
+					}
+				}
+			}
+
+			let (mut ceiling_move_world, mut world) = world.split::<Write<CeilingMove>>();
+			let (mut door_active_world, _world) = world.split::<Write<DoorActive>>();
+
+			for event in sector_move_event_channel
+				.read(&mut sector_move_event_reader)
+				.filter(|e| e.normal == -1.0)
+			{
+				let ceiling_move =
+					ceiling_move_world.get_component_mut::<CeilingMove>(event.entity);
+				let door_active = door_active_world.get_component_mut::<DoorActive>(event.entity);
+
+				if ceiling_move.is_none() || door_active.is_none() {
+					continue;
+				}
+
+				let sector_move = &mut ceiling_move.unwrap().0;
+				let mut door_active = door_active.unwrap();
+
+				if sector_move.velocity == 0.0 {
+					continue;
+				}
+
+				match event.event_type {
+					SectorMoveEventType::Collided => {
+						if door_active.can_reverse {
+							sector_move.velocity = -sector_move.velocity;
+
+							let sound = if sector_move.velocity > 0.0 {
+								door_active.state = DoorState::Opening;
+								sector_move.target = door_active.open_height;
+								&door_active.open_sound
+							} else {
+								door_active.state = DoorState::Closing;
+								sector_move.target = door_active.close_height;
+								&door_active.close_sound
+							};
+
+							if let Some(sound) = sound {
+								sound_queue.push((sound.clone(), event.entity));
 							}
-							DoorState::Open => {
-								door_active.wait_timer.reset();
-							}
-							DoorState::Closing => {
-								if let Some(sound) = &door_active.close_sound {
-									sound_queue.push((sound.clone(), entity));
-								}
-							}
-							DoorState::Closed => {
-								door_active.wait_timer.reset();
-							}
+						}
+					}
+					SectorMoveEventType::TargetReached => {
+						sector_move.velocity = 0.0;
+
+						if sector_move.target == door_active.open_height {
+							door_active.state = DoorState::Open;
+						} else {
+							door_active.state = DoorState::Closed;
+						}
+
+						if door_active.state == door_active.end_state {
+							command_buffer.remove_component::<CeilingMove>(event.entity);
+							command_buffer.remove_component::<DoorActive>(event.entity);
+						} else {
+							door_active.wait_timer.reset();
 						}
 					}
 				}
@@ -202,9 +177,11 @@ pub fn door_use_system(resources: &mut Resources) -> Box<dyn Runnable> {
 		.read_component::<LinedefRef>()
 		.read_component::<MapDynamic>()
 		.read_component::<UseAction>()
+		.write_component::<CeilingMove>()
 		.write_component::<DoorActive>()
 		.build_thread_local(move |command_buffer, world, resources, _| {
 			let (asset_storage, use_event_channel) = resources;
+			let (mut ceiling_move_world, mut world) = world.split::<Write<CeilingMove>>();
 			let (mut door_active_world, world) = world.split::<Write<DoorActive>>();
 
 			for use_event in use_event_channel.read(&mut use_event_reader) {
@@ -225,21 +202,29 @@ pub fn door_use_system(resources: &mut Resources) -> Box<dyn Runnable> {
 						let sector_index = back_sidedef.sector_index;
 						let sector_entity = map_dynamic.sectors[sector_index].entity;
 
-						if let Some(mut door_active) =
-							door_active_world.get_component_mut::<DoorActive>(sector_entity)
+						let ceiling_move =
+							ceiling_move_world.get_component_mut::<CeilingMove>(sector_entity);
+						let door_active =
+							door_active_world.get_component_mut::<DoorActive>(sector_entity);
+
+						if let (Some(mut ceiling_move), Some(mut door_active)) =
+							(ceiling_move, door_active)
 						{
+							let sector_move = &mut ceiling_move.0;
+
 							if door_use.params.can_reverse {
 								door_active.wait_timer.set_zero();
+								sector_move.velocity = 0.0;
 
-								match door_active.state {
-									DoorState::Closing | DoorState::Closed => {
-										// Re-open the door
-										door_active.state = DoorState::Closed;
-									}
-									DoorState::Opening | DoorState::Open => {
-										// Close the door early
-										door_active.state = DoorState::Open;
-									}
+								if sector_move.velocity < 0.0
+									|| sector_move.velocity == 0.0
+										&& sector_move.target == door_active.close_height
+								{
+									// Re-open the door
+									door_active.state = DoorState::Closed;
+								} else {
+									// Close the door early
+									door_active.state = DoorState::Open;
 								}
 							}
 						} else {
@@ -417,6 +402,16 @@ fn activate(
 	};
 
 	let close_height = sector_dynamic.interval.min;
+
+	command_buffer.add_component(
+		sector_dynamic.entity,
+		CeilingMove(SectorMove {
+			velocity: 0.0,
+			target: sector_dynamic.interval.max,
+			sound: None,
+			sound_timer: Timer::default(),
+		}),
+	);
 
 	command_buffer.add_component(
 		sector_dynamic.entity,

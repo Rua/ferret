@@ -3,26 +3,21 @@ use crate::{
 	audio::Sound,
 	doom::{
 		client::{UseAction, UseEvent},
-		components::Transform,
-		map::{LinedefRef, Map, MapDynamic, SectorRef},
-		physics::{BoxCollider, SectorTracer, TouchAction, TouchEvent},
+		map::{LinedefRef, Map, MapDynamic},
+		physics::{TouchAction, TouchEvent},
+		sectormove::{FloorMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
 		switch::{SwitchActive, SwitchParams},
 	},
-	quadtree::Quadtree,
 	timer::Timer,
 };
 use legion::prelude::{
-	CommandBuffer, Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder, Write,
+	CommandBuffer, Entity, EntityStore, Resources, Runnable, SystemBuilder, Write,
 };
 use shrev::EventChannel;
 use std::time::Duration;
 
 #[derive(Clone, Debug)]
 pub struct FloorActive {
-	pub speed: f32,
-	pub target_height: f32,
-	pub move_sound: Option<AssetHandle<Sound>>,
-	pub move_sound_timer: Timer,
 	pub finish_sound: Option<AssetHandle<Sound>>,
 }
 
@@ -45,83 +40,50 @@ pub enum FloorTargetHeight {
 	HighestNeighbourFloor,
 }
 
-pub fn floor_active_system() -> Box<dyn Runnable> {
+pub fn floor_active_system(resources: &mut Resources) -> Box<dyn Runnable> {
+	let mut sector_move_event_reader = resources
+		.get_mut::<EventChannel<SectorMoveEvent>>()
+		.unwrap()
+		.register_reader();
+
 	SystemBuilder::new("floor_active_system")
-		.read_resource::<AssetStorage>()
-		.read_resource::<Duration>()
-		.read_resource::<Quadtree>()
+		.read_resource::<EventChannel<SectorMoveEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
-		.with_query(<(Read<SectorRef>, Write<FloorActive>)>::query())
-		.read_component::<BoxCollider>() // used by SectorTracer
-		.read_component::<Transform>() // used by SectorTracer
-		.write_component::<MapDynamic>()
-		.build_thread_local(move |command_buffer, world, resources, query| {
-			let (asset_storage, delta, quadtree, sound_queue) = resources;
-			let (mut query_world, mut world) = world.split_for_query(&query);
-			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
-			let tracer = SectorTracer {
-				quadtree,
-				world: &world,
-			};
+		.read_component::<FloorActive>()
+		.read_component::<FloorMove>()
+		.build_thread_local(move |command_buffer, world, resources, _| {
+			let (sector_move_event_channel, sound_queue) = resources;
 
-			for (entity, (sector_ref, mut floor_active)) in
-				query.iter_entities_mut(&mut query_world)
+			for event in sector_move_event_channel
+				.read(&mut sector_move_event_reader)
+				.filter(|e| e.normal == 1.0)
 			{
-				let mut map_dynamic = map_dynamic_world
-					.get_component_mut::<MapDynamic>(sector_ref.map_entity)
-					.unwrap();
-				let map = asset_storage.get(&map_dynamic.map).unwrap();
-				let sector = &map.sectors[sector_ref.index];
-				let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
+				let sector_move = &world.get_component::<FloorMove>(event.entity).unwrap().0;
 
-				floor_active.move_sound_timer.tick(**delta);
-
-				if floor_active.move_sound_timer.is_zero() {
-					floor_active.move_sound_timer.reset();
-
-					if let Some(sound) = &floor_active.move_sound {
-						sound_queue.push((sound.clone(), entity));
-					}
+				if sector_move.velocity == 0.0 {
+					continue;
 				}
 
-				let done = {
-					let direction = if floor_active.target_height < sector_dynamic.interval.min {
-						-1.0
-					} else {
-						1.0
-					};
-
-					let move_step = direction * floor_active.speed * delta.as_secs_f32();
-					let trace = tracer.trace(
-						sector_dynamic.interval.min,
-						1.0,
-						move_step,
-						sector.subsectors.iter().map(|i| &map.subsectors[*i]),
-					);
-
-					if trace.collision {
+				match event.event_type {
+					SectorMoveEventType::Collided => {
 						// Hang there until the obstruction is gone
-						false
-					} else {
-						sector_dynamic.interval.min += move_step;
+					}
+					SectorMoveEventType::TargetReached => {
+						let floor_active = world.get_component::<FloorActive>(event.entity);
 
-						if direction * sector_dynamic.interval.min
-							>= direction * floor_active.target_height
-						{
-							sector_dynamic.interval.min = floor_active.target_height;
-							true
-						} else {
-							false
+						if floor_active.is_none() {
+							continue;
 						}
-					}
-				};
 
-				if done {
-					if let Some(sound) = &floor_active.finish_sound {
-						sound_queue.push((sound.clone(), entity));
-					}
+						let floor_active = floor_active.unwrap();
 
-					command_buffer.remove_component::<FloorActive>(entity);
+						if let Some(sound) = &floor_active.finish_sound {
+							sound_queue.push((sound.clone(), event.entity));
+						}
+
+						command_buffer.remove_component::<FloorMove>(event.entity);
+						command_buffer.remove_component::<FloorActive>(event.entity);
+					}
 				}
 			}
 		})
@@ -273,7 +235,7 @@ fn activate(
 ) {
 	let sector_dynamic = &map_dynamic.sectors[sector_index];
 
-	let target_height = match params.target_height_base {
+	let target = match params.target_height_base {
 		FloorTargetHeight::Current => sector_dynamic.interval.min + params.target_height_offset,
 		FloorTargetHeight::LowestNeighbourFloor => {
 			map.lowest_neighbour_floor(map_dynamic, sector_index) + params.target_height_offset
@@ -302,13 +264,25 @@ fn activate(
 		}
 	};
 
+	let direction = if target < sector_dynamic.interval.min {
+		-1.0
+	} else {
+		1.0
+	};
+
+	command_buffer.add_component(
+		sector_dynamic.entity,
+		FloorMove(SectorMove {
+			velocity: direction * params.speed,
+			target,
+			sound: params.move_sound.clone(),
+			sound_timer: Timer::new_zero(params.move_sound_time),
+		}),
+	);
+
 	command_buffer.add_component(
 		sector_dynamic.entity,
 		FloorActive {
-			speed: params.speed,
-			target_height,
-			move_sound: params.move_sound.clone(),
-			move_sound_timer: Timer::new_zero(params.move_sound_time),
 			finish_sound: params.finish_sound.clone(),
 		},
 	);
