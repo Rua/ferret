@@ -37,7 +37,7 @@ impl Timer {
 		self.time_left = self.time;
 	}
 
-	pub fn set_time(&mut self, time: Duration) {
+	pub fn set(&mut self, time: Duration) {
 		self.time = time;
 		self.time_left = time;
 	}

@@ -15,6 +15,7 @@ pub mod render;
 pub mod sectormove;
 pub mod sound;
 pub mod sprite;
+pub mod state;
 pub mod switch;
 pub mod texture;
 pub mod wad;

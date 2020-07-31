@@ -183,6 +183,7 @@ fn main() -> anyhow::Result<()> {
 		.add_thread_local(doom::switch::switch_active_system()).flush()
 		.add_thread_local(doom::texture::texture_animation_system()).flush()
 		.add_thread_local(doom::texture::texture_scroll_system()).flush()
+		.add_thread_local(doom::state::state_system(&mut resources)).flush()
 		.build();
 
 	let mut output_dispatcher = Schedule::builder()

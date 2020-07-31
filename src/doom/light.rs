@@ -74,7 +74,7 @@ pub fn light_flash_system() -> Box<dyn Runnable> {
 						}
 					};
 
-					light_flash.timer.set_time(new_time);
+					light_flash.timer.set(new_time);
 				}
 			}
 		})
