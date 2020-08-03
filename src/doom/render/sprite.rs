@@ -5,7 +5,9 @@ use crate::{
 		sprite::Sprite,
 	},
 	geometry::Angle,
-	renderer::{AsBytes, DrawContext, DrawStep, RenderContext},
+	renderer::{
+		definition::NumberedInstanceBufferDefinition, DrawContext, DrawStep, RenderContext,
+	},
 };
 use anyhow::Context;
 use fnv::FnvHashMap;
@@ -13,28 +15,25 @@ use legion::prelude::{EntityStore, IntoQuery, Read, ResourceSet, Resources, Worl
 use nalgebra::{Matrix4, Vector2, Vector3};
 use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
-	buffer::{BufferUsage, CpuBufferPool, ImmutableBuffer},
+	buffer::{BufferUsage, CpuBufferPool},
 	descriptor::{descriptor_set::FixedSizeDescriptorSetsPool, PipelineLayoutAbstract},
 	device::DeviceOwned,
 	framebuffer::{RenderPassAbstract, Subpass},
 	image::ImageViewAccess,
 	impl_vertex,
-	pipeline::{
-		vertex::OneVertexOneInstanceDefinition, GraphicsPipeline, GraphicsPipelineAbstract,
-	},
+	pipeline::{GraphicsPipeline, GraphicsPipelineAbstract},
 	sampler::Sampler,
 };
 
 pub struct DrawSprites {
 	instance_buffer_pool: CpuBufferPool<InstanceData>,
-	vertex_buffer: Arc<ImmutableBuffer<[u8]>>,
 	pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
 	texture_set_pool: FixedSizeDescriptorSetsPool,
 }
 
 impl DrawSprites {
 	pub fn new(
-		render_context: &RenderContext,
+		_render_context: &RenderContext,
 		render_pass: &Arc<dyn RenderPassAbstract + Send + Sync>,
 	) -> anyhow::Result<DrawSprites> {
 		let device = render_pass.device();
@@ -48,7 +47,7 @@ impl DrawSprites {
 				.render_pass(
 					Subpass::from(render_pass.clone(), 0).context("Subpass index out of range")?,
 				)
-				.vertex_input(OneVertexOneInstanceDefinition::<VertexData, InstanceData>::new())
+				.vertex_input(NumberedInstanceBufferDefinition::<InstanceData>::new(4))
 				.vertex_shader(vert.main_entry_point(), ())
 				.fragment_shader(frag.main_entry_point(), ())
 				.triangle_fan()
@@ -61,35 +60,7 @@ impl DrawSprites {
 		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
 		// Create mesh
-		let (vertex_buffer, _future) = ImmutableBuffer::from_iter(
-			vec![
-				VertexData {
-					in_position: [0.0, -1.0, 0.0],
-					in_texture_coord: [1.0, 0.0],
-				},
-				VertexData {
-					in_position: [0.0, 0.0, 0.0],
-					in_texture_coord: [0.0, 0.0],
-				},
-				VertexData {
-					in_position: [0.0, 0.0, -1.0],
-					in_texture_coord: [0.0, 1.0],
-				},
-				VertexData {
-					in_position: [0.0, -1.0, -1.0],
-					in_texture_coord: [1.0, 1.0],
-				},
-			]
-			.as_bytes()
-			.iter()
-			.copied(),
-			BufferUsage::vertex_buffer(),
-			render_context.queues().graphics.clone(),
-		)?;
-
 		Ok(DrawSprites {
-			vertex_buffer,
-
 			instance_buffer_pool: CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer()),
 			texture_set_pool: FixedSizeDescriptorSetsPool::new(
 				pipeline.descriptor_set_layout(1).unwrap().clone(),
@@ -202,7 +173,7 @@ impl DrawStep for DrawSprites {
 				.draw(
 					self.pipeline.clone(),
 					&draw_context.dynamic_state,
-					vec![self.vertex_buffer.clone(), Arc::new(instance_buffer)],
+					vec![Arc::new(instance_buffer)],
 					draw_context.descriptor_sets.clone(),
 					(),
 				)

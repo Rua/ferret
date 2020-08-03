@@ -44,9 +44,9 @@ pub fn state_system(_resources: &mut Resources) -> Box<dyn Runnable> {
 
 							*sprite_render = new_state.sprite.clone();
 
-							if let Some((new_time, new_next)) = &new_state.next {
-								timer.set(*new_time);
-								*next = new_next.clone();
+							if let Some((new_time, new_next)) = new_state.next.clone() {
+								timer.set(new_time);
+								*next = new_next;
 							} else {
 								state.next = None;
 								break;
