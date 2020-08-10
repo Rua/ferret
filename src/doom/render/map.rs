@@ -234,7 +234,7 @@ mod normal_vert {
 	}
 }
 
-pub use normal_vert::ty::UniformBufferObject;
+pub use normal_vert::ty::Matrices;
 
 mod sky_vert {
 	vulkano_shaders::shader! {

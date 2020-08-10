@@ -3,7 +3,9 @@ use byteorder::{ReadBytesExt, LE};
 use std::{
 	io::{Cursor, Read, Seek, SeekFrom},
 	ops::Deref,
+	sync::Arc,
 };
+use vulkano::image::ImageViewAccess;
 
 #[derive(Copy, Clone, Default)]
 #[repr(C)]
@@ -56,7 +58,7 @@ impl Asset for Palette {
 	}
 }
 
-pub struct Image {
+pub struct ImageRaw {
 	pub data: Vec<IAColor>,
 	pub size: [usize; 2],
 	pub offset: [isize; 2],
@@ -66,7 +68,7 @@ pub struct Image {
 pub struct ImageFormat;
 
 impl AssetFormat for ImageFormat {
-	type Asset = Image;
+	type Asset = ImageRaw;
 
 	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(name)?);
@@ -110,6 +112,21 @@ impl AssetFormat for ImageFormat {
 			}
 		}
 
-		Ok(Image { data, size, offset })
+		Ok(ImageRaw { data, size, offset })
+	}
+}
+
+pub struct Image {
+	pub image: Arc<dyn ImageViewAccess + Send + Sync>,
+	pub offset: [isize; 2],
+}
+
+impl Asset for Image {
+	type Data = Self;
+	type Intermediate = ImageRaw;
+	const NAME: &'static str = "Image";
+
+	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
+		ImageFormat.import(name, source)
 	}
 }

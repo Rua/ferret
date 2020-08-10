@@ -1,6 +1,6 @@
 use crate::{
 	assets::{Asset, AssetFormat, AssetHandle, DataSource},
-	doom::image::{IAColor, Image, ImageFormat},
+	doom::image::{IAColor, ImageFormat, ImageRaw},
 };
 use anyhow::anyhow;
 use byteorder::{ReadBytesExt, LE};
@@ -18,7 +18,7 @@ pub struct Flat;
 
 impl Asset for Flat {
 	type Data = Arc<dyn ImageViewAccess + Send + Sync>;
-	type Intermediate = Image;
+	type Intermediate = ImageRaw;
 	const NAME: &'static str = "Flat";
 
 	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
@@ -26,7 +26,7 @@ impl Asset for Flat {
 		let mut pixels = [0u8; 64 * 64];
 		reader.read_exact(&mut pixels)?;
 
-		Ok(Image {
+		Ok(ImageRaw {
 			data: pixels.iter().map(|&i| IAColor { i, a: 0xFF }).collect(),
 			size: [64, 64],
 			offset: [0, 0],
@@ -60,7 +60,7 @@ pub struct Wall;
 
 impl Asset for Wall {
 	type Data = Arc<dyn ImageViewAccess + Send + Sync>;
-	type Intermediate = Image;
+	type Intermediate = ImageRaw;
 	const NAME: &'static str = "Wall";
 
 	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
@@ -122,7 +122,7 @@ impl Asset for Wall {
 				Ok(())
 			})?;
 
-		Ok(Image {
+		Ok(ImageRaw {
 			data,
 			size: texture_info.size,
 			offset: [0, 0],

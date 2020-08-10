@@ -226,6 +226,7 @@ impl DrawList {
 				viewports: Some(vec![viewport]),
 				..DynamicState::none()
 			},
+			framebuffer: self.framebuffer.clone(),
 		};
 
 		draw_context
@@ -262,4 +263,5 @@ pub struct DrawContext {
 	pub commands: AutoCommandBufferBuilder,
 	pub descriptor_sets: Vec<Arc<dyn DescriptorSet + Send + Sync>>,
 	pub dynamic_state: DynamicState,
+	pub framebuffer: Arc<dyn FramebufferAbstract + Send + Sync>,
 }

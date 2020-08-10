@@ -1,9 +1,10 @@
 #version 450
 
-layout(set = 0, binding = 0) uniform UniformBufferObject {
-	mat4 view;
+layout(set = 0, binding = 0) uniform Matrices {
 	mat4 proj;
-} ubo;
+	mat4 view;
+	mat4 billboard;
+};
 
 layout(location = 0) in vec3 in_position;
 
@@ -14,6 +15,6 @@ out gl_PerVertex {
 };
 
 void main() {
-	gl_Position = ubo.proj * ubo.view * vec4(in_position, 1);
-	frag_texture_coord = (ubo.view * vec4(in_position, 1)).xy / gl_Position.z;
+	gl_Position = proj * view * vec4(in_position, 1);
+	frag_texture_coord = (view * vec4(in_position, 1)).xy / gl_Position.z;
 }

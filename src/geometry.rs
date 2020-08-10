@@ -1,6 +1,6 @@
 use nalgebra::{
-	allocator::Allocator, storage::Owned, DefaultAllocator, DimName, Vector2, Vector3, VectorN, U2,
-	U3,
+	allocator::Allocator, storage::Owned, DefaultAllocator, DimName, Matrix4, Vector2, Vector3,
+	VectorN, U2, U3,
 };
 use num_traits::identities::Zero;
 
@@ -644,4 +644,38 @@ pub fn angles_to_axes(angles: Vector3<Angle>) -> [Vector3<f32>; 3] {
 			(cos[2] * cos[1]) as f32,
 		),
 	]
+}
+
+// A projection matrix that creates a world coordinate system with
+// x = forward
+// y = left
+// z = up
+#[rustfmt::skip]
+pub fn perspective_matrix(fovx: f32, aspect: f32, depth_range: Interval) -> Matrix4<f32> {
+	let fovx = fovx.to_radians();
+	let near = depth_range.min;
+	let far = depth_range.max;
+	let nmf = near - far;
+	let f = 1.0 / (fovx * 0.5).tan();
+
+	Matrix4::new(
+		0.0       , -f , 0.0        , 0.0               ,
+		0.0       , 0.0, -f * aspect, 0.0               ,
+		-far / nmf, 0.0, 0.0        , (near * far) / nmf,
+		1.0       , 0.0, 0.0        , 0.0               ,
+	)
+}
+
+#[rustfmt::skip]
+pub fn ortho_matrix(bbox: AABB3) -> Matrix4<f32> {
+	let rml = bbox[0].max - bbox[0].min;
+	let tmb = bbox[1].max - bbox[1].min;
+	let fmn = bbox[2].max - bbox[2].min;
+
+	Matrix4::new(
+		2.0 / rml, 0.0      , 0.0      , -(bbox[0].min + bbox[0].max) / rml,
+		0.0      , 2.0 / tmb, 0.0      , -(bbox[1].min + bbox[1].max) / tmb,
+		0.0      , 0.0      , 1.0 / fmn, -bbox[2].min / fmn                ,
+		0.0      , 0.0      , 0.0      , 1.0                               ,
+	)
 }

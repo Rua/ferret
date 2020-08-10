@@ -1,5 +1,6 @@
 pub mod map;
 pub mod sprite;
+pub mod ui;
 pub mod world;
 
 use crate::renderer::{DrawList, RenderContext, RenderTarget};

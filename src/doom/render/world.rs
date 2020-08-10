@@ -1,7 +1,6 @@
 use crate::{
-	doom::{
-		camera::Camera, client::Client, components::Transform, render::map::UniformBufferObject,
-	},
+	doom::{camera::Camera, client::Client, components::Transform, render::map::Matrices},
+	geometry::{perspective_matrix, Interval},
 	renderer::{DrawContext, DrawStep, RenderContext},
 };
 use anyhow::Context;
@@ -17,7 +16,7 @@ use vulkano::{
 };
 
 pub struct DrawWorld {
-	matrix_uniform_pool: CpuBufferPool<UniformBufferObject>,
+	matrix_uniform_pool: CpuBufferPool<Matrices>,
 	matrix_set_pool: FixedSizeDescriptorSetsPool,
 }
 
@@ -54,24 +53,6 @@ impl DrawWorld {
 			matrix_set_pool,
 		})
 	}
-
-	// A projection matrix that creates a world coordinate system with
-	// x = forward
-	// y = left
-	// z = up
-	#[rustfmt::skip]
-	fn projection_matrix(fovx: f32, aspect: f32, near: f32, far: f32) -> Matrix4<f32> {
-		let fovx = fovx.to_radians();
-		let nmf = near - far;
-		let f = 1.0 / (fovx * 0.5).tan();
-
-		Matrix4::new(
-			0.0       , -f , 0.0        , 0.0               ,
-			0.0       , 0.0, -f * aspect, 0.0               ,
-			-far / nmf, 0.0, 0.0        , (near * far) / nmf,
-			1.0       , 0.0, 0.0        , 0.0               ,
-		)
-	}
 }
 
 impl DrawStep for DrawWorld {
@@ -81,14 +62,25 @@ impl DrawStep for DrawWorld {
 		world: &World,
 		resources: &Resources,
 	) -> anyhow::Result<()> {
+		let framebuffer_dimensions = [
+			draw_context.framebuffer.width() as f32,
+			draw_context.framebuffer.height() as f32,
+		];
+		let ratio = (framebuffer_dimensions[0] / framebuffer_dimensions[1]) / (4.0 / 3.0);
+		let viewport = &mut draw_context.dynamic_state.viewports.as_mut().unwrap()[0];
+		viewport.origin = [0.0, 0.0];
+		viewport.dimensions = [
+			framebuffer_dimensions[0],
+			ratio.min(1.0) * (1.0 - 32.0 / 200.0) * framebuffer_dimensions[1],
+		];
+
 		// Projection matrix
 		// Doom had non-square pixels, with a resolution of 320x200 (16:10) running on a 4:3
 		// screen. This caused everything to be stretched vertically by some degree, and the game
 		// art was made with that in mind.
 		// The 1.2 factor here applies the same stretching as in the original.
-		let viewport = &draw_context.dynamic_state.viewports.as_ref().unwrap()[0];
 		let aspect_ratio = (viewport.dimensions[0] / viewport.dimensions[1]) * 1.2;
-		let proj = Self::projection_matrix(90.0, aspect_ratio, 1.0, 20000.0);
+		let proj = perspective_matrix(90.0, aspect_ratio, Interval::new(1.0, 20000.0));
 
 		// View matrix
 		let client = <Read<Client>>::fetch(resources);
@@ -108,14 +100,19 @@ impl DrawStep for DrawWorld {
 			* Matrix4::new_rotation(Vector3::new(0.0, 0.0, -rotation[2].to_radians() as f32))
 			* Matrix4::new_translation(&-position);
 
+		// Billboard matrix
+		let billboard =
+			Matrix4::new_rotation(Vector3::new(0.0, 0.0, rotation[2].to_radians() as f32));
+
 		// Create matrix UBO
 		draw_context.descriptor_sets.truncate(0);
 		draw_context.descriptor_sets.push(Arc::new(
 			self.matrix_set_pool
 				.next()
-				.add_buffer(self.matrix_uniform_pool.next(UniformBufferObject {
-					view: view.into(),
+				.add_buffer(self.matrix_uniform_pool.next(Matrices {
 					proj: proj.into(),
+					view: view.into(),
+					billboard: billboard.into(),
 				})?)?
 				.build()?,
 		));

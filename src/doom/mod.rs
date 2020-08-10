@@ -18,4 +18,5 @@ pub mod sprite;
 pub mod state;
 pub mod switch;
 pub mod texture;
+pub mod ui;
 pub mod wad;

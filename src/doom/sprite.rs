@@ -1,13 +1,11 @@
 use crate::{
-	assets::{Asset, AssetFormat, AssetHandle, AssetStorage, DataSource},
-	doom::image::{Image, ImageFormat},
+	assets::{Asset, AssetHandle, AssetStorage, DataSource},
+	doom::image::Image,
 };
 use anyhow::bail;
 use lazy_static::lazy_static;
-use nalgebra::Matrix4;
 use regex::Regex;
-use std::sync::Arc;
-use vulkano::{image::ImageViewAccess, impl_vertex};
+use vulkano::impl_vertex;
 
 pub struct Sprite {
 	frames: Vec<Vec<SpriteImageInfo>>,
@@ -16,7 +14,7 @@ pub struct Sprite {
 #[derive(Clone)]
 pub struct SpriteImageInfo {
 	pub flip: f32,
-	pub handle: AssetHandle<SpriteImage>,
+	pub handle: AssetHandle<Image>,
 }
 
 impl Sprite {
@@ -172,21 +170,6 @@ impl Asset for Sprite {
 		Ok(SpriteBuilder::new()
 			.with_frames(frames)
 			.with_image_names(image_names))
-	}
-}
-
-pub struct SpriteImage {
-	pub image: Arc<dyn ImageViewAccess + Send + Sync>,
-	pub matrix: Matrix4<f32>,
-}
-
-impl Asset for SpriteImage {
-	type Data = Self;
-	type Intermediate = Image;
-	const NAME: &'static str = "SpriteImage";
-
-	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
-		ImageFormat.import(name, source)
 	}
 }
 

@@ -22,7 +22,7 @@ use crate::{
 use anyhow::{bail, Context};
 use clap::{App, Arg, ArgMatches};
 use legion::prelude::{Entity, IntoQuery, Read, ResourceSet, Resources, Schedule, World, Write};
-use nalgebra::{Matrix4, Vector3};
+use nalgebra::{Vector2, Vector3};
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
 use std::{
@@ -105,6 +105,10 @@ fn main() -> anyhow::Result<()> {
 	draw_list.add_step(
 		doom::render::sprite::DrawSprites::new(&render_context, draw_list.render_pass())
 			.context("Couldn't create DrawSprites")?,
+	);
+	draw_list.add_step(
+		doom::render::ui::DrawUi::new(&render_context, draw_list.render_pass())
+			.context("Couldn't create DrawUi")?,
 	);
 	resources.insert(draw_list);
 
@@ -193,6 +197,61 @@ fn main() -> anyhow::Result<()> {
 
 	// Create world
 	let mut world = World::new();
+
+	{
+		let (mut asset_storage, mut loader) =
+			<(Write<AssetStorage>, Write<doom::wad::WadLoader>)>::fetch_mut(&mut resources);
+
+		world.insert(
+			(),
+			vec![
+				/*(
+					doom::ui::UiTransform {
+						position: Vector3::new(0.0, 200.0 - 32.0, 0.0),
+						alignment: [doom::ui::UiAlignment::Near, doom::ui::UiAlignment::Far],
+						size: Vector2::new(320.0, 32.0),
+						stretch: [true, false],
+					},
+					doom::ui::UiImage {
+						image: asset_storage.load("FLOOR7_2", &mut *loader),
+					},
+				),*/
+				(
+					doom::ui::UiTransform {
+						position: Vector3::new(0.0, 168.0, 1.0),
+						alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+						size: Vector2::new(320.0, 32.0),
+						stretch: [false; 2],
+					},
+					doom::ui::UiImage {
+						image: asset_storage.load("STBAR", &mut *loader),
+					},
+				),
+				(
+					doom::ui::UiTransform {
+						position: Vector3::new(104.0, 168.0, 2.0),
+						alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+						size: Vector2::new(40.0, 32.0),
+						stretch: [false; 2],
+					},
+					doom::ui::UiImage {
+						image: asset_storage.load("STARMS", &mut *loader),
+					},
+				),
+				(
+					doom::ui::UiTransform {
+						position: Vector3::new(143.0, 168.0, 10.0),
+						alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+						size: Vector2::new(24.0, 29.0),
+						stretch: [false; 2],
+					},
+					doom::ui::UiImage {
+						image: asset_storage.load("STFST00", &mut *loader),
+					},
+				),
+			],
+		);
+	}
 
 	let mut should_quit = false;
 	let mut old_time = Instant::now();
@@ -386,9 +445,9 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 		asset_storage.build_waiting::<doom::sprite::Sprite, _>(|builder, asset_storage| {
 			Ok(builder.build(asset_storage, &mut *source)?)
 		});
-		asset_storage.build_waiting::<doom::sprite::SpriteImage, _>(|image, asset_storage| {
+		asset_storage.build_waiting::<doom::image::Image, _>(|image_raw, asset_storage| {
 			let palette = asset_storage.get(&palette_handle).unwrap();
-			let data: Vec<_> = image
+			let data: Vec<_> = image_raw
 				.data
 				.into_iter()
 				.map(|pixel| {
@@ -401,27 +460,20 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 				.collect();
 
 			// Create the image
-			let matrix = Matrix4::new_translation(&Vector3::new(
-				0.0,
-				image.offset[0] as f32,
-				image.offset[1] as f32,
-			)) * Matrix4::new_nonuniform_scaling(&Vector3::new(
-				0.0,
-				image.size[0] as f32,
-				image.size[1] as f32,
-			));
-
 			let (image, _future) = ImmutableImage::from_iter(
 				data.as_bytes().iter().copied(),
 				Dimensions::Dim2d {
-					width: image.size[0] as u32,
-					height: image.size[1] as u32,
+					width: image_raw.size[0] as u32,
+					height: image_raw.size[1] as u32,
 				},
 				Format::R8G8B8A8Unorm,
 				render_context.queues().graphics.clone(),
 			)?;
 
-			Ok(crate::doom::sprite::SpriteImage { matrix, image })
+			Ok(crate::doom::image::Image {
+				image,
+				offset: image_raw.offset,
+			})
 		});
 	}
 

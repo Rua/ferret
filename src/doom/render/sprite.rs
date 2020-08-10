@@ -1,8 +1,8 @@
 use crate::{
 	assets::{AssetHandle, AssetStorage},
 	doom::{
-		client::Client, components::Transform, map::MapDynamic, render::world::normal_frag,
-		sprite::Sprite,
+		client::Client, components::Transform, image::Image, map::MapDynamic,
+		render::world::normal_frag, sprite::Sprite,
 	},
 	geometry::Angle,
 	renderer::{
@@ -19,7 +19,6 @@ use vulkano::{
 	descriptor::{descriptor_set::FixedSizeDescriptorSetsPool, PipelineLayoutAbstract},
 	device::DeviceOwned,
 	framebuffer::{RenderPassAbstract, Subpass},
-	image::ImageViewAccess,
 	impl_vertex,
 	pipeline::{GraphicsPipeline, GraphicsPipelineAbstract},
 	sampler::Sampler,
@@ -29,6 +28,7 @@ pub struct DrawSprites {
 	instance_buffer_pool: CpuBufferPool<InstanceData>,
 	pipeline: Arc<dyn GraphicsPipelineAbstract + Send + Sync>,
 	texture_set_pool: FixedSizeDescriptorSetsPool,
+	texture_uniform_pool: CpuBufferPool<ImageMatrix>,
 }
 
 impl DrawSprites {
@@ -53,18 +53,17 @@ impl DrawSprites {
 				.triangle_fan()
 				.primitive_restart(true)
 				.viewports_dynamic_scissors_irrelevant(1)
-				.cull_mode_disabled()
 				.depth_stencil_simple_depth()
 				.build(device.clone())
 				.context("Couldn't create pipeline")?,
 		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
-		// Create mesh
 		Ok(DrawSprites {
 			instance_buffer_pool: CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer()),
 			texture_set_pool: FixedSizeDescriptorSetsPool::new(
 				pipeline.descriptor_set_layout(1).unwrap().clone(),
 			),
+			texture_uniform_pool: CpuBufferPool::new(device.clone(), BufferUsage::uniform_buffer()),
 			pipeline,
 		})
 	}
@@ -86,8 +85,7 @@ impl DrawStep for DrawSprites {
 		let map = asset_storage.get(&map_dynamic.map).unwrap();
 
 		// Group draws into batches by texture
-		let mut batches: FnvHashMap<Arc<dyn ImageViewAccess + Send + Sync>, Vec<InstanceData>> =
-			FnvHashMap::default();
+		let mut batches: FnvHashMap<&AssetHandle<Image>, Vec<InstanceData>> = FnvHashMap::default();
 
 		for (entity, (sprite_render, transform)) in
 			<(Read<SpriteRender>, Read<Transform>)>::query().iter_entities(world)
@@ -121,7 +119,6 @@ impl DrawStep for DrawSprites {
 			};
 
 			let image_info = &frame[index];
-			let sprite_image = asset_storage.get(&image_info.handle).unwrap();
 
 			// Determine light level
 			let light_level = if sprite_render.full_bright {
@@ -133,20 +130,14 @@ impl DrawStep for DrawSprites {
 			};
 
 			// Set up instance data
-			let instance_matrix = Matrix4::new_translation(&transform.position)
-				* Matrix4::new_rotation(Vector3::new(
-					0.0,
-					0.0,
-					camera_transform.rotation[2].to_radians() as f32,
-				)) * sprite_image.matrix;
 			let instance_data = InstanceData {
+				in_transform: Matrix4::new_translation(&transform.position).into(),
 				in_flip: image_info.flip,
 				in_light_level: light_level,
-				in_matrix: instance_matrix.into(),
 			};
 
 			// Add to batches
-			match batches.entry(asset_storage.get(&image_info.handle).unwrap().image.clone()) {
+			match batches.entry(&image_info.handle) {
 				Entry::Occupied(mut entry) => {
 					entry.get_mut().push(instance_data);
 				}
@@ -157,12 +148,26 @@ impl DrawStep for DrawSprites {
 		}
 
 		// Draw the batches
-		for (texture, instance_data) in batches {
+		for (image_handle, instance_data) in batches {
+			let image = asset_storage.get(image_handle).unwrap();
+			let matrix = Matrix4::new_translation(&Vector3::new(
+				-image.offset[0] as f32,
+				-image.offset[1] as f32,
+				0.0,
+			)) * Matrix4::new_nonuniform_scaling(&Vector3::new(
+				image.image.dimensions().width() as f32,
+				image.image.dimensions().height() as f32,
+				1.0,
+			));
+
 			draw_context.descriptor_sets.truncate(1);
 			draw_context.descriptor_sets.push(Arc::new(
 				self.texture_set_pool
 					.next()
-					.add_sampled_image(texture, sampler.clone())?
+					.add_sampled_image(image.image.clone(), sampler.clone())?
+					.add_buffer(self.texture_uniform_pool.next(ImageMatrix {
+						image_matrix: matrix.into(),
+					})?)?
 					.build()?,
 			));
 
@@ -191,6 +196,8 @@ mod sprite_vert {
 	}
 }
 
+use sprite_vert::ty::ImageMatrix;
+
 #[derive(Clone, Debug, Default)]
 pub struct VertexData {
 	pub in_position: [f32; 3],
@@ -200,11 +207,11 @@ impl_vertex!(VertexData, in_position, in_texture_coord);
 
 #[derive(Clone, Debug, Default)]
 pub struct InstanceData {
+	pub in_transform: [[f32; 4]; 4],
 	pub in_flip: f32,
 	pub in_light_level: f32,
-	pub in_matrix: [[f32; 4]; 4],
 }
-impl_vertex!(InstanceData, in_flip, in_light_level, in_matrix);
+impl_vertex!(InstanceData, in_transform, in_flip, in_light_level);
 
 #[derive(Clone, Debug)]
 pub struct SpriteRender {
