@@ -153,8 +153,11 @@ fn step_slide_move<W: EntityStore>(
 	let mut range = 0..4;
 
 	while range.next().is_some() && time_left != Duration::default() {
-		let move_step = *velocity * time_left.as_secs_f32();
-		let trace = tracer.trace(&entity_bbox.offset(*position), move_step, solid_mask);
+		let trace = tracer.trace(
+			&entity_bbox.offset(*position),
+			*velocity * time_left.as_secs_f32(),
+			solid_mask,
+		);
 
 		// Commit to the move
 		*position += trace.move_step;
@@ -179,20 +182,20 @@ fn step_slide_move<W: EntityStore>(
 
 		// If entity collided with a step, try to step up first
 		if let Some(step_z) = collision.step_z {
-			let step_height = step_z - position[2];
+			let height = step_z - position[2];
 			const MAX_STEP: f32 = 24.5;
 
 			// See if it can move up by the step height
-			if move_step[2] > 0.0 && move_step[2] < MAX_STEP {
-				let move_step = Vector3::new(0.0, 0.0, step_height);
-				let trace = tracer.trace(&entity_bbox.offset(*position), move_step, solid_mask);
+			if height > 0.0 && height < MAX_STEP {
+				let trace = tracer.trace(
+					&entity_bbox.offset(*position),
+					Vector3::new(0.0, 0.0, height),
+					solid_mask,
+				);
 
 				if trace.collision.is_none() {
 					*position += trace.move_step;
-					step_events.push(StepEvent {
-						entity,
-						height: move_step[2],
-					});
+					step_events.push(StepEvent { entity, height });
 
 					for touched in trace.touched.iter().copied() {
 						if touch_events.iter().find(|t| t.touched == touched).is_none() {
