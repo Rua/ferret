@@ -149,8 +149,10 @@ fn step_slide_move<W: EntityStore>(
 ) {
 	let original_velocity = *velocity;
 
-	// Slide-move
-	for _ in 0..4 {
+	// Limit the number of move-steps to avoid bumping back and forth between things forever
+	let mut range = 0..4;
+
+	while range.next().is_some() && time_left != Duration::default() {
 		let move_step = *velocity * time_left.as_secs_f32();
 		let trace = tracer.trace(&entity_bbox.offset(*position), move_step, solid_mask);
 
@@ -170,68 +172,70 @@ fn step_slide_move<W: EntityStore>(
 			}
 		}
 
-		if let Some(collision) = trace.collision {
-			let speed = -velocity.dot(&collision.normal);
+		let collision = match trace.collision {
+			Some(x) => x,
+			None => continue,
+		};
 
-			let touch_collision = Some(TouchEventCollision {
-				normal: collision.normal,
-				speed,
-			});
+		// If entity collided with a step, try to step up first
+		if let Some(step_z) = collision.step_z {
+			let step_height = step_z - position[2];
+			const MAX_STEP: f32 = 24.5;
 
-			if let Some(event) = touch_events
-				.iter_mut()
-				.find(|t| t.touched == collision.entity)
-			{
-				event.collision = touch_collision;
-			} else {
-				touch_events.push(TouchEvent {
-					toucher: entity,
-					touched: collision.entity,
-					collision: touch_collision,
-				});
-			}
+			// See if it can move up by the step height
+			if move_step[2] > 0.0 && move_step[2] < MAX_STEP {
+				let move_step = Vector3::new(0.0, 0.0, step_height);
+				let trace = tracer.trace(&entity_bbox.offset(*position), move_step, solid_mask);
 
-			if let Some(step_z) = collision.step_z {
-				// Try to step up
-				let move_step = Vector3::new(0.0, 0.0, step_z - position[2]);
+				if trace.collision.is_none() {
+					*position += trace.move_step;
+					step_events.push(StepEvent {
+						entity,
+						height: move_step[2],
+					});
 
-				if move_step[2] > 0.0 && move_step[2] < 24.5 {
-					let trace = tracer.trace(&entity_bbox.offset(*position), move_step, solid_mask);
-
-					if trace.collision.is_none() {
-						*position += trace.move_step;
-						step_events.push(StepEvent {
-							entity,
-							height: move_step[2],
-						});
-
-						for touched in trace.touched.iter().copied() {
-							if touch_events.iter().find(|t| t.touched == touched).is_none() {
-								touch_events.push(TouchEvent {
-									toucher: entity,
-									touched,
-									collision: None,
-								});
-							}
+					for touched in trace.touched.iter().copied() {
+						if touch_events.iter().find(|t| t.touched == touched).is_none() {
+							touch_events.push(TouchEvent {
+								toucher: entity,
+								touched,
+								collision: None,
+							});
 						}
-
-						continue;
 					}
+
+					// Stepped up, do not collide
+					continue;
 				}
-			}
-
-			// Push back against the collision
-			*velocity += collision.normal * speed;
-
-			// Avoid bouncing too much
-			if velocity.dot(&original_velocity) <= 0.0 {
-				*velocity = Vector3::zeros();
-				break;
 			}
 		}
 
-		if time_left == Duration::default() {
+		// Entity has collided, push back along surface normal
+		let speed = -velocity.dot(&collision.normal);
+		*velocity += collision.normal * speed;
+
+		// Do not bounce back
+		if velocity.dot(&original_velocity) <= 0.0 {
+			*velocity = Vector3::zeros();
 			break;
+		}
+
+		let touch_collision = Some(TouchEventCollision {
+			normal: collision.normal,
+			speed,
+		});
+
+		if let Some(event) = touch_events
+			.iter_mut()
+			.find(|t| t.touched == collision.entity)
+		{
+			event.collision = touch_collision;
+		} else {
+			touch_events.push(TouchEvent {
+				toucher: entity,
+				touched: collision.entity,
+				collision: touch_collision,
+			});
 		}
 	}
 }
