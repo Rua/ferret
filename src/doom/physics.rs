@@ -306,6 +306,7 @@ pub struct EntityTraceCollision {
 }
 
 const DISTANCE_EPSILON: f32 = 0.03125;
+const EXTRA_HEADROOM: f32 = 0.1;
 
 impl<'a, W: EntityStore> EntityTracer<'a, W> {
 	pub fn trace(
@@ -353,12 +354,12 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 								true,
 							),
 							(
-								Interval::new(intersection.min, intersection.max),
+								Interval::new(intersection.min, intersection.max + EXTRA_HEADROOM),
 								linedef.solid_mask,
 								false,
 							),
 							(
-								Interval::new(intersection.max, union.max),
+								Interval::new(intersection.max + EXTRA_HEADROOM, union.max),
 								SolidMask::all(),
 								false,
 							),
@@ -423,7 +424,10 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 								false,
 							),
 							CollisionPlane(
-								Plane3::new(front_interval.max, Vector3::new(0.0, 0.0, 1.0)),
+								Plane3::new(
+									front_interval.max + EXTRA_HEADROOM,
+									Vector3::new(0.0, 0.0, 1.0),
+								),
 								false,
 							),
 						];
@@ -462,7 +466,10 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 					let sector_dynamic = &self.map_dynamic.sectors[subsector.sector_index];
 
 					for (distance, normal) in ArrayVec::from([
-						(-sector_dynamic.interval.max, Vector3::new(0.0, 0.0, -1.0)),
+						(
+							-(sector_dynamic.interval.max + EXTRA_HEADROOM),
+							Vector3::new(0.0, 0.0, -1.0),
+						),
 						(sector_dynamic.interval.min, Vector3::new(0.0, 0.0, 1.0)),
 					])
 					.into_iter()
@@ -586,11 +593,15 @@ pub struct SectorTraceEntity {
 impl<'a, W: EntityStore> SectorTracer<'a, W> {
 	pub fn trace<'b>(
 		&self,
-		distance: f32,
+		mut distance: f32,
 		normal: f32,
 		move_step: f32,
 		subsectors: impl Iterator<Item = &'b Subsector> + Clone,
 	) -> SectorTrace {
+		if normal < 0.0 {
+			distance -= EXTRA_HEADROOM;
+		}
+
 		let normal3 = Vector3::new(0.0, 0.0, normal);
 		let move_step3 = Vector3::new(0.0, 0.0, move_step);
 
