@@ -11,9 +11,9 @@ use crate::{
 			load::LinedefFlags,
 			textures::{Flat, TextureType, Wall},
 		},
-		physics::SolidMask,
+		physics::{CollisionPlane, SolidMask},
 	},
-	geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2},
+	geometry::{Angle, Interval, Line2, Plane2, Side, AABB2},
 	timer::Timer,
 };
 use anyhow::bail;
@@ -82,7 +82,7 @@ bitflags! {
 pub struct Linedef {
 	pub line: Line2,
 	pub normal: Vector2<f32>,
-	pub planes: Vec<Plane3>,
+	pub collision_planes: Vec<CollisionPlane>,
 	pub bbox: AABB2,
 	pub flags: LinedefFlags,
 	pub solid_mask: SolidMask,
@@ -134,7 +134,7 @@ pub struct Seg {
 pub struct Subsector {
 	pub segs: Vec<Seg>,
 	pub bbox: AABB2,
-	pub planes: Vec<Plane3>,
+	pub collision_planes: Vec<CollisionPlane>,
 	pub linedefs: Vec<usize>,
 	pub sector_index: usize,
 }

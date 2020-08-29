@@ -7,7 +7,7 @@ use crate::{
 			Anim, Linedef, Map, Node, NodeChild, Sector, SectorSlot, Seg, Sidedef, SidedefSlot,
 			Subsector, Thing, ThingFlags,
 		},
-		physics::SolidMask,
+		physics::{CollisionPlane, SolidMask},
 		wad::WadLoader,
 	},
 	geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2},
@@ -430,23 +430,33 @@ fn build_linedefs(
 			bbox
 		};
 
-		let mut planes = Vec::from(&bbox.planes()[..]);
+		let mut collision_planes = bbox
+			.planes()
+			.iter()
+			.map(|p| CollisionPlane(*p, true))
+			.collect::<Vec<_>>();
 
 		if normal[0] != 0.0 && normal[1] != 0.0 {
-			planes.push(Plane3::new(
-				line.point.dot(&normal),
-				Vector3::new(normal[0], normal[1], 0.0),
+			collision_planes.push(CollisionPlane(
+				Plane3::new(
+					line.point.dot(&normal),
+					Vector3::new(normal[0], normal[1], 0.0),
+				),
+				true,
 			));
-			planes.push(Plane3::new(
-				-line.point.dot(&normal),
-				Vector3::new(-normal[0], -normal[1], 0.0),
+			collision_planes.push(CollisionPlane(
+				Plane3::new(
+					-line.point.dot(&normal),
+					Vector3::new(-normal[0], -normal[1], 0.0),
+				),
+				true,
 			));
 		}
 
 		ret.push(Linedef {
 			line,
 			normal,
-			planes,
+			collision_planes,
 			bbox,
 			flags,
 			solid_mask: if flags.intersects(LinedefFlags::BLOCKING) {
@@ -570,7 +580,7 @@ fn build_ssectors(
 		ret.push(Subsector {
 			segs: segs.to_owned(),
 			bbox: AABB2::empty(),
-			planes: Vec::new(),
+			collision_planes: Vec::new(),
 			linedefs: segs
 				.iter()
 				.filter_map(|seg| seg.linedef.map(|(i, _)| i))
@@ -818,11 +828,11 @@ fn build_gl_ssect(
 			}
 		};
 
-		let (bbox, planes) = generate_subsector_planes(&segs);
+		let (bbox, collision_planes) = generate_subsector_planes(&segs);
 
 		ret.push(Subsector {
 			segs: segs.to_owned(),
-			planes,
+			collision_planes,
 			linedefs: segs
 				.iter()
 				.filter_map(|seg| seg.linedef.map(|(i, _)| i))
@@ -940,7 +950,7 @@ pub fn build_things(data: &[u8]) -> anyhow::Result<Vec<Thing>> {
 	Ok(ret)
 }
 
-fn generate_subsector_planes(segs: &[Seg]) -> (AABB2, Vec<Plane3>) {
+fn generate_subsector_planes(segs: &[Seg]) -> (AABB2, Vec<CollisionPlane>) {
 	let bbox = {
 		let mut bbox = AABB2::empty();
 		for seg in segs.iter() {
@@ -949,20 +959,27 @@ fn generate_subsector_planes(segs: &[Seg]) -> (AABB2, Vec<Plane3>) {
 		bbox
 	};
 
-	let mut planes = Vec::from(&bbox.planes()[..]);
+	let mut collision_planes = bbox
+		.planes()
+		.iter()
+		.map(|p| CollisionPlane(*p, true))
+		.collect::<Vec<_>>();
 
-	planes.extend(segs.iter().filter_map(|seg| {
+	collision_planes.extend(segs.iter().filter_map(|seg| {
 		if seg.normal[0] != 0.0 && seg.normal[1] != 0.0 {
-			Some(Plane3::new(
-				seg.line.point.dot(&-seg.normal),
-				Vector3::new(-seg.normal[0], -seg.normal[1], 0.0),
+			Some(CollisionPlane(
+				Plane3::new(
+					seg.line.point.dot(&-seg.normal),
+					Vector3::new(-seg.normal[0], -seg.normal[1], 0.0),
+				),
+				false,
 			))
 		} else {
 			None
 		}
 	}));
 
-	(bbox, planes)
+	(bbox, collision_planes)
 }
 
 fn fixup_nodes(
@@ -1001,9 +1018,9 @@ fn fixup_nodes(
 			fixup_segs(index, &mut subsector.segs, linedefs, planes)?;
 			rebuild_segs(&mut subsector.segs, &planes)?;
 
-			let (bbox, planes) = generate_subsector_planes(&subsector.segs);
+			let (bbox, collision_planes) = generate_subsector_planes(&subsector.segs);
 			subsector.bbox = bbox;
-			subsector.planes = planes;
+			subsector.collision_planes = collision_planes;
 		}
 	}
 

@@ -370,10 +370,16 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 							}
 
 							let z_planes = [
-								Plane3::new(-interval.min, Vector3::new(0.0, 0.0, -1.0)),
-								Plane3::new(interval.max, Vector3::new(0.0, 0.0, 1.0)),
+								CollisionPlane(
+									Plane3::new(-interval.min, Vector3::new(0.0, 0.0, -1.0)),
+									false,
+								),
+								CollisionPlane(
+									Plane3::new(interval.max, Vector3::new(0.0, 0.0, 1.0)),
+									false,
+								),
 							];
-							let iter = linedef.planes.iter().chain(z_planes.iter());
+							let iter = linedef.collision_planes.iter().chain(z_planes.iter());
 
 							// Non-solid linedefs are only touched
 							// if the midpoint of the entity touches
@@ -412,10 +418,16 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						let front_interval =
 							&self.map_dynamic.sectors[front_sidedef.sector_index].interval;
 						let z_planes = [
-							Plane3::new(-front_interval.min, Vector3::new(0.0, 0.0, -1.0)),
-							Plane3::new(front_interval.max, Vector3::new(0.0, 0.0, 1.0)),
+							CollisionPlane(
+								Plane3::new(-front_interval.min, Vector3::new(0.0, 0.0, -1.0)),
+								false,
+							),
+							CollisionPlane(
+								Plane3::new(front_interval.max, Vector3::new(0.0, 0.0, 1.0)),
+								false,
+							),
 						];
-						let iter = linedef.planes.iter().chain(z_planes.iter());
+						let iter = linedef.collision_planes.iter().chain(z_planes.iter());
 
 						if let Some((fraction, normal)) =
 							trace_planes(&entity_bbox, move_step, iter)
@@ -456,10 +468,10 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 					.into_iter()
 					{
 						let z_planes = [
-							Plane3::new(distance, normal),
-							Plane3::new(-distance, -normal),
+							CollisionPlane(Plane3::new(distance, normal), true),
+							CollisionPlane(Plane3::new(-distance, -normal), false),
 						];
-						let iter = subsector.planes.iter().chain(z_planes.iter());
+						let iter = subsector.collision_planes.iter().chain(z_planes.iter());
 
 						if let Some((fraction, normal)) =
 							trace_planes(&entity_bbox, move_step, iter)
@@ -516,8 +528,14 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						continue;
 					}
 
+					let other_planes = other_bbox
+						.planes()
+						.iter()
+						.map(|p| CollisionPlane(*p, true))
+						.collect::<Vec<_>>(); // TODO make this not allocate
+
 					if let Some((fraction, normal)) =
-						trace_planes(&entity_bbox, move_step, &other_bbox.planes())
+						trace_planes(&entity_bbox, move_step, other_planes.iter())
 					{
 						if entity_solid_mask.intersects(box_collider.solid_mask) {
 							if fraction < trace_fraction {
@@ -580,8 +598,8 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 		let mut trace_touched = SmallVec::<[(f32, Entity); 8]>::new();
 
 		let z_planes = [
-			Plane3::new(distance * normal, normal3),
-			Plane3::new(-distance * normal, -normal3),
+			CollisionPlane(Plane3::new(distance * normal, normal3), true),
+			CollisionPlane(Plane3::new(-distance * normal, -normal3), false),
 		];
 
 		let entity_tracer = EntityTracer {
@@ -602,7 +620,7 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 				.clone()
 				.filter(|s| entity_bbox2.overlaps(&s.bbox))
 			{
-				let iter = subsector.planes.iter().chain(z_planes.iter());
+				let iter = subsector.collision_planes.iter().chain(z_planes.iter());
 
 				if let Some((hit_fraction, _)) = trace_planes(&entity_bbox, -move_step3, iter) {
 					if hit_fraction < 1.0 {
@@ -646,15 +664,18 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 	}
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct CollisionPlane(pub Plane3, pub bool);
+
 fn trace_planes<'a>(
 	entity_bbox: &AABB3,
 	move_step: Vector3<f32>,
-	planes: impl IntoIterator<Item = &'a Plane3>,
+	collision_planes: impl IntoIterator<Item = &'a CollisionPlane>,
 ) -> Option<(f32, Vector3<f32>)> {
 	let mut interval = Interval::new(f32::NEG_INFINITY, 1.0);
 	let mut ret = None;
 
-	for plane in planes.into_iter() {
+	for CollisionPlane(plane, collides) in collision_planes.into_iter() {
 		let closest_point =
 			entity_bbox
 				.vector()
@@ -671,7 +692,10 @@ fn trace_planes<'a>(
 
 			if fraction > interval.min {
 				interval.min = fraction;
-				ret = Some((f32::max(0.0, interval.min), plane.normal));
+
+				if *collides {
+					ret = Some((f32::max(0.0, interval.min), plane.normal));
+				}
 			}
 		} else {
 			if start_dist > 0.0 {
