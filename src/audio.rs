@@ -2,7 +2,7 @@ use anyhow::Context;
 use crossbeam_channel::Sender;
 use rodio::{
 	source::{ChannelVolume, Done},
-	Sample, Source,
+	OutputStream, Sample, Source,
 };
 use std::{
 	sync::{
@@ -20,13 +20,13 @@ pub fn init() -> anyhow::Result<Sender<Box<dyn Source<Item = f32> + Send>>> {
 	Builder::new()
 		.name("audio".to_owned())
 		.spawn(move || {
-			let device = rodio::default_output_device().unwrap();
+			let (_stream, stream_handle) = OutputStream::try_default().unwrap();
 
 			// Play a dummy sound to force the sound engine to initialise itself
-			rodio::play_raw(&device, rodio::source::Empty::new());
+			stream_handle.play_raw(rodio::source::Empty::new()).unwrap();
 
 			for source in receiver {
-				rodio::play_raw(&device, source);
+				stream_handle.play_raw(source).unwrap();
 			}
 		})
 		.context("Couldn't spawn audio thread")?;
