@@ -52,15 +52,11 @@ impl SpriteBuilder {
 		self
 	}
 
-	pub fn build(
-		self,
-		storage: &mut AssetStorage,
-		source: &mut impl DataSource,
-	) -> anyhow::Result<Sprite> {
+	pub fn build(self, storage: &mut AssetStorage) -> anyhow::Result<Sprite> {
 		let handles: Vec<_> = self
 			.image_names
 			.into_iter()
-			.map(|name| storage.load(&name, source))
+			.map(|name| storage.load(&name))
 			.collect();
 
 		let frames = self
@@ -86,7 +82,7 @@ impl Asset for Sprite {
 	type Intermediate = SpriteBuilder;
 	const NAME: &'static str = "Sprite";
 
-	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
+	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Intermediate> {
 		lazy_static! {
 			static ref SPRITENAME: Regex =
 				Regex::new(r#"^....[A-Z][0-9](?:[A-Z][0-9])?$"#).unwrap();

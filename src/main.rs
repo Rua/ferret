@@ -2,7 +2,7 @@ mod common;
 mod doom;
 
 use crate::common::{
-	assets::{AssetHandle, AssetStorage, DataSource},
+	assets::{AssetHandle, AssetStorage},
 	audio::Sound,
 	geometry::{AABB2, AABB3},
 	input::InputState,
@@ -67,10 +67,6 @@ fn main() -> anyhow::Result<()> {
 	// Set up resources
 	let mut resources = Resources::default();
 
-	let mut loader = doom::wad::WadLoader::new();
-	load_wads(&mut loader, &arg_matches)?;
-	resources.insert(loader);
-
 	let (command_sender, command_receiver) = common::commands::init()?;
 	let mut event_loop = EventLoop::new();
 
@@ -127,29 +123,20 @@ fn main() -> anyhow::Result<()> {
 	let bindings = doom::data::get_bindings();
 	resources.insert(bindings);
 
-	let mut asset_storage = AssetStorage::new();
-	asset_storage.add_storage::<doom::entitytemplate::EntityTemplate>();
-	asset_storage.add_storage::<doom::image::Image>();
-	asset_storage.add_storage::<doom::image::Palette>();
-	asset_storage.add_storage::<doom::map::Map>();
-	asset_storage.add_storage::<doom::map::textures::Flat>();
-	asset_storage.add_storage::<doom::map::textures::Wall>();
-	asset_storage.add_storage::<doom::sprite::Sprite>();
-	asset_storage.add_storage::<doom::sound::Sound>();
-	resources.insert(asset_storage);
-
 	resources.insert(Pcg64Mcg::from_entropy());
 	resources.insert(InputState::new());
 	resources.insert(Vec::<(AssetHandle<Sound>, Entity)>::new());
 	resources.insert(doom::client::Client::default());
 	resources.insert(doom::data::FRAME_TIME);
 
+	let mut loader = doom::wad::WadLoader::new();
+	load_wads(&mut loader, &arg_matches)?;
+
 	// Select map
 	let map =
 		if let Some(map) = arg_matches.value_of("map") {
 			map
 		} else {
-			let loader = <Read<doom::wad::WadLoader>>::fetch(&resources);
 			let wad = loader.wads().next().unwrap().file_name().unwrap();
 
 			if wad == "doom.wad" || wad == "doom1.wad" || wad == "doomu.wad" {
@@ -161,6 +148,17 @@ fn main() -> anyhow::Result<()> {
 			}
 		};
 	command_sender.send(format!("map {}", map)).ok();
+
+	let mut asset_storage = AssetStorage::new(loader);
+	asset_storage.add_storage::<doom::entitytemplate::EntityTemplate>();
+	asset_storage.add_storage::<doom::image::Image>();
+	asset_storage.add_storage::<doom::image::Palette>();
+	asset_storage.add_storage::<doom::map::Map>();
+	asset_storage.add_storage::<doom::map::textures::Flat>();
+	asset_storage.add_storage::<doom::map::textures::Wall>();
+	asset_storage.add_storage::<doom::sprite::Sprite>();
+	asset_storage.add_storage::<doom::sound::Sound>();
+	resources.insert(asset_storage);
 
 	// Create systems
 	#[rustfmt::skip]
@@ -199,8 +197,7 @@ fn main() -> anyhow::Result<()> {
 	let mut world = World::new();
 
 	{
-		let (mut asset_storage, mut loader) =
-			<(Write<AssetStorage>, Write<doom::wad::WadLoader>)>::fetch_mut(&mut resources);
+		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(&mut resources);
 
 		world.insert(
 			(),
@@ -213,7 +210,7 @@ fn main() -> anyhow::Result<()> {
 						stretch: [true, false],
 					},
 					doom::ui::UiImage {
-						image: asset_storage.load("FLOOR7_2", &mut *loader),
+						image: asset_storage.load("FLOOR7_2"),
 					},
 				),*/
 				(
@@ -224,7 +221,7 @@ fn main() -> anyhow::Result<()> {
 						stretch: [false; 2],
 					},
 					doom::ui::UiImage {
-						image: asset_storage.load("STBAR", &mut *loader),
+						image: asset_storage.load("STBAR"),
 					},
 				),
 				(
@@ -235,7 +232,7 @@ fn main() -> anyhow::Result<()> {
 						stretch: [false; 2],
 					},
 					doom::ui::UiImage {
-						image: asset_storage.load("STARMS", &mut *loader),
+						image: asset_storage.load("STARMS"),
 					},
 				),
 				(
@@ -246,7 +243,7 @@ fn main() -> anyhow::Result<()> {
 						stretch: [false; 2],
 					},
 					doom::ui::UiImage {
-						image: asset_storage.load("STFST00", &mut *loader),
+						image: asset_storage.load("STFST00"),
 					},
 				),
 			],
@@ -422,9 +419,8 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 
 	// Load palette
 	let palette_handle: AssetHandle<doom::image::Palette> = {
-		let (mut asset_storage, mut loader) =
-			<(Write<AssetStorage>, Write<doom::wad::WadLoader>)>::fetch_mut(resources);
-		let handle = asset_storage.load("PLAYPAL", &mut *loader);
+		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
+		let handle = asset_storage.load("PLAYPAL");
 		asset_storage.build_waiting::<doom::image::Palette, _>(|x, _| Ok(x));
 		handle
 	};
@@ -437,13 +433,10 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 
 	// Load sprite images
 	{
-		let (render_context, mut asset_storage, mut source) = <(
-			Read<RenderContext>,
-			Write<AssetStorage>,
-			Write<crate::doom::wad::WadLoader>,
-		)>::fetch_mut(resources);
+		let (render_context, mut asset_storage) =
+			<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(resources);
 		asset_storage.build_waiting::<doom::sprite::Sprite, _>(|builder, asset_storage| {
-			Ok(builder.build(asset_storage, &mut *source)?)
+			Ok(builder.build(asset_storage)?)
 		});
 		asset_storage.build_waiting::<doom::image::Image, _>(|image_raw, asset_storage| {
 			let palette = asset_storage.get(&palette_handle).unwrap();
@@ -488,11 +481,10 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 	// Load map
 	log::info!("Loading map...");
 	let map_handle = {
-		let (mut asset_storage, mut loader) =
-			<(Write<AssetStorage>, Write<doom::wad::WadLoader>)>::fetch_mut(resources);
-		let map_handle = asset_storage.load(name, &mut *loader);
+		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
+		let map_handle = asset_storage.load(name);
 		asset_storage.build_waiting::<doom::map::Map, _>(|data, asset_storage| {
-			doom::map::load::build_map(data, "SKY1", &mut *loader, asset_storage)
+			doom::map::load::build_map(data, "SKY1", asset_storage)
 		});
 
 		map_handle
@@ -561,8 +553,8 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 
 	// Spawn map entities and things
 	let things = {
-		let loader = <Write<doom::wad::WadLoader>>::fetch_mut(resources);
-		doom::map::load::build_things(&loader.load(&format!("{}/+{}", name, 1))?)?
+		let asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
+		doom::map::load::build_things(&asset_storage.source().load(&format!("{}/+{}", name, 1))?)?
 	};
 	doom::map::spawn_map_entities(world, &resources, &map_handle)?;
 	doom::map::spawn_things(things, world, resources, &map_handle)?;

@@ -21,7 +21,7 @@ impl Asset for Flat {
 	type Intermediate = ImageRaw;
 	const NAME: &'static str = "Flat";
 
-	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
+	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Intermediate> {
 		let mut reader = Cursor::new(source.load(name)?);
 		let mut pixels = [0u8; 64 * 64];
 		reader.read_exact(&mut pixels)?;
@@ -40,7 +40,7 @@ pub struct PNamesFormat;
 impl AssetFormat for PNamesFormat {
 	type Asset = Vec<[u8; 8]>;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(name)?);
 		let count = reader.read_u32::<LE>()? as usize;
 		let mut ret = Vec::with_capacity(count);
@@ -63,7 +63,7 @@ impl Asset for Wall {
 	type Intermediate = ImageRaw;
 	const NAME: &'static str = "Wall";
 
-	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
+	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Intermediate> {
 		let pnames = PNamesFormat.import("PNAMES", source)?;
 		let mut texture_info = TexturesFormat.import("TEXTURE1", source)?;
 
@@ -148,7 +148,7 @@ pub struct TexturesFormat;
 impl AssetFormat for TexturesFormat {
 	type Asset = FnvHashMap<String, TextureInfo>;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Asset> {
 		RawTexturesFormat
 			.import(name, source)?
 			.into_iter()
@@ -195,7 +195,7 @@ pub struct RawTexturesFormat;
 impl AssetFormat for RawTexturesFormat {
 	type Asset = Vec<(RawTextureInfo, Vec<RawPatchInfo>)>;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(name)?);
 
 		let count = reader.read_u32::<LE>()? as usize;

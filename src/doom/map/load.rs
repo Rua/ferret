@@ -11,7 +11,6 @@ use crate::{
 			Subsector, Thing, ThingFlags,
 		},
 		physics::{CollisionPlane, SolidMask},
-		wad::WadLoader,
 	},
 };
 use anyhow::{bail, ensure};
@@ -45,7 +44,7 @@ impl Asset for Map {
 	type Intermediate = MapData;
 	const NAME: &'static str = "Map";
 
-	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
+	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Intermediate> {
 		let gl_name = format!("GL_{}", name);
 
 		let gl_data = (|| -> Option<GLMapData> {
@@ -73,10 +72,9 @@ impl Asset for Map {
 pub fn build_map(
 	map_data: MapData,
 	sky_name: &str,
-	loader: &mut WadLoader,
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Map> {
-	let sky = asset_storage.load(sky_name, loader);
+	let sky = asset_storage.load(sky_name);
 
 	let MapData {
 		linedefs: linedefs_data,
@@ -90,8 +88,8 @@ pub fn build_map(
 	} = map_data;
 
 	let vertexes = build_vertexes(&vertexes_data)?;
-	let mut sectors = build_sectors(&sectors_data, loader, asset_storage)?;
-	let mut sidedefs = build_sidedefs(&sidedefs_data, &sectors, loader, asset_storage)?;
+	let mut sectors = build_sectors(&sectors_data, asset_storage)?;
+	let mut sidedefs = build_sidedefs(&sidedefs_data, &sectors, asset_storage)?;
 	let linedefs = build_linedefs(&linedefs_data, &vertexes, &mut sectors, &mut sidedefs)?;
 
 	// Load GL nodes if available
@@ -146,15 +144,15 @@ pub fn build_map(
 	}
 
 	Ok(Map {
-		anims_flat: get_anims(&ANIMS_FLAT, asset_storage, loader),
-		anims_wall: get_anims(&ANIMS_WALL, asset_storage, loader),
+		anims_flat: get_anims(&ANIMS_FLAT, asset_storage),
+		anims_wall: get_anims(&ANIMS_WALL, asset_storage),
 		bbox,
 		linedefs,
 		nodes,
 		sectors,
 		subsectors,
 		sky,
-		switches: get_switches(asset_storage, loader),
+		switches: get_switches(asset_storage),
 	})
 }
 
@@ -172,11 +170,7 @@ fn build_vertexes(data: &[u8]) -> anyhow::Result<Vec<Vector2<f32>>> {
 	Ok(ret)
 }
 
-fn build_sectors(
-	data: &[u8],
-	loader: &mut WadLoader,
-	asset_storage: &mut AssetStorage,
-) -> anyhow::Result<Vec<Sector>> {
+fn build_sectors(data: &[u8], asset_storage: &mut AssetStorage) -> anyhow::Result<Vec<Sector>> {
 	let chunks = data.chunks(26);
 	let mut ret = Vec::with_capacity(chunks.len());
 
@@ -200,7 +194,7 @@ fn build_sectors(
 						if name == "F_SKY1" {
 							TextureType::Sky
 						} else {
-							TextureType::Normal(asset_storage.load(&name, &mut *loader))
+							TextureType::Normal(asset_storage.load(&name))
 						}
 					}
 				},
@@ -215,7 +209,7 @@ fn build_sectors(
 						if name == "F_SKY1" {
 							TextureType::Sky
 						} else {
-							TextureType::Normal(asset_storage.load(&name, &mut *loader))
+							TextureType::Normal(asset_storage.load(&name))
 						}
 					}
 				},
@@ -243,7 +237,6 @@ fn build_sectors(
 fn build_sidedefs(
 	data: &[u8],
 	sectors: &[Sector],
-	loader: &mut WadLoader,
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Vec<Option<Sidedef>>> {
 	let chunks = data.chunks(30);
@@ -269,7 +262,7 @@ fn build_sidedefs(
 						if name == "F_SKY1" {
 							TextureType::Sky
 						} else {
-							TextureType::Normal(asset_storage.load(&name, &mut *loader))
+							TextureType::Normal(asset_storage.load(&name))
 						}
 					}
 				},
@@ -284,7 +277,7 @@ fn build_sidedefs(
 						if name == "F_SKY1" {
 							TextureType::Sky
 						} else {
-							TextureType::Normal(asset_storage.load(&name, &mut *loader))
+							TextureType::Normal(asset_storage.load(&name))
 						}
 					}
 				},
@@ -299,7 +292,7 @@ fn build_sidedefs(
 						if name == "F_SKY1" {
 							TextureType::Sky
 						} else {
-							TextureType::Normal(asset_storage.load(&name, &mut *loader))
+							TextureType::Normal(asset_storage.load(&name))
 						}
 					}
 				},
@@ -1207,7 +1200,6 @@ fn intersect_planes(plane1: &Plane2, plane2: &Plane2) -> Option<nalgebra::Vector
 pub fn get_anims<T: Asset>(
 	data: &[AnimData],
 	asset_storage: &mut AssetStorage,
-	loader: &mut WadLoader,
 ) -> FnvHashMap<AssetHandle<T>, Anim<T>> {
 	let mut ret = FnvHashMap::default();
 
@@ -1221,7 +1213,7 @@ pub fn get_anims<T: Asset>(
 					frames: anim_data
 						.frames
 						.iter()
-						.map(|name| asset_storage.load(name, loader))
+						.map(|name| asset_storage.load(name))
 						.collect(),
 					frame_time: anim_data.frame_time,
 				},
@@ -1234,7 +1226,6 @@ pub fn get_anims<T: Asset>(
 
 pub fn get_switches(
 	asset_storage: &mut AssetStorage,
-	loader: &mut WadLoader,
 ) -> FnvHashMap<AssetHandle<Wall>, AssetHandle<Wall>> {
 	let mut ret = FnvHashMap::default();
 
@@ -1246,8 +1237,8 @@ pub fn get_switches(
 			continue;
 		}
 
-		let handle1 = handle1.unwrap_or_else(|| asset_storage.load(name1, loader));
-		let handle2 = handle2.unwrap_or_else(|| asset_storage.load(name2, loader));
+		let handle1 = handle1.unwrap_or_else(|| asset_storage.load(name1));
+		let handle2 = handle2.unwrap_or_else(|| asset_storage.load(name2));
 
 		ret.insert(handle1.clone(), handle2.clone());
 		ret.insert(handle2, handle1);

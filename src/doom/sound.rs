@@ -23,7 +23,7 @@ impl Asset for Sound {
 	type Intermediate = Vec<u8>;
 	const NAME: &'static str = "Sound";
 
-	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
+	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Intermediate> {
 		source.load(name)
 	}
 }

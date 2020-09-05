@@ -38,7 +38,7 @@ impl Asset for Palette {
 	type Intermediate = Self;
 	const NAME: &'static str = "Palette";
 
-	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
+	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Intermediate> {
 		let mut reader = Cursor::new(source.load(name)?);
 		let mut palette = [RGBAColor {
 			r: 0,
@@ -70,7 +70,7 @@ pub struct ImageFormat;
 impl AssetFormat for ImageFormat {
 	type Asset = ImageRaw;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(name)?);
 
 		let size = [
@@ -126,7 +126,7 @@ impl Asset for Image {
 	type Intermediate = ImageRaw;
 	const NAME: &'static str = "Image";
 
-	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate> {
+	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Intermediate> {
 		ImageFormat.import(name, source)
 	}
 }

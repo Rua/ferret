@@ -12,19 +12,27 @@ pub trait Asset: Send + Sync + 'static {
 	type Intermediate: Send + Sync + 'static;
 	const NAME: &'static str;
 
-	fn import(name: &str, source: &impl DataSource) -> anyhow::Result<Self::Intermediate>;
+	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Intermediate>;
 }
 
-#[derive(Default)]
 pub struct AssetStorage {
+	source: Box<dyn DataSource>,
 	storages: FnvHashMap<TypeId, Box<dyn Any + Send + Sync>>,
 	handle_allocator: HandleAllocator,
 }
 
 impl AssetStorage {
 	#[inline]
-	pub fn new() -> AssetStorage {
-		AssetStorage::default()
+	pub fn new(source: impl DataSource) -> AssetStorage {
+		AssetStorage {
+			source: Box::new(source),
+			storages: FnvHashMap::default(),
+			handle_allocator: HandleAllocator::default(),
+		}
+	}
+
+	pub fn source(&self) -> &dyn DataSource {
+		&*self.source
 	}
 
 	#[inline]
@@ -97,7 +105,8 @@ impl AssetStorage {
 	}
 
 	#[inline]
-	pub fn load<A: Asset>(&mut self, name: &str, source: &mut impl DataSource) -> AssetHandle<A> {
+	pub fn load<A: Asset>(&mut self, name: &str) -> AssetHandle<A> {
+		let source = &*self.source;
 		let storage = storage_mut::<A>(&mut self.storages);
 		let handle_allocator = &mut self.handle_allocator;
 		storage
@@ -262,10 +271,10 @@ impl HandleAllocator {
 pub trait AssetFormat: Clone {
 	type Asset;
 
-	fn import(&self, name: &str, source: &impl DataSource) -> anyhow::Result<Self::Asset>;
+	fn import(&self, name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Asset>;
 }
 
-pub trait DataSource {
+pub trait DataSource: Send + Sync + 'static {
 	fn load(&self, path: &str) -> anyhow::Result<Vec<u8>>;
 	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a>;
 }
