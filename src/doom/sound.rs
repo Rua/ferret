@@ -1,7 +1,7 @@
 use crate::{
 	common::{
 		assets::{Asset, AssetHandle, AssetStorage, DataSource},
-		audio::{Sound, SoundController, SoundSource},
+		audio::{SoundController, SoundSource},
 		geometry::Angle,
 	},
 	doom::{client::Client, components::Transform},
@@ -15,6 +15,8 @@ use legion::prelude::{
 use nalgebra::Vector2;
 use rodio::Source;
 use std::io::{Cursor, Read as IoRead};
+
+pub use crate::common::audio::Sound;
 
 impl Asset for Sound {
 	type Data = Self;

@@ -302,7 +302,6 @@ pub fn spawn_things(
 		// Fetch entity template
 		let template = match asset_storage
 			.iter::<EntityTemplate>()
-			.unwrap()
 			.find(|(_, template)| template.type_id == Some(EntityTypeId::Thing(thing.r#type)))
 		{
 			Some(entry) => entry.1,
@@ -456,7 +455,6 @@ pub fn spawn_map_entities(
 			// Fetch and add entity template
 			let template = match asset_storage
 				.iter::<EntityTemplate>()
-				.unwrap()
 				.find(|(_, template)| template.type_id == Some(EntityTypeId::Linedef(special_type)))
 			{
 				Some(entry) => entry.1,
@@ -523,7 +521,6 @@ pub fn spawn_map_entities(
 			// Fetch and add entity template
 			let template = match asset_storage
 				.iter::<EntityTemplate>()
-				.unwrap()
 				.find(|(_, template)| template.type_id == Some(EntityTypeId::Sector(special_type)))
 			{
 				Some(entry) => entry.1,

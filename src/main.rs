@@ -127,7 +127,17 @@ fn main() -> anyhow::Result<()> {
 	let bindings = doom::data::get_bindings();
 	resources.insert(bindings);
 
-	resources.insert(AssetStorage::default());
+	let mut asset_storage = AssetStorage::new();
+	asset_storage.add_storage::<doom::entitytemplate::EntityTemplate>();
+	asset_storage.add_storage::<doom::image::Image>();
+	asset_storage.add_storage::<doom::image::Palette>();
+	asset_storage.add_storage::<doom::map::Map>();
+	asset_storage.add_storage::<doom::map::textures::Flat>();
+	asset_storage.add_storage::<doom::map::textures::Wall>();
+	asset_storage.add_storage::<doom::sprite::Sprite>();
+	asset_storage.add_storage::<doom::sound::Sound>();
+	resources.insert(asset_storage);
+
 	resources.insert(Pcg64Mcg::from_entropy());
 	resources.insert(InputState::new());
 	resources.insert(Vec::<(AssetHandle<Sound>, Entity)>::new());
