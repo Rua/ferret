@@ -1,10 +1,9 @@
 use crate::{
-	assets::AssetStorage,
+	common::{assets::AssetStorage, timer::Timer},
 	doom::{
 		data::FRAME_TIME,
 		map::{MapDynamic, SectorRef},
 	},
-	timer::Timer,
 };
 use legion::prelude::{EntityStore, IntoQuery, Read, Runnable, SystemBuilder, Write};
 use rand::Rng;

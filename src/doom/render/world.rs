@@ -1,7 +1,9 @@
 use crate::{
+	common::{
+		geometry::{perspective_matrix, Interval},
+		video::{DrawContext, DrawStep, RenderContext},
+	},
 	doom::{camera::Camera, client::Client, components::Transform, render::map::Matrices},
-	geometry::{perspective_matrix, Interval},
-	renderer::{DrawContext, DrawStep, RenderContext},
 };
 use anyhow::Context;
 use legion::prelude::{EntityStore, Read, ResourceSet, Resources, World};

@@ -1,4 +1,4 @@
-use crate::assets::{Asset, AssetFormat, DataSource};
+use crate::common::assets::{Asset, AssetFormat, DataSource};
 use byteorder::{ReadBytesExt, LE};
 use std::{
 	io::{Cursor, Read, Seek, SeekFrom},

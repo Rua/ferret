@@ -1,6 +1,5 @@
 use crate::{
-	assets::AssetStorage,
-	component::EntityComponents,
+	common::{assets::AssetStorage, component::EntityComponents},
 	doom::{
 		data::{FRAME_RATE, FRAME_TIME},
 		entitytemplate::{EntityTemplate, EntityTypeId},

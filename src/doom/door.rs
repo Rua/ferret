@@ -1,6 +1,10 @@
 use crate::{
-	assets::{AssetHandle, AssetStorage},
-	audio::Sound,
+	common::{
+		assets::{AssetHandle, AssetStorage},
+		audio::Sound,
+		geometry::Side,
+		timer::Timer,
+	},
 	doom::{
 		client::{UseAction, UseEvent},
 		map::{LinedefRef, Map, MapDynamic},
@@ -8,8 +12,6 @@ use crate::{
 		sectormove::{CeilingMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
 		switch::{SwitchActive, SwitchParams},
 	},
-	geometry::Side,
-	timer::Timer,
 };
 use legion::prelude::{
 	CommandBuffer, Entity, EntityStore, IntoQuery, Resources, Runnable, SystemBuilder, Write,

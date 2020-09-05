@@ -1,4 +1,4 @@
-use crate::{assets::AssetHandle, doom::image::Image};
+use crate::{common::assets::AssetHandle, doom::image::Image};
 use derivative::Derivative;
 use nalgebra::{Vector2, Vector3};
 

@@ -1,6 +1,11 @@
 use crate::{
-	assets::{AssetHandle, AssetStorage},
-	audio::Sound,
+	common::{
+		assets::{AssetHandle, AssetStorage},
+		audio::Sound,
+		geometry::{Line2, AABB3},
+		input::{Bindings, InputState},
+		quadtree::Quadtree,
+	},
 	doom::{
 		camera::Camera,
 		components::{Transform, Velocity},
@@ -12,9 +17,6 @@ use crate::{
 		physics::{BoxCollider, EntityTracer, SolidMask},
 		plat::PlatSwitchUse,
 	},
-	geometry::{Line2, AABB3},
-	input::{Bindings, InputState},
-	quadtree::Quadtree,
 };
 use legion::prelude::{
 	Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder, Write,
@@ -121,7 +123,7 @@ pub fn player_move_system() -> Box<dyn Runnable> {
 					);
 
 					let angles = Vector3::new(0.into(), 0.into(), transform.rotation[2]);
-					let axes = crate::geometry::angles_to_axes(angles);
+					let axes = crate::common::geometry::angles_to_axes(angles);
 					let accel =
 						(axes[0] * move_dir[0] + axes[1] * move_dir[1]) * delta.as_secs_f32();
 
@@ -238,7 +240,7 @@ pub fn player_attack_system(_resources: &mut Resources) -> Box<dyn Runnable> {
 					};
 
 					const ATTACKRANGE: f32 = 2000.0;
-					let axes = crate::geometry::angles_to_axes(transform.rotation);
+					let axes = crate::common::geometry::angles_to_axes(transform.rotation);
 					let mut position = transform.position;
 
 					if let Some(camera) = world.get_component::<Camera>(client_entity) {

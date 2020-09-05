@@ -1,12 +1,14 @@
 use crate::{
-	assets::{AssetHandle, AssetStorage},
+	common::{
+		assets::{AssetHandle, AssetStorage},
+		geometry::Angle,
+		video::{
+			definition::NumberedInstanceBufferDefinition, DrawContext, DrawStep, RenderContext,
+		},
+	},
 	doom::{
 		client::Client, components::Transform, image::Image, map::MapDynamic,
 		render::world::normal_frag, sprite::Sprite,
-	},
-	geometry::Angle,
-	renderer::{
-		definition::NumberedInstanceBufferDefinition, DrawContext, DrawStep, RenderContext,
 	},
 };
 use anyhow::Context;

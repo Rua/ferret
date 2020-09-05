@@ -1,4 +1,4 @@
-use crate::assets::DataSource;
+use crate::common::assets::DataSource;
 use anyhow::{anyhow, ensure};
 use byteorder::{ReadBytesExt, LE};
 use std::{

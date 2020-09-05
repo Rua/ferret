@@ -1,5 +1,9 @@
 use crate::{
-	assets::AssetStorage,
+	common::{
+		assets::AssetStorage,
+		geometry::{Interval, Plane3, AABB2, AABB3},
+		quadtree::Quadtree,
+	},
 	doom::{
 		components::{Transform, Velocity},
 		data::{FRICTION, GRAVITY},
@@ -8,8 +12,6 @@ use crate::{
 		map::{Map, MapDynamic, NodeChild, Subsector},
 		plat::PlatTouch,
 	},
-	geometry::{Interval, Plane3, AABB2, AABB3},
-	quadtree::Quadtree,
 };
 use arrayvec::ArrayVec;
 use bitflags::bitflags;

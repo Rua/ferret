@@ -1,5 +1,8 @@
 use crate::{
-	assets::{Asset, AssetHandle, AssetStorage, DataSource},
+	common::{
+		assets::{Asset, AssetHandle, AssetStorage, DataSource},
+		geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2},
+	},
 	doom::{
 		data::anims::{AnimData, ANIMS_FLAT, ANIMS_WALL, SWITCHES},
 		map::{
@@ -10,7 +13,6 @@ use crate::{
 		physics::{CollisionPlane, SolidMask},
 		wad::WadLoader,
 	},
-	geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2},
 };
 use anyhow::{bail, ensure};
 use bitflags::bitflags;

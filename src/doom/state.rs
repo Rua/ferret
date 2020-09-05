@@ -1,4 +1,4 @@
-use crate::{doom::render::sprite::SpriteRender, timer::Timer};
+use crate::{common::timer::Timer, doom::render::sprite::SpriteRender};
 use legion::prelude::{IntoQuery, Resources, Runnable, SystemBuilder, Write};
 use std::{collections::HashMap, sync::Arc, time::Duration};
 

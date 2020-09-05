@@ -1,6 +1,6 @@
 use crate::{
+	common::input::{Axis, Bindings, Button, ButtonBinding, MouseAxis},
 	doom::input::{BoolInput, FloatInput},
-	input::{Axis, Bindings, Button, ButtonBinding, MouseAxis},
 };
 use winit::event::{MouseButton, VirtualKeyCode};
 

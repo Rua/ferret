@@ -1,4 +1,4 @@
-use crate::geometry::Angle;
+use crate::common::geometry::Angle;
 use derivative::Derivative;
 use nalgebra::Vector3;
 

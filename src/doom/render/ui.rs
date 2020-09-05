@@ -1,12 +1,14 @@
 use crate::{
-	assets::{AssetHandle, AssetStorage},
+	common::{
+		assets::{AssetHandle, AssetStorage},
+		geometry::{ortho_matrix, Interval, AABB3},
+		video::{
+			definition::NumberedInstanceBufferDefinition, DrawContext, DrawStep, RenderContext,
+		},
+	},
 	doom::{
 		image::Image,
 		ui::{UiImage, UiTransform},
-	},
-	geometry::{ortho_matrix, Interval, AABB3},
-	renderer::{
-		definition::NumberedInstanceBufferDefinition, DrawContext, DrawStep, RenderContext,
 	},
 };
 use anyhow::Context;

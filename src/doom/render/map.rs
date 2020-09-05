@@ -1,5 +1,8 @@
 use crate::{
-	assets::AssetStorage,
+	common::{
+		assets::AssetStorage,
+		video::{AsBytes, DrawContext, DrawStep},
+	},
 	doom::{
 		client::Client,
 		components::Transform,
@@ -9,7 +12,6 @@ use crate::{
 		},
 		render::world::normal_frag,
 	},
-	renderer::{AsBytes, DrawContext, DrawStep},
 };
 use anyhow::{anyhow, Context};
 use legion::prelude::{EntityStore, IntoQuery, Read, ResourceSet, Resources, World};

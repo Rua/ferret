@@ -1,4 +1,4 @@
-use crate::{
+use crate::common::{
 	assets::{Asset, DataSource},
 	component::EntityComponents,
 };

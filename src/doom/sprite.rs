@@ -1,5 +1,5 @@
 use crate::{
-	assets::{Asset, AssetHandle, AssetStorage, DataSource},
+	common::assets::{Asset, AssetHandle, AssetStorage, DataSource},
 	doom::image::Image,
 };
 use anyhow::bail;

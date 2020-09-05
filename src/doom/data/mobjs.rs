@@ -1,7 +1,6 @@
 #![allow(unused_variables)]
 use crate::{
-	assets::AssetStorage,
-	component::EntityComponents,
+	common::{assets::AssetStorage, component::EntityComponents, geometry::Angle, timer::Timer},
 	doom::{
 		camera::Camera,
 		client::User,
@@ -13,8 +12,6 @@ use crate::{
 		state::{State, StateDef},
 		wad::WadLoader,
 	},
-	geometry::Angle,
-	timer::Timer,
 };
 use legion::prelude::{ResourceSet, Resources, Write};
 use nalgebra::Vector3;

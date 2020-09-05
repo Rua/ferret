@@ -1,12 +1,10 @@
 use crate::{
-	assets::AssetHandle,
-	audio::Sound,
+	common::{assets::AssetHandle, audio::Sound, geometry::Angle},
 	doom::{
 		components::Velocity,
 		data::FRAME_RATE,
 		physics::{StepEvent, TouchEvent},
 	},
-	geometry::Angle,
 };
 use legion::prelude::{
 	Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder, Write,

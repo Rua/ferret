@@ -15,6 +15,7 @@ clap = "2.33"
 colored = "1.9"
 crossbeam-channel = "0.4.2"
 derivative = "2.1"
+downcast-rs = "1.2"
 fnv = "1.0"
 lazy_static = "1.4"
 legion = {git = "https://github.com/TomGillen/legion"}

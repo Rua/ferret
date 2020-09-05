@@ -1,5 +1,5 @@
 use crate::{
-	assets::{AssetHandle, AssetStorage},
+	common::assets::{AssetHandle, AssetStorage},
 	doom::map::{
 		textures::{Flat, TextureType, Wall},
 		LinedefFlags, Map, MapDynamic, SectorSlot, Side, SidedefSlot,

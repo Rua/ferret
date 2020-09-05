@@ -1,4 +1,4 @@
-use crate::geometry::{Interval, AABB2};
+use crate::common::geometry::{Interval, AABB2};
 use fnv::FnvHashMap;
 use legion::prelude::Entity;
 use nalgebra::Vector2;

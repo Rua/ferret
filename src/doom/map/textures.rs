@@ -1,5 +1,5 @@
 use crate::{
-	assets::{Asset, AssetFormat, AssetHandle, DataSource},
+	common::assets::{Asset, AssetFormat, AssetHandle, DataSource},
 	doom::image::{IAColor, ImageFormat, ImageRaw},
 };
 use anyhow::anyhow;

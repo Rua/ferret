@@ -1,23 +1,13 @@
-mod assets;
-mod audio;
-mod commands;
-mod component;
-mod configvars;
+mod common;
 mod doom;
-mod geometry;
-mod input;
-mod logger;
-mod quadtree;
-mod renderer;
-mod timer;
 
-use crate::{
+use crate::common::{
 	assets::{AssetHandle, AssetStorage, DataSource},
 	audio::Sound,
 	geometry::{AABB2, AABB3},
 	input::InputState,
 	quadtree::Quadtree,
-	renderer::{AsBytes, DrawList, RenderContext, RenderTarget},
+	video::{AsBytes, DrawList, RenderContext, RenderTarget},
 };
 use anyhow::{bail, Context};
 use clap::{App, Arg, ArgMatches};
@@ -72,7 +62,7 @@ fn main() -> anyhow::Result<()> {
 		)
 		.get_matches();
 
-	logger::init(&arg_matches)?;
+	common::logger::init(&arg_matches)?;
 
 	// Set up resources
 	let mut resources = Resources::default();
@@ -81,7 +71,7 @@ fn main() -> anyhow::Result<()> {
 	load_wads(&mut loader, &arg_matches)?;
 	resources.insert(loader);
 
-	let (command_sender, command_receiver) = commands::init()?;
+	let (command_sender, command_receiver) = common::commands::init()?;
 	let mut event_loop = EventLoop::new();
 
 	let (render_context, _debug_callback) =
@@ -131,7 +121,7 @@ fn main() -> anyhow::Result<()> {
 	resources.insert(render_target);
 	resources.insert(render_context);
 
-	let sound_sender = audio::init()?;
+	let sound_sender = common::audio::init()?;
 	resources.insert(sound_sender);
 
 	let bindings = doom::data::get_bindings();
@@ -328,7 +318,7 @@ fn main() -> anyhow::Result<()> {
 		// Execute console commands
 		while let Some(command) = command_receiver.try_iter().next() {
 			// Split into tokens
-			let tokens = match commands::tokenize(&command) {
+			let tokens = match common::commands::tokenize(&command) {
 				Ok(tokens) => tokens,
 				Err(e) => {
 					log::error!("Invalid syntax: {}", e);
@@ -438,7 +428,7 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 	// Load sprite images
 	{
 		let (render_context, mut asset_storage, mut source) = <(
-			Read<crate::renderer::RenderContext>,
+			Read<RenderContext>,
 			Write<AssetStorage>,
 			Write<crate::doom::wad::WadLoader>,
 		)>::fetch_mut(resources);
@@ -480,7 +470,7 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 	// Load sounds
 	{
 		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-		asset_storage.build_waiting::<audio::Sound, _>(|intermediate, _| {
+		asset_storage.build_waiting::<common::audio::Sound, _>(|intermediate, _| {
 			doom::sound::build_sound(intermediate)
 		});
 	}

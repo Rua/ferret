@@ -3,7 +3,7 @@ pub mod sprite;
 pub mod ui;
 pub mod world;
 
-use crate::renderer::{DrawList, RenderContext, RenderTarget};
+use crate::common::video::{DrawList, RenderContext, RenderTarget};
 use legion::prelude::{Read, ResourceSet, Resources, World, Write};
 
 pub fn render_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {

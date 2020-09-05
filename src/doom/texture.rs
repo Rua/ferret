@@ -1,5 +1,5 @@
 use crate::{
-	assets::AssetStorage,
+	common::assets::AssetStorage,
 	doom::map::{LinedefRef, MapDynamic},
 };
 use legion::prelude::{EntityStore, IntoQuery, Read, Runnable, SystemBuilder, Write};

@@ -1,8 +1,10 @@
 use crate::{
-	assets::{Asset, AssetHandle, AssetStorage, DataSource},
-	audio::{Sound, SoundController, SoundSource},
+	common::{
+		assets::{Asset, AssetHandle, AssetStorage, DataSource},
+		audio::{Sound, SoundController, SoundSource},
+		geometry::Angle,
+	},
 	doom::{client::Client, components::Transform},
-	geometry::Angle,
 };
 use anyhow::ensure;
 use byteorder::{ReadBytesExt, LE};
