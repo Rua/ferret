@@ -1,5 +1,5 @@
 use crate::{
-	common::assets::{Asset, AssetHandle, AssetStorage, DataSource},
+	common::assets::{Asset, AssetHandle, AssetStorage, DataSource, ImportData},
 	doom::image::Image,
 };
 use anyhow::bail;
@@ -79,10 +79,9 @@ impl SpriteBuilder {
 
 impl Asset for Sprite {
 	type Data = Self;
-	type Intermediate = SpriteBuilder;
 	const NAME: &'static str = "Sprite";
 
-	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Intermediate> {
+	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Box<dyn ImportData>> {
 		lazy_static! {
 			static ref SPRITENAME: Regex =
 				Regex::new(r#"^....[A-Z][0-9](?:[A-Z][0-9])?$"#).unwrap();
@@ -163,9 +162,11 @@ impl Asset for Sprite {
 			}
 		}
 
-		Ok(SpriteBuilder::new()
-			.with_frames(frames)
-			.with_image_names(image_names))
+		Ok(Box::new(
+			SpriteBuilder::new()
+				.with_frames(frames)
+				.with_image_names(image_names),
+		))
 	}
 }
 

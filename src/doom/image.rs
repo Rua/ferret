@@ -1,4 +1,4 @@
-use crate::common::assets::{Asset, AssetFormat, DataSource};
+use crate::common::assets::{Asset, AssetFormat, DataSource, ImportData};
 use byteorder::{ReadBytesExt, LE};
 use std::{
 	io::{Cursor, Read, Seek, SeekFrom},
@@ -35,10 +35,9 @@ impl Deref for Palette {
 
 impl Asset for Palette {
 	type Data = Self;
-	type Intermediate = Self;
 	const NAME: &'static str = "Palette";
 
-	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Intermediate> {
+	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Box<dyn ImportData>> {
 		let mut reader = Cursor::new(source.load(name)?);
 		let mut palette = [RGBAColor {
 			r: 0,
@@ -54,11 +53,11 @@ impl Asset for Palette {
 			*color = RGBAColor { r, g, b, a: 0xFF };
 		}
 
-		Ok(Palette(palette))
+		Ok(Box::new(Palette(palette)))
 	}
 }
 
-pub struct ImageRaw {
+pub struct ImageData {
 	pub data: Vec<IAColor>,
 	pub size: [usize; 2],
 	pub offset: [isize; 2],
@@ -68,7 +67,7 @@ pub struct ImageRaw {
 pub struct ImageFormat;
 
 impl AssetFormat for ImageFormat {
-	type Asset = ImageRaw;
+	type Asset = ImageData;
 
 	fn import(&self, name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(source.load(name)?);
@@ -112,7 +111,7 @@ impl AssetFormat for ImageFormat {
 			}
 		}
 
-		Ok(ImageRaw { data, size, offset })
+		Ok(ImageData { data, size, offset })
 	}
 }
 
@@ -123,10 +122,9 @@ pub struct Image {
 
 impl Asset for Image {
 	type Data = Self;
-	type Intermediate = ImageRaw;
 	const NAME: &'static str = "Image";
 
-	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Intermediate> {
-		ImageFormat.import(name, source)
+	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Box<dyn ImportData>> {
+		Ok(Box::new(ImageFormat.import(name, source)?))
 	}
 }

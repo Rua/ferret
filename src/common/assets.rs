@@ -1,4 +1,5 @@
 use derivative::Derivative;
+use downcast_rs::{impl_downcast, DowncastSync};
 use fnv::FnvHashMap;
 use std::{
 	any::{Any, TypeId},
@@ -9,10 +10,9 @@ use std::{
 
 pub trait Asset: Send + Sync + 'static {
 	type Data: Send + Sync + 'static;
-	type Intermediate: Send + Sync + 'static;
 	const NAME: &'static str;
 
-	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Intermediate>;
+	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Box<dyn ImportData>>;
 }
 
 pub struct AssetStorage {
@@ -128,7 +128,7 @@ impl AssetStorage {
 	#[inline]
 	pub fn build_waiting<
 		A: Asset,
-		F: FnMut(A::Intermediate, &mut AssetStorage) -> anyhow::Result<A::Data>,
+		F: FnMut(Box<dyn ImportData>, &mut AssetStorage) -> anyhow::Result<A::Data>,
 	>(
 		&mut self,
 		mut build_func: F,
@@ -196,7 +196,7 @@ struct AssetStorageTyped<A: Asset> {
 	assets: FnvHashMap<u64, A::Data>,
 	handles: Vec<AssetHandle<A>>,
 	names: FnvHashMap<String, WeakHandle<A>>,
-	unbuilt: Vec<(AssetHandle<A>, anyhow::Result<A::Intermediate>, String)>,
+	unbuilt: Vec<(AssetHandle<A>, anyhow::Result<Box<dyn ImportData>>, String)>,
 }
 
 #[derive(Derivative)]
@@ -278,3 +278,7 @@ pub trait DataSource: Send + Sync + 'static {
 	fn load(&self, path: &str) -> anyhow::Result<Vec<u8>>;
 	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a>;
 }
+
+pub trait ImportData: DowncastSync {}
+impl_downcast!(sync ImportData);
+impl<T: DowncastSync> ImportData for T {}

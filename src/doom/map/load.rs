@@ -1,6 +1,6 @@
 use crate::{
 	common::{
-		assets::{Asset, AssetHandle, AssetStorage, DataSource},
+		assets::{Asset, AssetHandle, AssetStorage, DataSource, ImportData},
 		geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2},
 	},
 	doom::{
@@ -41,10 +41,9 @@ pub struct GLMapData {
 
 impl Asset for Map {
 	type Data = Self;
-	type Intermediate = MapData;
 	const NAME: &'static str = "Map";
 
-	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Intermediate> {
+	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Box<dyn ImportData>> {
 		let gl_name = format!("GL_{}", name);
 
 		let gl_data = (|| -> Option<GLMapData> {
@@ -56,7 +55,7 @@ impl Asset for Map {
 			})
 		})();
 
-		Ok(MapData {
+		Ok(Box::new(MapData {
 			linedefs: source.load(&format!("{}/+{}", name, 2))?,
 			sidedefs: source.load(&format!("{}/+{}", name, 3))?,
 			vertexes: source.load(&format!("{}/+{}", name, 4))?,
@@ -65,7 +64,7 @@ impl Asset for Map {
 			nodes: source.load(&format!("{}/+{}", name, 7))?,
 			sectors: source.load(&format!("{}/+{}", name, 8))?,
 			gl_data,
-		})
+		}))
 	}
 }
 

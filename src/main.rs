@@ -417,66 +417,11 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 	log::info!("Starting map {}...", name);
 	let start_time = Instant::now();
 
-	// Load palette
-	let palette_handle: AssetHandle<doom::image::Palette> = {
-		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-		let handle = asset_storage.load("PLAYPAL");
-		asset_storage.build_waiting::<doom::image::Palette, _>(|x, _| Ok(x));
-		handle
-	};
-
 	// Load entity type data
 	log::info!("Loading entity data...");
 	doom::data::mobjs::load(resources);
 	doom::data::sectors::load(resources);
 	doom::data::linedefs::load(resources);
-
-	// Load sprite images
-	{
-		let (render_context, mut asset_storage) =
-			<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(resources);
-		asset_storage.build_waiting::<doom::sprite::Sprite, _>(|builder, asset_storage| {
-			Ok(builder.build(asset_storage)?)
-		});
-		asset_storage.build_waiting::<doom::image::Image, _>(|image_raw, asset_storage| {
-			let palette = asset_storage.get(&palette_handle).unwrap();
-			let data: Vec<_> = image_raw
-				.data
-				.into_iter()
-				.map(|pixel| {
-					if pixel.a == 0xFF {
-						palette[pixel.i as usize]
-					} else {
-						crate::doom::image::RGBAColor::default()
-					}
-				})
-				.collect();
-
-			// Create the image
-			let (image, _future) = ImmutableImage::from_iter(
-				data.as_bytes().iter().copied(),
-				Dimensions::Dim2d {
-					width: image_raw.size[0] as u32,
-					height: image_raw.size[1] as u32,
-				},
-				Format::R8G8B8A8Unorm,
-				render_context.queues().graphics.clone(),
-			)?;
-
-			Ok(crate::doom::image::Image {
-				image,
-				offset: image_raw.offset,
-			})
-		});
-	}
-
-	// Load sounds
-	{
-		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-		asset_storage.build_waiting::<common::audio::Sound, _>(|intermediate, _| {
-			doom::sound::build_sound(intermediate)
-		});
-	}
 
 	// Load map
 	log::info!("Loading map...");
@@ -484,19 +429,36 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
 		let map_handle = asset_storage.load(name);
 		asset_storage.build_waiting::<doom::map::Map, _>(|data, asset_storage| {
-			doom::map::load::build_map(data, "SKY1", asset_storage)
+			let map_data = *data.downcast().ok().unwrap();
+			doom::map::load::build_map(map_data, "SKY1", asset_storage)
 		});
 
 		map_handle
 	};
 
-	// Build flats and wall textures
+	// Load remaining assets
+	log::info!("Loading assets...");
 	{
+		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
+
+		// Palette
+		let palette_handle: AssetHandle<doom::image::Palette> = asset_storage.load("PLAYPAL");
+		asset_storage
+			.build_waiting::<doom::image::Palette, _>(|data, _| Ok(*data.downcast().ok().unwrap()));
+
+		// Sprites
 		let (render_context, mut asset_storage) =
 			<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(resources);
-		asset_storage.build_waiting::<doom::map::textures::Wall, _>(|image, asset_storage| {
+		asset_storage.build_waiting::<doom::sprite::Sprite, _>(|data, asset_storage| {
+			let sprite_builder: doom::sprite::SpriteBuilder = *data.downcast().ok().unwrap();
+			Ok(sprite_builder.build(asset_storage)?)
+		});
+
+		// Images
+		asset_storage.build_waiting::<doom::image::Image, _>(|data, asset_storage| {
+			let image_data: doom::image::ImageData = *data.downcast().ok().unwrap();
 			let palette = asset_storage.get(&palette_handle).unwrap();
-			let data: Vec<_> = image
+			let data: Vec<_> = image_data
 				.data
 				.into_iter()
 				.map(|pixel| {
@@ -512,8 +474,41 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 			let (image, _future) = ImmutableImage::from_iter(
 				data.as_bytes().iter().copied(),
 				Dimensions::Dim2d {
-					width: image.size[0] as u32,
-					height: image.size[1] as u32,
+					width: image_data.size[0] as u32,
+					height: image_data.size[1] as u32,
+				},
+				Format::R8G8B8A8Unorm,
+				render_context.queues().graphics.clone(),
+			)?;
+
+			Ok(crate::doom::image::Image {
+				image,
+				offset: image_data.offset,
+			})
+		});
+
+		// Walls
+		asset_storage.build_waiting::<doom::map::textures::Wall, _>(|data, asset_storage| {
+			let image_data: doom::image::ImageData = *data.downcast().ok().unwrap();
+			let palette = asset_storage.get(&palette_handle).unwrap();
+			let data: Vec<_> = image_data
+				.data
+				.into_iter()
+				.map(|pixel| {
+					if pixel.a == 0xFF {
+						palette[pixel.i as usize]
+					} else {
+						crate::doom::image::RGBAColor::default()
+					}
+				})
+				.collect();
+
+			// Create the image
+			let (image, _future) = ImmutableImage::from_iter(
+				data.as_bytes().iter().copied(),
+				Dimensions::Dim2d {
+					width: image_data.size[0] as u32,
+					height: image_data.size[1] as u32,
 				},
 				Format::R8G8B8A8Unorm,
 				render_context.queues().graphics.clone(),
@@ -521,9 +516,12 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 
 			Ok(image)
 		});
-		asset_storage.build_waiting::<doom::map::textures::Flat, _>(|image, asset_storage| {
+
+		// Flats
+		asset_storage.build_waiting::<doom::map::textures::Flat, _>(|data, asset_storage| {
+			let image_data: doom::image::ImageData = *data.downcast().ok().unwrap();
 			let palette = asset_storage.get(&palette_handle).unwrap();
-			let data: Vec<_> = image
+			let data: Vec<_> = image_data
 				.data
 				.into_iter()
 				.map(|pixel| {
@@ -538,8 +536,8 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 			let (image, _future) = ImmutableImage::from_iter(
 				data.as_bytes().iter().copied(),
 				Dimensions::Dim2d {
-					width: image.size[0] as u32,
-					height: image.size[1] as u32,
+					width: image_data.size[0] as u32,
+					height: image_data.size[1] as u32,
 				},
 				Format::R8G8B8A8Unorm,
 				render_context.queues().graphics.clone(),
@@ -547,6 +545,11 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 
 			Ok(image)
 		});
+
+		// Sounds
+		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
+		asset_storage
+			.build_waiting::<common::audio::Sound, _>(|data, _| Ok(*data.downcast().ok().unwrap()));
 	}
 
 	log::info!("Spawning entities...");

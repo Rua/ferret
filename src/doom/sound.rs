@@ -1,6 +1,6 @@
 use crate::{
 	common::{
-		assets::{Asset, AssetHandle, AssetStorage, DataSource},
+		assets::{Asset, AssetHandle, AssetStorage, DataSource, ImportData},
 		audio::{SoundController, SoundSource},
 		geometry::Angle,
 	},
@@ -20,40 +20,35 @@ pub use crate::common::audio::Sound;
 
 impl Asset for Sound {
 	type Data = Self;
-	type Intermediate = Vec<u8>;
 	const NAME: &'static str = "Sound";
 
-	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Intermediate> {
-		source.load(name)
+	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Box<dyn ImportData>> {
+		let mut reader = Cursor::new(source.load(name)?);
+		let signature = reader.read_u16::<LE>()?;
+
+		ensure!(signature == 3, "No Doom sound file signature found");
+
+		let sample_rate = reader.read_u16::<LE>()? as u32;
+		let sample_count = reader.read_u32::<LE>()? as usize;
+
+		// Read in the samples
+		let mut data = vec![0u8; sample_count - 32];
+		let mut padding = [0u8; 16];
+		reader.read_exact(&mut padding)?;
+		reader.read_exact(&mut data)?;
+		reader.read_exact(&mut padding)?;
+
+		// Convert to i16
+		let data = data
+			.into_iter()
+			.map(|x| ((x ^ 0x80) as i16) << 8)
+			.collect::<Vec<i16>>();
+
+		Ok(Box::new(Sound {
+			sample_rate,
+			data: data.into(),
+		}))
 	}
-}
-
-pub fn build_sound(data: Vec<u8>) -> anyhow::Result<Sound> {
-	let mut reader = Cursor::new(data);
-	let signature = reader.read_u16::<LE>()?;
-
-	ensure!(signature == 3, "No Doom sound file signature found");
-
-	let sample_rate = reader.read_u16::<LE>()? as u32;
-	let sample_count = reader.read_u32::<LE>()? as usize;
-
-	// Read in the samples
-	let mut data = vec![0u8; sample_count - 32];
-	let mut padding = [0u8; 16];
-	reader.read_exact(&mut padding)?;
-	reader.read_exact(&mut data)?;
-	reader.read_exact(&mut padding)?;
-
-	// Convert to i16
-	let data = data
-		.into_iter()
-		.map(|x| ((x ^ 0x80) as i16) << 8)
-		.collect::<Vec<i16>>();
-
-	Ok(Sound {
-		sample_rate,
-		data: data.into(),
-	})
 }
 
 pub fn sound_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
