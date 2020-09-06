@@ -12,7 +12,7 @@ pub trait Asset: Send + Sync + 'static {
 	type Data: Send + Sync + 'static;
 	const NAME: &'static str;
 
-	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Box<dyn ImportData>>;
+	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>>;
 }
 
 pub struct AssetStorage {
@@ -31,6 +31,7 @@ impl AssetStorage {
 		}
 	}
 
+	#[inline]
 	pub fn source(&self) -> &dyn DataSource {
 		&*self.source
 	}
@@ -106,23 +107,25 @@ impl AssetStorage {
 
 	#[inline]
 	pub fn load<A: Asset>(&mut self, name: &str) -> AssetHandle<A> {
-		let source = &*self.source;
-		let storage = storage_mut::<A>(&mut self.storages);
-		let handle_allocator = &mut self.handle_allocator;
-		storage
+		match storage_mut::<A>(&mut self.storages)
 			.names
 			.get(name)
 			.and_then(WeakHandle::upgrade)
-			.unwrap_or_else(|| {
-				let handle = handle_allocator.allocate();
+		{
+			Some(handle) => handle,
+			None => {
+				let handle = self.handle_allocator.allocate();
+				let intermediate = A::import(name, self);
+
+				let storage = storage_mut::<A>(&mut self.storages);
 				storage.names.insert(name.to_owned(), handle.downgrade());
-				let intermediate = A::import(name, source);
 				storage
 					.unbuilt
 					.push((handle.clone(), intermediate, name.to_owned()));
 
 				handle
-			})
+			}
+		}
 	}
 
 	#[inline]
@@ -271,7 +274,7 @@ impl HandleAllocator {
 pub trait AssetFormat: Clone {
 	type Asset;
 
-	fn import(&self, name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Asset>;
+	fn import(&self, name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Self::Asset>;
 }
 
 pub trait DataSource: Send + Sync + 'static {

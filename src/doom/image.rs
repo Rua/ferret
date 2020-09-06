@@ -1,4 +1,4 @@
-use crate::common::assets::{Asset, AssetFormat, DataSource, ImportData};
+use crate::common::assets::{Asset, AssetFormat, AssetStorage, ImportData};
 use byteorder::{ReadBytesExt, LE};
 use std::{
 	io::{Cursor, Read, Seek, SeekFrom},
@@ -37,8 +37,8 @@ impl Asset for Palette {
 	type Data = Self;
 	const NAME: &'static str = "Palette";
 
-	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Box<dyn ImportData>> {
-		let mut reader = Cursor::new(source.load(name)?);
+	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
+		let mut reader = Cursor::new(asset_storage.source().load(name)?);
 		let mut palette = [RGBAColor {
 			r: 0,
 			g: 0,
@@ -69,8 +69,8 @@ pub struct ImageFormat;
 impl AssetFormat for ImageFormat {
 	type Asset = ImageData;
 
-	fn import(&self, name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Asset> {
-		let mut reader = Cursor::new(source.load(name)?);
+	fn import(&self, name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Self::Asset> {
+		let mut reader = Cursor::new(asset_storage.source().load(name)?);
 
 		let size = [
 			reader.read_u16::<LE>()? as usize,
@@ -124,7 +124,7 @@ impl Asset for Image {
 	type Data = Self;
 	const NAME: &'static str = "Image";
 
-	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Box<dyn ImportData>> {
-		Ok(Box::new(ImageFormat.import(name, source)?))
+	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
+		Ok(Box::new(ImageFormat.import(name, asset_storage)?))
 	}
 }

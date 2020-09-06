@@ -1,5 +1,5 @@
 use crate::common::{
-	assets::{Asset, DataSource, ImportData},
+	assets::{Asset, AssetStorage, ImportData},
 	component::EntityComponents,
 };
 
@@ -13,7 +13,10 @@ impl Asset for EntityTemplate {
 	type Data = Self;
 	const NAME: &'static str = "EntityTemplate";
 
-	fn import(_name: &str, _source: &dyn DataSource) -> anyhow::Result<Box<dyn ImportData>> {
+	fn import(
+		_name: &str,
+		_asset_storage: &mut AssetStorage,
+	) -> anyhow::Result<Box<dyn ImportData>> {
 		unimplemented!();
 	}
 }

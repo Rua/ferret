@@ -1,6 +1,6 @@
 use crate::{
 	common::{
-		assets::{Asset, AssetHandle, AssetStorage, DataSource, ImportData},
+		assets::{Asset, AssetHandle, AssetStorage, ImportData},
 		audio::{SoundController, SoundSource},
 		geometry::Angle,
 	},
@@ -22,8 +22,8 @@ impl Asset for Sound {
 	type Data = Self;
 	const NAME: &'static str = "Sound";
 
-	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Box<dyn ImportData>> {
-		let mut reader = Cursor::new(source.load(name)?);
+	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
+		let mut reader = Cursor::new(asset_storage.source().load(name)?);
 		let signature = reader.read_u16::<LE>()?;
 
 		ensure!(signature == 3, "No Doom sound file signature found");

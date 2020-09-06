@@ -1,6 +1,6 @@
 use crate::{
 	common::{
-		assets::{Asset, AssetHandle, AssetStorage, DataSource, ImportData},
+		assets::{Asset, AssetHandle, AssetStorage, ImportData},
 		geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2},
 	},
 	doom::{
@@ -43,7 +43,8 @@ impl Asset for Map {
 	type Data = Self;
 	const NAME: &'static str = "Map";
 
-	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Box<dyn ImportData>> {
+	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
+		let source = asset_storage.source();
 		let gl_name = format!("GL_{}", name);
 
 		let gl_data = (|| -> Option<GLMapData> {

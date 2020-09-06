@@ -1,5 +1,5 @@
 use crate::{
-	common::assets::{Asset, AssetFormat, AssetHandle, DataSource, ImportData},
+	common::assets::{Asset, AssetFormat, AssetHandle, AssetStorage, ImportData},
 	doom::image::{IAColor, ImageData, ImageFormat},
 };
 use anyhow::anyhow;
@@ -20,8 +20,8 @@ impl Asset for Flat {
 	type Data = Arc<dyn ImageViewAccess + Send + Sync>;
 	const NAME: &'static str = "Flat";
 
-	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Box<dyn ImportData>> {
-		let mut reader = Cursor::new(source.load(name)?);
+	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
+		let mut reader = Cursor::new(asset_storage.source().load(name)?);
 		let mut pixels = [0u8; 64 * 64];
 		reader.read_exact(&mut pixels)?;
 
@@ -39,8 +39,8 @@ pub struct PNamesFormat;
 impl AssetFormat for PNamesFormat {
 	type Asset = Vec<[u8; 8]>;
 
-	fn import(&self, name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Asset> {
-		let mut reader = Cursor::new(source.load(name)?);
+	fn import(&self, name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Self::Asset> {
+		let mut reader = Cursor::new(asset_storage.source().load(name)?);
 		let count = reader.read_u32::<LE>()? as usize;
 		let mut ret = Vec::with_capacity(count);
 
@@ -61,12 +61,12 @@ impl Asset for Wall {
 	type Data = Arc<dyn ImageViewAccess + Send + Sync>;
 	const NAME: &'static str = "Wall";
 
-	fn import(name: &str, source: &dyn DataSource) -> anyhow::Result<Box<dyn ImportData>> {
-		let pnames = PNamesFormat.import("PNAMES", source)?;
-		let mut texture_info = TexturesFormat.import("TEXTURE1", source)?;
+	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
+		let pnames = PNamesFormat.import("PNAMES", asset_storage)?;
+		let mut texture_info = TexturesFormat.import("TEXTURE1", asset_storage)?;
 
 		// TODO better error handing
-		if let Ok(info) = TexturesFormat.import("TEXTURE2", source) {
+		if let Ok(info) = TexturesFormat.import("TEXTURE2", asset_storage) {
 			texture_info.extend(info);
 		}
 
@@ -83,7 +83,7 @@ impl Asset for Wall {
 			.try_for_each(|patch_info| -> anyhow::Result<()> {
 				let name =
 					String::from(str::from_utf8(&pnames[patch_info.index])?.trim_end_matches('\0'));
-				let patch = ImageFormat.import(&name, source)?;
+				let patch = ImageFormat.import(&name, asset_storage)?;
 
 				// Blit the patch onto the main image
 				let dest_start = [
@@ -146,9 +146,9 @@ pub struct TexturesFormat;
 impl AssetFormat for TexturesFormat {
 	type Asset = FnvHashMap<String, TextureInfo>;
 
-	fn import(&self, name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Asset> {
+	fn import(&self, name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Self::Asset> {
 		RawTexturesFormat
-			.import(name, source)?
+			.import(name, asset_storage)?
 			.into_iter()
 			.map(|(texture, patches)| {
 				let mut name = String::from(str::from_utf8(&texture.name)?.trim_end_matches('\0'));
@@ -193,8 +193,8 @@ pub struct RawTexturesFormat;
 impl AssetFormat for RawTexturesFormat {
 	type Asset = Vec<(RawTextureInfo, Vec<RawPatchInfo>)>;
 
-	fn import(&self, name: &str, source: &dyn DataSource) -> anyhow::Result<Self::Asset> {
-		let mut reader = Cursor::new(source.load(name)?);
+	fn import(&self, name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Self::Asset> {
+		let mut reader = Cursor::new(asset_storage.source().load(name)?);
 
 		let count = reader.read_u32::<LE>()? as usize;
 		let mut offsets = Vec::with_capacity(count);
