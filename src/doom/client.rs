@@ -18,9 +18,7 @@ use crate::{
 		plat::PlatSwitchUse,
 	},
 };
-use legion::prelude::{
-	Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder, Write,
-};
+use legion::{systems::Runnable, Entity, EntityStore, IntoQuery, Resources, SystemBuilder};
 use nalgebra::{Vector2, Vector3};
 use shrev::EventChannel;
 use std::time::Duration;
@@ -32,12 +30,12 @@ pub struct Client {
 	pub previous_command: UserCommand,
 }
 
-pub fn player_command_system() -> Box<dyn Runnable> {
+pub fn player_command_system() -> impl Runnable {
 	SystemBuilder::new("player_command_system")
 		.read_resource::<Bindings<BoolInput, FloatInput>>()
 		.read_resource::<InputState>()
 		.write_resource::<Client>()
-		.build_thread_local(move |_, _, resources, _| {
+		.build(move |_, _, resources, _| {
 			let (bindings, input_state, client) = resources;
 
 			let mut command = UserCommand {
@@ -59,24 +57,25 @@ pub fn player_command_system() -> Box<dyn Runnable> {
 		})
 }
 
-pub fn player_move_system() -> Box<dyn Runnable> {
+pub fn player_move_system() -> impl Runnable {
 	SystemBuilder::new("player_move_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
 		.read_resource::<Duration>()
 		.read_resource::<Quadtree>()
-		.read_component::<BoxCollider>()
-		.read_component::<MapDynamic>()
-		.write_component::<Transform>()
-		.write_component::<Velocity>()
-		.build_thread_local(move |_, world, resources, _| {
+		.with_query(<&mut Transform>::query())
+		.with_query(<&MapDynamic>::query())
+		.with_query(<(&Transform, &BoxCollider)>::query())
+		.with_query(<(&Transform, &mut Velocity)>::query())
+		.read_component::<BoxCollider>() // used by EntityTracer
+		.read_component::<Transform>() // used by EntityTracer
+		.build(move |_, world, resources, queries| {
 			let (asset_storage, client, delta, quadtree) = resources;
-			let (mut velocity_world, mut world) = world.split::<Write<Velocity>>();
 
 			if let Some(entity) = client.entity {
 				// Apply rotation
 				{
-					let mut transform = world.get_component_mut::<Transform>(entity).unwrap();
+					let transform = queries.0.get_mut(world, entity).unwrap();
 
 					transform.rotation[1] += (client.command.pitch * 1e6) as i32;
 					transform.rotation[1].0 =
@@ -91,23 +90,24 @@ pub fn player_move_system() -> Box<dyn Runnable> {
 						return;
 					}
 
-					let transform = world.get_component::<Transform>(entity).unwrap();
-					let map_dynamic = <Read<MapDynamic>>::query().iter(&world).next().unwrap();
+					let map_dynamic = queries.1.iter(world).next().unwrap();
 					let map = asset_storage.get(&map_dynamic.map).unwrap();
-					let box_collider = world.get_component::<BoxCollider>(entity).unwrap();
+
+					let entity_bbox = {
+						let (transform, box_collider) = queries.2.get(world, entity).unwrap();
+						AABB3::from_radius_height(box_collider.radius, box_collider.height)
+							.offset(transform.position)
+					};
 
 					let tracer = EntityTracer {
 						map,
-						map_dynamic: map_dynamic.as_ref(),
+						map_dynamic,
 						quadtree: &quadtree,
-						world: &world,
+						world,
 					};
 
-					let entity_bbox =
-						AABB3::from_radius_height(box_collider.radius, box_collider.height);
-
 					let trace = tracer.trace(
-						&entity_bbox.offset(transform.position),
+						&entity_bbox,
 						Vector3::new(0.0, 0.0, -0.25),
 						SolidMask::NON_MONSTER, // TODO solid mask
 					);
@@ -122,21 +122,20 @@ pub fn player_move_system() -> Box<dyn Runnable> {
 						client.command.strafe.max(-1.0).min(1.0) * STRAFE_ACCEL,
 					);
 
+					let (transform, velocity) = queries.3.get_mut(world, entity).unwrap();
+
 					let angles = Vector3::new(0.into(), 0.into(), transform.rotation[2]);
 					let axes = crate::common::geometry::angles_to_axes(angles);
 					let accel =
 						(axes[0] * move_dir[0] + axes[1] * move_dir[1]) * delta.as_secs_f32();
 
-					velocity_world
-						.get_component_mut::<Velocity>(entity)
-						.unwrap()
-						.velocity += accel;
+					velocity.velocity += accel;
 				}
 			}
 		})
 }
 
-pub fn player_use_system(resources: &mut Resources) -> Box<dyn Runnable> {
+pub fn player_use_system(resources: &mut Resources) -> impl Runnable {
 	resources.insert(EventChannel::<UseEvent>::new());
 
 	SystemBuilder::new("player_use_system")
@@ -144,18 +143,16 @@ pub fn player_use_system(resources: &mut Resources) -> Box<dyn Runnable> {
 		.read_resource::<Client>()
 		.write_resource::<EventChannel<UseEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
-		.read_component::<MapDynamic>()
-		.read_component::<Transform>()
+		.with_query(<(&Transform, &User)>::query())
+		.with_query(<&MapDynamic>::query())
 		.read_component::<UseAction>()
-		.read_component::<User>()
-		.build_thread_local(move |_, world, resources, _| {
+		.build(move |_, world, resources, queries| {
 			let (asset_storage, client, use_event_channel, sound_queue) = resources;
 
 			if let Some(entity) = client.entity {
 				if client.command.r#use && !client.previous_command.r#use {
-					let transform = world.get_component::<Transform>(entity).unwrap();
-					let user = world.get_component::<User>(entity).unwrap();
-					let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
+					let (transform, user) = queries.0.get(world, entity).unwrap();
+					let map_dynamic = queries.1.iter(world).next().unwrap();
 					let map = asset_storage.get(&map_dynamic.map).unwrap();
 
 					const USERANGE: f32 = 64.0;
@@ -175,8 +172,10 @@ pub fn player_use_system(resources: &mut Resources) -> Box<dyn Runnable> {
 							{
 								// Always hit a usable linedef
 								if world
-									.get_component::<UseAction>(map_dynamic.linedefs[i].entity)
-									.is_some()
+									.entry_ref(map_dynamic.linedefs[i].entity)
+									.unwrap()
+									.get_component::<UseAction>()
+									.is_ok()
 								{
 									pmax = use_p;
 									closest_linedef = Some(i);
@@ -203,7 +202,12 @@ pub fn player_use_system(resources: &mut Resources) -> Box<dyn Runnable> {
 
 						let linedef_entity = map_dynamic.linedefs[linedef_index].entity;
 
-						if world.get_component::<UseAction>(linedef_entity).is_some() {
+						if world
+							.entry_ref(linedef_entity)
+							.unwrap()
+							.get_component::<UseAction>()
+							.is_ok()
+						{
 							use_event_channel.single_write(UseEvent { linedef_entity });
 						} else {
 							sound_queue.push((user.error_sound.clone(), entity));
@@ -214,27 +218,27 @@ pub fn player_use_system(resources: &mut Resources) -> Box<dyn Runnable> {
 		})
 }
 
-pub fn player_attack_system(_resources: &mut Resources) -> Box<dyn Runnable> {
+pub fn player_attack_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("player_attack_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
 		.write_resource::<Quadtree>()
-		.read_component::<BoxCollider>()
-		.read_component::<Camera>()
-		.read_component::<MapDynamic>()
-		.read_component::<Transform>()
-		.build_thread_local(move |command_buffer, world, resources, _| {
+		.with_query(<(&Transform, Option<&Camera>)>::query())
+		.with_query(<&MapDynamic>::query())
+		.read_component::<BoxCollider>() // used by EntityTracer
+		.read_component::<Transform>() // used by EntityTracer
+		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, client, quadtree) = resources;
 
 			if let Some(client_entity) = client.entity {
 				if client.command.attack && !client.previous_command.attack {
-					let transform = world.get_component::<Transform>(client_entity).unwrap();
-					let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
+					let (transform, camera) = queries.0.get(world, client_entity).unwrap();
+					let map_dynamic = queries.1.iter(world).next().unwrap();
 					let map = asset_storage.get(&map_dynamic.map).unwrap();
 
 					let tracer = EntityTracer {
 						map,
-						map_dynamic: map_dynamic.as_ref(),
+						map_dynamic,
 						quadtree: &quadtree,
 						world,
 					};
@@ -243,7 +247,7 @@ pub fn player_attack_system(_resources: &mut Resources) -> Box<dyn Runnable> {
 					let axes = crate::common::geometry::angles_to_axes(transform.rotation);
 					let mut position = transform.position;
 
-					if let Some(camera) = world.get_component::<Camera>(client_entity) {
+					if let Some(camera) = camera {
 						position += camera.base + camera.offset;
 					}
 
@@ -254,8 +258,13 @@ pub fn player_attack_system(_resources: &mut Resources) -> Box<dyn Runnable> {
 					);
 
 					if let Some(collision) = trace.collision {
-						if world.has_component::<BoxCollider>(collision.entity) {
-							command_buffer.delete(collision.entity);
+						if world
+							.entry_ref(collision.entity)
+							.unwrap()
+							.get_component::<BoxCollider>()
+							.is_ok()
+						{
+							command_buffer.remove(collision.entity);
 							quadtree.remove(collision.entity);
 						}
 					}

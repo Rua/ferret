@@ -16,8 +16,8 @@ use crate::{
 use arrayvec::ArrayVec;
 use bitflags::bitflags;
 use lazy_static::lazy_static;
-use legion::prelude::{
-	component, Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder,
+use legion::{
+	component, systems::Runnable, Entity, EntityStore, IntoQuery, Resources, SystemBuilder,
 };
 use nalgebra::Vector3;
 use shrev::EventChannel;
@@ -27,7 +27,7 @@ use std::time::Duration;
 #[derive(Default)]
 pub struct PhysicsSystem;
 
-pub fn physics_system(resources: &mut Resources) -> Box<dyn Runnable> {
+pub fn physics_system(resources: &mut Resources) -> impl Runnable {
 	resources.insert(EventChannel::<StepEvent>::new());
 	resources.insert(EventChannel::<TouchEvent>::new());
 
@@ -37,34 +37,31 @@ pub fn physics_system(resources: &mut Resources) -> Box<dyn Runnable> {
 		.write_resource::<Quadtree>()
 		.write_resource::<EventChannel<StepEvent>>()
 		.write_resource::<EventChannel<TouchEvent>>()
-		.read_component::<BoxCollider>()
-		.read_component::<MapDynamic>()
-		.write_component::<Transform>()
-		.write_component::<Velocity>()
-		.build_thread_local(move |_, world, resources, _| {
+		.with_query(<&MapDynamic>::query())
+		.with_query(
+			<(Entity, &Transform)>::query()
+				.filter(component::<BoxCollider>() & component::<Velocity>()),
+		)
+		.with_query(<(&mut Transform, &mut Velocity, &BoxCollider)>::query())
+		.read_component::<BoxCollider>() // used by EntityTracer
+		.read_component::<Transform>() // used by EntityTracer
+		.build(move |_, world, resources, queries| {
 			let (asset_storage, delta, quadtree, step_event_channel, touch_event_channel) =
 				resources;
-			let (map_dynamic_world, mut world) = world.split::<Read<MapDynamic>>();
-			let map_dynamic = <Read<MapDynamic>>::query()
-				.iter(&map_dynamic_world)
-				.next()
-				.unwrap();
+			let (world0, mut world) = world.split_for_query(&queries.0);
+			let map_dynamic = queries.0.iter(&world0).next().unwrap();
 			let map = asset_storage.get(&map_dynamic.map).unwrap();
 
 			// Clone the mask so that transform_component is free to be borrowed during the loop
-			let entities: Vec<Entity> = <Read<Transform>>::query()
-				.filter(component::<BoxCollider>() & component::<Velocity>())
-				.iter_entities(&world)
-				.map(|(e, _)| e)
-				.collect();
+			let entities: Vec<Entity> = queries.1.iter(&world).map(|(e, _)| *e).collect();
 
 			for entity in entities {
-				let mut new_position = world.get_component::<Transform>(entity).unwrap().position;
-				let mut new_velocity = world.get_component::<Velocity>(entity).unwrap().velocity;
-				let entity_bbox = {
-					let box_collider = world.get_component::<BoxCollider>(entity).unwrap();
-					AABB3::from_radius_height(box_collider.radius, box_collider.height)
-				};
+				let (transform, velocity, box_collider) =
+					queries.2.get_mut(&mut world, entity).unwrap();
+				let mut new_position = transform.position;
+				let mut new_velocity = velocity.velocity;
+				let entity_bbox =
+					{ AABB3::from_radius_height(box_collider.radius, box_collider.height) };
 
 				let mut step_events: SmallVec<[StepEvent; 8]> = SmallVec::new();
 				let mut touch_events: SmallVec<[TouchEvent; 8]> = SmallVec::new();
@@ -77,7 +74,7 @@ pub fn physics_system(resources: &mut Resources) -> Box<dyn Runnable> {
 
 				let tracer = EntityTracer {
 					map,
-					map_dynamic: map_dynamic.as_ref(),
+					map_dynamic,
 					quadtree: &quadtree,
 					world: &world,
 				};
@@ -121,14 +118,9 @@ pub fn physics_system(resources: &mut Resources) -> Box<dyn Runnable> {
 				);
 
 				// Set new position and velocity
-				world
-					.get_component_mut::<Transform>(entity)
-					.unwrap()
-					.position = new_position;
-				world
-					.get_component_mut::<Velocity>(entity)
-					.unwrap()
-					.velocity = new_velocity;
+				let (transform, velocity, _) = queries.2.get_mut(&mut world, entity).unwrap();
+				transform.position = new_position;
+				velocity.velocity = new_velocity;
 				quadtree.insert(entity, &AABB2::from(&entity_bbox.offset(new_position)));
 
 				// Send events
@@ -510,18 +502,10 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 		self.quadtree
 			.traverse_nodes(&move_bbox2, &mut |entities: &[Entity]| {
 				for &entity in entities {
-					let transform = if let Some(val) = self.world.get_component::<Transform>(entity)
-					{
-						val
-					} else {
-						continue;
-					};
-
-					let box_collider =
-						if let Some(val) = self.world.get_component::<BoxCollider>(entity) {
-							val
-						} else {
-							continue;
+					let (transform, box_collider) =
+						match <(&Transform, &BoxCollider)>::query().get(self.world, entity) {
+							Ok(x) => x,
+							_ => continue,
 						};
 
 					let other_bbox =
@@ -622,8 +606,8 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 			world: self.world,
 		};
 
-		for (entity, (transform, box_collider)) in
-			<(Read<Transform>, Read<BoxCollider>)>::query().iter_entities(self.world)
+		for (entity, transform, box_collider) in
+			<(Entity, &Transform, &BoxCollider)>::query().iter(self.world)
 		{
 			let entity_bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height)
 				.offset(transform.position);
@@ -654,7 +638,7 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 						}
 
 						if hit_fraction <= total_fraction {
-							trace_touched.push((hit_fraction, entity));
+							trace_touched.push((hit_fraction, *entity));
 						}
 
 						break;

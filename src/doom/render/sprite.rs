@@ -13,7 +13,7 @@ use crate::{
 };
 use anyhow::Context;
 use fnv::FnvHashMap;
-use legion::prelude::{EntityStore, IntoQuery, Read, ResourceSet, Resources, World};
+use legion::{systems::ResourceSet, Entity, EntityStore, IntoQuery, Read, Resources, World};
 use nalgebra::{Matrix4, Vector2, Vector3};
 use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
@@ -80,21 +80,21 @@ impl DrawStep for DrawSprites {
 	) -> anyhow::Result<()> {
 		let (asset_storage, client, sampler) =
 			<(Read<AssetStorage>, Read<Client>, Read<Arc<Sampler>>)>::fetch(resources);
-		let camera_entity = client.entity.unwrap();
-		let camera_transform = world.get_component::<Transform>(camera_entity).unwrap();
+		let camera_entry = world.entry_ref(client.entity.unwrap()).unwrap();
+		let camera_transform = camera_entry.get_component::<Transform>().unwrap();
 
-		let map_dynamic = <Read<MapDynamic>>::query().iter(world).next().unwrap();
+		let map_dynamic = <&MapDynamic>::query().iter(world).next().unwrap();
 		let map = asset_storage.get(&map_dynamic.map).unwrap();
 
 		// Group draws into batches by texture
 		let mut batches: FnvHashMap<&AssetHandle<Image>, Vec<InstanceData>> = FnvHashMap::default();
 
-		for (entity, (sprite_render, transform)) in
-			<(Read<SpriteRender>, Read<Transform>)>::query().iter_entities(world)
+		for (entity, sprite_render, transform) in
+			<(Entity, &SpriteRender, &Transform)>::query().iter(world)
 		{
 			// Don't render the player's own sprite
 			if let Some(view_entity) = client.entity {
-				if entity == view_entity {
+				if *entity == view_entity {
 					continue;
 				}
 			}

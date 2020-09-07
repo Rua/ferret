@@ -9,8 +9,9 @@ use crate::{
 		LinedefRef, Map, MapDynamic, SidedefSlot,
 	},
 };
-use legion::prelude::{
-	CommandBuffer, Entity, EntityStore, IntoQuery, Read, Runnable, SystemBuilder, Write,
+use legion::{
+	systems::{CommandBuffer, Runnable},
+	Entity, IntoQuery, SystemBuilder,
 };
 use std::time::Duration;
 
@@ -28,28 +29,26 @@ pub struct SwitchActive {
 	pub timer: Timer,
 }
 
-pub fn switch_active_system() -> Box<dyn Runnable> {
+pub fn switch_active_system() -> impl Runnable {
 	SystemBuilder::new("switch_active_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Duration>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
-		.with_query(<(Read<LinedefRef>, Write<SwitchActive>)>::query())
-		.write_component::<MapDynamic>()
-		.build_thread_local(move |command_buffer, world, resources, query| {
+		.with_query(<(Entity, &LinedefRef, &mut SwitchActive)>::query())
+		.with_query(<&mut MapDynamic>::query())
+		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, delta, sound_queue) = resources;
-			let (mut query_world, mut world) = world.split_for_query(&query);
-			let (mut map_dynamic_world, _world) = world.split::<Write<MapDynamic>>();
 
-			for (entity, (linedef_ref, mut switch_active)) in
-				query.iter_entities_mut(&mut query_world)
-			{
+			let (mut world0, mut world) = world.split_for_query(&queries.0);
+
+			for (entity, linedef_ref, switch_active) in queries.0.iter_mut(&mut world0) {
 				switch_active.timer.tick(**delta);
 
 				if switch_active.timer.is_zero() {
-					let mut map_dynamic = map_dynamic_world
-						.get_component_mut::<MapDynamic>(linedef_ref.map_entity)
+					let map_dynamic = queries
+						.1
+						.get_mut(&mut world, linedef_ref.map_entity)
 						.unwrap();
-					let map_dynamic = map_dynamic.as_mut();
 					let linedef_dynamic = &mut map_dynamic.linedefs[linedef_ref.index];
 					let sidedef_dynamic = linedef_dynamic.sidedefs[0].as_mut().unwrap();
 					let map = asset_storage.get(&map_dynamic.map).unwrap();
@@ -64,7 +63,7 @@ pub fn switch_active_system() -> Box<dyn Runnable> {
 						sound_queue.push((sound.clone(), sector_entity));
 					}
 
-					command_buffer.remove_component::<SwitchActive>(entity);
+					command_buffer.remove_component::<SwitchActive>(*entity);
 				}
 			}
 		})

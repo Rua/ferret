@@ -12,7 +12,7 @@ use crate::{
 		state::{State, StateDef},
 	},
 };
-use legion::prelude::{ResourceSet, Resources, Write};
+use legion::{systems::ResourceSet, Resources, Write};
 use nalgebra::Vector3;
 use std::{collections::HashMap, default::Default, sync::Arc, time::Duration};
 

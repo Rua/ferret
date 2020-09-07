@@ -13,8 +13,10 @@ use crate::{
 		switch::{SwitchActive, SwitchParams},
 	},
 };
-use legion::prelude::{
-	CommandBuffer, Entity, EntityStore, IntoQuery, Resources, Runnable, SystemBuilder, Write,
+use legion::{
+	component,
+	systems::{CommandBuffer, Runnable},
+	Entity, EntityStore, IntoQuery, Resources, SystemBuilder,
 };
 use shrev::EventChannel;
 use std::time::Duration;
@@ -54,7 +56,7 @@ pub struct DoorParams {
 	pub close_sound: Option<AssetHandle<Sound>>,
 }
 
-pub fn door_active_system(resources: &mut Resources) -> Box<dyn Runnable> {
+pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
 	let mut sector_move_event_reader = resources
 		.get_mut::<EventChannel<SectorMoveEvent>>()
 		.unwrap()
@@ -64,12 +66,11 @@ pub fn door_active_system(resources: &mut Resources) -> Box<dyn Runnable> {
 		.read_resource::<Duration>()
 		.read_resource::<EventChannel<SectorMoveEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
-		.with_query(<(Write<CeilingMove>, Write<DoorActive>)>::query())
-		.write_component::<MapDynamic>()
-		.build_thread_local(move |command_buffer, world, resources, query| {
+		.with_query(<(Entity, &mut CeilingMove, &mut DoorActive)>::query())
+		.build(move |command_buffer, world, resources, query| {
 			let (delta, sector_move_event_channel, sound_queue) = resources;
 
-			for (entity, (mut ceiling_move, mut door_active)) in query.iter_entities_mut(world) {
+			for (entity, ceiling_move, mut door_active) in query.iter_mut(world) {
 				let sector_move = &mut ceiling_move.0;
 
 				if sector_move.velocity != 0.0 {
@@ -92,28 +93,21 @@ pub fn door_active_system(resources: &mut Resources) -> Box<dyn Runnable> {
 					};
 
 					if let Some(sound) = sound {
-						sound_queue.push((sound.clone(), entity));
+						sound_queue.push((sound.clone(), *entity));
 					}
 				}
 			}
-
-			let (mut ceiling_move_world, mut world) = world.split::<Write<CeilingMove>>();
-			let (mut door_active_world, _world) = world.split::<Write<DoorActive>>();
 
 			for event in sector_move_event_channel
 				.read(&mut sector_move_event_reader)
 				.filter(|e| e.normal == -1.0)
 			{
-				let ceiling_move =
-					ceiling_move_world.get_component_mut::<CeilingMove>(event.entity);
-				let door_active = door_active_world.get_component_mut::<DoorActive>(event.entity);
+				let (ceiling_move, door_active) = match query.get_mut(world, event.entity) {
+					Ok((_, ceiling_move, door_active)) => (ceiling_move, door_active),
+					_ => continue,
+				};
 
-				if ceiling_move.is_none() || door_active.is_none() {
-					continue;
-				}
-
-				let sector_move = &mut ceiling_move.unwrap().0;
-				let mut door_active = door_active.unwrap();
+				let sector_move = &mut ceiling_move.0;
 
 				if sector_move.velocity == 0.0 {
 					continue;
@@ -166,7 +160,7 @@ pub struct DoorUse {
 	pub retrigger: bool,
 }
 
-pub fn door_use_system(resources: &mut Resources) -> Box<dyn Runnable> {
+pub fn door_use_system(resources: &mut Resources) -> impl Runnable {
 	let mut use_event_reader = resources
 		.get_mut::<EventChannel<UseEvent>>()
 		.unwrap()
@@ -175,75 +169,66 @@ pub fn door_use_system(resources: &mut Resources) -> Box<dyn Runnable> {
 	SystemBuilder::new("door_use_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<EventChannel<UseEvent>>()
-		.read_component::<LinedefRef>()
-		.read_component::<MapDynamic>()
-		.read_component::<UseAction>()
-		.write_component::<CeilingMove>()
-		.write_component::<DoorActive>()
-		.build_thread_local(move |command_buffer, world, resources, _| {
+		.with_query(<(&LinedefRef, &UseAction)>::query())
+		.with_query(<&MapDynamic>::query())
+		.with_query(<(&mut CeilingMove, &mut DoorActive)>::query())
+		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, use_event_channel) = resources;
-			let (mut ceiling_move_world, mut world) = world.split::<Write<CeilingMove>>();
-			let (mut door_active_world, world) = world.split::<Write<DoorActive>>();
+			let (mut world2, world) = world.split_for_query(&queries.2);
 
 			for use_event in use_event_channel.read(&mut use_event_reader) {
-				let linedef_ref = world
-					.get_component::<LinedefRef>(use_event.linedef_entity)
-					.unwrap();
-				let map_dynamic = world
-					.get_component::<MapDynamic>(linedef_ref.map_entity)
-					.unwrap();
+				let (linedef_ref, door_use) = match queries.0.get(&world, use_event.linedef_entity)
+				{
+					Ok((linedef_ref, UseAction::DoorUse(door_use))) => (linedef_ref, door_use),
+					_ => continue,
+				};
+
+				let map_dynamic = queries.1.get(&world, linedef_ref.map_entity).unwrap();
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 				let linedef = &map.linedefs[linedef_ref.index];
 
-				if let Some(UseAction::DoorUse(door_use)) = world
-					.get_component::<UseAction>(use_event.linedef_entity)
-					.as_deref()
-				{
-					if let Some(back_sidedef) = &linedef.sidedefs[Side::Left as usize] {
-						let sector_index = back_sidedef.sector_index;
-						let sector_entity = map_dynamic.sectors[sector_index].entity;
-
-						let ceiling_move =
-							ceiling_move_world.get_component_mut::<CeilingMove>(sector_entity);
-						let door_active =
-							door_active_world.get_component_mut::<DoorActive>(sector_entity);
-
-						if let (Some(mut ceiling_move), Some(mut door_active)) =
-							(ceiling_move, door_active)
-						{
-							let sector_move = &mut ceiling_move.0;
-
-							if door_use.params.can_reverse {
-								door_active.wait_timer.set_zero();
-								sector_move.velocity = 0.0;
-
-								if sector_move.velocity < 0.0
-									|| sector_move.velocity == 0.0
-										&& sector_move.target == door_active.close_height
-								{
-									// Re-open the door
-									door_active.state = DoorState::Closed;
-								} else {
-									// Close the door early
-									door_active.state = DoorState::Open;
-								}
-							}
-						} else {
-							activate(
-								&door_use.params,
-								command_buffer,
-								sector_index,
-								&map,
-								&map_dynamic,
-							);
-
-							if !door_use.retrigger {
-								command_buffer
-									.remove_component::<UseAction>(use_event.linedef_entity);
-							}
-						}
-					} else {
+				let back_sidedef = match &linedef.sidedefs[Side::Left as usize] {
+					Some(back_sidedef) => back_sidedef,
+					_ => {
 						log::error!("Used door linedef {} has no back sector", linedef_ref.index);
+						continue;
+					}
+				};
+
+				let sector_index = back_sidedef.sector_index;
+				let sector_entity = map_dynamic.sectors[sector_index].entity;
+
+				if let Ok((ceiling_move, door_active)) =
+					queries.2.get_mut(&mut world2, sector_entity)
+				{
+					let sector_move = &mut ceiling_move.0;
+
+					if door_use.params.can_reverse {
+						door_active.wait_timer.set_zero();
+						sector_move.velocity = 0.0;
+
+						if sector_move.velocity < 0.0
+							|| sector_move.velocity == 0.0
+								&& sector_move.target == door_active.close_height
+						{
+							// Re-open the door
+							door_active.state = DoorState::Closed;
+						} else {
+							// Close the door early
+							door_active.state = DoorState::Open;
+						}
+					}
+				} else {
+					activate(
+						&door_use.params,
+						command_buffer,
+						sector_index,
+						&map,
+						&map_dynamic,
+					);
+
+					if !door_use.retrigger {
+						command_buffer.remove_component::<UseAction>(use_event.linedef_entity);
 					}
 				}
 			}
@@ -256,7 +241,7 @@ pub struct DoorSwitchUse {
 	pub switch_params: SwitchParams,
 }
 
-pub fn door_switch_system(resources: &mut Resources) -> Box<dyn Runnable> {
+pub fn door_switch_system(resources: &mut Resources) -> impl Runnable {
 	let mut use_event_reader = resources
 		.get_mut::<EventChannel<UseEvent>>()
 		.unwrap()
@@ -266,56 +251,50 @@ pub fn door_switch_system(resources: &mut Resources) -> Box<dyn Runnable> {
 		.read_resource::<AssetStorage>()
 		.read_resource::<EventChannel<UseEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
+		.with_query(<(&LinedefRef, &UseAction)>::query().filter(!component::<SwitchActive>()))
+		.with_query(<&mut MapDynamic>::query())
 		.read_component::<DoorActive>() // used by activate_with_tag
-		.read_component::<LinedefRef>()
-		.read_component::<SwitchActive>()
-		.read_component::<UseAction>()
-		.write_component::<MapDynamic>()
-		.build_thread_local(move |command_buffer, world, resources, _| {
+		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, use_event_channel, sound_queue) = resources;
-			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
+			let (mut world1, world) = world.split_for_query(&queries.1);
 
 			for use_event in use_event_channel.read(&mut use_event_reader) {
-				let linedef_ref = world
-					.get_component::<LinedefRef>(use_event.linedef_entity)
-					.unwrap();
-				let mut map_dynamic = map_dynamic_world
-					.get_component_mut::<MapDynamic>(linedef_ref.map_entity)
+				let (linedef_ref, door_switch_use) =
+					match queries.0.get(&world, use_event.linedef_entity) {
+						Ok((linedef_ref, UseAction::DoorSwitchUse(door_switch_use))) => {
+							(linedef_ref, door_switch_use)
+						}
+						_ => continue,
+					};
+
+				let map_dynamic = queries
+					.1
+					.get_mut(&mut world1, linedef_ref.map_entity)
 					.unwrap();
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 				let linedef = &map.linedefs[linedef_ref.index];
 
-				if let Some(UseAction::DoorSwitchUse(door_use)) = world
-					.get_component::<UseAction>(use_event.linedef_entity)
-					.as_deref()
-				{
-					// Skip if switch is already in active state
-					if world.has_component::<SwitchActive>(use_event.linedef_entity) {
-						continue;
-					}
+				let activated = activate_with_tag(
+					&door_switch_use.params,
+					command_buffer,
+					linedef.sector_tag,
+					&world,
+					map,
+					map_dynamic,
+				);
 
-					let activated = activate_with_tag(
-						&door_use.params,
+				if activated {
+					crate::doom::switch::activate(
+						&door_switch_use.switch_params,
 						command_buffer,
-						linedef.sector_tag,
-						&world,
+						sound_queue.as_mut(),
+						linedef_ref.index,
 						map,
-						map_dynamic.as_ref(),
+						map_dynamic,
 					);
 
-					if activated {
-						crate::doom::switch::activate(
-							&door_use.switch_params,
-							command_buffer,
-							sound_queue.as_mut(),
-							linedef_ref.index,
-							map,
-							map_dynamic.as_mut(),
-						);
-
-						if door_use.switch_params.retrigger_time.is_none() {
-							command_buffer.remove_component::<UseAction>(use_event.linedef_entity);
-						}
+					if door_switch_use.switch_params.retrigger_time.is_none() {
+						command_buffer.remove_component::<UseAction>(use_event.linedef_entity);
 					}
 				}
 			}
@@ -328,7 +307,7 @@ pub struct DoorTouch {
 	pub retrigger: bool,
 }
 
-pub fn door_touch_system(resources: &mut Resources) -> Box<dyn Runnable> {
+pub fn door_touch_system(resources: &mut Resources) -> impl Runnable {
 	let mut touch_event_reader = resources
 		.get_mut::<EventChannel<TouchEvent>>()
 		.unwrap()
@@ -337,51 +316,46 @@ pub fn door_touch_system(resources: &mut Resources) -> Box<dyn Runnable> {
 	SystemBuilder::new("door_touch_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<EventChannel<TouchEvent>>()
+		.with_query(<(&LinedefRef, &TouchAction)>::query())
+		.with_query(<&mut MapDynamic>::query())
 		.read_component::<DoorActive>() // used by activate_with_tag
-		.read_component::<LinedefRef>()
-		.read_component::<TouchAction>()
-		.write_component::<MapDynamic>()
-		.build_thread_local(move |command_buffer, world, resources, _| {
+		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, touch_event_channel) = resources;
-			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
+
+			let (mut world0, mut world) = world.split_for_query(&queries.0);
+			let (mut world1, world) = world.split_for_query(&queries.1);
 
 			for touch_event in touch_event_channel.read(&mut touch_event_reader) {
 				if touch_event.collision.is_some() {
 					continue;
 				}
 
-				let linedef_ref = if let Some(linedef_ref) =
-					world.get_component::<LinedefRef>(touch_event.touched)
-				{
-					linedef_ref
-				} else {
-					continue;
-				};
-				let map_dynamic = map_dynamic_world
-					.get_component_mut::<MapDynamic>(linedef_ref.map_entity)
+				let (linedef_ref, door_touch) =
+					match queries.0.get_mut(&mut world0, touch_event.touched) {
+						Ok((linedef_ref, TouchAction::DoorTouch(door_touch))) => {
+							(linedef_ref, door_touch)
+						}
+						_ => continue,
+					};
+
+				let map_dynamic = queries
+					.1
+					.get_mut(&mut world1, linedef_ref.map_entity)
 					.unwrap();
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 				let linedef = &map.linedefs[linedef_ref.index];
 
-				match world
-					.get_component::<TouchAction>(touch_event.touched)
-					.as_deref()
-				{
-					Some(TouchAction::DoorTouch(door_touch)) => {
-						if activate_with_tag(
-							&door_touch.params,
-							command_buffer,
-							linedef.sector_tag,
-							&world,
-							map,
-							map_dynamic.as_ref(),
-						) {
-							if !door_touch.retrigger {
-								command_buffer.remove_component::<TouchAction>(touch_event.touched);
-							}
-						}
+				if activate_with_tag(
+					&door_touch.params,
+					command_buffer,
+					linedef.sector_tag,
+					&world,
+					map,
+					map_dynamic,
+				) {
+					if !door_touch.retrigger {
+						command_buffer.remove_component::<TouchAction>(touch_event.touched);
 					}
-					_ => {}
 				}
 			}
 		})
@@ -451,7 +425,12 @@ fn activate_with_tag<W: EntityStore>(
 	{
 		let sector_entity = map_dynamic.sectors[sector_index].entity;
 
-		if world.has_component::<DoorActive>(sector_entity) {
+		if world
+			.entry_ref(sector_entity)
+			.unwrap()
+			.get_component::<DoorActive>()
+			.is_ok()
+		{
 			continue;
 		}
 

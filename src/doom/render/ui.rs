@@ -13,7 +13,7 @@ use crate::{
 };
 use anyhow::Context;
 use fnv::FnvHashMap;
-use legion::prelude::{IntoQuery, Read, ResourceSet, Resources, World};
+use legion::{systems::ResourceSet, IntoQuery, Read, Resources, World};
 use nalgebra::{Vector2, Vector3};
 use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
@@ -132,7 +132,7 @@ impl DrawStep for DrawUi {
 		// Group draws into batches by texture
 		let mut batches: FnvHashMap<AssetHandle<Image>, Vec<InstanceData>> = FnvHashMap::default();
 
-		for (ui_image, ui_transform) in <(Read<UiImage>, Read<UiTransform>)>::query().iter(world) {
+		for (ui_image, ui_transform) in <(&UiImage, &UiTransform)>::query().iter(world) {
 			// Set up instance data
 			let image = asset_storage.get(&ui_image.image).unwrap();
 			let position = Vector3::new(

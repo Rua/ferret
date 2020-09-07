@@ -6,7 +6,7 @@ use crate::{
 		light::{LightFlash, LightFlashType, LightGlow},
 	},
 };
-use legion::prelude::{ResourceSet, Resources, Write};
+use legion::{systems::ResourceSet, Resources, Write};
 
 #[rustfmt::skip]
 pub fn load(resources: &mut Resources) {

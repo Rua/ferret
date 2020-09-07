@@ -21,8 +21,9 @@ use crate::{
 use anyhow::bail;
 use bitflags::bitflags;
 use fnv::FnvHashMap;
-use legion::prelude::{
-	CommandBuffer, Entity, IntoQuery, Read, ResourceSet, Resources, World, Write,
+use legion::{
+	systems::{CommandBuffer, ResourceSet},
+	Entity, IntoQuery, Read, Resources, World,
 };
 use nalgebra::{Vector2, Vector3};
 use serde::Deserialize;
@@ -312,7 +313,7 @@ pub fn spawn_things(
 		};
 
 		// Create entity and add components
-		let entity = command_buffer.insert((), vec![()])[0];
+		let entity = command_buffer.push(());
 		template
 			.components
 			.add_to_entity(entity, &mut command_buffer);
@@ -333,13 +334,13 @@ pub fn spawn_things(
 		);
 	}
 
-	command_buffer.write(world);
+	command_buffer.flush(world);
 
 	// TODO very ugly way to do it
-	for (entity, (spawn_on_ceiling, mut transform)) in
-		<(Read<SpawnOnCeiling>, Write<Transform>)>::query().iter_entities_mut(world)
+	for (entity, spawn_on_ceiling, transform) in
+		<(Entity, &SpawnOnCeiling, &mut Transform)>::query().iter_mut(world)
 	{
-		command_buffer.remove_component::<SpawnOnCeiling>(entity);
+		command_buffer.remove_component::<SpawnOnCeiling>(*entity);
 
 		let map = asset_storage.get(&map_handle).unwrap();
 		let position = Vector2::new(transform.position[0], transform.position[1]);
@@ -348,7 +349,7 @@ pub fn spawn_things(
 		transform.position[2] = sector.interval.max - spawn_on_ceiling.offset;
 	}
 
-	command_buffer.write(world);
+	command_buffer.flush(world);
 	Ok(())
 }
 
@@ -356,7 +357,7 @@ pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Res
 	let mut command_buffer = CommandBuffer::new(world);
 
 	// Get spawn point transform
-	let transform = <(Read<Transform>, Read<SpawnPoint>)>::query()
+	let transform = <(&Transform, &SpawnPoint)>::query()
 		.iter(world)
 		.find_map(|(t, s)| if s.player_num == 1 { Some(*t) } else { None })
 		.unwrap();
@@ -369,13 +370,13 @@ pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Res
 	};
 
 	// Create entity and add components
-	let entity = command_buffer.insert((), vec![()])[0];
+	let entity = command_buffer.push(());
 	template
 		.components
 		.add_to_entity(entity, &mut command_buffer);
 	command_buffer.add_component(entity, transform);
 
-	command_buffer.write(world);
+	command_buffer.flush(world);
 
 	Ok(entity)
 }
@@ -390,7 +391,7 @@ pub fn spawn_map_entities(
 	let map = asset_storage.get(&map_handle).unwrap();
 
 	// Create map entity
-	let map_entity = command_buffer.insert((), vec![()])[0];
+	let map_entity = command_buffer.push(());
 	let anim_states_flat = map
 		.anims_flat
 		.iter()
@@ -429,7 +430,7 @@ pub fn spawn_map_entities(
 	// Create linedef entities
 	for (i, linedef) in map.linedefs.iter().enumerate() {
 		// Create entity and set reference
-		let entity = command_buffer.insert((), vec![()])[0];
+		let entity = command_buffer.push(());
 		let sidedefs = [
 			linedef.sidedefs[0].as_ref().map(|sidedef| SidedefDynamic {
 				textures: sidedef.textures.clone(),
@@ -481,7 +482,7 @@ pub fn spawn_map_entities(
 	// Create sector entities
 	for (i, sector) in map.sectors.iter().enumerate() {
 		// Create entity and set reference
-		let entity = command_buffer.insert((), vec![()])[0];
+		let entity = command_buffer.push(());
 		map_dynamic.sectors.push(SectorDynamic {
 			entity,
 			light_level: sector.light_level,
@@ -545,6 +546,6 @@ pub fn spawn_map_entities(
 	}
 
 	command_buffer.add_component(map_entity, map_dynamic);
-	command_buffer.write(world);
+	command_buffer.flush(world);
 	Ok(())
 }

@@ -1,5 +1,5 @@
 use crate::{common::timer::Timer, doom::render::sprite::SpriteRender};
-use legion::prelude::{IntoQuery, Resources, Runnable, SystemBuilder, Write};
+use legion::{systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
 #[derive(Clone, Debug)]
@@ -22,14 +22,14 @@ pub struct StateDef {
 	pub next: Option<(Duration, Option<String>)>,
 }
 
-pub fn state_system(_resources: &mut Resources) -> Box<dyn Runnable> {
+pub fn state_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("state_system")
 		.read_resource::<Duration>()
-		.with_query(<(Write<SpriteRender>, Write<State>)>::query())
-		.build_thread_local(move |command_buffer, world, resources, query| {
+		.with_query(<(Entity, &mut SpriteRender, &mut State)>::query())
+		.build(move |command_buffer, world, resources, query| {
 			let delta = resources;
 
-			for (entity, (mut sprite_render, mut state)) in query.iter_entities_mut(world) {
+			for (entity, sprite_render, state) in query.iter_mut(world) {
 				let state = &mut *state;
 
 				if let Some((timer, next)) = &mut state.next {
@@ -53,7 +53,7 @@ pub fn state_system(_resources: &mut Resources) -> Box<dyn Runnable> {
 							}
 						} else {
 							// Delete the entity if the next state is None
-							command_buffer.delete(entity);
+							command_buffer.remove(*entity);
 							break;
 						}
 					}

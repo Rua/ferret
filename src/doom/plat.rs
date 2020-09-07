@@ -13,8 +13,10 @@ use crate::{
 		switch::{SwitchActive, SwitchParams},
 	},
 };
-use legion::prelude::{
-	CommandBuffer, Entity, EntityStore, IntoQuery, Resources, Runnable, SystemBuilder, Write,
+use legion::{
+	component,
+	systems::{CommandBuffer, Runnable},
+	Entity, EntityStore, IntoQuery, Resources, SystemBuilder,
 };
 use shrev::EventChannel;
 use std::time::Duration;
@@ -55,7 +57,7 @@ pub enum PlatTargetHeight {
 	LowestNeighbourFloor,
 }
 
-pub fn plat_active_system(resources: &mut Resources) -> Box<dyn Runnable> {
+pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
 	let mut sector_move_event_reader = resources
 		.get_mut::<EventChannel<SectorMoveEvent>>()
 		.unwrap()
@@ -65,14 +67,13 @@ pub fn plat_active_system(resources: &mut Resources) -> Box<dyn Runnable> {
 		.read_resource::<Duration>()
 		.read_resource::<EventChannel<SectorMoveEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
-		.with_query(<(Write<FloorMove>, Write<PlatActive>)>::query())
+		.with_query(<(Entity, &mut FloorMove, &mut PlatActive)>::query())
 		.read_component::<BoxCollider>() // used by SectorTracer
-		.write_component::<MapDynamic>()
-		.write_component::<Transform>()
-		.build_thread_local(move |command_buffer, world, resources, query| {
+		.read_component::<Transform>() // used by SectorTracer
+		.build(move |command_buffer, world, resources, query| {
 			let (delta, sector_move_event_channel, sound_queue) = resources;
 
-			for (entity, (mut floor_move, mut plat_active)) in query.iter_entities_mut(world) {
+			for (entity, floor_move, plat_active) in query.iter_mut(world) {
 				let sector_move = &mut floor_move.0;
 
 				if sector_move.velocity != 0.0 {
@@ -83,7 +84,7 @@ pub fn plat_active_system(resources: &mut Resources) -> Box<dyn Runnable> {
 
 				if plat_active.wait_timer.is_zero() {
 					if let Some(sound) = &plat_active.start_sound {
-						sound_queue.push((sound.clone(), entity));
+						sound_queue.push((sound.clone(), *entity));
 					}
 
 					if sector_move.target == plat_active.low_height {
@@ -96,22 +97,16 @@ pub fn plat_active_system(resources: &mut Resources) -> Box<dyn Runnable> {
 				}
 			}
 
-			let (mut floor_move_world, mut world) = world.split::<Write<FloorMove>>();
-			let (mut plat_active_world, _world) = world.split::<Write<PlatActive>>();
-
 			for event in sector_move_event_channel
 				.read(&mut sector_move_event_reader)
 				.filter(|e| e.normal == 1.0)
 			{
-				let floor_move = floor_move_world.get_component_mut::<FloorMove>(event.entity);
-				let plat_active = plat_active_world.get_component_mut::<PlatActive>(event.entity);
+				let (floor_move, plat_active) = match query.get_mut(world, event.entity) {
+					Ok((_, floor_move, plat_active)) => (floor_move, plat_active),
+					_ => continue,
+				};
 
-				if floor_move.is_none() || plat_active.is_none() {
-					continue;
-				}
-
-				let sector_move = &mut floor_move.unwrap().0;
-				let mut plat_active = plat_active.unwrap();
+				let sector_move = &mut floor_move.0;
 
 				if sector_move.velocity == 0.0 {
 					continue;
@@ -158,7 +153,7 @@ pub struct PlatSwitchUse {
 	pub switch_params: SwitchParams,
 }
 
-pub fn plat_switch_system(resources: &mut Resources) -> Box<dyn Runnable> {
+pub fn plat_switch_system(resources: &mut Resources) -> impl Runnable {
 	let mut use_event_reader = resources
 		.get_mut::<EventChannel<UseEvent>>()
 		.unwrap()
@@ -168,56 +163,50 @@ pub fn plat_switch_system(resources: &mut Resources) -> Box<dyn Runnable> {
 		.read_resource::<AssetStorage>()
 		.read_resource::<EventChannel<UseEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
+		.with_query(<(&LinedefRef, &UseAction)>::query().filter(!component::<SwitchActive>()))
+		.with_query(<&mut MapDynamic>::query())
 		.read_component::<PlatActive>() // used by activate_with_tag
-		.read_component::<LinedefRef>()
-		.read_component::<SwitchActive>()
-		.read_component::<UseAction>()
-		.write_component::<MapDynamic>()
-		.build_thread_local(move |command_buffer, world, resources, _| {
+		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, use_event_channel, sound_queue) = resources;
-			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
+			let (mut world1, world) = world.split_for_query(&queries.1);
 
 			for use_event in use_event_channel.read(&mut use_event_reader) {
-				let linedef_ref = world
-					.get_component::<LinedefRef>(use_event.linedef_entity)
-					.unwrap();
-				let mut map_dynamic = map_dynamic_world
-					.get_component_mut::<MapDynamic>(linedef_ref.map_entity)
+				let (linedef_ref, plat_switch_use) =
+					match queries.0.get(&world, use_event.linedef_entity) {
+						Ok((linedef_ref, UseAction::PlatSwitchUse(plat_switch_use))) => {
+							(linedef_ref, plat_switch_use)
+						}
+						_ => continue,
+					};
+
+				let map_dynamic = queries
+					.1
+					.get_mut(&mut world1, linedef_ref.map_entity)
 					.unwrap();
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 				let linedef = &map.linedefs[linedef_ref.index];
 
-				if let Some(UseAction::PlatSwitchUse(plat_use)) = world
-					.get_component::<UseAction>(use_event.linedef_entity)
-					.as_deref()
-				{
-					// Skip if switch is already in active state
-					if world.has_component::<SwitchActive>(use_event.linedef_entity) {
-						continue;
-					}
+				let activated = activate_with_tag(
+					&plat_switch_use.params,
+					command_buffer,
+					linedef.sector_tag,
+					&world,
+					map,
+					map_dynamic,
+				);
 
-					let activated = activate_with_tag(
-						&plat_use.params,
+				if activated {
+					crate::doom::switch::activate(
+						&plat_switch_use.switch_params,
 						command_buffer,
-						linedef.sector_tag,
-						&world,
+						sound_queue.as_mut(),
+						linedef_ref.index,
 						map,
-						map_dynamic.as_ref(),
+						map_dynamic,
 					);
 
-					if activated {
-						crate::doom::switch::activate(
-							&plat_use.switch_params,
-							command_buffer,
-							sound_queue.as_mut(),
-							linedef_ref.index,
-							map,
-							map_dynamic.as_mut(),
-						);
-
-						if plat_use.switch_params.retrigger_time.is_none() {
-							command_buffer.remove_component::<UseAction>(use_event.linedef_entity);
-						}
+					if plat_switch_use.switch_params.retrigger_time.is_none() {
+						command_buffer.remove_component::<UseAction>(use_event.linedef_entity);
 					}
 				}
 			}
@@ -230,7 +219,7 @@ pub struct PlatTouch {
 	pub retrigger: bool,
 }
 
-pub fn plat_touch_system(resources: &mut Resources) -> Box<dyn Runnable> {
+pub fn plat_touch_system(resources: &mut Resources) -> impl Runnable {
 	let mut touch_event_reader = resources
 		.get_mut::<EventChannel<TouchEvent>>()
 		.unwrap()
@@ -239,51 +228,46 @@ pub fn plat_touch_system(resources: &mut Resources) -> Box<dyn Runnable> {
 	SystemBuilder::new("plat_touch_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<EventChannel<TouchEvent>>()
+		.with_query(<(&LinedefRef, &TouchAction)>::query())
+		.with_query(<&mut MapDynamic>::query())
 		.read_component::<PlatActive>() // used by activate_with_tag
-		.read_component::<LinedefRef>()
-		.read_component::<TouchAction>()
-		.write_component::<MapDynamic>()
-		.build_thread_local(move |command_buffer, world, resources, _| {
+		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, touch_event_channel) = resources;
-			let (mut map_dynamic_world, world) = world.split::<Write<MapDynamic>>();
+
+			let (mut world0, mut world) = world.split_for_query(&queries.0);
+			let (mut world1, world) = world.split_for_query(&queries.1);
 
 			for touch_event in touch_event_channel.read(&mut touch_event_reader) {
 				if touch_event.collision.is_some() {
 					continue;
 				}
 
-				let linedef_ref = if let Some(linedef_ref) =
-					world.get_component::<LinedefRef>(touch_event.touched)
-				{
-					linedef_ref
-				} else {
-					continue;
-				};
-				let map_dynamic = map_dynamic_world
-					.get_component_mut::<MapDynamic>(linedef_ref.map_entity)
+				let (linedef_ref, plat_touch) =
+					match queries.0.get_mut(&mut world0, touch_event.touched) {
+						Ok((linedef_ref, TouchAction::PlatTouch(plat_touch))) => {
+							(linedef_ref, plat_touch)
+						}
+						_ => continue,
+					};
+
+				let map_dynamic = queries
+					.1
+					.get_mut(&mut world1, linedef_ref.map_entity)
 					.unwrap();
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 				let linedef = &map.linedefs[linedef_ref.index];
 
-				match world
-					.get_component::<TouchAction>(touch_event.touched)
-					.as_deref()
-				{
-					Some(TouchAction::PlatTouch(plat_touch)) => {
-						if activate_with_tag(
-							&plat_touch.params,
-							command_buffer,
-							linedef.sector_tag,
-							&world,
-							map,
-							map_dynamic.as_ref(),
-						) {
-							if !plat_touch.retrigger {
-								command_buffer.remove_component::<TouchAction>(touch_event.touched);
-							}
-						}
+				if activate_with_tag(
+					&plat_touch.params,
+					command_buffer,
+					linedef.sector_tag,
+					&world,
+					map,
+					map_dynamic,
+				) {
+					if !plat_touch.retrigger {
+						command_buffer.remove_component::<TouchAction>(touch_event.touched);
 					}
-					_ => {}
 				}
 			}
 		})
@@ -357,7 +341,12 @@ fn activate_with_tag<W: EntityStore>(
 	{
 		let sector_entity = map_dynamic.sectors[sector_index].entity;
 
-		if world.has_component::<PlatActive>(sector_entity) {
+		if world
+			.entry_ref(sector_entity)
+			.unwrap()
+			.get_component::<PlatActive>()
+			.is_ok()
+		{
 			continue;
 		}
 

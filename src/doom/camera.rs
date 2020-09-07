@@ -6,9 +6,7 @@ use crate::{
 		physics::{StepEvent, TouchEvent},
 	},
 };
-use legion::prelude::{
-	Entity, EntityStore, IntoQuery, Read, Resources, Runnable, SystemBuilder, Write,
-};
+use legion::{systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};
 use nalgebra::{Vector2, Vector3};
 use shrev::EventChannel;
 use std::time::Duration;
@@ -25,7 +23,7 @@ pub struct Camera {
 	pub impact_sound: AssetHandle<Sound>,
 }
 
-pub fn camera_system(resources: &mut Resources) -> Box<dyn Runnable> {
+pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 	let mut step_event_reader = resources
 		.get_mut::<EventChannel<StepEvent>>()
 		.unwrap()
@@ -40,15 +38,15 @@ pub fn camera_system(resources: &mut Resources) -> Box<dyn Runnable> {
 		.read_resource::<EventChannel<StepEvent>>()
 		.read_resource::<EventChannel<TouchEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
-		.with_query(<(Read<Velocity>, Write<Camera>)>::query())
-		.write_component::<Camera>()
-		.build_thread_local(move |_, world, resources, query| {
+		.with_query(<&mut Camera>::query())
+		.with_query(<(&Velocity, &mut Camera)>::query())
+		.build(move |_, world, resources, queries| {
 			let (delta, step_event_channel, touch_event_channel, sound_queue) = resources;
 
 			// Entity hitting the ground
 			for touch_event in touch_event_channel.read(&mut touch_event_reader) {
-				if let (Some(mut camera), Some(collision)) = (
-					world.get_component_mut::<Camera>(touch_event.toucher),
+				if let (Ok(mut camera), Some(collision)) = (
+					queries.0.get_mut(world, touch_event.toucher),
 					touch_event.collision,
 				) {
 					let down_speed = collision.normal[2] * collision.speed;
@@ -62,13 +60,13 @@ pub fn camera_system(resources: &mut Resources) -> Box<dyn Runnable> {
 
 			// Entity stepping up
 			for step_event in step_event_channel.read(&mut step_event_reader) {
-				if let Some(mut camera) = world.get_component_mut::<Camera>(step_event.entity) {
+				if let Ok(mut camera) = queries.0.get_mut(world, step_event.entity) {
 					camera.deviation_position -= step_event.height;
 					camera.deviation_velocity = -camera.deviation_position / 8.0 * FRAME_RATE;
 				}
 			}
 
-			for (velocity, mut camera) in query.iter_mut(world) {
+			for (velocity, mut camera) in queries.1.iter_mut(world) {
 				// Calculate deviation
 				if camera.deviation_position != 0.0 || camera.deviation_velocity != 0.0 {
 					const DEVIATION_ACCEL: f32 = 0.25 * FRAME_RATE * FRAME_RATE;

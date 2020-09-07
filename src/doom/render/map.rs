@@ -14,7 +14,7 @@ use crate::{
 	},
 };
 use anyhow::{anyhow, Context};
-use legion::prelude::{EntityStore, IntoQuery, Read, ResourceSet, Resources, World};
+use legion::{systems::ResourceSet, EntityStore, IntoQuery, Read, Resources, World};
 use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
@@ -111,13 +111,13 @@ impl DrawStep for DrawMap {
 	) -> anyhow::Result<()> {
 		let (asset_storage, client, sampler) =
 			<(Read<AssetStorage>, Read<Client>, Read<Arc<Sampler>>)>::fetch(resources);
-		let camera_entity = client.entity.unwrap();
-		let camera_transform = world.get_component::<Transform>(camera_entity).unwrap();
+		let camera_entry = world.entry_ref(client.entity.unwrap()).unwrap();
+		let camera_transform = camera_entry.get_component::<Transform>().unwrap();
 
-		for map_dynamic in <Read<MapDynamic>>::query().iter(world) {
+		for map_dynamic in <&MapDynamic>::query().iter(world) {
 			let map = asset_storage.get(&map_dynamic.map).unwrap();
 			let (flat_meshes, sky_mesh, wall_meshes) =
-				crate::doom::map::meshes::make_meshes(map, map_dynamic.as_ref(), resources)
+				crate::doom::map::meshes::make_meshes(map, map_dynamic, resources)
 					.context("Couldn't generate map mesh")?;
 
 			// Draw the walls

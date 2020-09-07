@@ -1,8 +1,5 @@
 use fnv::FnvHashMap;
-use legion::{
-	prelude::{CommandBuffer, Entity},
-	storage::Component,
-};
+use legion::{storage::Component, systems::CommandBuffer, Entity};
 use std::any::TypeId;
 
 pub trait DynComponent: Send + Sync {

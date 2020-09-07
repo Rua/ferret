@@ -6,7 +6,7 @@ use crate::{
 	},
 };
 use fnv::FnvHashMap;
-use legion::prelude::{Read, ResourceSet, Resources};
+use legion::{systems::ResourceSet, Read, Resources};
 use nalgebra::Vector2;
 use vulkano::{image::Dimensions, impl_vertex};
 

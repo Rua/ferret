@@ -1,6 +1,6 @@
 use crate::common::geometry::{Interval, AABB2};
 use fnv::FnvHashMap;
-use legion::prelude::Entity;
+use legion::Entity;
 use nalgebra::Vector2;
 
 #[derive(Clone, Debug)]

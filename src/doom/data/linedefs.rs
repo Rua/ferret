@@ -12,7 +12,7 @@ use crate::{
 		texture::TextureScroll,
 	},
 };
-use legion::prelude::{ResourceSet, Resources, Write};
+use legion::{systems::ResourceSet, Resources, Write};
 use nalgebra::Vector2;
 use std::time::Duration;
 

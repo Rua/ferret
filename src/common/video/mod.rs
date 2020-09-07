@@ -3,7 +3,7 @@ pub mod definition;
 mod target;
 
 use anyhow::Context;
-use legion::prelude::{Read, ResourceSet, Resources, World};
+use legion::{systems::ResourceSet, Read, Resources, World};
 use std::sync::Arc;
 use vulkano::{
 	command_buffer::{AutoCommandBufferBuilder, CommandBuffer, DynamicState},

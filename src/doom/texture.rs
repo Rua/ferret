@@ -2,7 +2,7 @@ use crate::{
 	common::assets::AssetStorage,
 	doom::map::{LinedefRef, MapDynamic},
 };
-use legion::prelude::{EntityStore, IntoQuery, Read, Runnable, SystemBuilder, Write};
+use legion::{systems::Runnable, IntoQuery, SystemBuilder};
 use nalgebra::Vector2;
 use std::time::Duration;
 
@@ -11,17 +11,15 @@ pub struct TextureScroll {
 	pub speed: Vector2<f32>,
 }
 
-pub fn texture_animation_system() -> Box<dyn Runnable> {
+pub fn texture_animation_system() -> impl Runnable {
 	SystemBuilder::new("texture_animation_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Duration>()
-		.with_query(<Write<MapDynamic>>::query())
-		.build_thread_local(move |_, world, resources, query| {
+		.with_query(<&mut MapDynamic>::query())
+		.build(move |_, world, resources, query| {
 			let (asset_storage, delta) = resources;
 
-			for mut map_dynamic in query.iter_mut(world) {
-				let map_dynamic = map_dynamic.as_mut();
-
+			for map_dynamic in query.iter_mut(world) {
 				for (handle, anim_state) in map_dynamic.anim_states_flat.iter_mut() {
 					anim_state.timer.tick(**delta);
 
@@ -47,20 +45,20 @@ pub fn texture_animation_system() -> Box<dyn Runnable> {
 		})
 }
 
-pub fn texture_scroll_system() -> Box<dyn Runnable> {
+pub fn texture_scroll_system() -> impl Runnable {
 	SystemBuilder::new("texture_scroll_system")
 		.read_resource::<Duration>()
-		.with_query(<(Read<LinedefRef>, Read<TextureScroll>)>::query())
-		.write_component::<MapDynamic>()
-		.build_thread_local(move |_, world, delta, query| {
-			let (query_world, mut map_dynamic_world) = world.split_for_query(&query);
+		.with_query(<(&LinedefRef, &TextureScroll)>::query())
+		.with_query(<&mut MapDynamic>::query())
+		.build(move |_, world, delta, queries| {
+			let (world0, mut world) = world.split_for_query(&queries.0);
 
 			// Scroll textures
-			for (linedef_ref, texture_scroll) in query.iter(&query_world) {
-				let mut map_dynamic = map_dynamic_world
-					.get_component_mut::<MapDynamic>(linedef_ref.map_entity)
+			for (linedef_ref, texture_scroll) in queries.0.iter(&world0) {
+				let map_dynamic = queries
+					.1
+					.get_mut(&mut world, linedef_ref.map_entity)
 					.unwrap();
-				let map_dynamic = map_dynamic.as_mut();
 				let linedef_dynamic = &mut map_dynamic.linedefs[linedef_ref.index];
 				linedef_dynamic.texture_offset += texture_scroll.speed * delta.as_secs_f32();
 			}

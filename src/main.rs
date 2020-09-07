@@ -11,7 +11,9 @@ use crate::common::{
 };
 use anyhow::{bail, Context};
 use clap::{App, Arg, ArgMatches};
-use legion::prelude::{Entity, IntoQuery, Read, ResourceSet, Resources, Schedule, World, Write};
+use legion::{
+	systems::ResourceSet, Entity, IntoQuery, Read, Resources, Schedule, World, WorldOptions, Write,
+};
 use nalgebra::{Vector2, Vector3};
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
@@ -96,7 +98,6 @@ fn main() -> anyhow::Result<()> {
 		doom::render::ui::DrawUi::new(&render_context, draw_list.render_pass())
 			.context("Couldn't create DrawUi")?,
 	);
-	resources.insert(draw_list);
 
 	resources.insert(
 		Sampler::new(
@@ -189,65 +190,62 @@ fn main() -> anyhow::Result<()> {
 		.build();
 
 	let mut output_dispatcher = Schedule::builder()
-		.add_thread_local_fn(doom::render::render_system())
+		.add_thread_local_fn(doom::render::render_system(draw_list))
 		.add_thread_local_fn(doom::sound::sound_system())
 		.build();
 
 	// Create world
-	let mut world = World::new();
+	let mut world = World::new(WorldOptions { groups: Vec::new() });
 
 	{
 		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(&mut resources);
 
-		world.insert(
-			(),
-			vec![
-				/*(
-					doom::ui::UiTransform {
-						position: Vector3::new(0.0, 200.0 - 32.0, 0.0),
-						alignment: [doom::ui::UiAlignment::Near, doom::ui::UiAlignment::Far],
-						size: Vector2::new(320.0, 32.0),
-						stretch: [true, false],
-					},
-					doom::ui::UiImage {
-						image: asset_storage.load("FLOOR7_2"),
-					},
-				),*/
-				(
-					doom::ui::UiTransform {
-						position: Vector3::new(0.0, 168.0, 1.0),
-						alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
-						size: Vector2::new(320.0, 32.0),
-						stretch: [false; 2],
-					},
-					doom::ui::UiImage {
-						image: asset_storage.load("STBAR"),
-					},
-				),
-				(
-					doom::ui::UiTransform {
-						position: Vector3::new(104.0, 168.0, 2.0),
-						alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
-						size: Vector2::new(40.0, 32.0),
-						stretch: [false; 2],
-					},
-					doom::ui::UiImage {
-						image: asset_storage.load("STARMS"),
-					},
-				),
-				(
-					doom::ui::UiTransform {
-						position: Vector3::new(143.0, 168.0, 10.0),
-						alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
-						size: Vector2::new(24.0, 29.0),
-						stretch: [false; 2],
-					},
-					doom::ui::UiImage {
-						image: asset_storage.load("STFST00"),
-					},
-				),
-			],
-		);
+		world.extend(vec![
+			/*(
+				doom::ui::UiTransform {
+					position: Vector3::new(0.0, 200.0 - 32.0, 0.0),
+					alignment: [doom::ui::UiAlignment::Near, doom::ui::UiAlignment::Far],
+					size: Vector2::new(320.0, 32.0),
+					stretch: [true, false],
+				},
+				doom::ui::UiImage {
+					image: asset_storage.load("FLOOR7_2", &mut *loader),
+				},
+			),*/
+			(
+				doom::ui::UiTransform {
+					position: Vector3::new(0.0, 168.0, 1.0),
+					alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+					size: Vector2::new(320.0, 32.0),
+					stretch: [false; 2],
+				},
+				doom::ui::UiImage {
+					image: asset_storage.load("STBAR"),
+				},
+			),
+			(
+				doom::ui::UiTransform {
+					position: Vector3::new(104.0, 168.0, 2.0),
+					alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+					size: Vector2::new(40.0, 32.0),
+					stretch: [false; 2],
+				},
+				doom::ui::UiImage {
+					image: asset_storage.load("STARMS"),
+				},
+			),
+			(
+				doom::ui::UiTransform {
+					position: Vector3::new(143.0, 168.0, 10.0),
+					alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+					size: Vector2::new(24.0, 29.0),
+					stretch: [false; 2],
+				},
+				doom::ui::UiImage {
+					image: asset_storage.load("STFST00"),
+				},
+			),
+		]);
 	}
 
 	let mut should_quit = false;
@@ -439,7 +437,8 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 	// Load remaining assets
 	log::info!("Loading assets...");
 	{
-		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
+		let (render_context, mut asset_storage) =
+			<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(resources);
 
 		// Palette
 		let palette_handle: AssetHandle<doom::image::Palette> = asset_storage.load("PLAYPAL");
@@ -447,8 +446,6 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 			.build_waiting::<doom::image::Palette, _>(|data, _| Ok(*data.downcast().ok().unwrap()));
 
 		// Sprites
-		let (render_context, mut asset_storage) =
-			<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(resources);
 		asset_storage.build_waiting::<doom::sprite::Sprite, _>(|data, asset_storage| {
 			let sprite_builder: doom::sprite::SpriteBuilder = *data.downcast().ok().unwrap();
 			Ok(sprite_builder.build(asset_storage)?)
@@ -547,7 +544,6 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 		});
 
 		// Sounds
-		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
 		asset_storage
 			.build_waiting::<common::audio::Sound, _>(|data, _| Ok(*data.downcast().ok().unwrap()));
 	}
@@ -574,14 +570,15 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 	};
 	let mut quadtree = Quadtree::new(bbox);
 
-	for (entity, (box_collider, transform)) in <(
-		Read<doom::physics::BoxCollider>,
-		Read<doom::components::Transform>,
+	for (entity, box_collider, transform) in <(
+		Entity,
+		&doom::physics::BoxCollider,
+		&doom::components::Transform,
 	)>::query()
-	.iter_entities(world)
+	.iter(world)
 	{
 		let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
-		quadtree.insert(entity, &AABB2::from(&bbox.offset(transform.position)));
+		quadtree.insert(*entity, &AABB2::from(&bbox.offset(transform.position)));
 	}
 
 	resources.insert(quadtree);

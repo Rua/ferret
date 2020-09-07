@@ -6,7 +6,7 @@ use crate::{
 	doom::{camera::Camera, client::Client, components::Transform, render::map::Matrices},
 };
 use anyhow::Context;
-use legion::prelude::{EntityStore, Read, ResourceSet, Resources, World};
+use legion::{systems::ResourceSet, EntityStore, Read, Resources, World};
 use nalgebra::{Matrix4, Vector3};
 use std::sync::Arc;
 use vulkano::{
@@ -86,14 +86,14 @@ impl DrawStep for DrawWorld {
 
 		// View matrix
 		let client = <Read<Client>>::fetch(resources);
-		let camera_entity = client.entity.unwrap();
+		let camera_entry = world.entry_ref(client.entity.unwrap()).unwrap();
 
 		let Transform {
 			mut position,
 			rotation,
-		} = *world.get_component::<Transform>(camera_entity).unwrap();
+		} = *camera_entry.get_component::<Transform>().unwrap();
 
-		if let Some(camera) = world.get_component::<Camera>(camera_entity) {
+		if let Ok(camera) = camera_entry.get_component::<Camera>() {
 			position += camera.base + camera.offset;
 		}
 
