@@ -147,53 +147,6 @@ impl AssetFormat for TexturesFormat {
 	type Asset = FnvHashMap<String, TextureInfo>;
 
 	fn import(&self, name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Self::Asset> {
-		RawTexturesFormat
-			.import(name, asset_storage)?
-			.into_iter()
-			.map(|(texture, patches)| {
-				let mut name = String::from(str::from_utf8(&texture.name)?.trim_end_matches('\0'));
-				name.make_ascii_uppercase();
-
-				let patches = patches
-					.into_iter()
-					.map(|patch| PatchInfo {
-						offset: [patch.offset[0] as isize, patch.offset[1] as isize],
-						index: patch.index as usize,
-					})
-					.collect();
-
-				Ok((
-					name,
-					TextureInfo {
-						size: [texture.size[0] as usize, texture.size[1] as usize],
-						patches,
-					},
-				))
-			})
-			.collect()
-	}
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct RawPatchInfo {
-	pub offset: [i16; 2],
-	pub index: u16,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct RawTextureInfo {
-	pub name: [u8; 8],
-	pub size: [u16; 2],
-	pub patch_count: usize,
-}
-
-#[derive(Clone, Copy)]
-pub struct RawTexturesFormat;
-
-impl AssetFormat for RawTexturesFormat {
-	type Asset = Vec<(RawTextureInfo, Vec<RawPatchInfo>)>;
-
-	fn import(&self, name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(asset_storage.source().load(name)?);
 
 		let count = reader.read_u32::<LE>()? as usize;
@@ -210,27 +163,32 @@ impl AssetFormat for RawTexturesFormat {
 
 				let mut name = [0u8; 8];
 				reader.read_exact(&mut name)?;
+				let mut name = String::from(str::from_utf8(&name)?.trim_end_matches('\0'));
+				name.make_ascii_uppercase();
+
 				reader.read_u32::<LE>()?; // unused
 				let size = [reader.read_u16::<LE>()?, reader.read_u16::<LE>()?];
 				reader.read_u32::<LE>()?; // unused
 				let patch_count = reader.read_u16::<LE>()? as usize;
 
-				let mut patches: Vec<RawPatchInfo> = Vec::with_capacity(patch_count);
+				let mut patches = Vec::with_capacity(patch_count);
 
 				for _ in 0..patch_count {
 					let offset = [reader.read_i16::<LE>()?, reader.read_i16::<LE>()?];
 					let index = reader.read_u16::<LE>()?;
 					reader.read_u32::<LE>()?; // unused
-					patches.push(RawPatchInfo { offset, index });
+					patches.push(PatchInfo {
+						offset: [offset[0] as isize, offset[1] as isize],
+						index: index as usize,
+					})
 				}
 
 				Ok((
-					RawTextureInfo {
-						name,
-						size,
-						patch_count,
+					name,
+					TextureInfo {
+						size: [size[0] as usize, size[1] as usize],
+						patches,
 					},
-					patches,
 				))
 			})
 			.collect()
