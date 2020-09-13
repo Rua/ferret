@@ -156,6 +156,8 @@ fn main() -> anyhow::Result<()> {
 	asset_storage.add_storage::<doom::image::Palette>();
 	asset_storage.add_storage::<doom::map::Map>();
 	asset_storage.add_storage::<doom::map::textures::Flat>();
+	asset_storage.add_storage::<doom::map::textures::PNames>();
+	asset_storage.add_storage::<doom::map::textures::Textures>();
 	asset_storage.add_storage::<doom::map::textures::Wall>();
 	asset_storage.add_storage::<doom::sprite::Sprite>();
 	asset_storage.add_storage::<doom::sound::Sound>();
