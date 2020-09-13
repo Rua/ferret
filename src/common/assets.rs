@@ -16,6 +16,10 @@ pub trait Asset: Send + Sync + 'static {
 	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>>;
 }
 
+pub trait ImportData: DowncastSync {}
+impl_downcast!(sync ImportData);
+impl<T: DowncastSync> ImportData for T {}
+
 pub struct AssetStorage {
 	source: Box<dyn DataSource>,
 	storages: FnvHashMap<TypeId, Box<dyn Any + Send + Sync>>,
@@ -276,17 +280,7 @@ impl HandleAllocator {
 	}
 }
 
-pub trait AssetFormat: Clone {
-	type Asset;
-
-	fn import(&self, name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Self::Asset>;
-}
-
 pub trait DataSource: Send + Sync + 'static {
 	fn load(&self, path: &str) -> anyhow::Result<Vec<u8>>;
 	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a>;
 }
-
-pub trait ImportData: DowncastSync {}
-impl_downcast!(sync ImportData);
-impl<T: DowncastSync> ImportData for T {}

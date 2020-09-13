@@ -1,7 +1,7 @@
 use crate::{
-	common::assets::{Asset, AssetFormat, AssetHandle, AssetStorage, ImportData},
+	common::assets::{Asset, AssetHandle, AssetStorage, ImportData},
 	doom::{
-		image::{IAColor, ImageData, ImageFormat},
+		image::{IAColor, ImageData},
 		wad::read_string,
 	},
 };
@@ -64,7 +64,8 @@ impl Asset for Wall {
 			.patches
 			.iter()
 			.try_for_each(|patch_info| -> anyhow::Result<()> {
-				let patch = ImageFormat.import(&patch_info.name, asset_storage)?;
+				let patch_handle = asset_storage.load::<ImageData>(&patch_info.name);
+				let patch = asset_storage.get(&patch_handle).unwrap();
 
 				// Blit the patch onto the main image
 				let dest_start = [

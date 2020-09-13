@@ -1,4 +1,4 @@
-use crate::common::assets::{Asset, AssetFormat, AssetStorage, ImportData};
+use crate::common::assets::{Asset, AssetStorage, ImportData};
 use byteorder::{ReadBytesExt, LE};
 use std::{
 	io::{Cursor, Read, Seek, SeekFrom},
@@ -7,7 +7,7 @@ use std::{
 };
 use vulkano::image::ImageViewAccess;
 
-#[derive(Copy, Clone, Default)]
+#[derive(Copy, Clone, Debug, Default)]
 #[repr(C)]
 pub struct RGBAColor {
 	pub r: u8,
@@ -16,7 +16,7 @@ pub struct RGBAColor {
 	pub a: u8,
 }
 
-#[derive(Copy, Clone, Default)]
+#[derive(Copy, Clone, Debug, Default)]
 #[repr(C)]
 pub struct IAColor {
 	pub i: u8,
@@ -58,19 +58,15 @@ impl Asset for Palette {
 	}
 }
 
+#[derive(Clone, Debug)]
 pub struct ImageData {
 	pub data: Vec<IAColor>,
 	pub size: [usize; 2],
 	pub offset: [isize; 2],
 }
 
-#[derive(Clone, Copy)]
-pub struct ImageFormat;
-
-impl AssetFormat for ImageFormat {
-	type Asset = ImageData;
-
-	fn import(&self, name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Self::Asset> {
+impl ImageData {
+	fn load(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<ImageData> {
 		let mut reader = Cursor::new(asset_storage.source().load(name)?);
 
 		let size = [
@@ -116,6 +112,16 @@ impl AssetFormat for ImageFormat {
 	}
 }
 
+impl Asset for ImageData {
+	type Data = Self;
+	const NAME: &'static str = "ImageData";
+	const NEEDS_PROCESSING: bool = false;
+
+	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
+		Ok(Box::new(ImageData::load(name, asset_storage)?))
+	}
+}
+
 pub struct Image {
 	pub image: Arc<dyn ImageViewAccess + Send + Sync>,
 	pub offset: [isize; 2],
@@ -127,6 +133,6 @@ impl Asset for Image {
 	const NEEDS_PROCESSING: bool = true;
 
 	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
-		Ok(Box::new(ImageFormat.import(name, asset_storage)?))
+		Ok(Box::new(ImageData::load(name, asset_storage)?))
 	}
 }

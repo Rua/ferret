@@ -153,6 +153,7 @@ fn main() -> anyhow::Result<()> {
 	let mut asset_storage = AssetStorage::new(loader);
 	asset_storage.add_storage::<doom::entitytemplate::EntityTemplate>();
 	asset_storage.add_storage::<doom::image::Image>();
+	asset_storage.add_storage::<doom::image::ImageData>();
 	asset_storage.add_storage::<doom::image::Palette>();
 	asset_storage.add_storage::<doom::map::Map>();
 	asset_storage.add_storage::<doom::map::textures::Flat>();
