@@ -1,8 +1,12 @@
 use crate::{
 	common::assets::{Asset, AssetFormat, AssetHandle, AssetStorage, ImportData},
-	doom::image::{IAColor, ImageData, ImageFormat},
+	doom::{
+		image::{IAColor, ImageData, ImageFormat},
+		wad::read_string,
+	},
 };
 use anyhow::anyhow;
+use arrayvec::ArrayString;
 use byteorder::{ReadBytesExt, LE};
 use derivative::Derivative;
 use fnv::FnvHashMap;
@@ -38,7 +42,7 @@ impl Asset for Flat {
 pub struct PNamesFormat;
 
 impl AssetFormat for PNamesFormat {
-	type Asset = Vec<[u8; 8]>;
+	type Asset = Vec<ArrayString<[u8; 8]>>;
 
 	fn import(&self, name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Self::Asset> {
 		let mut reader = Cursor::new(asset_storage.source().load(name)?);
@@ -46,9 +50,7 @@ impl AssetFormat for PNamesFormat {
 		let mut ret = Vec::with_capacity(count);
 
 		for _ in 0..count {
-			let mut name = [0u8; 8];
-			reader.read_exact(&mut name)?;
-			ret.push(name);
+			ret.push(read_string(&mut reader)?);
 		}
 
 		Ok(ret)
@@ -72,9 +74,8 @@ impl Asset for Wall {
 			texture_info.extend(info);
 		}
 
-		let name = name.to_ascii_uppercase();
 		let texture_info = texture_info
-			.get(&name)
+			.get(&name.to_ascii_uppercase())
 			.ok_or(anyhow!("Texture {} does not exist", name))?;
 
 		let mut data = vec![IAColor::default(); texture_info.size[0] * texture_info.size[1]];
@@ -83,8 +84,7 @@ impl Asset for Wall {
 			.patches
 			.iter()
 			.try_for_each(|patch_info| -> anyhow::Result<()> {
-				let name =
-					String::from(str::from_utf8(&pnames[patch_info.index])?.trim_end_matches('\0'));
+				let name = &pnames[patch_info.index];
 				let patch = ImageFormat.import(&name, asset_storage)?;
 
 				// Blit the patch onto the main image
@@ -163,11 +163,7 @@ impl AssetFormat for TexturesFormat {
 			.map(|offset| {
 				reader.seek(SeekFrom::Start(offset))?;
 
-				let mut name = [0u8; 8];
-				reader.read_exact(&mut name)?;
-				let mut name = String::from(str::from_utf8(&name)?.trim_end_matches('\0'));
-				name.make_ascii_uppercase();
-
+				let name = read_string(&mut reader)?.to_ascii_uppercase();
 				reader.read_u32::<LE>()?; // unused
 				let size = [reader.read_u16::<LE>()?, reader.read_u16::<LE>()?];
 				reader.read_u32::<LE>()?; // unused

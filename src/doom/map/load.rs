@@ -11,6 +11,7 @@ use crate::{
 			Subsector, Thing, ThingFlags,
 		},
 		physics::{CollisionPlane, SolidMask},
+		wad::read_string,
 	},
 };
 use anyhow::{bail, ensure};
@@ -177,24 +178,20 @@ fn build_sectors(data: &[u8], asset_storage: &mut AssetStorage) -> anyhow::Resul
 	let chunks = data.chunks(26);
 	let mut ret = Vec::with_capacity(chunks.len());
 
-	for mut chunk in chunks {
-		let mut buf = [0u8; 8];
-
+	for mut reader in chunks {
 		ret.push(Sector {
 			interval: Interval::new(
-				chunk.read_i16::<LE>()? as f32,
-				chunk.read_i16::<LE>()? as f32,
+				reader.read_i16::<LE>()? as f32,
+				reader.read_i16::<LE>()? as f32,
 			),
 			textures: [
 				{
-					chunk.read_exact(&mut buf)?;
+					let name = read_string(&mut reader)?;
 
-					if &buf == b"-\0\0\0\0\0\0\0" {
+					if &name == "-" {
 						TextureType::None
 					} else {
-						let name = std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned();
-
-						if name == "F_SKY1" {
+						if &name == "F_SKY1" {
 							TextureType::Sky
 						} else {
 							TextureType::Normal(asset_storage.load(&name))
@@ -202,14 +199,12 @@ fn build_sectors(data: &[u8], asset_storage: &mut AssetStorage) -> anyhow::Resul
 					}
 				},
 				{
-					chunk.read_exact(&mut buf)?;
+					let name = read_string(&mut reader)?;
 
-					if &buf == b"-\0\0\0\0\0\0\0" {
+					if &name == "-" {
 						TextureType::None
 					} else {
-						let name = std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned();
-
-						if name == "F_SKY1" {
+						if &name == "F_SKY1" {
 							TextureType::Sky
 						} else {
 							TextureType::Normal(asset_storage.load(&name))
@@ -217,9 +212,9 @@ fn build_sectors(data: &[u8], asset_storage: &mut AssetStorage) -> anyhow::Resul
 					}
 				},
 			],
-			light_level: chunk.read_u16::<LE>()? as f32 / 255.0,
+			light_level: reader.read_u16::<LE>()? as f32 / 255.0,
 			special_type: {
-				let special_type = chunk.read_u16::<LE>()?;
+				let special_type = reader.read_u16::<LE>()?;
 
 				if special_type == 0 {
 					None
@@ -227,7 +222,7 @@ fn build_sectors(data: &[u8], asset_storage: &mut AssetStorage) -> anyhow::Resul
 					Some(special_type)
 				}
 			},
-			sector_tag: chunk.read_u16::<LE>()?,
+			sector_tag: reader.read_u16::<LE>()?,
 			linedefs: Vec::new(),
 			neighbours: Vec::new(),
 			subsectors: Vec::new(),
@@ -245,24 +240,20 @@ fn build_sidedefs(
 	let chunks = data.chunks(30);
 	let mut ret = Vec::with_capacity(chunks.len());
 
-	for (i, mut chunk) in chunks.enumerate() {
-		let mut buf = [0u8; 8];
-
+	for (i, mut reader) in chunks.enumerate() {
 		ret.push(Some(Sidedef {
 			texture_offset: Vector2::new(
-				chunk.read_i16::<LE>()? as f32,
-				chunk.read_i16::<LE>()? as f32,
+				reader.read_i16::<LE>()? as f32,
+				reader.read_i16::<LE>()? as f32,
 			),
 			textures: [
 				{
-					chunk.read_exact(&mut buf)?;
+					let name = read_string(&mut reader)?;
 
-					if &buf == b"-\0\0\0\0\0\0\0" {
+					if &name == "-" {
 						TextureType::None
 					} else {
-						let name = std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned();
-
-						if name == "F_SKY1" {
+						if &name == "F_SKY1" {
 							TextureType::Sky
 						} else {
 							TextureType::Normal(asset_storage.load(&name))
@@ -270,14 +261,12 @@ fn build_sidedefs(
 					}
 				},
 				{
-					chunk.read_exact(&mut buf)?;
+					let name = read_string(&mut reader)?;
 
-					if &buf == b"-\0\0\0\0\0\0\0" {
+					if &name == "-" {
 						TextureType::None
 					} else {
-						let name = std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned();
-
-						if name == "F_SKY1" {
+						if &name == "F_SKY1" {
 							TextureType::Sky
 						} else {
 							TextureType::Normal(asset_storage.load(&name))
@@ -285,14 +274,12 @@ fn build_sidedefs(
 					}
 				},
 				{
-					chunk.read_exact(&mut buf)?;
+					let name = read_string(&mut reader)?;
 
-					if &buf == b"-\0\0\0\0\0\0\0" {
+					if &name == "-" {
 						TextureType::None
 					} else {
-						let name = std::str::from_utf8(&buf)?.trim_end_matches('\0').to_owned();
-
-						if name == "F_SKY1" {
+						if &name == "F_SKY1" {
 							TextureType::Sky
 						} else {
 							TextureType::Normal(asset_storage.load(&name))
@@ -301,7 +288,7 @@ fn build_sidedefs(
 				},
 			],
 			sector_index: {
-				let sector_index = chunk.read_u16::<LE>()? as usize;
+				let sector_index = reader.read_u16::<LE>()? as usize;
 
 				ensure!(
 					sector_index < sectors.len(),

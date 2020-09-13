@@ -1,5 +1,6 @@
 use crate::common::assets::DataSource;
 use anyhow::{anyhow, ensure};
+use arrayvec::ArrayString;
 use byteorder::{ReadBytesExt, LE};
 use std::{
 	collections::HashSet,
@@ -59,11 +60,7 @@ impl WadLoader {
 		for _ in 0..dir_length {
 			let offset = reader.read_u32::<LE>()? as u64;
 			let size = reader.read_u32::<LE>()? as usize;
-			let mut lump_name = [0u8; 8];
-			reader.read_exact(&mut lump_name)?;
-
-			let mut name = String::from(str::from_utf8(&lump_name)?.trim_end_matches('\0'));
-			name.make_ascii_uppercase();
+			let name = read_string(&mut reader)?.to_ascii_uppercase();
 
 			self.lump_names.insert(name.clone());
 			self.lumps.push(Lump {
@@ -119,4 +116,10 @@ impl DataSource for WadLoader {
 	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a> {
 		Box::from(self.lump_names.iter().map(String::as_str))
 	}
+}
+
+pub fn read_string<R: Read>(reader: &mut R) -> anyhow::Result<ArrayString<[u8; 8]>> {
+	let mut buf = [0u8; 8];
+	reader.read_exact(&mut buf)?;
+	Ok(ArrayString::from(std::str::from_utf8(&buf)?.trim_end_matches('\0')).unwrap())
 }
