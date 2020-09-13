@@ -415,44 +415,27 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 	log::info!("Starting map {}...", name);
 	let start_time = Instant::now();
 
-	// Load entity type data
 	log::info!("Loading entity data...");
 	doom::data::mobjs::load(resources);
 	doom::data::sectors::load(resources);
 	doom::data::linedefs::load(resources);
 
-	// Load map
 	log::info!("Loading map...");
 	let map_handle = {
 		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-		let map_handle = asset_storage.load(name);
-		asset_storage.build_waiting::<doom::map::Map, _>(|data, asset_storage| {
-			let map_data = *data.downcast().ok().unwrap();
-			doom::map::load::build_map(map_data, "SKY1", asset_storage)
-		});
-
-		map_handle
+		asset_storage.load(name)
 	};
 
-	// Load remaining assets
-	log::info!("Loading assets...");
+	log::info!("Processing assets...");
 	{
 		let (render_context, mut asset_storage) =
 			<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(resources);
 
 		// Palette
 		let palette_handle: AssetHandle<doom::image::Palette> = asset_storage.load("PLAYPAL");
-		asset_storage
-			.build_waiting::<doom::image::Palette, _>(|data, _| Ok(*data.downcast().ok().unwrap()));
-
-		// Sprites
-		asset_storage.build_waiting::<doom::sprite::Sprite, _>(|data, asset_storage| {
-			let sprite_builder: doom::sprite::SpriteBuilder = *data.downcast().ok().unwrap();
-			Ok(sprite_builder.build(asset_storage)?)
-		});
 
 		// Images
-		asset_storage.build_waiting::<doom::image::Image, _>(|data, asset_storage| {
+		asset_storage.process::<doom::image::Image, _>(|data, asset_storage| {
 			let image_data: doom::image::ImageData = *data.downcast().ok().unwrap();
 			let palette = asset_storage.get(&palette_handle).unwrap();
 			let data: Vec<_> = image_data
@@ -485,7 +468,7 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 		});
 
 		// Walls
-		asset_storage.build_waiting::<doom::map::textures::Wall, _>(|data, asset_storage| {
+		asset_storage.process::<doom::map::textures::Wall, _>(|data, asset_storage| {
 			let image_data: doom::image::ImageData = *data.downcast().ok().unwrap();
 			let palette = asset_storage.get(&palette_handle).unwrap();
 			let data: Vec<_> = image_data
@@ -515,7 +498,7 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 		});
 
 		// Flats
-		asset_storage.build_waiting::<doom::map::textures::Flat, _>(|data, asset_storage| {
+		asset_storage.process::<doom::map::textures::Flat, _>(|data, asset_storage| {
 			let image_data: doom::image::ImageData = *data.downcast().ok().unwrap();
 			let palette = asset_storage.get(&palette_handle).unwrap();
 			let data: Vec<_> = image_data
@@ -542,15 +525,9 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 
 			Ok(image)
 		});
-
-		// Sounds
-		asset_storage
-			.build_waiting::<common::audio::Sound, _>(|data, _| Ok(*data.downcast().ok().unwrap()));
 	}
 
 	log::info!("Spawning entities...");
-
-	// Spawn map entities and things
 	let things = {
 		let asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
 		doom::map::load::build_things(&asset_storage.source().load(&format!("{}/+{}", name, 1))?)?

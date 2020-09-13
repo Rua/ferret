@@ -19,6 +19,7 @@ pub struct Flat;
 impl Asset for Flat {
 	type Data = Arc<dyn ImageViewAccess + Send + Sync>;
 	const NAME: &'static str = "Flat";
+	const NEEDS_PROCESSING: bool = true;
 
 	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
 		let mut reader = Cursor::new(asset_storage.source().load(name)?);
@@ -60,6 +61,7 @@ pub struct Wall;
 impl Asset for Wall {
 	type Data = Arc<dyn ImageViewAccess + Send + Sync>;
 	const NAME: &'static str = "Wall";
+	const NEEDS_PROCESSING: bool = true;
 
 	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
 		let pnames = PNamesFormat.import("PNAMES", asset_storage)?;

@@ -80,6 +80,7 @@ impl SpriteBuilder {
 impl Asset for Sprite {
 	type Data = Self;
 	const NAME: &'static str = "Sprite";
+	const NEEDS_PROCESSING: bool = false;
 
 	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
 		lazy_static! {
@@ -166,7 +167,8 @@ impl Asset for Sprite {
 		Ok(Box::new(
 			SpriteBuilder::new()
 				.with_frames(frames)
-				.with_image_names(image_names),
+				.with_image_names(image_names)
+				.build(asset_storage)?,
 		))
 	}
 }

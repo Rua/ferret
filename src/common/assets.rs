@@ -11,6 +11,7 @@ use std::{
 pub trait Asset: Send + Sync + 'static {
 	type Data: Send + Sync + 'static;
 	const NAME: &'static str;
+	const NEEDS_PROCESSING: bool;
 
 	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>>;
 }
@@ -115,13 +116,20 @@ impl AssetStorage {
 			Some(handle) => handle,
 			None => {
 				let handle = self.handle_allocator.allocate();
-				let intermediate = A::import(name, self);
+				let import_result = A::import(name, self);
 
 				let storage = storage_mut::<A>(&mut self.storages);
 				storage.names.insert(name.to_owned(), handle.downgrade());
-				storage
-					.unbuilt
-					.push((handle.clone(), intermediate, name.to_owned()));
+
+				if A::NEEDS_PROCESSING {
+					storage
+						.unprocessed
+						.push((handle.clone(), import_result, name.to_owned()));
+				} else {
+					let data = import_result.unwrap();
+					let asset: A::Data = *data.downcast().ok().unwrap();
+					storage.assets.insert(handle.id(), asset);
+				}
 
 				handle
 			}
@@ -129,23 +137,25 @@ impl AssetStorage {
 	}
 
 	#[inline]
-	pub fn build_waiting<
+	pub fn process<
 		A: Asset,
 		F: FnMut(Box<dyn ImportData>, &mut AssetStorage) -> anyhow::Result<A::Data>,
 	>(
 		&mut self,
-		mut build_func: F,
+		mut process_func: F,
 	) {
-		let unbuilt = if let Some(entry) = self.storages.get_mut(&TypeId::of::<A>()) {
+		assert!(A::NEEDS_PROCESSING);
+
+		let unprocessed = if let Some(entry) = self.storages.get_mut(&TypeId::of::<A>()) {
 			let storage = entry.downcast_mut::<AssetStorageTyped<A>>().unwrap();
-			std::mem::replace(&mut storage.unbuilt, Vec::new())
+			std::mem::replace(&mut storage.unprocessed, Vec::new())
 		} else {
 			return;
 		};
 
-		for (handle, data, name) in unbuilt {
+		for (handle, data, name) in unprocessed {
 			// Build the asset
-			let asset = match data.and_then(|d| build_func(d, self)) {
+			let asset = match data.and_then(|d| process_func(d, self)) {
 				Ok(asset) => {
 					log::trace!("{} '{}' loaded", A::NAME, name);
 					asset
@@ -158,12 +168,7 @@ impl AssetStorage {
 
 			// Insert it into the storage
 			{
-				let storage = self
-					.storages
-					.get_mut(&TypeId::of::<A>())
-					.unwrap()
-					.downcast_mut::<AssetStorageTyped<A>>()
-					.unwrap();
+				let storage = storage_mut::<A>(&mut self.storages);
 				storage.assets.insert(handle.id(), asset);
 				storage.handles.push(handle);
 			}
@@ -199,7 +204,7 @@ struct AssetStorageTyped<A: Asset> {
 	assets: FnvHashMap<u64, A::Data>,
 	handles: Vec<AssetHandle<A>>,
 	names: FnvHashMap<String, WeakHandle<A>>,
-	unbuilt: Vec<(AssetHandle<A>, anyhow::Result<Box<dyn ImportData>>, String)>,
+	unprocessed: Vec<(AssetHandle<A>, anyhow::Result<Box<dyn ImportData>>, String)>,
 }
 
 #[derive(Derivative)]

@@ -42,6 +42,7 @@ pub struct GLMapData {
 impl Asset for Map {
 	type Data = Self;
 	const NAME: &'static str = "Map";
+	const NEEDS_PROCESSING: bool = false;
 
 	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
 		let source = asset_storage.source();
@@ -56,7 +57,7 @@ impl Asset for Map {
 			})
 		})();
 
-		Ok(Box::new(MapData {
+		let map_data = MapData {
 			linedefs: source.load(&format!("{}/+{}", name, 2))?,
 			sidedefs: source.load(&format!("{}/+{}", name, 3))?,
 			vertexes: source.load(&format!("{}/+{}", name, 4))?,
@@ -65,7 +66,9 @@ impl Asset for Map {
 			nodes: source.load(&format!("{}/+{}", name, 7))?,
 			sectors: source.load(&format!("{}/+{}", name, 8))?,
 			gl_data,
-		}))
+		};
+
+		Ok(Box::new(build_map(map_data, "SKY1", asset_storage)?))
 	}
 }
 

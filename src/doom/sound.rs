@@ -22,6 +22,7 @@ pub use crate::common::audio::Sound;
 impl Asset for Sound {
 	type Data = Self;
 	const NAME: &'static str = "Sound";
+	const NEEDS_PROCESSING: bool = false;
 
 	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
 		let mut reader = Cursor::new(asset_storage.source().load(name)?);

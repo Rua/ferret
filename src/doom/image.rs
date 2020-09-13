@@ -36,6 +36,7 @@ impl Deref for Palette {
 impl Asset for Palette {
 	type Data = Self;
 	const NAME: &'static str = "Palette";
+	const NEEDS_PROCESSING: bool = false;
 
 	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
 		let mut reader = Cursor::new(asset_storage.source().load(name)?);
@@ -123,6 +124,7 @@ pub struct Image {
 impl Asset for Image {
 	type Data = Self;
 	const NAME: &'static str = "Image";
+	const NEEDS_PROCESSING: bool = true;
 
 	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
 		Ok(Box::new(ImageFormat.import(name, asset_storage)?))
