@@ -116,7 +116,7 @@ impl DrawStep for DrawMap {
 
 		for map_dynamic in <&MapDynamic>::query().iter(world) {
 			let map = asset_storage.get(&map_dynamic.map).unwrap();
-			let (flat_meshes, sky_mesh, wall_meshes) =
+			let (flat_meshes, wall_meshes, sky_mesh) =
 				crate::doom::map::meshes::make_meshes(map, map_dynamic, resources)
 					.context("Couldn't generate map mesh")?;
 
@@ -134,7 +134,7 @@ impl DrawStep for DrawMap {
 				} else {
 					&handle
 				};
-				let image = asset_storage.get(&handle).unwrap();
+				let image = &asset_storage.get(&handle).unwrap().image;
 
 				draw_context.descriptor_sets.truncate(1);
 				draw_context.descriptor_sets.push(Arc::new(
@@ -174,7 +174,7 @@ impl DrawStep for DrawMap {
 				draw_context.descriptor_sets.push(Arc::new(
 					self.normal_texture_set_pool
 						.next()
-						.add_sampled_image(image.clone(), sampler.clone())?
+						.add_sampled_image(image.image.clone(), sampler.clone())?
 						.build()?,
 				));
 
@@ -207,7 +207,7 @@ impl DrawStep for DrawMap {
 			draw_context.descriptor_sets.push(Arc::new(
 				self.sky_texture_set_pool
 					.next()
-					.add_sampled_image(image.clone(), sampler.clone())?
+					.add_sampled_image(image.image.clone(), sampler.clone())?
 					.add_buffer(sky_buffer)?
 					.build()?,
 			));

@@ -4,9 +4,9 @@ use crate::{
 		audio::Sound,
 		timer::Timer,
 	},
-	doom::map::{
-		textures::{TextureType, Wall},
-		LinedefRef, Map, MapDynamic, SidedefSlot,
+	doom::{
+		image::Image,
+		map::{textures::TextureType, LinedefRef, Map, MapDynamic, SidedefSlot},
 	},
 };
 use legion::{
@@ -24,7 +24,7 @@ pub struct SwitchParams {
 #[derive(Clone, Debug)]
 pub struct SwitchActive {
 	pub sound: Option<AssetHandle<Sound>>,
-	pub texture: AssetHandle<Wall>,
+	pub texture: AssetHandle<Image>,
 	pub texture_slot: SidedefSlot,
 	pub timer: Timer,
 }

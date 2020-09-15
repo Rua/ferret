@@ -1,8 +1,10 @@
 use crate::{
 	common::assets::{AssetHandle, AssetStorage},
-	doom::map::{
-		textures::{Flat, TextureType, Wall},
-		LinedefFlags, Map, MapDynamic, SectorSlot, Side, SidedefSlot,
+	doom::{
+		image::Image,
+		map::{
+			textures::TextureType, LinedefFlags, Map, MapDynamic, SectorSlot, Side, SidedefSlot,
+		},
 	},
 };
 use fnv::FnvHashMap;
@@ -29,9 +31,9 @@ pub fn make_meshes(
 	map_dynamic: &MapDynamic,
 	resources: &Resources,
 ) -> anyhow::Result<(
-	FnvHashMap<AssetHandle<Flat>, (Vec<VertexData>, Vec<u32>)>,
+	FnvHashMap<AssetHandle<Image>, (Vec<VertexData>, Vec<u32>)>,
+	FnvHashMap<AssetHandle<Image>, (Vec<VertexData>, Vec<u32>)>,
 	(Vec<SkyVertexData>, Vec<u32>),
-	FnvHashMap<AssetHandle<Wall>, (Vec<VertexData>, Vec<u32>)>,
 )> {
 	#[inline]
 	fn push_wall(
@@ -118,11 +120,11 @@ pub fn make_meshes(
 		}
 	}
 
-	let mut flat_meshes: FnvHashMap<AssetHandle<Flat>, (Vec<VertexData>, Vec<u32>)> =
+	let mut flat_meshes: FnvHashMap<AssetHandle<Image>, (Vec<VertexData>, Vec<u32>)> =
+		FnvHashMap::default();
+	let mut wall_meshes: FnvHashMap<AssetHandle<Image>, (Vec<VertexData>, Vec<u32>)> =
 		FnvHashMap::default();
 	let mut sky_mesh: (Vec<SkyVertexData>, Vec<u32>) = (Vec::new(), Vec::new());
-	let mut wall_meshes: FnvHashMap<AssetHandle<Wall>, (Vec<VertexData>, Vec<u32>)> =
-		FnvHashMap::default();
 
 	let asset_storage = <Read<AssetStorage>>::fetch(resources);
 
@@ -176,7 +178,7 @@ pub fn make_meshes(
 						);
 					}
 					TextureType::Normal(handle) => {
-						let dimensions = asset_storage.get(handle).unwrap().dimensions();
+						let dimensions = asset_storage.get(handle).unwrap().image.dimensions();
 						let (ref mut vertices, ref mut indices) = wall_meshes
 							.entry(handle.clone())
 							.or_insert((vec![], vec![]));
@@ -205,7 +207,7 @@ pub fn make_meshes(
 					TextureType::None => (),
 					TextureType::Sky => unimplemented!(),
 					TextureType::Normal(handle) => {
-						let dimensions = asset_storage.get(handle).unwrap().dimensions();
+						let dimensions = asset_storage.get(handle).unwrap().image.dimensions();
 						let (ref mut vertices, ref mut indices) = wall_meshes
 							.entry(handle.clone())
 							.or_insert((vec![], vec![]));
@@ -237,7 +239,7 @@ pub fn make_meshes(
 					TextureType::None => (),
 					TextureType::Sky => unimplemented!(),
 					TextureType::Normal(handle) => {
-						let dimensions = asset_storage.get(handle).unwrap().dimensions();
+						let dimensions = asset_storage.get(handle).unwrap().image.dimensions();
 						let (ref mut vertices, ref mut indices) = wall_meshes
 							.entry(handle.clone())
 							.or_insert((vec![], vec![]));
@@ -265,7 +267,7 @@ pub fn make_meshes(
 					TextureType::None => (),
 					TextureType::Sky => unimplemented!(),
 					TextureType::Normal(handle) => {
-						let dimensions = asset_storage.get(handle).unwrap().dimensions();
+						let dimensions = asset_storage.get(handle).unwrap().image.dimensions();
 						let (ref mut vertices, ref mut indices) = wall_meshes
 							.entry(handle.clone())
 							.or_insert((vec![], vec![]));
@@ -312,7 +314,7 @@ pub fn make_meshes(
 					sector_dynamic.interval.min,
 				),
 				TextureType::Normal(handle) => {
-					let dimensions = asset_storage.get(handle).unwrap().dimensions();
+					let dimensions = asset_storage.get(handle).unwrap().image.dimensions();
 					let (ref mut vertices, ref mut indices) = flat_meshes
 						.entry(handle.clone())
 						.or_insert((vec![], vec![]));
@@ -340,7 +342,7 @@ pub fn make_meshes(
 					sector_dynamic.interval.max,
 				),
 				TextureType::Normal(handle) => {
-					let dimensions = asset_storage.get(handle).unwrap().dimensions();
+					let dimensions = asset_storage.get(handle).unwrap().image.dimensions();
 					let (ref mut vertices, ref mut indices) = flat_meshes
 						.entry(handle.clone())
 						.or_insert((vec![], vec![]));
@@ -358,5 +360,5 @@ pub fn make_meshes(
 		}
 	}
 
-	Ok((flat_meshes, sky_mesh, wall_meshes))
+	Ok((flat_meshes, wall_meshes, sky_mesh))
 }

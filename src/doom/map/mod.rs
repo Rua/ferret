@@ -11,10 +11,8 @@ use crate::{
 	doom::{
 		components::{SpawnOnCeiling, SpawnPoint, Transform},
 		entitytemplate::{EntityTemplate, EntityTypeId},
-		map::{
-			load::LinedefFlags,
-			textures::{Flat, TextureType, Wall},
-		},
+		image::Image,
+		map::{load::LinedefFlags, textures::TextureType},
 		physics::{CollisionPlane, SolidMask},
 	},
 };
@@ -31,29 +29,29 @@ use std::{fmt::Debug, time::Duration};
 
 #[derive(Debug)]
 pub struct Map {
-	pub anims_flat: FnvHashMap<AssetHandle<Flat>, Anim<Flat>>,
-	pub anims_wall: FnvHashMap<AssetHandle<Wall>, Anim<Wall>>,
+	pub anims_flat: FnvHashMap<AssetHandle<Image>, Anim>,
+	pub anims_wall: FnvHashMap<AssetHandle<Image>, Anim>,
 	pub bbox: AABB2,
 	pub linedefs: Vec<Linedef>,
 	pub nodes: Vec<Node>,
 	pub sectors: Vec<Sector>,
 	pub subsectors: Vec<Subsector>,
-	pub sky: AssetHandle<Wall>,
-	pub switches: FnvHashMap<AssetHandle<Wall>, AssetHandle<Wall>>,
+	pub sky: AssetHandle<Image>,
+	pub switches: FnvHashMap<AssetHandle<Image>, AssetHandle<Image>>,
 }
 
 #[derive(Clone, Debug)]
 pub struct MapDynamic {
-	pub anim_states_flat: FnvHashMap<AssetHandle<Flat>, AnimState>,
-	pub anim_states_wall: FnvHashMap<AssetHandle<Wall>, AnimState>,
+	pub anim_states_flat: FnvHashMap<AssetHandle<Image>, AnimState>,
+	pub anim_states_wall: FnvHashMap<AssetHandle<Image>, AnimState>,
 	pub map: AssetHandle<Map>,
 	pub linedefs: Vec<LinedefDynamic>,
 	pub sectors: Vec<SectorDynamic>,
 }
 
 #[derive(Clone, Debug)]
-pub struct Anim<T> {
-	pub frames: Vec<AssetHandle<T>>,
+pub struct Anim {
+	pub frames: Vec<AssetHandle<Image>>,
 	pub frame_time: Duration,
 }
 
@@ -104,7 +102,7 @@ pub struct LinedefDynamic {
 #[derive(Clone, Debug)]
 pub struct Sidedef {
 	pub texture_offset: Vector2<f32>,
-	pub textures: [TextureType<Wall>; 3],
+	pub textures: [TextureType; 3],
 	pub sector_index: usize,
 }
 
@@ -117,7 +115,7 @@ pub enum SidedefSlot {
 
 #[derive(Clone, Debug)]
 pub struct SidedefDynamic {
-	pub textures: [TextureType<Wall>; 3],
+	pub textures: [TextureType; 3],
 }
 
 #[derive(Clone, Debug)]
@@ -159,7 +157,7 @@ pub enum NodeChild {
 #[derive(Clone, Debug)]
 pub struct Sector {
 	pub interval: Interval,
-	pub textures: [TextureType<Flat>; 2],
+	pub textures: [TextureType; 2],
 	pub light_level: f32,
 	pub special_type: Option<u16>,
 	pub sector_tag: u16,

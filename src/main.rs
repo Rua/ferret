@@ -156,10 +156,8 @@ fn main() -> anyhow::Result<()> {
 	asset_storage.add_storage::<doom::image::ImageData>();
 	asset_storage.add_storage::<doom::image::Palette>();
 	asset_storage.add_storage::<doom::map::Map>();
-	asset_storage.add_storage::<doom::map::textures::Flat>();
 	asset_storage.add_storage::<doom::map::textures::PNames>();
 	asset_storage.add_storage::<doom::map::textures::Textures>();
-	asset_storage.add_storage::<doom::map::textures::Wall>();
 	asset_storage.add_storage::<doom::sprite::Sprite>();
 	asset_storage.add_storage::<doom::sound::Sound>();
 	resources.insert(asset_storage);
@@ -223,7 +221,7 @@ fn main() -> anyhow::Result<()> {
 					stretch: [false; 2],
 				},
 				doom::ui::UiImage {
-					image: asset_storage.load("STBAR"),
+					image: asset_storage.load("STBAR.patch"),
 				},
 			),
 			(
@@ -234,7 +232,7 @@ fn main() -> anyhow::Result<()> {
 					stretch: [false; 2],
 				},
 				doom::ui::UiImage {
-					image: asset_storage.load("STARMS"),
+					image: asset_storage.load("STARMS.patch"),
 				},
 			),
 			(
@@ -245,7 +243,7 @@ fn main() -> anyhow::Result<()> {
 					stretch: [false; 2],
 				},
 				doom::ui::UiImage {
-					image: asset_storage.load("STFST00"),
+					image: asset_storage.load("STFST00.patch"),
 				},
 			),
 		]);
@@ -468,65 +466,6 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 				image,
 				offset: image_data.offset,
 			})
-		});
-
-		// Walls
-		asset_storage.process::<doom::map::textures::Wall, _>(|data, asset_storage| {
-			let image_data: doom::image::ImageData = *data.downcast().ok().unwrap();
-			let palette = asset_storage.get(&palette_handle).unwrap();
-			let data: Vec<_> = image_data
-				.data
-				.into_iter()
-				.map(|pixel| {
-					if pixel.a == 0xFF {
-						palette[pixel.i as usize]
-					} else {
-						crate::doom::image::RGBAColor::default()
-					}
-				})
-				.collect();
-
-			// Create the image
-			let (image, _future) = ImmutableImage::from_iter(
-				data.as_bytes().iter().copied(),
-				Dimensions::Dim2d {
-					width: image_data.size[0] as u32,
-					height: image_data.size[1] as u32,
-				},
-				Format::R8G8B8A8Unorm,
-				render_context.queues().graphics.clone(),
-			)?;
-
-			Ok(image)
-		});
-
-		// Flats
-		asset_storage.process::<doom::map::textures::Flat, _>(|data, asset_storage| {
-			let image_data: doom::image::ImageData = *data.downcast().ok().unwrap();
-			let palette = asset_storage.get(&palette_handle).unwrap();
-			let data: Vec<_> = image_data
-				.data
-				.into_iter()
-				.map(|pixel| {
-					if pixel.a == 0xFF {
-						palette[pixel.i as usize]
-					} else {
-						crate::doom::image::RGBAColor::default()
-					}
-				})
-				.collect();
-
-			let (image, _future) = ImmutableImage::from_iter(
-				data.as_bytes().iter().copied(),
-				Dimensions::Dim2d {
-					width: image_data.size[0] as u32,
-					height: image_data.size[1] as u32,
-				},
-				Format::R8G8B8A8Unorm,
-				render_context.queues().graphics.clone(),
-			)?;
-
-			Ok(image)
 		});
 	}
 

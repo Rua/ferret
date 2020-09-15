@@ -5,10 +5,10 @@ use crate::{
 	},
 	doom::{
 		data::anims::{AnimData, ANIMS_FLAT, ANIMS_WALL, SWITCHES},
+		image::Image,
 		map::{
-			textures::{TextureType, Wall},
-			Anim, Linedef, Map, Node, NodeChild, Sector, SectorSlot, Seg, Sidedef, SidedefSlot,
-			Subsector, Thing, ThingFlags,
+			textures::TextureType, Anim, Linedef, Map, Node, NodeChild, Sector, SectorSlot, Seg,
+			Sidedef, SidedefSlot, Subsector, Thing, ThingFlags,
 		},
 		physics::{CollisionPlane, SolidMask},
 		wad::read_string,
@@ -69,7 +69,11 @@ impl Asset for Map {
 			gl_data,
 		};
 
-		Ok(Box::new(build_map(map_data, "SKY1", asset_storage)?))
+		Ok(Box::new(build_map(
+			map_data,
+			"SKY1.texture",
+			asset_storage,
+		)?))
 	}
 }
 
@@ -194,7 +198,7 @@ fn build_sectors(data: &[u8], asset_storage: &mut AssetStorage) -> anyhow::Resul
 						if &name == "F_SKY1" {
 							TextureType::Sky
 						} else {
-							TextureType::Normal(asset_storage.load(&name))
+							TextureType::Normal(asset_storage.load(&format!("{}.flat", name)))
 						}
 					}
 				},
@@ -207,7 +211,7 @@ fn build_sectors(data: &[u8], asset_storage: &mut AssetStorage) -> anyhow::Resul
 						if &name == "F_SKY1" {
 							TextureType::Sky
 						} else {
-							TextureType::Normal(asset_storage.load(&name))
+							TextureType::Normal(asset_storage.load(&format!("{}.flat", name)))
 						}
 					}
 				},
@@ -256,7 +260,7 @@ fn build_sidedefs(
 						if &name == "F_SKY1" {
 							TextureType::Sky
 						} else {
-							TextureType::Normal(asset_storage.load(&name))
+							TextureType::Normal(asset_storage.load(&format!("{}.texture", name)))
 						}
 					}
 				},
@@ -269,7 +273,7 @@ fn build_sidedefs(
 						if &name == "F_SKY1" {
 							TextureType::Sky
 						} else {
-							TextureType::Normal(asset_storage.load(&name))
+							TextureType::Normal(asset_storage.load(&format!("{}.texture", name)))
 						}
 					}
 				},
@@ -282,7 +286,7 @@ fn build_sidedefs(
 						if &name == "F_SKY1" {
 							TextureType::Sky
 						} else {
-							TextureType::Normal(asset_storage.load(&name))
+							TextureType::Normal(asset_storage.load(&format!("{}.texture", name)))
 						}
 					}
 				},
@@ -1187,10 +1191,10 @@ fn intersect_planes(plane1: &Plane2, plane2: &Plane2) -> Option<nalgebra::Vector
 	Some(matrix * plane1.normal)
 }
 
-pub fn get_anims<T: Asset>(
+pub fn get_anims(
 	data: &[AnimData],
 	asset_storage: &mut AssetStorage,
-) -> FnvHashMap<AssetHandle<T>, Anim<T>> {
+) -> FnvHashMap<AssetHandle<Image>, Anim> {
 	let mut ret = FnvHashMap::default();
 
 	for anim_data in data {
@@ -1216,7 +1220,7 @@ pub fn get_anims<T: Asset>(
 
 pub fn get_switches(
 	asset_storage: &mut AssetStorage,
-) -> FnvHashMap<AssetHandle<Wall>, AssetHandle<Wall>> {
+) -> FnvHashMap<AssetHandle<Image>, AssetHandle<Image>> {
 	let mut ret = FnvHashMap::default();
 
 	for [name1, name2] in SWITCHES.iter() {

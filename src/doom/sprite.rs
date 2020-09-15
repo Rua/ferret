@@ -130,7 +130,7 @@ impl Asset for Sprite {
 			}
 
 			// Add the texture
-			image_names.push(lump_name.to_owned());
+			image_names.push(format!("{}.patch", lump_name));
 		}
 
 		info.sort_unstable_by(|a, b| Ord::cmp(&a.0, &b.0).then(Ord::cmp(&a.1, &b.1)));

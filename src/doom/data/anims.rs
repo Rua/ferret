@@ -13,133 +13,133 @@ lazy_static! {
 		// Doom 1
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["NUKAGE1", "NUKAGE2", "NUKAGE3"]
+			frames: vec!["NUKAGE1.flat", "NUKAGE2.flat", "NUKAGE3.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["FWATER1", "FWATER2", "FWATER3", "FWATER4"]
+			frames: vec!["FWATER1.flat", "FWATER2.flat", "FWATER3.flat", "FWATER4.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["LAVA1", "LAVA2", "LAVA3", "LAVA4"]
+			frames: vec!["LAVA1.flat", "LAVA2.flat", "LAVA3.flat", "LAVA4.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["BLOOD1", "BLOOD2", "BLOOD3"]
+			frames: vec!["BLOOD1.flat", "BLOOD2.flat", "BLOOD3.flat"]
 		},
 
 		// Doom 2
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["RROCK5", "RROCK6", "RROCK7", "RROCK8"]
+			frames: vec!["RROCK5.flat", "RROCK6.flat", "RROCK7.flat", "RROCK8.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["SLIME1", "SLIME2", "SLIME3", "SLIME4"]
+			frames: vec!["SLIME1.flat", "SLIME2.flat", "SLIME3.flat", "SLIME4.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["SLIME5", "SLIME6", "SLIME7", "SLIME8"]
+			frames: vec!["SLIME5.flat", "SLIME6.flat", "SLIME7.flat", "SLIME8.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["SLIME9", "SLIME10", "SLIME11", "SLIME12"]
+			frames: vec!["SLIME9.flat", "SLIME10.flat", "SLIME11.flat", "SLIME12.flat"]
 		},
 	];
 	pub static ref ANIMS_WALL: Vec<AnimData> = vec![
 		// Doom 2
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["BLODGR1", "BLODGR2", "BLODGR3", "BLODGR4"]
+			frames: vec!["BLODGR1.texture", "BLODGR2.texture", "BLODGR3.texture", "BLODGR4.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["SLADRIP1", "SLADRIP2", "SLADRIP3"]
+			frames: vec!["SLADRIP1.texture", "SLADRIP2.texture", "SLADRIP3.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["BLODRIP1", "BLODRIP2", "BLODRIP3", "BLODRIP4"]
+			frames: vec!["BLODRIP1.texture", "BLODRIP2.texture", "BLODRIP3.texture", "BLODRIP4.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["FIREWALA", "FIREWALB", "FIREWALL"]
+			frames: vec!["FIREWALA.texture", "FIREWALB.texture", "FIREWALL.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["GSTFONT1", "GSTFONT2", "GSTFONT3"]
+			frames: vec!["GSTFONT1.texture", "GSTFONT2.texture", "GSTFONT3.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["FIRELAV3", "FIRELAVA"]
+			frames: vec!["FIRELAV3.texture", "FIRELAVA.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["FIREMAG1", "FIREMAG2", "FIREMAG3"]
+			frames: vec!["FIREMAG1.texture", "FIREMAG2.texture", "FIREMAG3.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["FIREBLU1", "FIREBLU2"]
+			frames: vec!["FIREBLU1.texture", "FIREBLU2.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["ROCKRED1", "ROCKRED2", "ROCKRED3"]
+			frames: vec!["ROCKRED1.texture", "ROCKRED2.texture", "ROCKRED3.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["BFALL1", "BFALL2", "BFALL3", "BFALL4"]
+			frames: vec!["BFALL1.texture", "BFALL2.texture", "BFALL3.texture", "BFALL4.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["SFALL1", "SFALL2", "SFALL3", "SFALL4"]
+			frames: vec!["SFALL1.texture", "SFALL2.texture", "SFALL3.texture", "SFALL4.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["DBRAIN1", "DBRAIN2", "DBRAIN3", "DBRAIN4"]
+			frames: vec!["DBRAIN1.texture", "DBRAIN2.texture", "DBRAIN3.texture", "DBRAIN4.texture"]
 		},
 	];
 	pub static ref SWITCHES: Vec<[&'static str; 2]> = vec![
 		// Doom 1
-		["SW1BRCOM", "SW2BRCOM"],
-		["SW1BRN1", "SW2BRN1"],
-		["SW1BRN2", "SW2BRN2"],
-		["SW1BRNGN", "SW2BRNGN"],
-		["SW1BROWN", "SW2BROWN"],
-		["SW1COMM", "SW2COMM"],
-		["SW1COMP", "SW2COMP"],
-		["SW1DIRT", "SW2DIRT"],
-		["SW1EXIT", "SW2EXIT"],
-		["SW1GRAY", "SW2GRAY"],
-		["SW1GRAY1", "SW2GRAY1"],
-		["SW1METAL", "SW2METAL"],
-		["SW1PIPE", "SW2PIPE"],
-		["SW1SLAD", "SW2SLAD"],
-		["SW1STARG", "SW2STARG"],
-		["SW1STON1", "SW2STON1"],
-		["SW1STON2", "SW2STON2"],
-		["SW1STONE", "SW2STONE"],
-		["SW1STRTN", "SW2STRTN"],
-		["SW1BLUE", "SW2BLUE"],
-		["SW1CMT", 	"SW2CMT"],
-		["SW1GARG", "SW2GARG"],
-		["SW1GSTON", "SW2GSTON"],
-		["SW1HOT", 	"SW2HOT"],
-		["SW1LION", "SW2LION"],
-		["SW1SATYR", "SW2SATYR"],
-		["SW1SKIN", "SW2SKIN"],
-		["SW1VINE", "SW2VINE"],
-		["SW1WOOD", "SW2WOOD"],
+		["SW1BRCOM.texture", "SW2BRCOM.texture"],
+		["SW1BRN1.texture", "SW2BRN1.texture"],
+		["SW1BRN2.texture", "SW2BRN2.texture"],
+		["SW1BRNGN.texture", "SW2BRNGN.texture"],
+		["SW1BROWN.texture", "SW2BROWN.texture"],
+		["SW1COMM.texture", "SW2COMM.texture"],
+		["SW1COMP.texture", "SW2COMP.texture"],
+		["SW1DIRT.texture", "SW2DIRT.texture"],
+		["SW1EXIT.texture", "SW2EXIT.texture"],
+		["SW1GRAY.texture", "SW2GRAY.texture"],
+		["SW1GRAY1.texture", "SW2GRAY1.texture"],
+		["SW1METAL.texture", "SW2METAL.texture"],
+		["SW1PIPE.texture", "SW2PIPE.texture"],
+		["SW1SLAD.texture", "SW2SLAD.texture"],
+		["SW1STARG.texture", "SW2STARG.texture"],
+		["SW1STON1.texture", "SW2STON1.texture"],
+		["SW1STON2.texture", "SW2STON2.texture"],
+		["SW1STONE.texture", "SW2STONE.texture"],
+		["SW1STRTN.texture", "SW2STRTN.texture"],
+		["SW1BLUE.texture", "SW2BLUE.texture"],
+		["SW1CMT.texture", 	"SW2CMT.texture"],
+		["SW1GARG.texture", "SW2GARG.texture"],
+		["SW1GSTON.texture", "SW2GSTON.texture"],
+		["SW1HOT.texture", 	"SW2HOT.texture"],
+		["SW1LION.texture", "SW2LION.texture"],
+		["SW1SATYR.texture", "SW2SATYR.texture"],
+		["SW1SKIN.texture", "SW2SKIN.texture"],
+		["SW1VINE.texture", "SW2VINE.texture"],
+		["SW1WOOD.texture", "SW2WOOD.texture"],
 
 		// Doom 2
-		["SW1PANEL", "SW2PANEL"],
-		["SW1ROCK", "SW2ROCK"],
-		["SW1MET2", "SW2MET2"],
-		["SW1WDMET", "SW2WDMET"],
-		["SW1BRIK", "SW2BRIK"],
-		["SW1MOD1", "SW2MOD1"],
-		["SW1ZIM", 	"SW2ZIM"],
-		["SW1STON6", "SW2STON6"],
-		["SW1TEK", 	"SW2TEK"],
-		["SW1MARB", "SW2MARB"],
-		["SW1SKULL", "SW2SKULL"],
+		["SW1PANEL.texture", "SW2PANEL.texture"],
+		["SW1ROCK.texture", "SW2ROCK.texture"],
+		["SW1MET2.texture", "SW2MET2.texture"],
+		["SW1WDMET.texture", "SW2WDMET.texture"],
+		["SW1BRIK.texture", "SW2BRIK.texture"],
+		["SW1MOD1.texture", "SW2MOD1.texture"],
+		["SW1ZIM.texture", 	"SW2ZIM.texture"],
+		["SW1STON6.texture", "SW2STON6.texture"],
+		["SW1TEK.texture", 	"SW2TEK.texture"],
+		["SW1MARB.texture", "SW2MARB.texture"],
+		["SW1SKULL.texture", "SW2SKULL.texture"],
 	];
 }
