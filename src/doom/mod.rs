@@ -20,3 +20,42 @@ pub mod switch;
 pub mod texture;
 pub mod ui;
 pub mod wad;
+
+use crate::{
+	common::assets::{AssetStorage, ImportData},
+	doom::{
+		image::{import_palette, import_patch},
+		map::{
+			load::import_map,
+			textures::{import_flat, import_pnames, import_textures, import_wall},
+		},
+		sound::import_sound,
+		sprite::import_sprite,
+	},
+};
+use anyhow::bail;
+use relative_path::RelativePath;
+
+pub fn import(
+	path: &RelativePath,
+	asset_storage: &mut AssetStorage,
+) -> anyhow::Result<Box<dyn ImportData>> {
+	let function = match path.extension() {
+		Some("flat") => import_flat,
+		Some("map") => import_map,
+		Some("palette") => import_palette,
+		Some("patch") => import_patch,
+		Some("sound") => import_sound,
+		Some("sprite") => import_sprite,
+		Some("texture") => import_wall,
+		Some(ext) => bail!("Unsupported file extension: {}", ext),
+		None => match path.file_name() {
+			Some("PNAMES") => import_pnames,
+			Some("TEXTURE1") | Some("TEXTURE2") => import_textures,
+			Some(name) => bail!("File has no extension: {}", name),
+			None => bail!("Path ends in '..'"),
+		},
+	};
+
+	function(path, asset_storage)
+}

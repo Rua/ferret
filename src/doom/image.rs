@@ -1,8 +1,5 @@
-use crate::{
-	common::assets::{Asset, AssetStorage, ImportData},
-	doom::map::textures::{import_flat, import_wall},
-};
-use anyhow::{bail, Context};
+use crate::common::assets::{Asset, AssetStorage, ImportData};
+use anyhow::Context;
 use byteorder::{ReadBytesExt, LE};
 use relative_path::RelativePath;
 use std::{
@@ -41,29 +38,29 @@ impl Deref for Palette {
 impl Asset for Palette {
 	const NAME: &'static str = "Palette";
 	const NEEDS_PROCESSING: bool = false;
+}
 
-	fn import(
-		path: &RelativePath,
-		asset_storage: &mut AssetStorage,
-	) -> anyhow::Result<Box<dyn ImportData>> {
-		let stem = path.file_stem().context("Empty file name")?;
-		let mut reader = Cursor::new(asset_storage.source().load(stem)?);
-		let mut palette = [RGBAColor {
-			r: 0,
-			g: 0,
-			b: 0,
-			a: 0,
-		}; 256];
+pub fn import_palette(
+	path: &RelativePath,
+	asset_storage: &mut AssetStorage,
+) -> anyhow::Result<Box<dyn ImportData>> {
+	let stem = path.file_stem().context("Empty file name")?;
+	let mut reader = Cursor::new(asset_storage.source().load(stem)?);
+	let mut palette = [RGBAColor {
+		r: 0,
+		g: 0,
+		b: 0,
+		a: 0,
+	}; 256];
 
-		for color in palette.iter_mut() {
-			let r = reader.read_u8()?;
-			let g = reader.read_u8()?;
-			let b = reader.read_u8()?;
-			*color = RGBAColor { r, g, b, a: 0xFF };
-		}
-
-		Ok(Box::new(Palette(palette)))
+	for color in palette.iter_mut() {
+		let r = reader.read_u8()?;
+		let g = reader.read_u8()?;
+		let b = reader.read_u8()?;
+		*color = RGBAColor { r, g, b, a: 0xFF };
 	}
+
+	Ok(Box::new(Palette(palette)))
 }
 
 #[derive(Clone, Debug)]
@@ -76,13 +73,6 @@ pub struct ImageData {
 impl Asset for ImageData {
 	const NAME: &'static str = "ImageData";
 	const NEEDS_PROCESSING: bool = false;
-
-	fn import(
-		path: &RelativePath,
-		asset_storage: &mut AssetStorage,
-	) -> anyhow::Result<Box<dyn ImportData>> {
-		import_patch(path, asset_storage)
-	}
 }
 
 pub struct Image {
@@ -93,19 +83,6 @@ pub struct Image {
 impl Asset for Image {
 	const NAME: &'static str = "Image";
 	const NEEDS_PROCESSING: bool = true;
-
-	fn import(
-		path: &RelativePath,
-		asset_storage: &mut AssetStorage,
-	) -> anyhow::Result<Box<dyn ImportData>> {
-		match path.extension() {
-			Some("flat") => import_flat(path, asset_storage),
-			Some("patch") => import_patch(path, asset_storage),
-			Some("texture") => import_wall(path, asset_storage),
-			Some(ext) => bail!("Unsupported file extension: {}", ext),
-			None => bail!("No file extension found"),
-		}
-	}
 }
 
 pub fn import_patch(

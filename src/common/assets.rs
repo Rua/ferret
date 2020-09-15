@@ -12,11 +12,6 @@ use std::{
 pub trait Asset: Send + Sync + 'static {
 	const NAME: &'static str;
 	const NEEDS_PROCESSING: bool;
-
-	fn import(
-		path: &RelativePath,
-		asset_storage: &mut AssetStorage,
-	) -> anyhow::Result<Box<dyn ImportData>>;
 }
 
 pub trait ImportData: DowncastSync {}
@@ -24,6 +19,10 @@ impl_downcast!(sync ImportData);
 impl<T: DowncastSync> ImportData for T {}
 
 pub struct AssetStorage {
+	importer: fn(
+		path: &RelativePath,
+		asset_storage: &mut AssetStorage,
+	) -> anyhow::Result<Box<dyn ImportData>>,
 	source: Box<dyn DataSource>,
 	storages: FnvHashMap<TypeId, Box<dyn Any + Send + Sync>>,
 	handle_allocator: HandleAllocator,
@@ -31,8 +30,15 @@ pub struct AssetStorage {
 
 impl AssetStorage {
 	#[inline]
-	pub fn new(source: impl DataSource) -> AssetStorage {
+	pub fn new(
+		importer: fn(
+			path: &RelativePath,
+			asset_storage: &mut AssetStorage,
+		) -> anyhow::Result<Box<dyn ImportData>>,
+		source: impl DataSource,
+	) -> AssetStorage {
 		AssetStorage {
+			importer,
 			source: Box::new(source),
 			storages: FnvHashMap::default(),
 			handle_allocator: HandleAllocator::default(),
@@ -123,7 +129,7 @@ impl AssetStorage {
 			Some(handle) => handle,
 			None => {
 				let handle = self.handle_allocator.allocate();
-				let import_result = A::import(RelativePath::new(name), self);
+				let import_result = (self.importer)(RelativePath::new(name), self);
 
 				let storage = storage_mut::<A>(&mut self.storages);
 				storage.names.insert(name.to_owned(), handle.downgrade());

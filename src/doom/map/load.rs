@@ -44,40 +44,42 @@ pub struct GLMapData {
 impl Asset for Map {
 	const NAME: &'static str = "Map";
 	const NEEDS_PROCESSING: bool = false;
+}
 
-	fn import(
-		path: &RelativePath,
-		asset_storage: &mut AssetStorage,
-	) -> anyhow::Result<Box<dyn ImportData>> {
-		let source = asset_storage.source();
-		let gl_path = path.with_file_name(format!("GL_{}", path));
+pub fn import_map(
+	path: &RelativePath,
+	asset_storage: &mut AssetStorage,
+) -> anyhow::Result<Box<dyn ImportData>> {
+	let source = asset_storage.source();
 
-		let gl_data = (|| -> Option<GLMapData> {
-			Some(GLMapData {
-				gl_vert: source.load(&format!("{}/+{}", gl_path, 1)).ok()?,
-				gl_segs: source.load(&format!("{}/+{}", gl_path, 2)).ok()?,
-				gl_ssect: source.load(&format!("{}/+{}", gl_path, 3)).ok()?,
-				gl_nodes: source.load(&format!("{}/+{}", gl_path, 4)).ok()?,
-			})
-		})();
+	let gl_path = path.with_file_name(format!("GL_{}", path));
+	let stem = gl_path.file_stem().unwrap();
+	let gl_data = (|| -> Option<GLMapData> {
+		Some(GLMapData {
+			gl_vert: source.load(&format!("{}/+{}", stem, 1)).ok()?,
+			gl_segs: source.load(&format!("{}/+{}", stem, 2)).ok()?,
+			gl_ssect: source.load(&format!("{}/+{}", stem, 3)).ok()?,
+			gl_nodes: source.load(&format!("{}/+{}", stem, 4)).ok()?,
+		})
+	})();
 
-		let map_data = MapData {
-			linedefs: source.load(&format!("{}/+{}", path, 2))?,
-			sidedefs: source.load(&format!("{}/+{}", path, 3))?,
-			vertexes: source.load(&format!("{}/+{}", path, 4))?,
-			segs: source.load(&format!("{}/+{}", path, 5))?,
-			ssectors: source.load(&format!("{}/+{}", path, 6))?,
-			nodes: source.load(&format!("{}/+{}", path, 7))?,
-			sectors: source.load(&format!("{}/+{}", path, 8))?,
-			gl_data,
-		};
+	let stem = path.file_stem().unwrap();
+	let map_data = MapData {
+		linedefs: source.load(&format!("{}/+{}", stem, 2))?,
+		sidedefs: source.load(&format!("{}/+{}", stem, 3))?,
+		vertexes: source.load(&format!("{}/+{}", stem, 4))?,
+		segs: source.load(&format!("{}/+{}", stem, 5))?,
+		ssectors: source.load(&format!("{}/+{}", stem, 6))?,
+		nodes: source.load(&format!("{}/+{}", stem, 7))?,
+		sectors: source.load(&format!("{}/+{}", stem, 8))?,
+		gl_data,
+	};
 
-		Ok(Box::new(build_map(
-			map_data,
-			"SKY1.texture",
-			asset_storage,
-		)?))
-	}
+	Ok(Box::new(build_map(
+		map_data,
+		"SKY1.texture",
+		asset_storage,
+	)?))
 }
 
 pub fn build_map(

@@ -23,38 +23,38 @@ pub use crate::common::audio::Sound;
 impl Asset for Sound {
 	const NAME: &'static str = "Sound";
 	const NEEDS_PROCESSING: bool = false;
+}
 
-	fn import(
-		path: &RelativePath,
-		asset_storage: &mut AssetStorage,
-	) -> anyhow::Result<Box<dyn ImportData>> {
-		let stem = path.file_stem().context("Empty file name")?;
-		let mut reader = Cursor::new(asset_storage.source().load(stem)?);
-		let signature = reader.read_u16::<LE>()?;
+pub fn import_sound(
+	path: &RelativePath,
+	asset_storage: &mut AssetStorage,
+) -> anyhow::Result<Box<dyn ImportData>> {
+	let stem = path.file_stem().context("Empty file name")?;
+	let mut reader = Cursor::new(asset_storage.source().load(stem)?);
+	let signature = reader.read_u16::<LE>()?;
 
-		ensure!(signature == 3, "No Doom sound file signature found");
+	ensure!(signature == 3, "No Doom sound file signature found");
 
-		let sample_rate = reader.read_u16::<LE>()? as u32;
-		let sample_count = reader.read_u32::<LE>()? as usize;
+	let sample_rate = reader.read_u16::<LE>()? as u32;
+	let sample_count = reader.read_u32::<LE>()? as usize;
 
-		// Read in the samples
-		let mut data = vec![0u8; sample_count - 32];
-		let mut padding = [0u8; 16];
-		reader.read_exact(&mut padding)?;
-		reader.read_exact(&mut data)?;
-		reader.read_exact(&mut padding)?;
+	// Read in the samples
+	let mut data = vec![0u8; sample_count - 32];
+	let mut padding = [0u8; 16];
+	reader.read_exact(&mut padding)?;
+	reader.read_exact(&mut data)?;
+	reader.read_exact(&mut padding)?;
 
-		// Convert to i16
-		let data = data
-			.into_iter()
-			.map(|x| ((x ^ 0x80) as i16) << 8)
-			.collect::<Vec<i16>>();
+	// Convert to i16
+	let data = data
+		.into_iter()
+		.map(|x| ((x ^ 0x80) as i16) << 8)
+		.collect::<Vec<i16>>();
 
-		Ok(Box::new(Sound {
-			sample_rate,
-			data: data.into(),
-		}))
-	}
+	Ok(Box::new(Sound {
+		sample_rate,
+		data: data.into(),
+	}))
 }
 
 pub fn sound_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {

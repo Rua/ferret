@@ -150,7 +150,7 @@ fn main() -> anyhow::Result<()> {
 		};
 	command_sender.send(format!("map {}", map)).ok();
 
-	let mut asset_storage = AssetStorage::new(loader);
+	let mut asset_storage = AssetStorage::new(doom::import, loader);
 	asset_storage.add_storage::<doom::entitytemplate::EntityTemplate>();
 	asset_storage.add_storage::<doom::image::Image>();
 	asset_storage.add_storage::<doom::image::ImageData>();
@@ -335,7 +335,7 @@ fn main() -> anyhow::Result<()> {
 			// Split further into subcommands
 			for args in tokens.split(|tok| tok == ";") {
 				match args[0].as_str() {
-					"map" => load_map(&args[1], &mut world, &mut resources)?,
+					"map" => load_map(&format!("{}", args[1]), &mut world, &mut resources)?,
 					"quit" => should_quit = true,
 					_ => log::error!("Unknown command: {}", args[0]),
 				}
@@ -424,7 +424,7 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 	log::info!("Loading map...");
 	let map_handle = {
 		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-		asset_storage.load(name)
+		asset_storage.load(&format!("{}.map", name))
 	};
 
 	log::info!("Processing assets...");
@@ -433,7 +433,8 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 			<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(resources);
 
 		// Palette
-		let palette_handle: AssetHandle<doom::image::Palette> = asset_storage.load("PLAYPAL");
+		let palette_handle: AssetHandle<doom::image::Palette> =
+			asset_storage.load("PLAYPAL.palette");
 
 		// Images
 		asset_storage.process::<doom::image::Image, _>(|data, asset_storage| {

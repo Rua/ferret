@@ -103,28 +103,28 @@ pub type PNames = Vec<ArrayString<[u8; 8]>>;
 impl Asset for PNames {
 	const NAME: &'static str = "PNames";
 	const NEEDS_PROCESSING: bool = false;
+}
 
-	fn import(
-		path: &RelativePath,
-		asset_storage: &mut AssetStorage,
-	) -> anyhow::Result<Box<dyn ImportData>> {
-		let stem = path.file_stem().context("Empty file name")?;
-		let mut reader = Cursor::new(asset_storage.source().load(stem)?);
-		let count = reader.read_u32::<LE>()? as usize;
-		let mut ret = Vec::with_capacity(count);
+pub fn import_pnames(
+	path: &RelativePath,
+	asset_storage: &mut AssetStorage,
+) -> anyhow::Result<Box<dyn ImportData>> {
+	let stem = path.file_stem().context("Empty file name")?;
+	let mut reader = Cursor::new(asset_storage.source().load(stem)?);
+	let count = reader.read_u32::<LE>()? as usize;
+	let mut ret = Vec::with_capacity(count);
 
-		for _ in 0..count {
-			ret.push(read_string(&mut reader)?);
-		}
-
-		Ok(Box::new(ret))
+	for _ in 0..count {
+		ret.push(read_string(&mut reader)?);
 	}
+
+	Ok(Box::new(ret))
 }
 
 #[derive(Clone, Debug)]
 pub struct PatchInfo {
 	pub offset: [isize; 2],
-	pub name: ArrayString<[u8; 8]>,
+	pub name: String,
 }
 
 #[derive(Clone, Debug)]
@@ -138,60 +138,60 @@ pub type Textures = FnvHashMap<String, TextureInfo>;
 impl Asset for Textures {
 	const NAME: &'static str = "Textures";
 	const NEEDS_PROCESSING: bool = false;
+}
 
-	fn import(
-		path: &RelativePath,
-		asset_storage: &mut AssetStorage,
-	) -> anyhow::Result<Box<dyn ImportData>> {
-		let pnames_handle = asset_storage.load::<PNames>("PNAMES");
-		let pnames = asset_storage.get(&pnames_handle).unwrap();
+pub fn import_textures(
+	path: &RelativePath,
+	asset_storage: &mut AssetStorage,
+) -> anyhow::Result<Box<dyn ImportData>> {
+	let pnames_handle = asset_storage.load::<PNames>("PNAMES");
+	let pnames = asset_storage.get(&pnames_handle).unwrap();
 
-		let stem = path.file_stem().context("Empty file name")?;
-		let mut reader = Cursor::new(asset_storage.source().load(stem)?);
+	let stem = path.file_stem().context("Empty file name")?;
+	let mut reader = Cursor::new(asset_storage.source().load(stem)?);
 
-		let count = reader.read_u32::<LE>()? as usize;
-		let mut offsets = Vec::with_capacity(count);
+	let count = reader.read_u32::<LE>()? as usize;
+	let mut offsets = Vec::with_capacity(count);
 
-		for _ in 0..count {
-			offsets.push(reader.read_u32::<LE>()? as u64);
-		}
-
-		Ok(Box::new(
-			offsets
-				.into_iter()
-				.map(|offset| {
-					reader.seek(SeekFrom::Start(offset))?;
-
-					let name = read_string(&mut reader)?.to_ascii_uppercase();
-					reader.read_u32::<LE>()?; // unused
-					let size = [reader.read_u16::<LE>()?, reader.read_u16::<LE>()?];
-					reader.read_u32::<LE>()?; // unused
-					let patch_count = reader.read_u16::<LE>()? as usize;
-
-					let mut patches = Vec::with_capacity(patch_count);
-
-					for _ in 0..patch_count {
-						let offset = [reader.read_i16::<LE>()?, reader.read_i16::<LE>()?];
-						let index = reader.read_u16::<LE>()? as usize;
-						let name = pnames[index].clone();
-						reader.read_u32::<LE>()?; // unused
-						patches.push(PatchInfo {
-							offset: [offset[0] as isize, offset[1] as isize],
-							name,
-						})
-					}
-
-					Ok((
-						name,
-						TextureInfo {
-							size: [size[0] as usize, size[1] as usize],
-							patches,
-						},
-					))
-				})
-				.collect::<anyhow::Result<Textures>>()?,
-		))
+	for _ in 0..count {
+		offsets.push(reader.read_u32::<LE>()? as u64);
 	}
+
+	Ok(Box::new(
+		offsets
+			.into_iter()
+			.map(|offset| {
+				reader.seek(SeekFrom::Start(offset))?;
+
+				let name = read_string(&mut reader)?.to_ascii_uppercase();
+				reader.read_u32::<LE>()?; // unused
+				let size = [reader.read_u16::<LE>()?, reader.read_u16::<LE>()?];
+				reader.read_u32::<LE>()?; // unused
+				let patch_count = reader.read_u16::<LE>()? as usize;
+
+				let mut patches = Vec::with_capacity(patch_count);
+
+				for _ in 0..patch_count {
+					let offset = [reader.read_i16::<LE>()?, reader.read_i16::<LE>()?];
+					let index = reader.read_u16::<LE>()? as usize;
+					let name = format!("{}.patch", pnames[index]);
+					reader.read_u32::<LE>()?; // unused
+					patches.push(PatchInfo {
+						offset: [offset[0] as isize, offset[1] as isize],
+						name,
+					})
+				}
+
+				Ok((
+					name,
+					TextureInfo {
+						size: [size[0] as usize, size[1] as usize],
+						patches,
+					},
+				))
+			})
+			.collect::<anyhow::Result<Textures>>()?,
+	))
 }
 
 #[derive(Clone, Debug)]
