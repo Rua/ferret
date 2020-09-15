@@ -1,6 +1,6 @@
 use crate::{
 	common::{
-		assets::{Asset, AssetHandle, AssetStorage, ImportData},
+		assets::{AssetHandle, AssetStorage, ImportData},
 		geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2},
 	},
 	doom::{
@@ -39,11 +39,6 @@ pub struct GLMapData {
 	pub gl_segs: Vec<u8>,
 	pub gl_ssect: Vec<u8>,
 	pub gl_nodes: Vec<u8>,
-}
-
-impl Asset for Map {
-	const NAME: &'static str = "Map";
-	const NEEDS_PROCESSING: bool = false;
 }
 
 pub fn import_map(

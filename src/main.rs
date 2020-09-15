@@ -152,15 +152,15 @@ fn main() -> anyhow::Result<()> {
 	command_sender.send(format!("map {}", map)).ok();
 
 	let mut asset_storage = AssetStorage::new(doom::import, loader);
-	asset_storage.add_storage::<doom::entitytemplate::EntityTemplate>();
-	asset_storage.add_storage::<doom::image::Image>();
-	asset_storage.add_storage::<doom::image::ImageData>();
-	asset_storage.add_storage::<doom::image::Palette>();
-	asset_storage.add_storage::<doom::map::Map>();
-	asset_storage.add_storage::<doom::map::textures::PNames>();
-	asset_storage.add_storage::<doom::map::textures::Textures>();
-	asset_storage.add_storage::<doom::sprite::Sprite>();
-	asset_storage.add_storage::<doom::sound::Sound>();
+	asset_storage.add_storage::<doom::entitytemplate::EntityTemplate>(false);
+	asset_storage.add_storage::<doom::image::Image>(true);
+	asset_storage.add_storage::<doom::image::ImageData>(false);
+	asset_storage.add_storage::<doom::image::Palette>(false);
+	asset_storage.add_storage::<doom::map::Map>(false);
+	asset_storage.add_storage::<doom::map::textures::PNames>(false);
+	asset_storage.add_storage::<doom::map::textures::Textures>(false);
+	asset_storage.add_storage::<doom::sprite::Sprite>(false);
+	asset_storage.add_storage::<doom::sound::Sound>(false);
 	resources.insert(asset_storage);
 
 	// Create systems

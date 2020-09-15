@@ -9,10 +9,8 @@ use std::{
 	sync::{Arc, Weak},
 };
 
-pub trait Asset: Send + Sync + 'static {
-	const NAME: &'static str;
-	const NEEDS_PROCESSING: bool;
-}
+pub trait Asset: Send + Sync + 'static {}
+impl<T: Send + Sync + 'static> Asset for T {}
 
 pub trait ImportData: DowncastSync {}
 impl_downcast!(sync ImportData);
@@ -51,11 +49,14 @@ impl AssetStorage {
 	}
 
 	#[inline]
-	pub fn add_storage<A: Asset>(&mut self) {
-		self.storages.insert(
-			TypeId::of::<A>(),
-			Box::new(AssetStorageTyped::<A>::default()),
-		);
+	pub fn add_storage<A: Asset>(&mut self, needs_processing: bool) {
+		let mut storage = AssetStorageTyped::<A>::default();
+
+		if needs_processing {
+			storage.unprocessed = Some(Vec::new());
+		}
+
+		self.storages.insert(TypeId::of::<A>(), Box::new(storage));
 	}
 
 	#[inline]
@@ -134,10 +135,8 @@ impl AssetStorage {
 				let storage = storage_mut::<A>(&mut self.storages);
 				storage.names.insert(name.to_owned(), handle.downgrade());
 
-				if A::NEEDS_PROCESSING {
-					storage
-						.unprocessed
-						.push((handle.clone(), import_result, name.to_owned()));
+				if let Some(unprocessed) = &mut storage.unprocessed {
+					unprocessed.push((handle.clone(), import_result, name.to_owned()));
 				} else {
 					let data = import_result.unwrap();
 					let asset = *data.downcast().ok().unwrap();
@@ -157,24 +156,22 @@ impl AssetStorage {
 		&mut self,
 		mut process_func: F,
 	) {
-		assert!(A::NEEDS_PROCESSING);
-
-		let unprocessed = if let Some(entry) = self.storages.get_mut(&TypeId::of::<A>()) {
-			let storage = entry.downcast_mut::<AssetStorageTyped<A>>().unwrap();
-			std::mem::replace(&mut storage.unprocessed, Vec::new())
-		} else {
-			return;
-		};
+		let unprocessed =
+			if let Some(unprocessed) = &mut storage_mut::<A>(&mut self.storages).unprocessed {
+				std::mem::replace(unprocessed, Vec::new())
+			} else {
+				return;
+			};
 
 		for (handle, data, name) in unprocessed {
 			// Build the asset
 			let asset = match data.and_then(|d| process_func(d, self)) {
 				Ok(asset) => {
-					log::trace!("{} '{}' loaded", A::NAME, name);
+					log::trace!("Asset '{}' loaded", name);
 					asset
 				}
 				Err(e) => {
-					log::error!("{} '{}' could not be loaded: {}", A::NAME, name, e);
+					log::error!("Asset '{}' could not be loaded: {}", name, e);
 					continue;
 				}
 			};
@@ -217,7 +214,7 @@ struct AssetStorageTyped<A: Asset> {
 	assets: FnvHashMap<u64, A>,
 	handles: Vec<AssetHandle<A>>,
 	names: FnvHashMap<String, WeakHandle<A>>,
-	unprocessed: Vec<(AssetHandle<A>, anyhow::Result<Box<dyn ImportData>>, String)>,
+	unprocessed: Option<Vec<(AssetHandle<A>, anyhow::Result<Box<dyn ImportData>>, String)>>,
 }
 
 #[derive(Derivative)]

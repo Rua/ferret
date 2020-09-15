@@ -1,4 +1,4 @@
-use crate::common::assets::{Asset, AssetStorage, ImportData};
+use crate::common::assets::{AssetStorage, ImportData};
 use byteorder::{ReadBytesExt, LE};
 use relative_path::RelativePath;
 use std::{
@@ -34,11 +34,6 @@ impl Deref for Palette {
 	}
 }
 
-impl Asset for Palette {
-	const NAME: &'static str = "Palette";
-	const NEEDS_PROCESSING: bool = false;
-}
-
 pub fn import_palette(
 	path: &RelativePath,
 	asset_storage: &mut AssetStorage,
@@ -68,19 +63,9 @@ pub struct ImageData {
 	pub offset: [isize; 2],
 }
 
-impl Asset for ImageData {
-	const NAME: &'static str = "ImageData";
-	const NEEDS_PROCESSING: bool = false;
-}
-
 pub struct Image {
 	pub image: Arc<dyn ImageViewAccess + Send + Sync>,
 	pub offset: [isize; 2],
-}
-
-impl Asset for Image {
-	const NAME: &'static str = "Image";
-	const NEEDS_PROCESSING: bool = true;
 }
 
 pub fn import_patch(

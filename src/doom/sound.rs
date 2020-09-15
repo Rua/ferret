@@ -1,6 +1,6 @@
 use crate::{
 	common::{
-		assets::{Asset, AssetHandle, AssetStorage, ImportData},
+		assets::{AssetHandle, AssetStorage, ImportData},
 		audio::{SoundController, SoundSource},
 		geometry::Angle,
 	},
@@ -19,11 +19,6 @@ use rodio::Source;
 use std::io::{Cursor, Read as IoRead};
 
 pub use crate::common::audio::Sound;
-
-impl Asset for Sound {
-	const NAME: &'static str = "Sound";
-	const NEEDS_PROCESSING: bool = false;
-}
 
 pub fn import_sound(
 	path: &RelativePath,

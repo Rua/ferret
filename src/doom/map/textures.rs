@@ -1,5 +1,5 @@
 use crate::{
-	common::assets::{Asset, AssetHandle, AssetStorage, ImportData},
+	common::assets::{AssetHandle, AssetStorage, ImportData},
 	doom::{
 		image::{IAColor, Image, ImageData},
 		wad::read_string,
@@ -10,10 +10,7 @@ use arrayvec::ArrayString;
 use byteorder::{ReadBytesExt, LE};
 use fnv::FnvHashMap;
 use relative_path::RelativePath;
-use std::{
-	io::{Cursor, Read, Seek, SeekFrom},
-	str,
-};
+use std::io::{Cursor, Read, Seek, SeekFrom};
 
 pub fn import_flat(
 	path: &RelativePath,
@@ -98,11 +95,6 @@ pub fn import_wall(
 
 pub type PNames = Vec<ArrayString<[u8; 8]>>;
 
-impl Asset for PNames {
-	const NAME: &'static str = "PNames";
-	const NEEDS_PROCESSING: bool = false;
-}
-
 pub fn import_pnames(
 	path: &RelativePath,
 	asset_storage: &mut AssetStorage,
@@ -131,11 +123,6 @@ pub struct TextureInfo {
 }
 
 pub type Textures = FnvHashMap<String, TextureInfo>;
-
-impl Asset for Textures {
-	const NAME: &'static str = "Textures";
-	const NEEDS_PROCESSING: bool = false;
-}
 
 pub fn import_textures(
 	path: &RelativePath,

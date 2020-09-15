@@ -1,5 +1,5 @@
 use crate::{
-	common::assets::{Asset, AssetHandle, AssetStorage, ImportData},
+	common::assets::{AssetHandle, AssetStorage, ImportData},
 	doom::image::Image,
 };
 use anyhow::{bail, Context};
@@ -75,11 +75,6 @@ impl SpriteBuilder {
 
 		Ok(Sprite { frames })
 	}
-}
-
-impl Asset for Sprite {
-	const NAME: &'static str = "Sprite";
-	const NEEDS_PROCESSING: bool = false;
 }
 
 pub fn import_sprite(
