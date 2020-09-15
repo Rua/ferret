@@ -6,7 +6,7 @@ use crate::{
 	},
 	doom::{client::Client, components::Transform},
 };
-use anyhow::ensure;
+use anyhow::{ensure, Context};
 use byteorder::{ReadBytesExt, LE};
 use crossbeam_channel::Sender;
 use legion::{
@@ -14,6 +14,7 @@ use legion::{
 	Entity, IntoQuery, Read, Resources, World, Write,
 };
 use nalgebra::Vector2;
+use relative_path::RelativePath;
 use rodio::Source;
 use std::io::{Cursor, Read as IoRead};
 
@@ -23,8 +24,12 @@ impl Asset for Sound {
 	const NAME: &'static str = "Sound";
 	const NEEDS_PROCESSING: bool = false;
 
-	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
-		let mut reader = Cursor::new(asset_storage.source().load(name)?);
+	fn import(
+		path: &RelativePath,
+		asset_storage: &mut AssetStorage,
+	) -> anyhow::Result<Box<dyn ImportData>> {
+		let stem = path.file_stem().context("Empty file name")?;
+		let mut reader = Cursor::new(asset_storage.source().load(stem)?);
 		let signature = reader.read_u16::<LE>()?;
 
 		ensure!(signature == 3, "No Doom sound file signature found");

@@ -2,9 +2,10 @@ use crate::{
 	common::assets::{Asset, AssetHandle, AssetStorage, ImportData},
 	doom::image::Image,
 };
-use anyhow::bail;
+use anyhow::{bail, Context};
 use lazy_static::lazy_static;
 use regex::Regex;
+use relative_path::RelativePath;
 use vulkano::impl_vertex;
 
 pub struct Sprite {
@@ -81,11 +82,16 @@ impl Asset for Sprite {
 	const NAME: &'static str = "Sprite";
 	const NEEDS_PROCESSING: bool = false;
 
-	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
+	fn import(
+		path: &RelativePath,
+		asset_storage: &mut AssetStorage,
+	) -> anyhow::Result<Box<dyn ImportData>> {
 		lazy_static! {
 			static ref SPRITENAME: Regex =
 				Regex::new(r#"^....[A-Z][0-9](?:[A-Z][0-9])?$"#).unwrap();
 		}
+
+		let stem = path.file_stem().context("Empty file name")?;
 
 		let mut image_names = Vec::new();
 		let mut info = Vec::new();
@@ -94,7 +100,7 @@ impl Asset for Sprite {
 		for lump_name in asset_storage
 			.source()
 			.names()
-			.filter(|n| n.starts_with(name) && SPRITENAME.is_match(n))
+			.filter(|n| n.starts_with(stem) && SPRITENAME.is_match(n))
 		{
 			// Regular frame
 			let frame = lump_name.chars().nth(4).unwrap() as isize - 'A' as isize;

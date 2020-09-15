@@ -19,6 +19,7 @@ use bitflags::bitflags;
 use byteorder::{ReadBytesExt, LE};
 use fnv::FnvHashMap;
 use nalgebra::{Vector2, Vector3};
+use relative_path::RelativePath;
 use serde::Deserialize;
 use std::{cmp::Ordering, io::Read};
 
@@ -44,27 +45,30 @@ impl Asset for Map {
 	const NAME: &'static str = "Map";
 	const NEEDS_PROCESSING: bool = false;
 
-	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
+	fn import(
+		path: &RelativePath,
+		asset_storage: &mut AssetStorage,
+	) -> anyhow::Result<Box<dyn ImportData>> {
 		let source = asset_storage.source();
-		let gl_name = format!("GL_{}", name);
+		let gl_path = path.with_file_name(format!("GL_{}", path));
 
 		let gl_data = (|| -> Option<GLMapData> {
 			Some(GLMapData {
-				gl_vert: source.load(&format!("{}/+{}", gl_name, 1)).ok()?,
-				gl_segs: source.load(&format!("{}/+{}", gl_name, 2)).ok()?,
-				gl_ssect: source.load(&format!("{}/+{}", gl_name, 3)).ok()?,
-				gl_nodes: source.load(&format!("{}/+{}", gl_name, 4)).ok()?,
+				gl_vert: source.load(&format!("{}/+{}", gl_path, 1)).ok()?,
+				gl_segs: source.load(&format!("{}/+{}", gl_path, 2)).ok()?,
+				gl_ssect: source.load(&format!("{}/+{}", gl_path, 3)).ok()?,
+				gl_nodes: source.load(&format!("{}/+{}", gl_path, 4)).ok()?,
 			})
 		})();
 
 		let map_data = MapData {
-			linedefs: source.load(&format!("{}/+{}", name, 2))?,
-			sidedefs: source.load(&format!("{}/+{}", name, 3))?,
-			vertexes: source.load(&format!("{}/+{}", name, 4))?,
-			segs: source.load(&format!("{}/+{}", name, 5))?,
-			ssectors: source.load(&format!("{}/+{}", name, 6))?,
-			nodes: source.load(&format!("{}/+{}", name, 7))?,
-			sectors: source.load(&format!("{}/+{}", name, 8))?,
+			linedefs: source.load(&format!("{}/+{}", path, 2))?,
+			sidedefs: source.load(&format!("{}/+{}", path, 3))?,
+			vertexes: source.load(&format!("{}/+{}", path, 4))?,
+			segs: source.load(&format!("{}/+{}", path, 5))?,
+			ssectors: source.load(&format!("{}/+{}", path, 6))?,
+			nodes: source.load(&format!("{}/+{}", path, 7))?,
+			sectors: source.load(&format!("{}/+{}", path, 8))?,
 			gl_data,
 		};
 

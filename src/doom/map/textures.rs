@@ -104,8 +104,12 @@ impl Asset for PNames {
 	const NAME: &'static str = "PNames";
 	const NEEDS_PROCESSING: bool = false;
 
-	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
-		let mut reader = Cursor::new(asset_storage.source().load(name)?);
+	fn import(
+		path: &RelativePath,
+		asset_storage: &mut AssetStorage,
+	) -> anyhow::Result<Box<dyn ImportData>> {
+		let stem = path.file_stem().context("Empty file name")?;
+		let mut reader = Cursor::new(asset_storage.source().load(stem)?);
 		let count = reader.read_u32::<LE>()? as usize;
 		let mut ret = Vec::with_capacity(count);
 
@@ -135,10 +139,15 @@ impl Asset for Textures {
 	const NAME: &'static str = "Textures";
 	const NEEDS_PROCESSING: bool = false;
 
-	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
+	fn import(
+		path: &RelativePath,
+		asset_storage: &mut AssetStorage,
+	) -> anyhow::Result<Box<dyn ImportData>> {
 		let pnames_handle = asset_storage.load::<PNames>("PNAMES");
 		let pnames = asset_storage.get(&pnames_handle).unwrap();
-		let mut reader = Cursor::new(asset_storage.source().load(name)?);
+
+		let stem = path.file_stem().context("Empty file name")?;
+		let mut reader = Cursor::new(asset_storage.source().load(stem)?);
 
 		let count = reader.read_u32::<LE>()? as usize;
 		let mut offsets = Vec::with_capacity(count);

@@ -2,6 +2,7 @@ use crate::common::{
 	assets::{Asset, AssetStorage, ImportData},
 	component::EntityComponents,
 };
+use relative_path::RelativePath;
 
 pub struct EntityTemplate {
 	pub name: Option<&'static str>,
@@ -14,7 +15,7 @@ impl Asset for EntityTemplate {
 	const NEEDS_PROCESSING: bool = false;
 
 	fn import(
-		_name: &str,
+		_path: &RelativePath,
 		_asset_storage: &mut AssetStorage,
 	) -> anyhow::Result<Box<dyn ImportData>> {
 		unimplemented!();

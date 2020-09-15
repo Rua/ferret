@@ -42,8 +42,12 @@ impl Asset for Palette {
 	const NAME: &'static str = "Palette";
 	const NEEDS_PROCESSING: bool = false;
 
-	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
-		let mut reader = Cursor::new(asset_storage.source().load(name)?);
+	fn import(
+		path: &RelativePath,
+		asset_storage: &mut AssetStorage,
+	) -> anyhow::Result<Box<dyn ImportData>> {
+		let stem = path.file_stem().context("Empty file name")?;
+		let mut reader = Cursor::new(asset_storage.source().load(stem)?);
 		let mut palette = [RGBAColor {
 			r: 0,
 			g: 0,
@@ -73,8 +77,11 @@ impl Asset for ImageData {
 	const NAME: &'static str = "ImageData";
 	const NEEDS_PROCESSING: bool = false;
 
-	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
-		import_patch(RelativePath::new(name), asset_storage)
+	fn import(
+		path: &RelativePath,
+		asset_storage: &mut AssetStorage,
+	) -> anyhow::Result<Box<dyn ImportData>> {
+		import_patch(path, asset_storage)
 	}
 }
 
@@ -87,9 +94,10 @@ impl Asset for Image {
 	const NAME: &'static str = "Image";
 	const NEEDS_PROCESSING: bool = true;
 
-	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>> {
-		let path = RelativePath::new(name);
-
+	fn import(
+		path: &RelativePath,
+		asset_storage: &mut AssetStorage,
+	) -> anyhow::Result<Box<dyn ImportData>> {
 		match path.extension() {
 			Some("flat") => import_flat(path, asset_storage),
 			Some("patch") => import_patch(path, asset_storage),

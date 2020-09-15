@@ -1,6 +1,7 @@
 use derivative::Derivative;
 use downcast_rs::{impl_downcast, DowncastSync};
 use fnv::FnvHashMap;
+use relative_path::RelativePath;
 use std::{
 	any::{Any, TypeId},
 	clone::Clone,
@@ -12,7 +13,10 @@ pub trait Asset: Send + Sync + 'static {
 	const NAME: &'static str;
 	const NEEDS_PROCESSING: bool;
 
-	fn import(name: &str, asset_storage: &mut AssetStorage) -> anyhow::Result<Box<dyn ImportData>>;
+	fn import(
+		path: &RelativePath,
+		asset_storage: &mut AssetStorage,
+	) -> anyhow::Result<Box<dyn ImportData>>;
 }
 
 pub trait ImportData: DowncastSync {}
@@ -119,7 +123,7 @@ impl AssetStorage {
 			Some(handle) => handle,
 			None => {
 				let handle = self.handle_allocator.allocate();
-				let import_result = A::import(name, self);
+				let import_result = A::import(RelativePath::new(name), self);
 
 				let storage = storage_mut::<A>(&mut self.storages);
 				storage.names.insert(name.to_owned(), handle.downgrade());
