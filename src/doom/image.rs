@@ -39,7 +39,6 @@ impl Deref for Palette {
 }
 
 impl Asset for Palette {
-	type Data = Self;
 	const NAME: &'static str = "Palette";
 	const NEEDS_PROCESSING: bool = false;
 
@@ -71,7 +70,6 @@ pub struct ImageData {
 }
 
 impl Asset for ImageData {
-	type Data = Self;
 	const NAME: &'static str = "ImageData";
 	const NEEDS_PROCESSING: bool = false;
 
@@ -86,7 +84,6 @@ pub struct Image {
 }
 
 impl Asset for Image {
-	type Data = Self;
 	const NAME: &'static str = "Image";
 	const NEEDS_PROCESSING: bool = true;
 

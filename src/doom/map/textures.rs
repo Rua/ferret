@@ -98,11 +98,9 @@ pub fn import_wall(
 	}))
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct PNames;
+pub type PNames = Vec<ArrayString<[u8; 8]>>;
 
 impl Asset for PNames {
-	type Data = Vec<ArrayString<[u8; 8]>>;
 	const NAME: &'static str = "PNames";
 	const NEEDS_PROCESSING: bool = false;
 
@@ -131,11 +129,9 @@ pub struct TextureInfo {
 	pub patches: Vec<PatchInfo>,
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct Textures;
+pub type Textures = FnvHashMap<String, TextureInfo>;
 
 impl Asset for Textures {
-	type Data = FnvHashMap<String, TextureInfo>;
 	const NAME: &'static str = "Textures";
 	const NEEDS_PROCESSING: bool = false;
 
@@ -184,7 +180,7 @@ impl Asset for Textures {
 						},
 					))
 				})
-				.collect::<anyhow::Result<Self::Data>>()?,
+				.collect::<anyhow::Result<Textures>>()?,
 		))
 	}
 }

@@ -10,7 +10,6 @@ pub struct EntityTemplate {
 }
 
 impl Asset for EntityTemplate {
-	type Data = Self;
 	const NAME: &'static str = "EntityTemplate";
 	const NEEDS_PROCESSING: bool = false;
 

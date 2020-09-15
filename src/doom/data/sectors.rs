@@ -23,7 +23,7 @@ pub fn load(resources: &mut Resources) {
 				..LightFlash::default()
 			})
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	// Fast strobe unsynchronised
 	let template = EntityTemplate {
@@ -37,7 +37,7 @@ pub fn load(resources: &mut Resources) {
 				..LightFlash::default()
 			})
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	// Slow strobe unsynchronised
 	let template = EntityTemplate {
@@ -51,7 +51,7 @@ pub fn load(resources: &mut Resources) {
 				..LightFlash::default()
 			})
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	// Fast strobe unsynchronised + 20% damage
 	let template = EntityTemplate {
@@ -65,7 +65,7 @@ pub fn load(resources: &mut Resources) {
 				..LightFlash::default()
 			})
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	// 10% damage
 	let template = EntityTemplate {
@@ -73,7 +73,7 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Sector(5)),
 		components: EntityComponents::new()
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	// 5% damage
 	let template = EntityTemplate {
@@ -81,7 +81,7 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Sector(7)),
 		components: EntityComponents::new()
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	// Glow
 	let template = EntityTemplate {
@@ -93,7 +93,7 @@ pub fn load(resources: &mut Resources) {
 				..LightGlow::default()
 			})
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	// Secret
 	let template = EntityTemplate {
@@ -101,7 +101,7 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Sector(9)),
 		components: EntityComponents::new()
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	// Door close 30 s after level start
 	let template = EntityTemplate {
@@ -109,7 +109,7 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Sector(10)),
 		components: EntityComponents::new()
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	// 20% damage, end map on death
 	let template = EntityTemplate {
@@ -117,7 +117,7 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Sector(11)),
 		components: EntityComponents::new()
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	// Slow strobe
 	let template = EntityTemplate {
@@ -131,7 +131,7 @@ pub fn load(resources: &mut Resources) {
 				..LightFlash::default()
 			})
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	// Fast strobe
 	let template = EntityTemplate {
@@ -145,7 +145,7 @@ pub fn load(resources: &mut Resources) {
 				..LightFlash::default()
 			})
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	// Door open 300 s after level start
 	let template = EntityTemplate {
@@ -153,7 +153,7 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Sector(14)),
 		components: EntityComponents::new()
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	// 20% damage
 	let template = EntityTemplate {
@@ -161,7 +161,7 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Sector(16)),
 		components: EntityComponents::new()
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	// Random flicker
 	let template = EntityTemplate {
@@ -169,5 +169,5 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Sector(17)),
 		components: EntityComponents::new()
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 }

@@ -26,7 +26,7 @@ pub fn load(resources: &mut Resources) {
 		components: EntityComponents::new()
 			.with_component(SpawnPoint { player_num: 1 }),
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	let template = EntityTemplate {
 		name: None,
@@ -34,7 +34,7 @@ pub fn load(resources: &mut Resources) {
 		components: EntityComponents::new()
 			.with_component(SpawnPoint { player_num: 2 }),
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	let template = EntityTemplate {
 		name: None,
@@ -42,7 +42,7 @@ pub fn load(resources: &mut Resources) {
 		components: EntityComponents::new()
 			.with_component(SpawnPoint { player_num: 3 }),
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	let template = EntityTemplate {
 		name: None,
@@ -50,14 +50,14 @@ pub fn load(resources: &mut Resources) {
 		components: EntityComponents::new()
 			.with_component(SpawnPoint { player_num: 4 }),
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	let template = EntityTemplate {
 		name: None,
 		type_id: Some(EntityTypeId::Thing(11)),
 		components: EntityComponents::new(),
 	};
-	asset_storage.insert::<EntityTemplate>(template);
+	asset_storage.insert(template);
 
 	let template = EntityTemplate {
 		name: Some("PLAYER"),

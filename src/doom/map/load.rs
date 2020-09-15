@@ -41,7 +41,6 @@ pub struct GLMapData {
 }
 
 impl Asset for Map {
-	type Data = Self;
 	const NAME: &'static str = "Map";
 	const NEEDS_PROCESSING: bool = false;
 

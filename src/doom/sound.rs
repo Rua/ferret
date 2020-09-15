@@ -20,7 +20,6 @@ use std::io::{Cursor, Read as IoRead};
 pub use crate::common::audio::Sound;
 
 impl Asset for Sound {
-	type Data = Self;
 	const NAME: &'static str = "Sound";
 	const NEEDS_PROCESSING: bool = false;
 

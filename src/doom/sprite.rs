@@ -78,7 +78,6 @@ impl SpriteBuilder {
 }
 
 impl Asset for Sprite {
-	type Data = Self;
 	const NAME: &'static str = "Sprite";
 	const NEEDS_PROCESSING: bool = false;
 

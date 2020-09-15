@@ -9,7 +9,6 @@ use std::{
 };
 
 pub trait Asset: Send + Sync + 'static {
-	type Data: Send + Sync + 'static;
 	const NAME: &'static str;
 	const NEEDS_PROCESSING: bool;
 
@@ -50,13 +49,13 @@ impl AssetStorage {
 	}
 
 	#[inline]
-	pub fn get<A: Asset>(&self, handle: &AssetHandle<A>) -> Option<&A::Data> {
+	pub fn get<A: Asset>(&self, handle: &AssetHandle<A>) -> Option<&A> {
 		let storage = storage::<A>(&self.storages);
 		storage.assets.get(&handle.id())
 	}
 
 	#[inline]
-	pub fn iter<A: Asset>(&self) -> impl Iterator<Item = (&AssetHandle<A>, &A::Data)> {
+	pub fn iter<A: Asset>(&self) -> impl Iterator<Item = (&AssetHandle<A>, &A)> {
 		let storage = storage::<A>(&self.storages);
 		storage
 			.handles
@@ -71,7 +70,7 @@ impl AssetStorage {
 	}
 
 	#[inline]
-	pub fn get_by_name<A: Asset>(&self, name: &str) -> Option<&A::Data> {
+	pub fn get_by_name<A: Asset>(&self, name: &str) -> Option<&A> {
 		let storage = storage::<A>(&self.storages);
 		storage
 			.names
@@ -81,7 +80,7 @@ impl AssetStorage {
 	}
 
 	#[inline]
-	pub fn insert<A: Asset>(&mut self, asset: A::Data) -> AssetHandle<A> {
+	pub fn insert<A: Asset>(&mut self, asset: A) -> AssetHandle<A> {
 		let handle = self.handle_allocator.allocate();
 		let storage = storage_mut::<A>(&mut self.storages);
 		storage.assets.insert(handle.id(), asset);
@@ -90,7 +89,7 @@ impl AssetStorage {
 	}
 
 	#[inline]
-	pub fn insert_with_name<A: Asset>(&mut self, name: &str, asset: A::Data) -> AssetHandle<A> {
+	pub fn insert_with_name<A: Asset>(&mut self, name: &str, asset: A) -> AssetHandle<A> {
 		let storage = storage_mut::<A>(&mut self.storages);
 		match storage.names.get(name).and_then(WeakHandle::upgrade) {
 			Some(handle) => {
@@ -131,7 +130,7 @@ impl AssetStorage {
 						.push((handle.clone(), import_result, name.to_owned()));
 				} else {
 					let data = import_result.unwrap();
-					let asset: A::Data = *data.downcast().ok().unwrap();
+					let asset = *data.downcast().ok().unwrap();
 					storage.assets.insert(handle.id(), asset);
 				}
 
@@ -143,7 +142,7 @@ impl AssetStorage {
 	#[inline]
 	pub fn process<
 		A: Asset,
-		F: FnMut(Box<dyn ImportData>, &mut AssetStorage) -> anyhow::Result<A::Data>,
+		F: FnMut(Box<dyn ImportData>, &mut AssetStorage) -> anyhow::Result<A>,
 	>(
 		&mut self,
 		mut process_func: F,
@@ -205,7 +204,7 @@ fn storage_mut<A: Asset>(
 #[derive(Derivative)]
 #[derivative(Default(bound = ""))]
 struct AssetStorageTyped<A: Asset> {
-	assets: FnvHashMap<u64, A::Data>,
+	assets: FnvHashMap<u64, A>,
 	handles: Vec<AssetHandle<A>>,
 	names: FnvHashMap<String, WeakHandle<A>>,
 	unprocessed: Vec<(AssetHandle<A>, anyhow::Result<Box<dyn ImportData>>, String)>,
