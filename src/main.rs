@@ -202,20 +202,20 @@ fn main() -> anyhow::Result<()> {
 		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(&mut resources);
 
 		world.extend(vec![
-			/*(
+			(
 				doom::ui::UiTransform {
-					position: Vector3::new(0.0, 200.0 - 32.0, 0.0),
+					position: Vector3::new(0.0, 168.0, 1.0),
 					alignment: [doom::ui::UiAlignment::Near, doom::ui::UiAlignment::Far],
 					size: Vector2::new(320.0, 32.0),
 					stretch: [true, false],
 				},
 				doom::ui::UiImage {
-					image: asset_storage.load("FLOOR7_2", &mut *loader),
+					image: asset_storage.load("FLOOR7_2.flat"),
 				},
-			),*/
+			),
 			(
 				doom::ui::UiTransform {
-					position: Vector3::new(0.0, 168.0, 1.0),
+					position: Vector3::new(0.0, 168.0, 2.0),
 					alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
 					size: Vector2::new(320.0, 32.0),
 					stretch: [false; 2],
@@ -226,7 +226,7 @@ fn main() -> anyhow::Result<()> {
 			),
 			(
 				doom::ui::UiTransform {
-					position: Vector3::new(104.0, 168.0, 2.0),
+					position: Vector3::new(104.0, 168.0, 3.0),
 					alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
 					size: Vector2::new(40.0, 32.0),
 					stretch: [false; 2],
