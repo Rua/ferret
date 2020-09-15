@@ -60,7 +60,7 @@ pub fn load(resources: &mut Resources) {
 	asset_storage.insert(template);
 
 	let template = EntityTemplate {
-		name: Some("PLAYER"),
+		name: Some("player"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -76,133 +76,133 @@ pub fn load(resources: &mut Resources) {
 				bob_period: 20 * FRAME_TIME,
 				deviation_position: 0.0,
 				deviation_velocity: 0.0,
-				impact_sound: asset_storage.load("DSOOF.sound"),
+				impact_sound: asset_storage.load("dsoof.sound"),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("PLAY.sprite"),
+				sprite: asset_storage.load("play.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(24);
-					states.insert("PLAY".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 0, full_bright: false},
+					states.insert("play".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
-					states.insert("PLAY_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 0, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("PLAY_RUN2".to_owned()))),
+					states.insert("play_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 0, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("play_run2".to_owned()))),
 					});
-					states.insert("PLAY_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 1, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("PLAY_RUN3".to_owned()))),
+					states.insert("play_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 1, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("play_run3".to_owned()))),
 					});
-					states.insert("PLAY_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 2, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("PLAY_RUN4".to_owned()))),
+					states.insert("play_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 2, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("play_run4".to_owned()))),
 					});
-					states.insert("PLAY_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 3, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("PLAY_RUN1".to_owned()))),
+					states.insert("play_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 3, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("play_run1".to_owned()))),
 					});
-					states.insert("PLAY_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 4, full_bright: false},
-						next: Some((12 * FRAME_TIME, Some("PLAY".to_owned()))),
+					states.insert("play_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 4, full_bright: false},
+						next: Some((12 * FRAME_TIME, Some("play".to_owned()))),
 					});
-					states.insert("PLAY_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 6, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("PLAY_PAIN2".to_owned()))),
+					states.insert("play_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 6, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("play_pain2".to_owned()))),
 					});
-					states.insert("PLAY_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 6, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("PLAY".to_owned()))),
+					states.insert("play_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 6, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("play".to_owned()))),
 					});
-					states.insert("PLAY_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 7, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("PLAY_DIE2".to_owned()))),
+					states.insert("play_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 7, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("play_die2".to_owned()))),
 					});
-					states.insert("PLAY_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 8, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("PLAY_DIE3".to_owned()))),
+					states.insert("play_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 8, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("play_die3".to_owned()))),
 					});
-					states.insert("PLAY_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 9, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("PLAY_DIE4".to_owned()))),
+					states.insert("play_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 9, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("play_die4".to_owned()))),
 					});
-					states.insert("PLAY_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 10, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("PLAY_DIE5".to_owned()))),
+					states.insert("play_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 10, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("play_die5".to_owned()))),
 					});
-					states.insert("PLAY_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 11, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("PLAY_DIE6".to_owned()))),
+					states.insert("play_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 11, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("play_die6".to_owned()))),
 					});
-					states.insert("PLAY_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 12, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("PLAY_DIE7".to_owned()))),
+					states.insert("play_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 12, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("play_die7".to_owned()))),
 					});
-					states.insert("PLAY_DIE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 13, full_bright: false},
+					states.insert("play_die7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 13, full_bright: false},
 						next: None,
 					});
-					states.insert("PLAY_XDIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 14, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("PLAY_XDIE2".to_owned()))),
+					states.insert("play_xdie1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 14, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("play_xdie2".to_owned()))),
 					});
-					states.insert("PLAY_XDIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 15, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("PLAY_XDIE3".to_owned()))),
+					states.insert("play_xdie2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 15, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("play_xdie3".to_owned()))),
 					});
-					states.insert("PLAY_XDIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 16, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("PLAY_XDIE4".to_owned()))),
+					states.insert("play_xdie3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 16, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("play_xdie4".to_owned()))),
 					});
-					states.insert("PLAY_XDIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 17, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("PLAY_XDIE5".to_owned()))),
+					states.insert("play_xdie4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 17, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("play_xdie5".to_owned()))),
 					});
-					states.insert("PLAY_XDIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 18, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("PLAY_XDIE6".to_owned()))),
+					states.insert("play_xdie5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 18, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("play_xdie6".to_owned()))),
 					});
-					states.insert("PLAY_XDIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 19, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("PLAY_XDIE7".to_owned()))),
+					states.insert("play_xdie6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 19, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("play_xdie7".to_owned()))),
 					});
-					states.insert("PLAY_XDIE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 20, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("PLAY_XDIE8".to_owned()))),
+					states.insert("play_xdie7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 20, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("play_xdie8".to_owned()))),
 					});
-					states.insert("PLAY_XDIE8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 21, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("PLAY_XDIE9".to_owned()))),
+					states.insert("play_xdie8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 21, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("play_xdie9".to_owned()))),
 					});
-					states.insert("PLAY_XDIE9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 22, full_bright: false},
+					states.insert("play_xdie9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 22, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("PLAY".to_owned()))),
-				spawn_state: Some("PLAY".to_owned()),
-				see_state: Some("PLAY_RUN1".to_owned()),
-				pain_state: Some("PLAY_PAIN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("play".to_owned()))),
+				spawn_state: Some("play".to_owned()),
+				see_state: Some("play_run1".to_owned()),
+				pain_state: Some("play_pain".to_owned()),
 				melee_state: None,
-				missile_state: Some("PLAY_ATK1".to_owned()),
-				death_state: Some("PLAY_DIE1".to_owned()),
-				xdeath_state: Some("PLAY_XDIE1".to_owned()),
+				missile_state: Some("play_atk1".to_owned()),
+				death_state: Some("play_die1".to_owned()),
+				xdeath_state: Some("play_xdie1".to_owned()),
 				raise_state: None,
 			})
 			.with_component(User {
-				error_sound: asset_storage.load("DSNOWAY.sound"),
+				error_sound: asset_storage.load("dsnoway.sound"),
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("PLAYER", template);
+	asset_storage.insert_with_name("player", template);
 
 	let template = EntityTemplate {
-		name: Some("POSSESSED"),
+		name: Some("possessed"),
 		type_id: Some(EntityTypeId::Thing(3004)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -211,163 +211,163 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("POSS.sprite"),
+				sprite: asset_storage.load("poss.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(33);
-					states.insert("POSS_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("POSS_STND2".to_owned()))),
+					states.insert("poss_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("poss_stnd2".to_owned()))),
 					});
-					states.insert("POSS_STND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 1, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("POSS_STND".to_owned()))),
+					states.insert("poss_stnd2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 1, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("poss_stnd".to_owned()))),
 					});
-					states.insert("POSS_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 0, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("POSS_RUN2".to_owned()))),
+					states.insert("poss_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 0, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("poss_run2".to_owned()))),
 					});
-					states.insert("POSS_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 0, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("POSS_RUN3".to_owned()))),
+					states.insert("poss_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 0, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("poss_run3".to_owned()))),
 					});
-					states.insert("POSS_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 1, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("POSS_RUN4".to_owned()))),
+					states.insert("poss_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 1, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("poss_run4".to_owned()))),
 					});
-					states.insert("POSS_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 1, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("POSS_RUN5".to_owned()))),
+					states.insert("poss_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 1, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("poss_run5".to_owned()))),
 					});
-					states.insert("POSS_RUN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 2, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("POSS_RUN6".to_owned()))),
+					states.insert("poss_run5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 2, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("poss_run6".to_owned()))),
 					});
-					states.insert("POSS_RUN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 2, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("POSS_RUN7".to_owned()))),
+					states.insert("poss_run6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 2, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("poss_run7".to_owned()))),
 					});
-					states.insert("POSS_RUN7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 3, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("POSS_RUN8".to_owned()))),
+					states.insert("poss_run7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 3, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("poss_run8".to_owned()))),
 					});
-					states.insert("POSS_RUN8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 3, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("POSS_RUN1".to_owned()))),
+					states.insert("poss_run8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 3, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("poss_run1".to_owned()))),
 					});
-					states.insert("POSS_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 4, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("POSS_ATK2".to_owned()))),
+					states.insert("poss_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 4, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("poss_atk2".to_owned()))),
 					});
-					states.insert("POSS_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 5, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("POSS_ATK3".to_owned()))),
+					states.insert("poss_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 5, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("poss_atk3".to_owned()))),
 					});
-					states.insert("POSS_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 4, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("POSS_RUN1".to_owned()))),
+					states.insert("poss_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 4, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("poss_run1".to_owned()))),
 					});
-					states.insert("POSS_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 6, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("POSS_PAIN2".to_owned()))),
+					states.insert("poss_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 6, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("poss_pain2".to_owned()))),
 					});
-					states.insert("POSS_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 6, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("POSS_RUN1".to_owned()))),
+					states.insert("poss_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 6, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("poss_run1".to_owned()))),
 					});
-					states.insert("POSS_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 7, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("POSS_DIE2".to_owned()))),
+					states.insert("poss_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 7, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("poss_die2".to_owned()))),
 					});
-					states.insert("POSS_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 8, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("POSS_DIE3".to_owned()))),
+					states.insert("poss_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 8, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("poss_die3".to_owned()))),
 					});
-					states.insert("POSS_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 9, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("POSS_DIE4".to_owned()))),
+					states.insert("poss_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 9, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("poss_die4".to_owned()))),
 					});
-					states.insert("POSS_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 10, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("POSS_DIE5".to_owned()))),
+					states.insert("poss_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 10, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("poss_die5".to_owned()))),
 					});
-					states.insert("POSS_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 11, full_bright: false},
+					states.insert("poss_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 11, full_bright: false},
 						next: None,
 					});
-					states.insert("POSS_XDIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 12, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("POSS_XDIE2".to_owned()))),
+					states.insert("poss_xdie1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 12, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("poss_xdie2".to_owned()))),
 					});
-					states.insert("POSS_XDIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 13, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("POSS_XDIE3".to_owned()))),
+					states.insert("poss_xdie2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 13, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("poss_xdie3".to_owned()))),
 					});
-					states.insert("POSS_XDIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 14, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("POSS_XDIE4".to_owned()))),
+					states.insert("poss_xdie3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 14, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("poss_xdie4".to_owned()))),
 					});
-					states.insert("POSS_XDIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 15, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("POSS_XDIE5".to_owned()))),
+					states.insert("poss_xdie4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 15, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("poss_xdie5".to_owned()))),
 					});
-					states.insert("POSS_XDIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 16, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("POSS_XDIE6".to_owned()))),
+					states.insert("poss_xdie5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 16, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("poss_xdie6".to_owned()))),
 					});
-					states.insert("POSS_XDIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 17, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("POSS_XDIE7".to_owned()))),
+					states.insert("poss_xdie6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 17, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("poss_xdie7".to_owned()))),
 					});
-					states.insert("POSS_XDIE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 18, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("POSS_XDIE8".to_owned()))),
+					states.insert("poss_xdie7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 18, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("poss_xdie8".to_owned()))),
 					});
-					states.insert("POSS_XDIE8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 19, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("POSS_XDIE9".to_owned()))),
+					states.insert("poss_xdie8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 19, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("poss_xdie9".to_owned()))),
 					});
-					states.insert("POSS_XDIE9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 20, full_bright: false},
+					states.insert("poss_xdie9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 20, full_bright: false},
 						next: None,
 					});
-					states.insert("POSS_RAISE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 10, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("POSS_RAISE2".to_owned()))),
+					states.insert("poss_raise1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 10, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("poss_raise2".to_owned()))),
 					});
-					states.insert("POSS_RAISE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 9, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("POSS_RAISE3".to_owned()))),
+					states.insert("poss_raise2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 9, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("poss_raise3".to_owned()))),
 					});
-					states.insert("POSS_RAISE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 8, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("POSS_RAISE4".to_owned()))),
+					states.insert("poss_raise3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 8, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("poss_raise4".to_owned()))),
 					});
-					states.insert("POSS_RAISE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 7, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("POSS_RUN1".to_owned()))),
+					states.insert("poss_raise4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 7, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("poss_run1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("POSS_STND".to_owned()))),
-				spawn_state: Some("POSS_STND".to_owned()),
-				see_state: Some("POSS_RUN1".to_owned()),
-				pain_state: Some("POSS_PAIN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("poss_stnd".to_owned()))),
+				spawn_state: Some("poss_stnd".to_owned()),
+				see_state: Some("poss_run1".to_owned()),
+				pain_state: Some("poss_pain".to_owned()),
 				melee_state: None,
-				missile_state: Some("POSS_ATK1".to_owned()),
-				death_state: Some("POSS_DIE1".to_owned()),
-				xdeath_state: Some("POSS_XDIE1".to_owned()),
-				raise_state: Some("POSS_RAISE1".to_owned()),
+				missile_state: Some("poss_atk1".to_owned()),
+				death_state: Some("poss_die1".to_owned()),
+				xdeath_state: Some("poss_xdie1".to_owned()),
+				raise_state: Some("poss_raise1".to_owned()),
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("POSSESSED", template);
+	asset_storage.insert_with_name("possessed", template);
 
 	let template = EntityTemplate {
-		name: Some("SHOTGUY"),
+		name: Some("shotguy"),
 		type_id: Some(EntityTypeId::Thing(9)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -376,167 +376,167 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SPOS.sprite"),
+				sprite: asset_storage.load("spos.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(34);
-					states.insert("SPOS_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SPOS_STND2".to_owned()))),
+					states.insert("spos_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("spos_stnd2".to_owned()))),
 					});
-					states.insert("SPOS_STND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 1, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SPOS_STND".to_owned()))),
+					states.insert("spos_stnd2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 1, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("spos_stnd".to_owned()))),
 					});
-					states.insert("SPOS_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPOS_RUN2".to_owned()))),
+					states.insert("spos_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spos_run2".to_owned()))),
 					});
-					states.insert("SPOS_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPOS_RUN3".to_owned()))),
+					states.insert("spos_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spos_run3".to_owned()))),
 					});
-					states.insert("SPOS_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPOS_RUN4".to_owned()))),
+					states.insert("spos_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spos_run4".to_owned()))),
 					});
-					states.insert("SPOS_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPOS_RUN5".to_owned()))),
+					states.insert("spos_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spos_run5".to_owned()))),
 					});
-					states.insert("SPOS_RUN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPOS_RUN6".to_owned()))),
+					states.insert("spos_run5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spos_run6".to_owned()))),
 					});
-					states.insert("SPOS_RUN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPOS_RUN7".to_owned()))),
+					states.insert("spos_run6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spos_run7".to_owned()))),
 					});
-					states.insert("SPOS_RUN7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPOS_RUN8".to_owned()))),
+					states.insert("spos_run7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spos_run8".to_owned()))),
 					});
-					states.insert("SPOS_RUN8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPOS_RUN1".to_owned()))),
+					states.insert("spos_run8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spos_run1".to_owned()))),
 					});
-					states.insert("SPOS_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 4, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SPOS_ATK2".to_owned()))),
+					states.insert("spos_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 4, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("spos_atk2".to_owned()))),
 					});
-					states.insert("SPOS_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 5, full_bright: true},
-						next: Some((10 * FRAME_TIME, Some("SPOS_ATK3".to_owned()))),
+					states.insert("spos_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 5, full_bright: true},
+						next: Some((10 * FRAME_TIME, Some("spos_atk3".to_owned()))),
 					});
-					states.insert("SPOS_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 4, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SPOS_RUN1".to_owned()))),
+					states.insert("spos_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 4, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("spos_run1".to_owned()))),
 					});
-					states.insert("SPOS_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 6, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPOS_PAIN2".to_owned()))),
+					states.insert("spos_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 6, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spos_pain2".to_owned()))),
 					});
-					states.insert("SPOS_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 6, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPOS_RUN1".to_owned()))),
+					states.insert("spos_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 6, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spos_run1".to_owned()))),
 					});
-					states.insert("SPOS_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 7, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_DIE2".to_owned()))),
+					states.insert("spos_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 7, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_die2".to_owned()))),
 					});
-					states.insert("SPOS_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 8, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_DIE3".to_owned()))),
+					states.insert("spos_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 8, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_die3".to_owned()))),
 					});
-					states.insert("SPOS_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 9, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_DIE4".to_owned()))),
+					states.insert("spos_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 9, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_die4".to_owned()))),
 					});
-					states.insert("SPOS_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 10, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_DIE5".to_owned()))),
+					states.insert("spos_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 10, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_die5".to_owned()))),
 					});
-					states.insert("SPOS_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 11, full_bright: false},
+					states.insert("spos_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 11, full_bright: false},
 						next: None,
 					});
-					states.insert("SPOS_XDIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 12, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_XDIE2".to_owned()))),
+					states.insert("spos_xdie1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 12, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_xdie2".to_owned()))),
 					});
-					states.insert("SPOS_XDIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 13, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_XDIE3".to_owned()))),
+					states.insert("spos_xdie2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 13, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_xdie3".to_owned()))),
 					});
-					states.insert("SPOS_XDIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 14, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_XDIE4".to_owned()))),
+					states.insert("spos_xdie3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 14, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_xdie4".to_owned()))),
 					});
-					states.insert("SPOS_XDIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 15, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_XDIE5".to_owned()))),
+					states.insert("spos_xdie4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 15, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_xdie5".to_owned()))),
 					});
-					states.insert("SPOS_XDIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 16, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_XDIE6".to_owned()))),
+					states.insert("spos_xdie5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 16, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_xdie6".to_owned()))),
 					});
-					states.insert("SPOS_XDIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 17, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_XDIE7".to_owned()))),
+					states.insert("spos_xdie6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 17, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_xdie7".to_owned()))),
 					});
-					states.insert("SPOS_XDIE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 18, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_XDIE8".to_owned()))),
+					states.insert("spos_xdie7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 18, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_xdie8".to_owned()))),
 					});
-					states.insert("SPOS_XDIE8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 19, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_XDIE9".to_owned()))),
+					states.insert("spos_xdie8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 19, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_xdie9".to_owned()))),
 					});
-					states.insert("SPOS_XDIE9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 20, full_bright: false},
+					states.insert("spos_xdie9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 20, full_bright: false},
 						next: None,
 					});
-					states.insert("SPOS_RAISE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 11, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_RAISE2".to_owned()))),
+					states.insert("spos_raise1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 11, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_raise2".to_owned()))),
 					});
-					states.insert("SPOS_RAISE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 10, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_RAISE3".to_owned()))),
+					states.insert("spos_raise2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 10, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_raise3".to_owned()))),
 					});
-					states.insert("SPOS_RAISE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 9, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_RAISE4".to_owned()))),
+					states.insert("spos_raise3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 9, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_raise4".to_owned()))),
 					});
-					states.insert("SPOS_RAISE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 8, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_RAISE5".to_owned()))),
+					states.insert("spos_raise4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 8, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_raise5".to_owned()))),
 					});
-					states.insert("SPOS_RAISE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 7, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SPOS_RUN1".to_owned()))),
+					states.insert("spos_raise5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 7, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("spos_run1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SPOS_STND".to_owned()))),
-				spawn_state: Some("SPOS_STND".to_owned()),
-				see_state: Some("SPOS_RUN1".to_owned()),
-				pain_state: Some("SPOS_PAIN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("spos_stnd".to_owned()))),
+				spawn_state: Some("spos_stnd".to_owned()),
+				see_state: Some("spos_run1".to_owned()),
+				pain_state: Some("spos_pain".to_owned()),
 				melee_state: None,
-				missile_state: Some("SPOS_ATK1".to_owned()),
-				death_state: Some("SPOS_DIE1".to_owned()),
-				xdeath_state: Some("SPOS_XDIE1".to_owned()),
-				raise_state: Some("SPOS_RAISE1".to_owned()),
+				missile_state: Some("spos_atk1".to_owned()),
+				death_state: Some("spos_die1".to_owned()),
+				xdeath_state: Some("spos_xdie1".to_owned()),
+				raise_state: Some("spos_raise1".to_owned()),
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("SHOTGUY", template);
+	asset_storage.insert_with_name("shotguy", template);
 
 	let template = EntityTemplate {
-		name: Some("VILE"),
+		name: Some("vile"),
 		type_id: Some(EntityTypeId::Thing(64)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -545,313 +545,313 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("VILE.sprite"),
+				sprite: asset_storage.load("vile.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(37);
-					states.insert("VILE_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("VILE_STND2".to_owned()))),
+					states.insert("vile_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("vile_stnd2".to_owned()))),
 					});
-					states.insert("VILE_STND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 1, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("VILE_STND".to_owned()))),
+					states.insert("vile_stnd2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 1, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("vile_stnd".to_owned()))),
 					});
-					states.insert("VILE_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 0, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("VILE_RUN2".to_owned()))),
+					states.insert("vile_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 0, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("vile_run2".to_owned()))),
 					});
-					states.insert("VILE_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 0, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("VILE_RUN3".to_owned()))),
+					states.insert("vile_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 0, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("vile_run3".to_owned()))),
 					});
-					states.insert("VILE_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 1, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("VILE_RUN4".to_owned()))),
+					states.insert("vile_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 1, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("vile_run4".to_owned()))),
 					});
-					states.insert("VILE_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 1, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("VILE_RUN5".to_owned()))),
+					states.insert("vile_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 1, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("vile_run5".to_owned()))),
 					});
-					states.insert("VILE_RUN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 2, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("VILE_RUN6".to_owned()))),
+					states.insert("vile_run5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 2, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("vile_run6".to_owned()))),
 					});
-					states.insert("VILE_RUN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 2, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("VILE_RUN7".to_owned()))),
+					states.insert("vile_run6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 2, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("vile_run7".to_owned()))),
 					});
-					states.insert("VILE_RUN7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 3, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("VILE_RUN8".to_owned()))),
+					states.insert("vile_run7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 3, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("vile_run8".to_owned()))),
 					});
-					states.insert("VILE_RUN8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 3, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("VILE_RUN9".to_owned()))),
+					states.insert("vile_run8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 3, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("vile_run9".to_owned()))),
 					});
-					states.insert("VILE_RUN9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 4, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("VILE_RUN10".to_owned()))),
+					states.insert("vile_run9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 4, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("vile_run10".to_owned()))),
 					});
-					states.insert("VILE_RUN10".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 4, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("VILE_RUN11".to_owned()))),
+					states.insert("vile_run10".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 4, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("vile_run11".to_owned()))),
 					});
-					states.insert("VILE_RUN11".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 5, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("VILE_RUN12".to_owned()))),
+					states.insert("vile_run11".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 5, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("vile_run12".to_owned()))),
 					});
-					states.insert("VILE_RUN12".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 5, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("VILE_RUN1".to_owned()))),
+					states.insert("vile_run12".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 5, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("vile_run1".to_owned()))),
 					});
-					states.insert("VILE_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 6, full_bright: true},
-						next: Some((0 * FRAME_TIME, Some("VILE_ATK2".to_owned()))),
+					states.insert("vile_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 6, full_bright: true},
+						next: Some((0 * FRAME_TIME, Some("vile_atk2".to_owned()))),
 					});
-					states.insert("VILE_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 6, full_bright: true},
-						next: Some((10 * FRAME_TIME, Some("VILE_ATK3".to_owned()))),
+					states.insert("vile_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 6, full_bright: true},
+						next: Some((10 * FRAME_TIME, Some("vile_atk3".to_owned()))),
 					});
-					states.insert("VILE_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 7, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("VILE_ATK4".to_owned()))),
+					states.insert("vile_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 7, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("vile_atk4".to_owned()))),
 					});
-					states.insert("VILE_ATK4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 8, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("VILE_ATK5".to_owned()))),
+					states.insert("vile_atk4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 8, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("vile_atk5".to_owned()))),
 					});
-					states.insert("VILE_ATK5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 9, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("VILE_ATK6".to_owned()))),
+					states.insert("vile_atk5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 9, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("vile_atk6".to_owned()))),
 					});
-					states.insert("VILE_ATK6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 10, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("VILE_ATK7".to_owned()))),
+					states.insert("vile_atk6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 10, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("vile_atk7".to_owned()))),
 					});
-					states.insert("VILE_ATK7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 11, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("VILE_ATK8".to_owned()))),
+					states.insert("vile_atk7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 11, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("vile_atk8".to_owned()))),
 					});
-					states.insert("VILE_ATK8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 12, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("VILE_ATK9".to_owned()))),
+					states.insert("vile_atk8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 12, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("vile_atk9".to_owned()))),
 					});
-					states.insert("VILE_ATK9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 13, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("VILE_ATK10".to_owned()))),
+					states.insert("vile_atk9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 13, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("vile_atk10".to_owned()))),
 					});
-					states.insert("VILE_ATK10".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 14, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("VILE_ATK11".to_owned()))),
+					states.insert("vile_atk10".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 14, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("vile_atk11".to_owned()))),
 					});
-					states.insert("VILE_ATK11".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 15, full_bright: true},
-						next: Some((20 * FRAME_TIME, Some("VILE_RUN1".to_owned()))),
+					states.insert("vile_atk11".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 15, full_bright: true},
+						next: Some((20 * FRAME_TIME, Some("vile_run1".to_owned()))),
 					});
-					states.insert("VILE_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 16, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("VILE_PAIN2".to_owned()))),
+					states.insert("vile_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 16, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("vile_pain2".to_owned()))),
 					});
-					states.insert("VILE_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 16, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("VILE_RUN1".to_owned()))),
+					states.insert("vile_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 16, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("vile_run1".to_owned()))),
 					});
-					states.insert("VILE_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 16, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("VILE_DIE2".to_owned()))),
+					states.insert("vile_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 16, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("vile_die2".to_owned()))),
 					});
-					states.insert("VILE_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 17, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("VILE_DIE3".to_owned()))),
+					states.insert("vile_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 17, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("vile_die3".to_owned()))),
 					});
-					states.insert("VILE_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 18, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("VILE_DIE4".to_owned()))),
+					states.insert("vile_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 18, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("vile_die4".to_owned()))),
 					});
-					states.insert("VILE_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 19, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("VILE_DIE5".to_owned()))),
+					states.insert("vile_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 19, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("vile_die5".to_owned()))),
 					});
-					states.insert("VILE_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 20, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("VILE_DIE6".to_owned()))),
+					states.insert("vile_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 20, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("vile_die6".to_owned()))),
 					});
-					states.insert("VILE_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 21, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("VILE_DIE7".to_owned()))),
+					states.insert("vile_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 21, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("vile_die7".to_owned()))),
 					});
-					states.insert("VILE_DIE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 22, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("VILE_DIE8".to_owned()))),
+					states.insert("vile_die7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 22, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("vile_die8".to_owned()))),
 					});
-					states.insert("VILE_DIE8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 23, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("VILE_DIE9".to_owned()))),
+					states.insert("vile_die8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 23, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("vile_die9".to_owned()))),
 					});
-					states.insert("VILE_DIE9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 24, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("VILE_DIE10".to_owned()))),
+					states.insert("vile_die9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 24, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("vile_die10".to_owned()))),
 					});
-					states.insert("VILE_DIE10".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("VILE.sprite"), frame: 25, full_bright: false},
+					states.insert("vile_die10".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 25, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("VILE_STND".to_owned()))),
-				spawn_state: Some("VILE_STND".to_owned()),
-				see_state: Some("VILE_RUN1".to_owned()),
-				pain_state: Some("VILE_PAIN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("vile_stnd".to_owned()))),
+				spawn_state: Some("vile_stnd".to_owned()),
+				see_state: Some("vile_run1".to_owned()),
+				pain_state: Some("vile_pain".to_owned()),
 				melee_state: None,
-				missile_state: Some("VILE_ATK1".to_owned()),
-				death_state: Some("VILE_DIE1".to_owned()),
+				missile_state: Some("vile_atk1".to_owned()),
+				death_state: Some("vile_die1".to_owned()),
 				xdeath_state: None,
 				raise_state: None,
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("VILE", template);
+	asset_storage.insert_with_name("vile", template);
 
 	let template = EntityTemplate {
-		name: Some("FIRE"),
+		name: Some("fire"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("FIRE.sprite"),
+				sprite: asset_storage.load("fire.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(30);
-					states.insert("FIRE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 0, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE2".to_owned()))),
+					states.insert("fire1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 0, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire2".to_owned()))),
 					});
-					states.insert("FIRE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 1, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE3".to_owned()))),
+					states.insert("fire2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire3".to_owned()))),
 					});
-					states.insert("FIRE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 0, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE4".to_owned()))),
+					states.insert("fire3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 0, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire4".to_owned()))),
 					});
-					states.insert("FIRE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 1, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE5".to_owned()))),
+					states.insert("fire4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire5".to_owned()))),
 					});
-					states.insert("FIRE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 2, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE6".to_owned()))),
+					states.insert("fire5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire6".to_owned()))),
 					});
-					states.insert("FIRE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 1, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE7".to_owned()))),
+					states.insert("fire6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire7".to_owned()))),
 					});
-					states.insert("FIRE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 2, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE8".to_owned()))),
+					states.insert("fire7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire8".to_owned()))),
 					});
-					states.insert("FIRE8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 1, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE9".to_owned()))),
+					states.insert("fire8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire9".to_owned()))),
 					});
-					states.insert("FIRE9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 2, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE10".to_owned()))),
+					states.insert("fire9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire10".to_owned()))),
 					});
-					states.insert("FIRE10".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 3, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE11".to_owned()))),
+					states.insert("fire10".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire11".to_owned()))),
 					});
-					states.insert("FIRE11".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 2, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE12".to_owned()))),
+					states.insert("fire11".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire12".to_owned()))),
 					});
-					states.insert("FIRE12".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 3, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE13".to_owned()))),
+					states.insert("fire12".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire13".to_owned()))),
 					});
-					states.insert("FIRE13".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 2, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE14".to_owned()))),
+					states.insert("fire13".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire14".to_owned()))),
 					});
-					states.insert("FIRE14".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 3, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE15".to_owned()))),
+					states.insert("fire14".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire15".to_owned()))),
 					});
-					states.insert("FIRE15".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 4, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE16".to_owned()))),
+					states.insert("fire15".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire16".to_owned()))),
 					});
-					states.insert("FIRE16".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 3, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE17".to_owned()))),
+					states.insert("fire16".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire17".to_owned()))),
 					});
-					states.insert("FIRE17".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 4, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE18".to_owned()))),
+					states.insert("fire17".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire18".to_owned()))),
 					});
-					states.insert("FIRE18".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 3, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE19".to_owned()))),
+					states.insert("fire18".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire19".to_owned()))),
 					});
-					states.insert("FIRE19".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 4, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE20".to_owned()))),
+					states.insert("fire19".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire20".to_owned()))),
 					});
-					states.insert("FIRE20".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 5, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE21".to_owned()))),
+					states.insert("fire20".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 5, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire21".to_owned()))),
 					});
-					states.insert("FIRE21".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 4, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE22".to_owned()))),
+					states.insert("fire21".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire22".to_owned()))),
 					});
-					states.insert("FIRE22".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 5, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE23".to_owned()))),
+					states.insert("fire22".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 5, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire23".to_owned()))),
 					});
-					states.insert("FIRE23".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 4, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE24".to_owned()))),
+					states.insert("fire23".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire24".to_owned()))),
 					});
-					states.insert("FIRE24".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 5, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE25".to_owned()))),
+					states.insert("fire24".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 5, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire25".to_owned()))),
 					});
-					states.insert("FIRE25".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 6, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE26".to_owned()))),
+					states.insert("fire25".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 6, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire26".to_owned()))),
 					});
-					states.insert("FIRE26".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 7, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE27".to_owned()))),
+					states.insert("fire26".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 7, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire27".to_owned()))),
 					});
-					states.insert("FIRE27".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 6, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE28".to_owned()))),
+					states.insert("fire27".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 6, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire28".to_owned()))),
 					});
-					states.insert("FIRE28".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 7, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE29".to_owned()))),
+					states.insert("fire28".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 7, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire29".to_owned()))),
 					});
-					states.insert("FIRE29".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 6, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("FIRE30".to_owned()))),
+					states.insert("fire29".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 6, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("fire30".to_owned()))),
 					});
-					states.insert("FIRE30".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 7, full_bright: true},
+					states.insert("fire30".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 7, full_bright: true},
 						next: Some((2 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("FIRE1".to_owned()))),
-				spawn_state: Some("FIRE1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("fire1".to_owned()))),
+				spawn_state: Some("fire1".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -861,10 +861,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("FIRE", template);
+	asset_storage.insert_with_name("fire", template);
 
 	let template = EntityTemplate {
-		name: Some("UNDEAD"),
+		name: Some("undead"),
 		type_id: Some(EntityTypeId::Thing(66)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -873,257 +873,257 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SKEL.sprite"),
+				sprite: asset_storage.load("skel.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(36);
-					states.insert("SKEL_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SKEL_STND2".to_owned()))),
+					states.insert("skel_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("skel_stnd2".to_owned()))),
 					});
-					states.insert("SKEL_STND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 1, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SKEL_STND".to_owned()))),
+					states.insert("skel_stnd2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 1, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("skel_stnd".to_owned()))),
 					});
-					states.insert("SKEL_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 0, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SKEL_RUN2".to_owned()))),
+					states.insert("skel_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 0, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("skel_run2".to_owned()))),
 					});
-					states.insert("SKEL_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 0, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SKEL_RUN3".to_owned()))),
+					states.insert("skel_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 0, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("skel_run3".to_owned()))),
 					});
-					states.insert("SKEL_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 1, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SKEL_RUN4".to_owned()))),
+					states.insert("skel_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 1, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("skel_run4".to_owned()))),
 					});
-					states.insert("SKEL_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 1, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SKEL_RUN5".to_owned()))),
+					states.insert("skel_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 1, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("skel_run5".to_owned()))),
 					});
-					states.insert("SKEL_RUN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 2, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SKEL_RUN6".to_owned()))),
+					states.insert("skel_run5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 2, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("skel_run6".to_owned()))),
 					});
-					states.insert("SKEL_RUN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 2, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SKEL_RUN7".to_owned()))),
+					states.insert("skel_run6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 2, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("skel_run7".to_owned()))),
 					});
-					states.insert("SKEL_RUN7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 3, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SKEL_RUN8".to_owned()))),
+					states.insert("skel_run7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 3, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("skel_run8".to_owned()))),
 					});
-					states.insert("SKEL_RUN8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 3, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SKEL_RUN9".to_owned()))),
+					states.insert("skel_run8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 3, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("skel_run9".to_owned()))),
 					});
-					states.insert("SKEL_RUN9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 4, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SKEL_RUN10".to_owned()))),
+					states.insert("skel_run9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 4, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("skel_run10".to_owned()))),
 					});
-					states.insert("SKEL_RUN10".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 4, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SKEL_RUN11".to_owned()))),
+					states.insert("skel_run10".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 4, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("skel_run11".to_owned()))),
 					});
-					states.insert("SKEL_RUN11".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 5, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SKEL_RUN12".to_owned()))),
+					states.insert("skel_run11".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 5, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("skel_run12".to_owned()))),
 					});
-					states.insert("SKEL_RUN12".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 5, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SKEL_RUN1".to_owned()))),
+					states.insert("skel_run12".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 5, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("skel_run1".to_owned()))),
 					});
-					states.insert("SKEL_FIST1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 6, full_bright: false},
-						next: Some((0 * FRAME_TIME, Some("SKEL_FIST2".to_owned()))),
+					states.insert("skel_fist1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 6, full_bright: false},
+						next: Some((0 * FRAME_TIME, Some("skel_fist2".to_owned()))),
 					});
-					states.insert("SKEL_FIST2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 6, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("SKEL_FIST3".to_owned()))),
+					states.insert("skel_fist2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 6, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("skel_fist3".to_owned()))),
 					});
-					states.insert("SKEL_FIST3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 7, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("SKEL_FIST4".to_owned()))),
+					states.insert("skel_fist3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 7, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("skel_fist4".to_owned()))),
 					});
-					states.insert("SKEL_FIST4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 8, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("SKEL_RUN1".to_owned()))),
+					states.insert("skel_fist4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 8, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("skel_run1".to_owned()))),
 					});
-					states.insert("SKEL_MISS1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 9, full_bright: true},
-						next: Some((0 * FRAME_TIME, Some("SKEL_MISS2".to_owned()))),
+					states.insert("skel_miss1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 9, full_bright: true},
+						next: Some((0 * FRAME_TIME, Some("skel_miss2".to_owned()))),
 					});
-					states.insert("SKEL_MISS2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 9, full_bright: true},
-						next: Some((10 * FRAME_TIME, Some("SKEL_MISS3".to_owned()))),
+					states.insert("skel_miss2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 9, full_bright: true},
+						next: Some((10 * FRAME_TIME, Some("skel_miss3".to_owned()))),
 					});
-					states.insert("SKEL_MISS3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 10, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SKEL_MISS4".to_owned()))),
+					states.insert("skel_miss3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 10, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("skel_miss4".to_owned()))),
 					});
-					states.insert("SKEL_MISS4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 10, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SKEL_RUN1".to_owned()))),
+					states.insert("skel_miss4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 10, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("skel_run1".to_owned()))),
 					});
-					states.insert("SKEL_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 11, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SKEL_PAIN2".to_owned()))),
+					states.insert("skel_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("skel_pain2".to_owned()))),
 					});
-					states.insert("SKEL_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 11, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SKEL_RUN1".to_owned()))),
+					states.insert("skel_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("skel_run1".to_owned()))),
 					});
-					states.insert("SKEL_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 11, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("SKEL_DIE2".to_owned()))),
+					states.insert("skel_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("skel_die2".to_owned()))),
 					});
-					states.insert("SKEL_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 12, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("SKEL_DIE3".to_owned()))),
+					states.insert("skel_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 12, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("skel_die3".to_owned()))),
 					});
-					states.insert("SKEL_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 13, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("SKEL_DIE4".to_owned()))),
+					states.insert("skel_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 13, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("skel_die4".to_owned()))),
 					});
-					states.insert("SKEL_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 14, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("SKEL_DIE5".to_owned()))),
+					states.insert("skel_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 14, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("skel_die5".to_owned()))),
 					});
-					states.insert("SKEL_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 15, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("SKEL_DIE6".to_owned()))),
+					states.insert("skel_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 15, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("skel_die6".to_owned()))),
 					});
-					states.insert("SKEL_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 16, full_bright: false},
+					states.insert("skel_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 16, full_bright: false},
 						next: None,
 					});
-					states.insert("SKEL_RAISE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 16, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SKEL_RAISE2".to_owned()))),
+					states.insert("skel_raise1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 16, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("skel_raise2".to_owned()))),
 					});
-					states.insert("SKEL_RAISE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 15, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SKEL_RAISE3".to_owned()))),
+					states.insert("skel_raise2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 15, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("skel_raise3".to_owned()))),
 					});
-					states.insert("SKEL_RAISE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 14, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SKEL_RAISE4".to_owned()))),
+					states.insert("skel_raise3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 14, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("skel_raise4".to_owned()))),
 					});
-					states.insert("SKEL_RAISE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 13, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SKEL_RAISE5".to_owned()))),
+					states.insert("skel_raise4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 13, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("skel_raise5".to_owned()))),
 					});
-					states.insert("SKEL_RAISE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 12, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SKEL_RAISE6".to_owned()))),
+					states.insert("skel_raise5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 12, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("skel_raise6".to_owned()))),
 					});
-					states.insert("SKEL_RAISE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKEL.sprite"), frame: 11, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SKEL_RUN1".to_owned()))),
+					states.insert("skel_raise6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("skel_run1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SKEL_STND".to_owned()))),
-				spawn_state: Some("SKEL_STND".to_owned()),
-				see_state: Some("SKEL_RUN1".to_owned()),
-				pain_state: Some("SKEL_PAIN".to_owned()),
-				melee_state: Some("SKEL_FIST1".to_owned()),
-				missile_state: Some("SKEL_MISS1".to_owned()),
-				death_state: Some("SKEL_DIE1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("skel_stnd".to_owned()))),
+				spawn_state: Some("skel_stnd".to_owned()),
+				see_state: Some("skel_run1".to_owned()),
+				pain_state: Some("skel_pain".to_owned()),
+				melee_state: Some("skel_fist1".to_owned()),
+				missile_state: Some("skel_miss1".to_owned()),
+				death_state: Some("skel_die1".to_owned()),
 				xdeath_state: None,
-				raise_state: Some("SKEL_RAISE1".to_owned()),
+				raise_state: Some("skel_raise1".to_owned()),
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("UNDEAD", template);
+	asset_storage.insert_with_name("undead", template);
 
 	let template = EntityTemplate {
-		name: Some("TRACER"),
+		name: Some("tracer"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("FATB.sprite"),
+				sprite: asset_storage.load("fatb.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(5);
-					states.insert("TRACER".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATB.sprite"), frame: 0, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("TRACER2".to_owned()))),
+					states.insert("tracer".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatb.sprite"), frame: 0, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("tracer2".to_owned()))),
 					});
-					states.insert("TRACER2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATB.sprite"), frame: 1, full_bright: true},
-						next: Some((2 * FRAME_TIME, Some("TRACER".to_owned()))),
+					states.insert("tracer2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatb.sprite"), frame: 1, full_bright: true},
+						next: Some((2 * FRAME_TIME, Some("tracer".to_owned()))),
 					});
-					states.insert("TRACEEXP1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FBXP.sprite"), frame: 0, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("TRACEEXP2".to_owned()))),
+					states.insert("traceexp1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fbxp.sprite"), frame: 0, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("traceexp2".to_owned()))),
 					});
-					states.insert("TRACEEXP2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FBXP.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("TRACEEXP3".to_owned()))),
+					states.insert("traceexp2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fbxp.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("traceexp3".to_owned()))),
 					});
-					states.insert("TRACEEXP3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FBXP.sprite"), frame: 2, full_bright: true},
+					states.insert("traceexp3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fbxp.sprite"), frame: 2, full_bright: true},
 						next: Some((4 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("TRACER".to_owned()))),
-				spawn_state: Some("TRACER".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("tracer".to_owned()))),
+				spawn_state: Some("tracer".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
 				missile_state: None,
-				death_state: Some("TRACEEXP1".to_owned()),
+				death_state: Some("traceexp1".to_owned()),
 				xdeath_state: None,
 				raise_state: None,
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("TRACER", template);
+	asset_storage.insert_with_name("tracer", template);
 
 	let template = EntityTemplate {
-		name: Some("SMOKE"),
+		name: Some("smoke"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("PUFF.sprite"),
+				sprite: asset_storage.load("puff.sprite"),
 				frame: 1,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(5);
-					states.insert("SMOKE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PUFF.sprite"), frame: 1, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("SMOKE2".to_owned()))),
+					states.insert("smoke1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 1, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("smoke2".to_owned()))),
 					});
-					states.insert("SMOKE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PUFF.sprite"), frame: 2, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("SMOKE3".to_owned()))),
+					states.insert("smoke2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 2, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("smoke3".to_owned()))),
 					});
-					states.insert("SMOKE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PUFF.sprite"), frame: 1, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("SMOKE4".to_owned()))),
+					states.insert("smoke3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 1, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("smoke4".to_owned()))),
 					});
-					states.insert("SMOKE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PUFF.sprite"), frame: 2, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("SMOKE5".to_owned()))),
+					states.insert("smoke4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 2, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("smoke5".to_owned()))),
 					});
-					states.insert("SMOKE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PUFF.sprite"), frame: 3, full_bright: false},
+					states.insert("smoke5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 3, full_bright: false},
 						next: Some((4 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SMOKE1".to_owned()))),
-				spawn_state: Some("SMOKE1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("smoke1".to_owned()))),
+				spawn_state: Some("smoke1".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -1133,10 +1133,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("SMOKE", template);
+	asset_storage.insert_with_name("smoke", template);
 
 	let template = EntityTemplate {
-		name: Some("FATSO"),
+		name: Some("fatso"),
 		type_id: Some(EntityTypeId::Thing(67)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -1145,255 +1145,255 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("FATT.sprite"),
+				sprite: asset_storage.load("fatt.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(44);
-					states.insert("FATT_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 0, full_bright: false},
-						next: Some((15 * FRAME_TIME, Some("FATT_STND2".to_owned()))),
+					states.insert("fatt_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 0, full_bright: false},
+						next: Some((15 * FRAME_TIME, Some("fatt_stnd2".to_owned()))),
 					});
-					states.insert("FATT_STND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 1, full_bright: false},
-						next: Some((15 * FRAME_TIME, Some("FATT_STND".to_owned()))),
+					states.insert("fatt_stnd2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 1, full_bright: false},
+						next: Some((15 * FRAME_TIME, Some("fatt_stnd".to_owned()))),
 					});
-					states.insert("FATT_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 0, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("FATT_RUN2".to_owned()))),
+					states.insert("fatt_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 0, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("fatt_run2".to_owned()))),
 					});
-					states.insert("FATT_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 0, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("FATT_RUN3".to_owned()))),
+					states.insert("fatt_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 0, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("fatt_run3".to_owned()))),
 					});
-					states.insert("FATT_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 1, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("FATT_RUN4".to_owned()))),
+					states.insert("fatt_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 1, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("fatt_run4".to_owned()))),
 					});
-					states.insert("FATT_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 1, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("FATT_RUN5".to_owned()))),
+					states.insert("fatt_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 1, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("fatt_run5".to_owned()))),
 					});
-					states.insert("FATT_RUN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 2, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("FATT_RUN6".to_owned()))),
+					states.insert("fatt_run5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 2, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("fatt_run6".to_owned()))),
 					});
-					states.insert("FATT_RUN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 2, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("FATT_RUN7".to_owned()))),
+					states.insert("fatt_run6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 2, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("fatt_run7".to_owned()))),
 					});
-					states.insert("FATT_RUN7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 3, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("FATT_RUN8".to_owned()))),
+					states.insert("fatt_run7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 3, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("fatt_run8".to_owned()))),
 					});
-					states.insert("FATT_RUN8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 3, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("FATT_RUN9".to_owned()))),
+					states.insert("fatt_run8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 3, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("fatt_run9".to_owned()))),
 					});
-					states.insert("FATT_RUN9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 4, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("FATT_RUN10".to_owned()))),
+					states.insert("fatt_run9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 4, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("fatt_run10".to_owned()))),
 					});
-					states.insert("FATT_RUN10".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 4, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("FATT_RUN11".to_owned()))),
+					states.insert("fatt_run10".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 4, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("fatt_run11".to_owned()))),
 					});
-					states.insert("FATT_RUN11".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 5, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("FATT_RUN12".to_owned()))),
+					states.insert("fatt_run11".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 5, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("fatt_run12".to_owned()))),
 					});
-					states.insert("FATT_RUN12".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 5, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("FATT_RUN1".to_owned()))),
+					states.insert("fatt_run12".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 5, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("fatt_run1".to_owned()))),
 					});
-					states.insert("FATT_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 6, full_bright: false},
-						next: Some((20 * FRAME_TIME, Some("FATT_ATK2".to_owned()))),
+					states.insert("fatt_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 6, full_bright: false},
+						next: Some((20 * FRAME_TIME, Some("fatt_atk2".to_owned()))),
 					});
-					states.insert("FATT_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 7, full_bright: true},
-						next: Some((10 * FRAME_TIME, Some("FATT_ATK3".to_owned()))),
+					states.insert("fatt_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 7, full_bright: true},
+						next: Some((10 * FRAME_TIME, Some("fatt_atk3".to_owned()))),
 					});
-					states.insert("FATT_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 8, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("FATT_ATK4".to_owned()))),
+					states.insert("fatt_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 8, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("fatt_atk4".to_owned()))),
 					});
-					states.insert("FATT_ATK4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 6, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("FATT_ATK5".to_owned()))),
+					states.insert("fatt_atk4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 6, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("fatt_atk5".to_owned()))),
 					});
-					states.insert("FATT_ATK5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 7, full_bright: true},
-						next: Some((10 * FRAME_TIME, Some("FATT_ATK6".to_owned()))),
+					states.insert("fatt_atk5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 7, full_bright: true},
+						next: Some((10 * FRAME_TIME, Some("fatt_atk6".to_owned()))),
 					});
-					states.insert("FATT_ATK6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 8, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("FATT_ATK7".to_owned()))),
+					states.insert("fatt_atk6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 8, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("fatt_atk7".to_owned()))),
 					});
-					states.insert("FATT_ATK7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 6, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("FATT_ATK8".to_owned()))),
+					states.insert("fatt_atk7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 6, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("fatt_atk8".to_owned()))),
 					});
-					states.insert("FATT_ATK8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 7, full_bright: true},
-						next: Some((10 * FRAME_TIME, Some("FATT_ATK9".to_owned()))),
+					states.insert("fatt_atk8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 7, full_bright: true},
+						next: Some((10 * FRAME_TIME, Some("fatt_atk9".to_owned()))),
 					});
-					states.insert("FATT_ATK9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 8, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("FATT_ATK10".to_owned()))),
+					states.insert("fatt_atk9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 8, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("fatt_atk10".to_owned()))),
 					});
-					states.insert("FATT_ATK10".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 6, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("FATT_RUN1".to_owned()))),
+					states.insert("fatt_atk10".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 6, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("fatt_run1".to_owned()))),
 					});
-					states.insert("FATT_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 9, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("FATT_PAIN2".to_owned()))),
+					states.insert("fatt_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 9, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("fatt_pain2".to_owned()))),
 					});
-					states.insert("FATT_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 9, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("FATT_RUN1".to_owned()))),
+					states.insert("fatt_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 9, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("fatt_run1".to_owned()))),
 					});
-					states.insert("FATT_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 10, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("FATT_DIE2".to_owned()))),
+					states.insert("fatt_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 10, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("fatt_die2".to_owned()))),
 					});
-					states.insert("FATT_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 11, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("FATT_DIE3".to_owned()))),
+					states.insert("fatt_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 11, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("fatt_die3".to_owned()))),
 					});
-					states.insert("FATT_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 12, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("FATT_DIE4".to_owned()))),
+					states.insert("fatt_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 12, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("fatt_die4".to_owned()))),
 					});
-					states.insert("FATT_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 13, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("FATT_DIE5".to_owned()))),
+					states.insert("fatt_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 13, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("fatt_die5".to_owned()))),
 					});
-					states.insert("FATT_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 14, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("FATT_DIE6".to_owned()))),
+					states.insert("fatt_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 14, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("fatt_die6".to_owned()))),
 					});
-					states.insert("FATT_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 15, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("FATT_DIE7".to_owned()))),
+					states.insert("fatt_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 15, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("fatt_die7".to_owned()))),
 					});
-					states.insert("FATT_DIE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 16, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("FATT_DIE8".to_owned()))),
+					states.insert("fatt_die7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 16, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("fatt_die8".to_owned()))),
 					});
-					states.insert("FATT_DIE8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 17, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("FATT_DIE9".to_owned()))),
+					states.insert("fatt_die8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 17, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("fatt_die9".to_owned()))),
 					});
-					states.insert("FATT_DIE9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 18, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("FATT_DIE10".to_owned()))),
+					states.insert("fatt_die9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 18, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("fatt_die10".to_owned()))),
 					});
-					states.insert("FATT_DIE10".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 19, full_bright: false},
+					states.insert("fatt_die10".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 19, full_bright: false},
 						next: None,
 					});
-					states.insert("FATT_RAISE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 17, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("FATT_RAISE2".to_owned()))),
+					states.insert("fatt_raise1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 17, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("fatt_raise2".to_owned()))),
 					});
-					states.insert("FATT_RAISE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 16, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("FATT_RAISE3".to_owned()))),
+					states.insert("fatt_raise2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 16, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("fatt_raise3".to_owned()))),
 					});
-					states.insert("FATT_RAISE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 15, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("FATT_RAISE4".to_owned()))),
+					states.insert("fatt_raise3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 15, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("fatt_raise4".to_owned()))),
 					});
-					states.insert("FATT_RAISE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 14, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("FATT_RAISE5".to_owned()))),
+					states.insert("fatt_raise4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 14, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("fatt_raise5".to_owned()))),
 					});
-					states.insert("FATT_RAISE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 13, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("FATT_RAISE6".to_owned()))),
+					states.insert("fatt_raise5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 13, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("fatt_raise6".to_owned()))),
 					});
-					states.insert("FATT_RAISE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 12, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("FATT_RAISE7".to_owned()))),
+					states.insert("fatt_raise6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 12, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("fatt_raise7".to_owned()))),
 					});
-					states.insert("FATT_RAISE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 11, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("FATT_RAISE8".to_owned()))),
+					states.insert("fatt_raise7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 11, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("fatt_raise8".to_owned()))),
 					});
-					states.insert("FATT_RAISE8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FATT.sprite"), frame: 10, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("FATT_RUN1".to_owned()))),
+					states.insert("fatt_raise8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 10, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("fatt_run1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("FATT_STND".to_owned()))),
-				spawn_state: Some("FATT_STND".to_owned()),
-				see_state: Some("FATT_RUN1".to_owned()),
-				pain_state: Some("FATT_PAIN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("fatt_stnd".to_owned()))),
+				spawn_state: Some("fatt_stnd".to_owned()),
+				see_state: Some("fatt_run1".to_owned()),
+				pain_state: Some("fatt_pain".to_owned()),
 				melee_state: None,
-				missile_state: Some("FATT_ATK1".to_owned()),
-				death_state: Some("FATT_DIE1".to_owned()),
+				missile_state: Some("fatt_atk1".to_owned()),
+				death_state: Some("fatt_die1".to_owned()),
 				xdeath_state: None,
-				raise_state: Some("FATT_RAISE1".to_owned()),
+				raise_state: Some("fatt_raise1".to_owned()),
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("FATSO", template);
+	asset_storage.insert_with_name("fatso", template);
 
 	let template = EntityTemplate {
-		name: Some("FATSHOT"),
+		name: Some("fatshot"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("MANF.sprite"),
+				sprite: asset_storage.load("manf.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(5);
-					states.insert("FATSHOT1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("MANF.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("FATSHOT2".to_owned()))),
+					states.insert("fatshot1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("manf.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("fatshot2".to_owned()))),
 					});
-					states.insert("FATSHOT2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("MANF.sprite"), frame: 1, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("FATSHOT1".to_owned()))),
+					states.insert("fatshot2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("manf.sprite"), frame: 1, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("fatshot1".to_owned()))),
 					});
-					states.insert("FATSHOTX1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("MISL.sprite"), frame: 1, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("FATSHOTX2".to_owned()))),
+					states.insert("fatshotx1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 1, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("fatshotx2".to_owned()))),
 					});
-					states.insert("FATSHOTX2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("MISL.sprite"), frame: 2, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("FATSHOTX3".to_owned()))),
+					states.insert("fatshotx2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 2, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("fatshotx3".to_owned()))),
 					});
-					states.insert("FATSHOTX3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("MISL.sprite"), frame: 3, full_bright: true},
+					states.insert("fatshotx3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 3, full_bright: true},
 						next: Some((4 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("FATSHOT1".to_owned()))),
-				spawn_state: Some("FATSHOT1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("fatshot1".to_owned()))),
+				spawn_state: Some("fatshot1".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
 				missile_state: None,
-				death_state: Some("FATSHOTX1".to_owned()),
+				death_state: Some("fatshotx1".to_owned()),
 				xdeath_state: None,
 				raise_state: None,
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("FATSHOT", template);
+	asset_storage.insert_with_name("fatshot", template);
 
 	let template = EntityTemplate {
-		name: Some("CHAINGUY"),
+		name: Some("chainguy"),
 		type_id: Some(EntityTypeId::Thing(65)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -1402,175 +1402,175 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("CPOS.sprite"),
+				sprite: asset_storage.load("cpos.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(36);
-					states.insert("CPOS_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("CPOS_STND2".to_owned()))),
+					states.insert("cpos_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("cpos_stnd2".to_owned()))),
 					});
-					states.insert("CPOS_STND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 1, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("CPOS_STND".to_owned()))),
+					states.insert("cpos_stnd2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 1, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("cpos_stnd".to_owned()))),
 					});
-					states.insert("CPOS_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CPOS_RUN2".to_owned()))),
+					states.insert("cpos_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cpos_run2".to_owned()))),
 					});
-					states.insert("CPOS_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CPOS_RUN3".to_owned()))),
+					states.insert("cpos_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cpos_run3".to_owned()))),
 					});
-					states.insert("CPOS_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CPOS_RUN4".to_owned()))),
+					states.insert("cpos_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cpos_run4".to_owned()))),
 					});
-					states.insert("CPOS_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CPOS_RUN5".to_owned()))),
+					states.insert("cpos_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cpos_run5".to_owned()))),
 					});
-					states.insert("CPOS_RUN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CPOS_RUN6".to_owned()))),
+					states.insert("cpos_run5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cpos_run6".to_owned()))),
 					});
-					states.insert("CPOS_RUN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CPOS_RUN7".to_owned()))),
+					states.insert("cpos_run6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cpos_run7".to_owned()))),
 					});
-					states.insert("CPOS_RUN7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CPOS_RUN8".to_owned()))),
+					states.insert("cpos_run7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cpos_run8".to_owned()))),
 					});
-					states.insert("CPOS_RUN8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CPOS_RUN1".to_owned()))),
+					states.insert("cpos_run8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cpos_run1".to_owned()))),
 					});
-					states.insert("CPOS_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 4, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("CPOS_ATK2".to_owned()))),
+					states.insert("cpos_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 4, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("cpos_atk2".to_owned()))),
 					});
-					states.insert("CPOS_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 5, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("CPOS_ATK3".to_owned()))),
+					states.insert("cpos_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 5, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("cpos_atk3".to_owned()))),
 					});
-					states.insert("CPOS_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 4, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("CPOS_ATK4".to_owned()))),
+					states.insert("cpos_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 4, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("cpos_atk4".to_owned()))),
 					});
-					states.insert("CPOS_ATK4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 5, full_bright: false},
-						next: Some((1 * FRAME_TIME, Some("CPOS_ATK2".to_owned()))),
+					states.insert("cpos_atk4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 5, full_bright: false},
+						next: Some((1 * FRAME_TIME, Some("cpos_atk2".to_owned()))),
 					});
-					states.insert("CPOS_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 6, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CPOS_PAIN2".to_owned()))),
+					states.insert("cpos_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 6, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cpos_pain2".to_owned()))),
 					});
-					states.insert("CPOS_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 6, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CPOS_RUN1".to_owned()))),
+					states.insert("cpos_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 6, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cpos_run1".to_owned()))),
 					});
-					states.insert("CPOS_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 7, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_DIE2".to_owned()))),
+					states.insert("cpos_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 7, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_die2".to_owned()))),
 					});
-					states.insert("CPOS_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 8, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_DIE3".to_owned()))),
+					states.insert("cpos_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 8, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_die3".to_owned()))),
 					});
-					states.insert("CPOS_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 9, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_DIE4".to_owned()))),
+					states.insert("cpos_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 9, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_die4".to_owned()))),
 					});
-					states.insert("CPOS_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 10, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_DIE5".to_owned()))),
+					states.insert("cpos_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 10, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_die5".to_owned()))),
 					});
-					states.insert("CPOS_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 11, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_DIE6".to_owned()))),
+					states.insert("cpos_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 11, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_die6".to_owned()))),
 					});
-					states.insert("CPOS_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 12, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_DIE7".to_owned()))),
+					states.insert("cpos_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 12, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_die7".to_owned()))),
 					});
-					states.insert("CPOS_DIE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 13, full_bright: false},
+					states.insert("cpos_die7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 13, full_bright: false},
 						next: None,
 					});
-					states.insert("CPOS_XDIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 14, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_XDIE2".to_owned()))),
+					states.insert("cpos_xdie1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 14, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_xdie2".to_owned()))),
 					});
-					states.insert("CPOS_XDIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 15, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_XDIE3".to_owned()))),
+					states.insert("cpos_xdie2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 15, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_xdie3".to_owned()))),
 					});
-					states.insert("CPOS_XDIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 16, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_XDIE4".to_owned()))),
+					states.insert("cpos_xdie3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 16, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_xdie4".to_owned()))),
 					});
-					states.insert("CPOS_XDIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 17, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_XDIE5".to_owned()))),
+					states.insert("cpos_xdie4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 17, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_xdie5".to_owned()))),
 					});
-					states.insert("CPOS_XDIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 18, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_XDIE6".to_owned()))),
+					states.insert("cpos_xdie5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 18, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_xdie6".to_owned()))),
 					});
-					states.insert("CPOS_XDIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 19, full_bright: false},
+					states.insert("cpos_xdie6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 19, full_bright: false},
 						next: None,
 					});
-					states.insert("CPOS_RAISE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 13, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_RAISE2".to_owned()))),
+					states.insert("cpos_raise1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 13, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_raise2".to_owned()))),
 					});
-					states.insert("CPOS_RAISE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 12, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_RAISE3".to_owned()))),
+					states.insert("cpos_raise2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 12, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_raise3".to_owned()))),
 					});
-					states.insert("CPOS_RAISE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 11, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_RAISE4".to_owned()))),
+					states.insert("cpos_raise3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 11, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_raise4".to_owned()))),
 					});
-					states.insert("CPOS_RAISE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 10, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_RAISE5".to_owned()))),
+					states.insert("cpos_raise4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 10, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_raise5".to_owned()))),
 					});
-					states.insert("CPOS_RAISE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 9, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_RAISE6".to_owned()))),
+					states.insert("cpos_raise5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 9, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_raise6".to_owned()))),
 					});
-					states.insert("CPOS_RAISE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 8, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_RAISE7".to_owned()))),
+					states.insert("cpos_raise6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 8, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_raise7".to_owned()))),
 					});
-					states.insert("CPOS_RAISE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CPOS.sprite"), frame: 7, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("CPOS_RUN1".to_owned()))),
+					states.insert("cpos_raise7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 7, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("cpos_run1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("CPOS_STND".to_owned()))),
-				spawn_state: Some("CPOS_STND".to_owned()),
-				see_state: Some("CPOS_RUN1".to_owned()),
-				pain_state: Some("CPOS_PAIN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("cpos_stnd".to_owned()))),
+				spawn_state: Some("cpos_stnd".to_owned()),
+				see_state: Some("cpos_run1".to_owned()),
+				pain_state: Some("cpos_pain".to_owned()),
 				melee_state: None,
-				missile_state: Some("CPOS_ATK1".to_owned()),
-				death_state: Some("CPOS_DIE1".to_owned()),
-				xdeath_state: Some("CPOS_XDIE1".to_owned()),
-				raise_state: Some("CPOS_RAISE1".to_owned()),
+				missile_state: Some("cpos_atk1".to_owned()),
+				death_state: Some("cpos_die1".to_owned()),
+				xdeath_state: Some("cpos_xdie1".to_owned()),
+				raise_state: Some("cpos_raise1".to_owned()),
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("CHAINGUY", template);
+	asset_storage.insert_with_name("chainguy", template);
 
 	let template = EntityTemplate {
-		name: Some("TROOP"),
+		name: Some("troop"),
 		type_id: Some(EntityTypeId::Thing(3001)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -1579,163 +1579,163 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("TROO.sprite"),
+				sprite: asset_storage.load("troo.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(33);
-					states.insert("TROO_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("TROO_STND2".to_owned()))),
+					states.insert("troo_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("troo_stnd2".to_owned()))),
 					});
-					states.insert("TROO_STND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 1, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("TROO_STND".to_owned()))),
+					states.insert("troo_stnd2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 1, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("troo_stnd".to_owned()))),
 					});
-					states.insert("TROO_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("TROO_RUN2".to_owned()))),
+					states.insert("troo_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("troo_run2".to_owned()))),
 					});
-					states.insert("TROO_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("TROO_RUN3".to_owned()))),
+					states.insert("troo_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("troo_run3".to_owned()))),
 					});
-					states.insert("TROO_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("TROO_RUN4".to_owned()))),
+					states.insert("troo_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("troo_run4".to_owned()))),
 					});
-					states.insert("TROO_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("TROO_RUN5".to_owned()))),
+					states.insert("troo_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("troo_run5".to_owned()))),
 					});
-					states.insert("TROO_RUN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("TROO_RUN6".to_owned()))),
+					states.insert("troo_run5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("troo_run6".to_owned()))),
 					});
-					states.insert("TROO_RUN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("TROO_RUN7".to_owned()))),
+					states.insert("troo_run6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("troo_run7".to_owned()))),
 					});
-					states.insert("TROO_RUN7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("TROO_RUN8".to_owned()))),
+					states.insert("troo_run7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("troo_run8".to_owned()))),
 					});
-					states.insert("TROO_RUN8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("TROO_RUN1".to_owned()))),
+					states.insert("troo_run8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("troo_run1".to_owned()))),
 					});
-					states.insert("TROO_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 4, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("TROO_ATK2".to_owned()))),
+					states.insert("troo_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 4, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("troo_atk2".to_owned()))),
 					});
-					states.insert("TROO_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 5, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("TROO_ATK3".to_owned()))),
+					states.insert("troo_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 5, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("troo_atk3".to_owned()))),
 					});
-					states.insert("TROO_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 6, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("TROO_RUN1".to_owned()))),
+					states.insert("troo_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 6, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("troo_run1".to_owned()))),
 					});
-					states.insert("TROO_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 7, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("TROO_PAIN2".to_owned()))),
+					states.insert("troo_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 7, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("troo_pain2".to_owned()))),
 					});
-					states.insert("TROO_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 7, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("TROO_RUN1".to_owned()))),
+					states.insert("troo_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 7, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("troo_run1".to_owned()))),
 					});
-					states.insert("TROO_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 8, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("TROO_DIE2".to_owned()))),
+					states.insert("troo_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 8, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("troo_die2".to_owned()))),
 					});
-					states.insert("TROO_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 9, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("TROO_DIE3".to_owned()))),
+					states.insert("troo_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 9, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("troo_die3".to_owned()))),
 					});
-					states.insert("TROO_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 10, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("TROO_DIE4".to_owned()))),
+					states.insert("troo_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 10, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("troo_die4".to_owned()))),
 					});
-					states.insert("TROO_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 11, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("TROO_DIE5".to_owned()))),
+					states.insert("troo_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 11, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("troo_die5".to_owned()))),
 					});
-					states.insert("TROO_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 12, full_bright: false},
+					states.insert("troo_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 12, full_bright: false},
 						next: None,
 					});
-					states.insert("TROO_XDIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 13, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("TROO_XDIE2".to_owned()))),
+					states.insert("troo_xdie1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 13, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("troo_xdie2".to_owned()))),
 					});
-					states.insert("TROO_XDIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 14, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("TROO_XDIE3".to_owned()))),
+					states.insert("troo_xdie2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 14, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("troo_xdie3".to_owned()))),
 					});
-					states.insert("TROO_XDIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 15, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("TROO_XDIE4".to_owned()))),
+					states.insert("troo_xdie3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 15, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("troo_xdie4".to_owned()))),
 					});
-					states.insert("TROO_XDIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 16, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("TROO_XDIE5".to_owned()))),
+					states.insert("troo_xdie4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 16, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("troo_xdie5".to_owned()))),
 					});
-					states.insert("TROO_XDIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 17, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("TROO_XDIE6".to_owned()))),
+					states.insert("troo_xdie5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 17, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("troo_xdie6".to_owned()))),
 					});
-					states.insert("TROO_XDIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 18, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("TROO_XDIE7".to_owned()))),
+					states.insert("troo_xdie6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 18, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("troo_xdie7".to_owned()))),
 					});
-					states.insert("TROO_XDIE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 19, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("TROO_XDIE8".to_owned()))),
+					states.insert("troo_xdie7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 19, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("troo_xdie8".to_owned()))),
 					});
-					states.insert("TROO_XDIE8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 20, full_bright: false},
+					states.insert("troo_xdie8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 20, full_bright: false},
 						next: None,
 					});
-					states.insert("TROO_RAISE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 12, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("TROO_RAISE2".to_owned()))),
+					states.insert("troo_raise1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 12, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("troo_raise2".to_owned()))),
 					});
-					states.insert("TROO_RAISE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 11, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("TROO_RAISE3".to_owned()))),
+					states.insert("troo_raise2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 11, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("troo_raise3".to_owned()))),
 					});
-					states.insert("TROO_RAISE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 10, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("TROO_RAISE4".to_owned()))),
+					states.insert("troo_raise3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 10, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("troo_raise4".to_owned()))),
 					});
-					states.insert("TROO_RAISE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 9, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("TROO_RAISE5".to_owned()))),
+					states.insert("troo_raise4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 9, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("troo_raise5".to_owned()))),
 					});
-					states.insert("TROO_RAISE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 8, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("TROO_RUN1".to_owned()))),
+					states.insert("troo_raise5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 8, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("troo_run1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("TROO_STND".to_owned()))),
-				spawn_state: Some("TROO_STND".to_owned()),
-				see_state: Some("TROO_RUN1".to_owned()),
-				pain_state: Some("TROO_PAIN".to_owned()),
-				melee_state: Some("TROO_ATK1".to_owned()),
-				missile_state: Some("TROO_ATK1".to_owned()),
-				death_state: Some("TROO_DIE1".to_owned()),
-				xdeath_state: Some("TROO_XDIE1".to_owned()),
-				raise_state: Some("TROO_RAISE1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("troo_stnd".to_owned()))),
+				spawn_state: Some("troo_stnd".to_owned()),
+				see_state: Some("troo_run1".to_owned()),
+				pain_state: Some("troo_pain".to_owned()),
+				melee_state: Some("troo_atk1".to_owned()),
+				missile_state: Some("troo_atk1".to_owned()),
+				death_state: Some("troo_die1".to_owned()),
+				xdeath_state: Some("troo_xdie1".to_owned()),
+				raise_state: Some("troo_raise1".to_owned()),
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("TROOP", template);
+	asset_storage.insert_with_name("troop", template);
 
 	let template = EntityTemplate {
-		name: Some("SERGEANT"),
+		name: Some("sergeant"),
 		type_id: Some(EntityTypeId::Thing(3002)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -1744,139 +1744,139 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SARG.sprite"),
+				sprite: asset_storage.load("sarg.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(27);
-					states.insert("SARG_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SARG_STND2".to_owned()))),
+					states.insert("sarg_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("sarg_stnd2".to_owned()))),
 					});
-					states.insert("SARG_STND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 1, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SARG_STND".to_owned()))),
+					states.insert("sarg_stnd2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("sarg_stnd".to_owned()))),
 					});
-					states.insert("SARG_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 0, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN2".to_owned()))),
+					states.insert("sarg_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run2".to_owned()))),
 					});
-					states.insert("SARG_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 0, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN3".to_owned()))),
+					states.insert("sarg_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run3".to_owned()))),
 					});
-					states.insert("SARG_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 1, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN4".to_owned()))),
+					states.insert("sarg_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run4".to_owned()))),
 					});
-					states.insert("SARG_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 1, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN5".to_owned()))),
+					states.insert("sarg_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run5".to_owned()))),
 					});
-					states.insert("SARG_RUN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 2, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN6".to_owned()))),
+					states.insert("sarg_run5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 2, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run6".to_owned()))),
 					});
-					states.insert("SARG_RUN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 2, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN7".to_owned()))),
+					states.insert("sarg_run6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 2, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run7".to_owned()))),
 					});
-					states.insert("SARG_RUN7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 3, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN8".to_owned()))),
+					states.insert("sarg_run7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 3, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run8".to_owned()))),
 					});
-					states.insert("SARG_RUN8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 3, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN1".to_owned()))),
+					states.insert("sarg_run8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 3, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run1".to_owned()))),
 					});
-					states.insert("SARG_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 4, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("SARG_ATK2".to_owned()))),
+					states.insert("sarg_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 4, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("sarg_atk2".to_owned()))),
 					});
-					states.insert("SARG_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 5, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("SARG_ATK3".to_owned()))),
+					states.insert("sarg_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 5, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("sarg_atk3".to_owned()))),
 					});
-					states.insert("SARG_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 6, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("SARG_RUN1".to_owned()))),
+					states.insert("sarg_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 6, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("sarg_run1".to_owned()))),
 					});
-					states.insert("SARG_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 7, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_PAIN2".to_owned()))),
+					states.insert("sarg_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_pain2".to_owned()))),
 					});
-					states.insert("SARG_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 7, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN1".to_owned()))),
+					states.insert("sarg_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run1".to_owned()))),
 					});
-					states.insert("SARG_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 8, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("SARG_DIE2".to_owned()))),
+					states.insert("sarg_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 8, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("sarg_die2".to_owned()))),
 					});
-					states.insert("SARG_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 9, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("SARG_DIE3".to_owned()))),
+					states.insert("sarg_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("sarg_die3".to_owned()))),
 					});
-					states.insert("SARG_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 10, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("SARG_DIE4".to_owned()))),
+					states.insert("sarg_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 10, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("sarg_die4".to_owned()))),
 					});
-					states.insert("SARG_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 11, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("SARG_DIE5".to_owned()))),
+					states.insert("sarg_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("sarg_die5".to_owned()))),
 					});
-					states.insert("SARG_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 12, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("SARG_DIE6".to_owned()))),
+					states.insert("sarg_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 12, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("sarg_die6".to_owned()))),
 					});
-					states.insert("SARG_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 13, full_bright: false},
+					states.insert("sarg_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false},
 						next: None,
 					});
-					states.insert("SARG_RAISE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 13, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SARG_RAISE2".to_owned()))),
+					states.insert("sarg_raise1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sarg_raise2".to_owned()))),
 					});
-					states.insert("SARG_RAISE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 12, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SARG_RAISE3".to_owned()))),
+					states.insert("sarg_raise2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 12, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sarg_raise3".to_owned()))),
 					});
-					states.insert("SARG_RAISE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 11, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SARG_RAISE4".to_owned()))),
+					states.insert("sarg_raise3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sarg_raise4".to_owned()))),
 					});
-					states.insert("SARG_RAISE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 10, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SARG_RAISE5".to_owned()))),
+					states.insert("sarg_raise4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 10, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sarg_raise5".to_owned()))),
 					});
-					states.insert("SARG_RAISE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 9, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SARG_RAISE6".to_owned()))),
+					states.insert("sarg_raise5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sarg_raise6".to_owned()))),
 					});
-					states.insert("SARG_RAISE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 8, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SARG_RUN1".to_owned()))),
+					states.insert("sarg_raise6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 8, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sarg_run1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SARG_STND".to_owned()))),
-				spawn_state: Some("SARG_STND".to_owned()),
-				see_state: Some("SARG_RUN1".to_owned()),
-				pain_state: Some("SARG_PAIN".to_owned()),
-				melee_state: Some("SARG_ATK1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("sarg_stnd".to_owned()))),
+				spawn_state: Some("sarg_stnd".to_owned()),
+				see_state: Some("sarg_run1".to_owned()),
+				pain_state: Some("sarg_pain".to_owned()),
+				melee_state: Some("sarg_atk1".to_owned()),
 				missile_state: None,
-				death_state: Some("SARG_DIE1".to_owned()),
+				death_state: Some("sarg_die1".to_owned()),
 				xdeath_state: None,
-				raise_state: Some("SARG_RAISE1".to_owned()),
+				raise_state: Some("sarg_raise1".to_owned()),
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("SERGEANT", template);
+	asset_storage.insert_with_name("sergeant", template);
 
 	let template = EntityTemplate {
-		name: Some("SHADOWS"),
+		name: Some("shadows"),
 		type_id: Some(EntityTypeId::Thing(58)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -1885,139 +1885,139 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SARG.sprite"),
+				sprite: asset_storage.load("sarg.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(27);
-					states.insert("SARG_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SARG_STND2".to_owned()))),
+					states.insert("sarg_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("sarg_stnd2".to_owned()))),
 					});
-					states.insert("SARG_STND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 1, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SARG_STND".to_owned()))),
+					states.insert("sarg_stnd2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("sarg_stnd".to_owned()))),
 					});
-					states.insert("SARG_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 0, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN2".to_owned()))),
+					states.insert("sarg_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run2".to_owned()))),
 					});
-					states.insert("SARG_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 0, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN3".to_owned()))),
+					states.insert("sarg_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run3".to_owned()))),
 					});
-					states.insert("SARG_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 1, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN4".to_owned()))),
+					states.insert("sarg_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run4".to_owned()))),
 					});
-					states.insert("SARG_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 1, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN5".to_owned()))),
+					states.insert("sarg_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run5".to_owned()))),
 					});
-					states.insert("SARG_RUN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 2, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN6".to_owned()))),
+					states.insert("sarg_run5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 2, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run6".to_owned()))),
 					});
-					states.insert("SARG_RUN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 2, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN7".to_owned()))),
+					states.insert("sarg_run6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 2, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run7".to_owned()))),
 					});
-					states.insert("SARG_RUN7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 3, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN8".to_owned()))),
+					states.insert("sarg_run7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 3, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run8".to_owned()))),
 					});
-					states.insert("SARG_RUN8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 3, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN1".to_owned()))),
+					states.insert("sarg_run8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 3, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run1".to_owned()))),
 					});
-					states.insert("SARG_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 4, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("SARG_ATK2".to_owned()))),
+					states.insert("sarg_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 4, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("sarg_atk2".to_owned()))),
 					});
-					states.insert("SARG_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 5, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("SARG_ATK3".to_owned()))),
+					states.insert("sarg_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 5, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("sarg_atk3".to_owned()))),
 					});
-					states.insert("SARG_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 6, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("SARG_RUN1".to_owned()))),
+					states.insert("sarg_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 6, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("sarg_run1".to_owned()))),
 					});
-					states.insert("SARG_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 7, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_PAIN2".to_owned()))),
+					states.insert("sarg_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_pain2".to_owned()))),
 					});
-					states.insert("SARG_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 7, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("SARG_RUN1".to_owned()))),
+					states.insert("sarg_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("sarg_run1".to_owned()))),
 					});
-					states.insert("SARG_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 8, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("SARG_DIE2".to_owned()))),
+					states.insert("sarg_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 8, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("sarg_die2".to_owned()))),
 					});
-					states.insert("SARG_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 9, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("SARG_DIE3".to_owned()))),
+					states.insert("sarg_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("sarg_die3".to_owned()))),
 					});
-					states.insert("SARG_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 10, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("SARG_DIE4".to_owned()))),
+					states.insert("sarg_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 10, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("sarg_die4".to_owned()))),
 					});
-					states.insert("SARG_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 11, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("SARG_DIE5".to_owned()))),
+					states.insert("sarg_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("sarg_die5".to_owned()))),
 					});
-					states.insert("SARG_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 12, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("SARG_DIE6".to_owned()))),
+					states.insert("sarg_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 12, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("sarg_die6".to_owned()))),
 					});
-					states.insert("SARG_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 13, full_bright: false},
+					states.insert("sarg_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false},
 						next: None,
 					});
-					states.insert("SARG_RAISE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 13, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SARG_RAISE2".to_owned()))),
+					states.insert("sarg_raise1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sarg_raise2".to_owned()))),
 					});
-					states.insert("SARG_RAISE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 12, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SARG_RAISE3".to_owned()))),
+					states.insert("sarg_raise2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 12, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sarg_raise3".to_owned()))),
 					});
-					states.insert("SARG_RAISE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 11, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SARG_RAISE4".to_owned()))),
+					states.insert("sarg_raise3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sarg_raise4".to_owned()))),
 					});
-					states.insert("SARG_RAISE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 10, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SARG_RAISE5".to_owned()))),
+					states.insert("sarg_raise4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 10, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sarg_raise5".to_owned()))),
 					});
-					states.insert("SARG_RAISE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 9, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SARG_RAISE6".to_owned()))),
+					states.insert("sarg_raise5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sarg_raise6".to_owned()))),
 					});
-					states.insert("SARG_RAISE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 8, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SARG_RUN1".to_owned()))),
+					states.insert("sarg_raise6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 8, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sarg_run1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SARG_STND".to_owned()))),
-				spawn_state: Some("SARG_STND".to_owned()),
-				see_state: Some("SARG_RUN1".to_owned()),
-				pain_state: Some("SARG_PAIN".to_owned()),
-				melee_state: Some("SARG_ATK1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("sarg_stnd".to_owned()))),
+				spawn_state: Some("sarg_stnd".to_owned()),
+				see_state: Some("sarg_run1".to_owned()),
+				pain_state: Some("sarg_pain".to_owned()),
+				melee_state: Some("sarg_atk1".to_owned()),
 				missile_state: None,
-				death_state: Some("SARG_DIE1".to_owned()),
+				death_state: Some("sarg_die1".to_owned()),
 				xdeath_state: None,
-				raise_state: Some("SARG_RAISE1".to_owned()),
+				raise_state: Some("sarg_raise1".to_owned()),
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("SHADOWS", template);
+	asset_storage.insert_with_name("shadows", template);
 
 	let template = EntityTemplate {
-		name: Some("HEAD"),
+		name: Some("head"),
 		type_id: Some(EntityTypeId::Thing(3005)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -2026,111 +2026,111 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("HEAD.sprite"),
+				sprite: asset_storage.load("head.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(20);
-					states.insert("HEAD_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("HEAD_STND".to_owned()))),
+					states.insert("head_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("head_stnd".to_owned()))),
 					});
-					states.insert("HEAD_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("HEAD_RUN1".to_owned()))),
+					states.insert("head_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("head_run1".to_owned()))),
 					});
-					states.insert("HEAD_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 1, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("HEAD_ATK2".to_owned()))),
+					states.insert("head_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 1, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("head_atk2".to_owned()))),
 					});
-					states.insert("HEAD_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 2, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("HEAD_ATK3".to_owned()))),
+					states.insert("head_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 2, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("head_atk3".to_owned()))),
 					});
-					states.insert("HEAD_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 3, full_bright: true},
-						next: Some((5 * FRAME_TIME, Some("HEAD_RUN1".to_owned()))),
+					states.insert("head_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 3, full_bright: true},
+						next: Some((5 * FRAME_TIME, Some("head_run1".to_owned()))),
 					});
-					states.insert("HEAD_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 4, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("HEAD_PAIN2".to_owned()))),
+					states.insert("head_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 4, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("head_pain2".to_owned()))),
 					});
-					states.insert("HEAD_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 4, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("HEAD_PAIN3".to_owned()))),
+					states.insert("head_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 4, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("head_pain3".to_owned()))),
 					});
-					states.insert("HEAD_PAIN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 5, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("HEAD_RUN1".to_owned()))),
+					states.insert("head_pain3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 5, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("head_run1".to_owned()))),
 					});
-					states.insert("HEAD_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 6, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("HEAD_DIE2".to_owned()))),
+					states.insert("head_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 6, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("head_die2".to_owned()))),
 					});
-					states.insert("HEAD_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 7, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("HEAD_DIE3".to_owned()))),
+					states.insert("head_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 7, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("head_die3".to_owned()))),
 					});
-					states.insert("HEAD_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 8, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("HEAD_DIE4".to_owned()))),
+					states.insert("head_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 8, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("head_die4".to_owned()))),
 					});
-					states.insert("HEAD_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 9, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("HEAD_DIE5".to_owned()))),
+					states.insert("head_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 9, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("head_die5".to_owned()))),
 					});
-					states.insert("HEAD_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 10, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("HEAD_DIE6".to_owned()))),
+					states.insert("head_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 10, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("head_die6".to_owned()))),
 					});
-					states.insert("HEAD_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 11, full_bright: false},
+					states.insert("head_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 11, full_bright: false},
 						next: None,
 					});
-					states.insert("HEAD_RAISE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 11, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("HEAD_RAISE2".to_owned()))),
+					states.insert("head_raise1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 11, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("head_raise2".to_owned()))),
 					});
-					states.insert("HEAD_RAISE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 10, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("HEAD_RAISE3".to_owned()))),
+					states.insert("head_raise2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 10, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("head_raise3".to_owned()))),
 					});
-					states.insert("HEAD_RAISE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 9, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("HEAD_RAISE4".to_owned()))),
+					states.insert("head_raise3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 9, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("head_raise4".to_owned()))),
 					});
-					states.insert("HEAD_RAISE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 8, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("HEAD_RAISE5".to_owned()))),
+					states.insert("head_raise4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 8, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("head_raise5".to_owned()))),
 					});
-					states.insert("HEAD_RAISE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 7, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("HEAD_RAISE6".to_owned()))),
+					states.insert("head_raise5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 7, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("head_raise6".to_owned()))),
 					});
-					states.insert("HEAD_RAISE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 6, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("HEAD_RUN1".to_owned()))),
+					states.insert("head_raise6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 6, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("head_run1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("HEAD_STND".to_owned()))),
-				spawn_state: Some("HEAD_STND".to_owned()),
-				see_state: Some("HEAD_RUN1".to_owned()),
-				pain_state: Some("HEAD_PAIN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("head_stnd".to_owned()))),
+				spawn_state: Some("head_stnd".to_owned()),
+				see_state: Some("head_run1".to_owned()),
+				pain_state: Some("head_pain".to_owned()),
 				melee_state: None,
-				missile_state: Some("HEAD_ATK1".to_owned()),
-				death_state: Some("HEAD_DIE1".to_owned()),
+				missile_state: Some("head_atk1".to_owned()),
+				death_state: Some("head_die1".to_owned()),
 				xdeath_state: None,
-				raise_state: Some("HEAD_RAISE1".to_owned()),
+				raise_state: Some("head_raise1".to_owned()),
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("HEAD", template);
+	asset_storage.insert_with_name("head", template);
 
 	let template = EntityTemplate {
-		name: Some("BRUISER"),
+		name: Some("bruiser"),
 		type_id: Some(EntityTypeId::Thing(3003)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -2139,195 +2139,195 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BOSS.sprite"),
+				sprite: asset_storage.load("boss.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(29);
-					states.insert("BOSS_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("BOSS_STND2".to_owned()))),
+					states.insert("boss_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("boss_stnd2".to_owned()))),
 					});
-					states.insert("BOSS_STND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 1, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("BOSS_STND".to_owned()))),
+					states.insert("boss_stnd2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 1, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("boss_stnd".to_owned()))),
 					});
-					states.insert("BOSS_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BOSS_RUN2".to_owned()))),
+					states.insert("boss_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("boss_run2".to_owned()))),
 					});
-					states.insert("BOSS_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BOSS_RUN3".to_owned()))),
+					states.insert("boss_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("boss_run3".to_owned()))),
 					});
-					states.insert("BOSS_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BOSS_RUN4".to_owned()))),
+					states.insert("boss_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("boss_run4".to_owned()))),
 					});
-					states.insert("BOSS_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BOSS_RUN5".to_owned()))),
+					states.insert("boss_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("boss_run5".to_owned()))),
 					});
-					states.insert("BOSS_RUN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BOSS_RUN6".to_owned()))),
+					states.insert("boss_run5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("boss_run6".to_owned()))),
 					});
-					states.insert("BOSS_RUN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BOSS_RUN7".to_owned()))),
+					states.insert("boss_run6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("boss_run7".to_owned()))),
 					});
-					states.insert("BOSS_RUN7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BOSS_RUN8".to_owned()))),
+					states.insert("boss_run7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("boss_run8".to_owned()))),
 					});
-					states.insert("BOSS_RUN8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BOSS_RUN1".to_owned()))),
+					states.insert("boss_run8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("boss_run1".to_owned()))),
 					});
-					states.insert("BOSS_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 4, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOSS_ATK2".to_owned()))),
+					states.insert("boss_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 4, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("boss_atk2".to_owned()))),
 					});
-					states.insert("BOSS_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 5, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOSS_ATK3".to_owned()))),
+					states.insert("boss_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 5, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("boss_atk3".to_owned()))),
 					});
-					states.insert("BOSS_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 6, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOSS_RUN1".to_owned()))),
+					states.insert("boss_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 6, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("boss_run1".to_owned()))),
 					});
-					states.insert("BOSS_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 7, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("BOSS_PAIN2".to_owned()))),
+					states.insert("boss_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 7, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("boss_pain2".to_owned()))),
 					});
-					states.insert("BOSS_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 7, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("BOSS_RUN1".to_owned()))),
+					states.insert("boss_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 7, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("boss_run1".to_owned()))),
 					});
-					states.insert("BOSS_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 8, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOSS_DIE2".to_owned()))),
+					states.insert("boss_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 8, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("boss_die2".to_owned()))),
 					});
-					states.insert("BOSS_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 9, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOSS_DIE3".to_owned()))),
+					states.insert("boss_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 9, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("boss_die3".to_owned()))),
 					});
-					states.insert("BOSS_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 10, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOSS_DIE4".to_owned()))),
+					states.insert("boss_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 10, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("boss_die4".to_owned()))),
 					});
-					states.insert("BOSS_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 11, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOSS_DIE5".to_owned()))),
+					states.insert("boss_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 11, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("boss_die5".to_owned()))),
 					});
-					states.insert("BOSS_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 12, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOSS_DIE6".to_owned()))),
+					states.insert("boss_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 12, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("boss_die6".to_owned()))),
 					});
-					states.insert("BOSS_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 13, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOSS_DIE7".to_owned()))),
+					states.insert("boss_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 13, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("boss_die7".to_owned()))),
 					});
-					states.insert("BOSS_DIE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 14, full_bright: false},
+					states.insert("boss_die7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 14, full_bright: false},
 						next: None,
 					});
-					states.insert("BOSS_RAISE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 14, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOSS_RAISE2".to_owned()))),
+					states.insert("boss_raise1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 14, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("boss_raise2".to_owned()))),
 					});
-					states.insert("BOSS_RAISE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 13, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOSS_RAISE3".to_owned()))),
+					states.insert("boss_raise2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 13, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("boss_raise3".to_owned()))),
 					});
-					states.insert("BOSS_RAISE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 12, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOSS_RAISE4".to_owned()))),
+					states.insert("boss_raise3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 12, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("boss_raise4".to_owned()))),
 					});
-					states.insert("BOSS_RAISE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 11, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOSS_RAISE5".to_owned()))),
+					states.insert("boss_raise4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 11, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("boss_raise5".to_owned()))),
 					});
-					states.insert("BOSS_RAISE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 10, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOSS_RAISE6".to_owned()))),
+					states.insert("boss_raise5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 10, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("boss_raise6".to_owned()))),
 					});
-					states.insert("BOSS_RAISE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 9, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOSS_RAISE7".to_owned()))),
+					states.insert("boss_raise6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 9, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("boss_raise7".to_owned()))),
 					});
-					states.insert("BOSS_RAISE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSS.sprite"), frame: 8, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOSS_RUN1".to_owned()))),
+					states.insert("boss_raise7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 8, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("boss_run1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BOSS_STND".to_owned()))),
-				spawn_state: Some("BOSS_STND".to_owned()),
-				see_state: Some("BOSS_RUN1".to_owned()),
-				pain_state: Some("BOSS_PAIN".to_owned()),
-				melee_state: Some("BOSS_ATK1".to_owned()),
-				missile_state: Some("BOSS_ATK1".to_owned()),
-				death_state: Some("BOSS_DIE1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("boss_stnd".to_owned()))),
+				spawn_state: Some("boss_stnd".to_owned()),
+				see_state: Some("boss_run1".to_owned()),
+				pain_state: Some("boss_pain".to_owned()),
+				melee_state: Some("boss_atk1".to_owned()),
+				missile_state: Some("boss_atk1".to_owned()),
+				death_state: Some("boss_die1".to_owned()),
 				xdeath_state: None,
-				raise_state: Some("BOSS_RAISE1".to_owned()),
+				raise_state: Some("boss_raise1".to_owned()),
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("BRUISER", template);
+	asset_storage.insert_with_name("bruiser", template);
 
 	let template = EntityTemplate {
-		name: Some("BRUISERSHOT"),
+		name: Some("bruisershot"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BAL7.sprite"),
+				sprite: asset_storage.load("bal7.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(5);
-					states.insert("BRBALL1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAL7.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BRBALL2".to_owned()))),
+					states.insert("brball1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("brball2".to_owned()))),
 					});
-					states.insert("BRBALL2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAL7.sprite"), frame: 1, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BRBALL1".to_owned()))),
+					states.insert("brball2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 1, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("brball1".to_owned()))),
 					});
-					states.insert("BRBALLX1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAL7.sprite"), frame: 2, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("BRBALLX2".to_owned()))),
+					states.insert("brballx1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 2, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("brballx2".to_owned()))),
 					});
-					states.insert("BRBALLX2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAL7.sprite"), frame: 3, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("BRBALLX3".to_owned()))),
+					states.insert("brballx2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 3, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("brballx3".to_owned()))),
 					});
-					states.insert("BRBALLX3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAL7.sprite"), frame: 4, full_bright: true},
+					states.insert("brballx3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 4, full_bright: true},
 						next: Some((6 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BRBALL1".to_owned()))),
-				spawn_state: Some("BRBALL1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("brball1".to_owned()))),
+				spawn_state: Some("brball1".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
 				missile_state: None,
-				death_state: Some("BRBALLX1".to_owned()),
+				death_state: Some("brballx1".to_owned()),
 				xdeath_state: None,
 				raise_state: None,
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("BRUISERSHOT", template);
+	asset_storage.insert_with_name("bruisershot", template);
 
 	let template = EntityTemplate {
-		name: Some("KNIGHT"),
+		name: Some("knight"),
 		type_id: Some(EntityTypeId::Thing(69)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -2336,147 +2336,147 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BOS2.sprite"),
+				sprite: asset_storage.load("bos2.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(29);
-					states.insert("BOS2_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("BOS2_STND2".to_owned()))),
+					states.insert("bos2_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("bos2_stnd2".to_owned()))),
 					});
-					states.insert("BOS2_STND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 1, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("BOS2_STND".to_owned()))),
+					states.insert("bos2_stnd2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 1, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("bos2_stnd".to_owned()))),
 					});
-					states.insert("BOS2_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BOS2_RUN2".to_owned()))),
+					states.insert("bos2_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bos2_run2".to_owned()))),
 					});
-					states.insert("BOS2_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BOS2_RUN3".to_owned()))),
+					states.insert("bos2_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bos2_run3".to_owned()))),
 					});
-					states.insert("BOS2_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BOS2_RUN4".to_owned()))),
+					states.insert("bos2_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bos2_run4".to_owned()))),
 					});
-					states.insert("BOS2_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BOS2_RUN5".to_owned()))),
+					states.insert("bos2_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bos2_run5".to_owned()))),
 					});
-					states.insert("BOS2_RUN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BOS2_RUN6".to_owned()))),
+					states.insert("bos2_run5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bos2_run6".to_owned()))),
 					});
-					states.insert("BOS2_RUN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BOS2_RUN7".to_owned()))),
+					states.insert("bos2_run6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bos2_run7".to_owned()))),
 					});
-					states.insert("BOS2_RUN7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BOS2_RUN8".to_owned()))),
+					states.insert("bos2_run7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bos2_run8".to_owned()))),
 					});
-					states.insert("BOS2_RUN8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BOS2_RUN1".to_owned()))),
+					states.insert("bos2_run8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bos2_run1".to_owned()))),
 					});
-					states.insert("BOS2_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 4, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOS2_ATK2".to_owned()))),
+					states.insert("bos2_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 4, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bos2_atk2".to_owned()))),
 					});
-					states.insert("BOS2_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 5, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOS2_ATK3".to_owned()))),
+					states.insert("bos2_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 5, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bos2_atk3".to_owned()))),
 					});
-					states.insert("BOS2_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 6, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOS2_RUN1".to_owned()))),
+					states.insert("bos2_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 6, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bos2_run1".to_owned()))),
 					});
-					states.insert("BOS2_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 7, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("BOS2_PAIN2".to_owned()))),
+					states.insert("bos2_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 7, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("bos2_pain2".to_owned()))),
 					});
-					states.insert("BOS2_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 7, full_bright: false},
-						next: Some((2 * FRAME_TIME, Some("BOS2_RUN1".to_owned()))),
+					states.insert("bos2_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 7, full_bright: false},
+						next: Some((2 * FRAME_TIME, Some("bos2_run1".to_owned()))),
 					});
-					states.insert("BOS2_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 8, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOS2_DIE2".to_owned()))),
+					states.insert("bos2_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 8, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bos2_die2".to_owned()))),
 					});
-					states.insert("BOS2_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 9, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOS2_DIE3".to_owned()))),
+					states.insert("bos2_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 9, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bos2_die3".to_owned()))),
 					});
-					states.insert("BOS2_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 10, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOS2_DIE4".to_owned()))),
+					states.insert("bos2_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 10, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bos2_die4".to_owned()))),
 					});
-					states.insert("BOS2_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 11, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOS2_DIE5".to_owned()))),
+					states.insert("bos2_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 11, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bos2_die5".to_owned()))),
 					});
-					states.insert("BOS2_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 12, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOS2_DIE6".to_owned()))),
+					states.insert("bos2_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 12, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bos2_die6".to_owned()))),
 					});
-					states.insert("BOS2_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 13, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOS2_DIE7".to_owned()))),
+					states.insert("bos2_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 13, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bos2_die7".to_owned()))),
 					});
-					states.insert("BOS2_DIE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 14, full_bright: false},
+					states.insert("bos2_die7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 14, full_bright: false},
 						next: None,
 					});
-					states.insert("BOS2_RAISE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 14, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOS2_RAISE2".to_owned()))),
+					states.insert("bos2_raise1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 14, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bos2_raise2".to_owned()))),
 					});
-					states.insert("BOS2_RAISE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 13, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOS2_RAISE3".to_owned()))),
+					states.insert("bos2_raise2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 13, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bos2_raise3".to_owned()))),
 					});
-					states.insert("BOS2_RAISE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 12, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOS2_RAISE4".to_owned()))),
+					states.insert("bos2_raise3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 12, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bos2_raise4".to_owned()))),
 					});
-					states.insert("BOS2_RAISE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 11, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOS2_RAISE5".to_owned()))),
+					states.insert("bos2_raise4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 11, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bos2_raise5".to_owned()))),
 					});
-					states.insert("BOS2_RAISE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 10, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOS2_RAISE6".to_owned()))),
+					states.insert("bos2_raise5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 10, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bos2_raise6".to_owned()))),
 					});
-					states.insert("BOS2_RAISE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 9, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOS2_RAISE7".to_owned()))),
+					states.insert("bos2_raise6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 9, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bos2_raise7".to_owned()))),
 					});
-					states.insert("BOS2_RAISE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOS2.sprite"), frame: 8, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BOS2_RUN1".to_owned()))),
+					states.insert("bos2_raise7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 8, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bos2_run1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BOS2_STND".to_owned()))),
-				spawn_state: Some("BOS2_STND".to_owned()),
-				see_state: Some("BOS2_RUN1".to_owned()),
-				pain_state: Some("BOS2_PAIN".to_owned()),
-				melee_state: Some("BOS2_ATK1".to_owned()),
-				missile_state: Some("BOS2_ATK1".to_owned()),
-				death_state: Some("BOS2_DIE1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("bos2_stnd".to_owned()))),
+				spawn_state: Some("bos2_stnd".to_owned()),
+				see_state: Some("bos2_run1".to_owned()),
+				pain_state: Some("bos2_pain".to_owned()),
+				melee_state: Some("bos2_atk1".to_owned()),
+				missile_state: Some("bos2_atk1".to_owned()),
+				death_state: Some("bos2_die1".to_owned()),
 				xdeath_state: None,
-				raise_state: Some("BOS2_RAISE1".to_owned()),
+				raise_state: Some("bos2_raise1".to_owned()),
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("KNIGHT", template);
+	asset_storage.insert_with_name("knight", template);
 
 	let template = EntityTemplate {
-		name: Some("SKULL"),
+		name: Some("skull"),
 		type_id: Some(EntityTypeId::Thing(3006)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -2485,95 +2485,95 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SKUL.sprite"),
+				sprite: asset_storage.load("skul.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(16);
-					states.insert("SKULL_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 0, full_bright: true},
-						next: Some((10 * FRAME_TIME, Some("SKULL_STND2".to_owned()))),
+					states.insert("skull_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 0, full_bright: true},
+						next: Some((10 * FRAME_TIME, Some("skull_stnd2".to_owned()))),
 					});
-					states.insert("SKULL_STND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 1, full_bright: true},
-						next: Some((10 * FRAME_TIME, Some("SKULL_STND".to_owned()))),
+					states.insert("skull_stnd2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 1, full_bright: true},
+						next: Some((10 * FRAME_TIME, Some("skull_stnd".to_owned()))),
 					});
-					states.insert("SKULL_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 0, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("SKULL_RUN2".to_owned()))),
+					states.insert("skull_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 0, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("skull_run2".to_owned()))),
 					});
-					states.insert("SKULL_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("SKULL_RUN1".to_owned()))),
+					states.insert("skull_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("skull_run1".to_owned()))),
 					});
-					states.insert("SKULL_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 2, full_bright: true},
-						next: Some((10 * FRAME_TIME, Some("SKULL_ATK2".to_owned()))),
+					states.insert("skull_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 2, full_bright: true},
+						next: Some((10 * FRAME_TIME, Some("skull_atk2".to_owned()))),
 					});
-					states.insert("SKULL_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 3, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("SKULL_ATK3".to_owned()))),
+					states.insert("skull_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 3, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("skull_atk3".to_owned()))),
 					});
-					states.insert("SKULL_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 2, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("SKULL_ATK4".to_owned()))),
+					states.insert("skull_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 2, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("skull_atk4".to_owned()))),
 					});
-					states.insert("SKULL_ATK4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 3, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("SKULL_ATK3".to_owned()))),
+					states.insert("skull_atk4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 3, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("skull_atk3".to_owned()))),
 					});
-					states.insert("SKULL_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 4, full_bright: true},
-						next: Some((3 * FRAME_TIME, Some("SKULL_PAIN2".to_owned()))),
+					states.insert("skull_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 4, full_bright: true},
+						next: Some((3 * FRAME_TIME, Some("skull_pain2".to_owned()))),
 					});
-					states.insert("SKULL_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 4, full_bright: true},
-						next: Some((3 * FRAME_TIME, Some("SKULL_RUN1".to_owned()))),
+					states.insert("skull_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 4, full_bright: true},
+						next: Some((3 * FRAME_TIME, Some("skull_run1".to_owned()))),
 					});
-					states.insert("SKULL_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 5, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("SKULL_DIE2".to_owned()))),
+					states.insert("skull_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 5, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("skull_die2".to_owned()))),
 					});
-					states.insert("SKULL_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 6, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("SKULL_DIE3".to_owned()))),
+					states.insert("skull_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 6, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("skull_die3".to_owned()))),
 					});
-					states.insert("SKULL_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 7, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("SKULL_DIE4".to_owned()))),
+					states.insert("skull_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 7, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("skull_die4".to_owned()))),
 					});
-					states.insert("SKULL_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 8, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("SKULL_DIE5".to_owned()))),
+					states.insert("skull_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 8, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("skull_die5".to_owned()))),
 					});
-					states.insert("SKULL_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 9, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("SKULL_DIE6".to_owned()))),
+					states.insert("skull_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 9, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("skull_die6".to_owned()))),
 					});
-					states.insert("SKULL_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 10, full_bright: false},
+					states.insert("skull_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 10, full_bright: false},
 						next: Some((6 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SKULL_STND".to_owned()))),
-				spawn_state: Some("SKULL_STND".to_owned()),
-				see_state: Some("SKULL_RUN1".to_owned()),
-				pain_state: Some("SKULL_PAIN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("skull_stnd".to_owned()))),
+				spawn_state: Some("skull_stnd".to_owned()),
+				see_state: Some("skull_run1".to_owned()),
+				pain_state: Some("skull_pain".to_owned()),
 				melee_state: None,
-				missile_state: Some("SKULL_ATK1".to_owned()),
-				death_state: Some("SKULL_DIE1".to_owned()),
+				missile_state: Some("skull_atk1".to_owned()),
+				death_state: Some("skull_die1".to_owned()),
 				xdeath_state: None,
 				raise_state: None,
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("SKULL", template);
+	asset_storage.insert_with_name("skull", template);
 
 	let template = EntityTemplate {
-		name: Some("SPIDER"),
+		name: Some("spider"),
 		type_id: Some(EntityTypeId::Thing(7)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -2582,155 +2582,155 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SPID.sprite"),
+				sprite: asset_storage.load("spid.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(31);
-					states.insert("SPID_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SPID_STND2".to_owned()))),
+					states.insert("spid_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("spid_stnd2".to_owned()))),
 					});
-					states.insert("SPID_STND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 1, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SPID_STND".to_owned()))),
+					states.insert("spid_stnd2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 1, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("spid_stnd".to_owned()))),
 					});
-					states.insert("SPID_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPID_RUN2".to_owned()))),
+					states.insert("spid_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spid_run2".to_owned()))),
 					});
-					states.insert("SPID_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPID_RUN3".to_owned()))),
+					states.insert("spid_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spid_run3".to_owned()))),
 					});
-					states.insert("SPID_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPID_RUN4".to_owned()))),
+					states.insert("spid_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spid_run4".to_owned()))),
 					});
-					states.insert("SPID_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPID_RUN5".to_owned()))),
+					states.insert("spid_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spid_run5".to_owned()))),
 					});
-					states.insert("SPID_RUN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPID_RUN6".to_owned()))),
+					states.insert("spid_run5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spid_run6".to_owned()))),
 					});
-					states.insert("SPID_RUN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPID_RUN7".to_owned()))),
+					states.insert("spid_run6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spid_run7".to_owned()))),
 					});
-					states.insert("SPID_RUN7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPID_RUN8".to_owned()))),
+					states.insert("spid_run7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spid_run8".to_owned()))),
 					});
-					states.insert("SPID_RUN8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPID_RUN9".to_owned()))),
+					states.insert("spid_run8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spid_run9".to_owned()))),
 					});
-					states.insert("SPID_RUN9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 4, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPID_RUN10".to_owned()))),
+					states.insert("spid_run9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 4, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spid_run10".to_owned()))),
 					});
-					states.insert("SPID_RUN10".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 4, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPID_RUN11".to_owned()))),
+					states.insert("spid_run10".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 4, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spid_run11".to_owned()))),
 					});
-					states.insert("SPID_RUN11".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 5, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPID_RUN12".to_owned()))),
+					states.insert("spid_run11".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 5, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spid_run12".to_owned()))),
 					});
-					states.insert("SPID_RUN12".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 5, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPID_RUN1".to_owned()))),
+					states.insert("spid_run12".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 5, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spid_run1".to_owned()))),
 					});
-					states.insert("SPID_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 0, full_bright: true},
-						next: Some((20 * FRAME_TIME, Some("SPID_ATK2".to_owned()))),
+					states.insert("spid_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 0, full_bright: true},
+						next: Some((20 * FRAME_TIME, Some("spid_atk2".to_owned()))),
 					});
-					states.insert("SPID_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 6, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("SPID_ATK3".to_owned()))),
+					states.insert("spid_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 6, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("spid_atk3".to_owned()))),
 					});
-					states.insert("SPID_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 7, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("SPID_ATK4".to_owned()))),
+					states.insert("spid_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 7, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("spid_atk4".to_owned()))),
 					});
-					states.insert("SPID_ATK4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 7, full_bright: true},
-						next: Some((1 * FRAME_TIME, Some("SPID_ATK2".to_owned()))),
+					states.insert("spid_atk4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 7, full_bright: true},
+						next: Some((1 * FRAME_TIME, Some("spid_atk2".to_owned()))),
 					});
-					states.insert("SPID_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 8, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPID_PAIN2".to_owned()))),
+					states.insert("spid_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 8, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spid_pain2".to_owned()))),
 					});
-					states.insert("SPID_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 8, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SPID_RUN1".to_owned()))),
+					states.insert("spid_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 8, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("spid_run1".to_owned()))),
 					});
-					states.insert("SPID_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 9, full_bright: false},
-						next: Some((20 * FRAME_TIME, Some("SPID_DIE2".to_owned()))),
+					states.insert("spid_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 9, full_bright: false},
+						next: Some((20 * FRAME_TIME, Some("spid_die2".to_owned()))),
 					});
-					states.insert("SPID_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 10, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SPID_DIE3".to_owned()))),
+					states.insert("spid_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 10, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("spid_die3".to_owned()))),
 					});
-					states.insert("SPID_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 11, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SPID_DIE4".to_owned()))),
+					states.insert("spid_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 11, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("spid_die4".to_owned()))),
 					});
-					states.insert("SPID_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 12, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SPID_DIE5".to_owned()))),
+					states.insert("spid_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 12, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("spid_die5".to_owned()))),
 					});
-					states.insert("SPID_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 13, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SPID_DIE6".to_owned()))),
+					states.insert("spid_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 13, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("spid_die6".to_owned()))),
 					});
-					states.insert("SPID_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 14, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SPID_DIE7".to_owned()))),
+					states.insert("spid_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 14, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("spid_die7".to_owned()))),
 					});
-					states.insert("SPID_DIE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 15, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SPID_DIE8".to_owned()))),
+					states.insert("spid_die7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 15, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("spid_die8".to_owned()))),
 					});
-					states.insert("SPID_DIE8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 16, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SPID_DIE9".to_owned()))),
+					states.insert("spid_die8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 16, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("spid_die9".to_owned()))),
 					});
-					states.insert("SPID_DIE9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 17, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SPID_DIE10".to_owned()))),
+					states.insert("spid_die9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 17, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("spid_die10".to_owned()))),
 					});
-					states.insert("SPID_DIE10".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 18, full_bright: false},
-						next: Some((30 * FRAME_TIME, Some("SPID_DIE11".to_owned()))),
+					states.insert("spid_die10".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 18, full_bright: false},
+						next: Some((30 * FRAME_TIME, Some("spid_die11".to_owned()))),
 					});
-					states.insert("SPID_DIE11".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPID.sprite"), frame: 18, full_bright: false},
+					states.insert("spid_die11".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 18, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SPID_STND".to_owned()))),
-				spawn_state: Some("SPID_STND".to_owned()),
-				see_state: Some("SPID_RUN1".to_owned()),
-				pain_state: Some("SPID_PAIN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("spid_stnd".to_owned()))),
+				spawn_state: Some("spid_stnd".to_owned()),
+				see_state: Some("spid_run1".to_owned()),
+				pain_state: Some("spid_pain".to_owned()),
 				melee_state: None,
-				missile_state: Some("SPID_ATK1".to_owned()),
-				death_state: Some("SPID_DIE1".to_owned()),
+				missile_state: Some("spid_atk1".to_owned()),
+				death_state: Some("spid_die1".to_owned()),
 				xdeath_state: None,
 				raise_state: None,
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("SPIDER", template);
+	asset_storage.insert_with_name("spider", template);
 
 	let template = EntityTemplate {
-		name: Some("BABY"),
+		name: Some("baby"),
 		type_id: Some(EntityTypeId::Thing(68)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -2739,171 +2739,171 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BSPI.sprite"),
+				sprite: asset_storage.load("bspi.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(35);
-					states.insert("BSPI_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("BSPI_STND2".to_owned()))),
+					states.insert("bspi_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("bspi_stnd2".to_owned()))),
 					});
-					states.insert("BSPI_STND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 1, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("BSPI_STND".to_owned()))),
+					states.insert("bspi_stnd2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 1, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("bspi_stnd".to_owned()))),
 					});
-					states.insert("BSPI_SIGHT".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 0, full_bright: false},
-						next: Some((20 * FRAME_TIME, Some("BSPI_RUN1".to_owned()))),
+					states.insert("bspi_sight".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: false},
+						next: Some((20 * FRAME_TIME, Some("bspi_run1".to_owned()))),
 					});
-					states.insert("BSPI_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BSPI_RUN2".to_owned()))),
+					states.insert("bspi_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bspi_run2".to_owned()))),
 					});
-					states.insert("BSPI_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BSPI_RUN3".to_owned()))),
+					states.insert("bspi_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bspi_run3".to_owned()))),
 					});
-					states.insert("BSPI_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BSPI_RUN4".to_owned()))),
+					states.insert("bspi_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bspi_run4".to_owned()))),
 					});
-					states.insert("BSPI_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BSPI_RUN5".to_owned()))),
+					states.insert("bspi_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bspi_run5".to_owned()))),
 					});
-					states.insert("BSPI_RUN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BSPI_RUN6".to_owned()))),
+					states.insert("bspi_run5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bspi_run6".to_owned()))),
 					});
-					states.insert("BSPI_RUN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BSPI_RUN7".to_owned()))),
+					states.insert("bspi_run6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bspi_run7".to_owned()))),
 					});
-					states.insert("BSPI_RUN7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BSPI_RUN8".to_owned()))),
+					states.insert("bspi_run7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bspi_run8".to_owned()))),
 					});
-					states.insert("BSPI_RUN8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BSPI_RUN9".to_owned()))),
+					states.insert("bspi_run8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bspi_run9".to_owned()))),
 					});
-					states.insert("BSPI_RUN9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 4, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BSPI_RUN10".to_owned()))),
+					states.insert("bspi_run9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 4, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bspi_run10".to_owned()))),
 					});
-					states.insert("BSPI_RUN10".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 4, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BSPI_RUN11".to_owned()))),
+					states.insert("bspi_run10".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 4, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bspi_run11".to_owned()))),
 					});
-					states.insert("BSPI_RUN11".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 5, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BSPI_RUN12".to_owned()))),
+					states.insert("bspi_run11".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 5, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bspi_run12".to_owned()))),
 					});
-					states.insert("BSPI_RUN12".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 5, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BSPI_RUN1".to_owned()))),
+					states.insert("bspi_run12".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 5, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bspi_run1".to_owned()))),
 					});
-					states.insert("BSPI_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 0, full_bright: true},
-						next: Some((20 * FRAME_TIME, Some("BSPI_ATK2".to_owned()))),
+					states.insert("bspi_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: true},
+						next: Some((20 * FRAME_TIME, Some("bspi_atk2".to_owned()))),
 					});
-					states.insert("BSPI_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 6, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BSPI_ATK3".to_owned()))),
+					states.insert("bspi_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 6, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("bspi_atk3".to_owned()))),
 					});
-					states.insert("BSPI_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 7, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BSPI_ATK4".to_owned()))),
+					states.insert("bspi_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 7, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("bspi_atk4".to_owned()))),
 					});
-					states.insert("BSPI_ATK4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 7, full_bright: true},
-						next: Some((1 * FRAME_TIME, Some("BSPI_ATK2".to_owned()))),
+					states.insert("bspi_atk4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 7, full_bright: true},
+						next: Some((1 * FRAME_TIME, Some("bspi_atk2".to_owned()))),
 					});
-					states.insert("BSPI_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 8, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BSPI_PAIN2".to_owned()))),
+					states.insert("bspi_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 8, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bspi_pain2".to_owned()))),
 					});
-					states.insert("BSPI_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 8, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("BSPI_RUN1".to_owned()))),
+					states.insert("bspi_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 8, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("bspi_run1".to_owned()))),
 					});
-					states.insert("BSPI_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 9, full_bright: false},
-						next: Some((20 * FRAME_TIME, Some("BSPI_DIE2".to_owned()))),
+					states.insert("bspi_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 9, full_bright: false},
+						next: Some((20 * FRAME_TIME, Some("bspi_die2".to_owned()))),
 					});
-					states.insert("BSPI_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 10, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("BSPI_DIE3".to_owned()))),
+					states.insert("bspi_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 10, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("bspi_die3".to_owned()))),
 					});
-					states.insert("BSPI_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 11, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("BSPI_DIE4".to_owned()))),
+					states.insert("bspi_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 11, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("bspi_die4".to_owned()))),
 					});
-					states.insert("BSPI_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 12, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("BSPI_DIE5".to_owned()))),
+					states.insert("bspi_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 12, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("bspi_die5".to_owned()))),
 					});
-					states.insert("BSPI_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 13, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("BSPI_DIE6".to_owned()))),
+					states.insert("bspi_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 13, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("bspi_die6".to_owned()))),
 					});
-					states.insert("BSPI_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 14, full_bright: false},
-						next: Some((7 * FRAME_TIME, Some("BSPI_DIE7".to_owned()))),
+					states.insert("bspi_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 14, full_bright: false},
+						next: Some((7 * FRAME_TIME, Some("bspi_die7".to_owned()))),
 					});
-					states.insert("BSPI_DIE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 15, full_bright: false},
+					states.insert("bspi_die7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 15, full_bright: false},
 						next: None,
 					});
-					states.insert("BSPI_RAISE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 15, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("BSPI_RAISE2".to_owned()))),
+					states.insert("bspi_raise1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 15, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("bspi_raise2".to_owned()))),
 					});
-					states.insert("BSPI_RAISE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 14, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("BSPI_RAISE3".to_owned()))),
+					states.insert("bspi_raise2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 14, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("bspi_raise3".to_owned()))),
 					});
-					states.insert("BSPI_RAISE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 13, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("BSPI_RAISE4".to_owned()))),
+					states.insert("bspi_raise3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 13, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("bspi_raise4".to_owned()))),
 					});
-					states.insert("BSPI_RAISE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 12, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("BSPI_RAISE5".to_owned()))),
+					states.insert("bspi_raise4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 12, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("bspi_raise5".to_owned()))),
 					});
-					states.insert("BSPI_RAISE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 11, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("BSPI_RAISE6".to_owned()))),
+					states.insert("bspi_raise5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 11, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("bspi_raise6".to_owned()))),
 					});
-					states.insert("BSPI_RAISE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 10, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("BSPI_RAISE7".to_owned()))),
+					states.insert("bspi_raise6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 10, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("bspi_raise7".to_owned()))),
 					});
-					states.insert("BSPI_RAISE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSPI.sprite"), frame: 9, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("BSPI_RUN1".to_owned()))),
+					states.insert("bspi_raise7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 9, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("bspi_run1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BSPI_STND".to_owned()))),
-				spawn_state: Some("BSPI_STND".to_owned()),
-				see_state: Some("BSPI_SIGHT".to_owned()),
-				pain_state: Some("BSPI_PAIN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("bspi_stnd".to_owned()))),
+				spawn_state: Some("bspi_stnd".to_owned()),
+				see_state: Some("bspi_sight".to_owned()),
+				pain_state: Some("bspi_pain".to_owned()),
 				melee_state: None,
-				missile_state: Some("BSPI_ATK1".to_owned()),
-				death_state: Some("BSPI_DIE1".to_owned()),
+				missile_state: Some("bspi_atk1".to_owned()),
+				death_state: Some("bspi_die1".to_owned()),
 				xdeath_state: None,
-				raise_state: Some("BSPI_RAISE1".to_owned()),
+				raise_state: Some("bspi_raise1".to_owned()),
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("BABY", template);
+	asset_storage.insert_with_name("baby", template);
 
 	let template = EntityTemplate {
-		name: Some("CYBORG"),
+		name: Some("cyborg"),
 		type_id: Some(EntityTypeId::Thing(16)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -2912,139 +2912,139 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("CYBR.sprite"),
+				sprite: asset_storage.load("cybr.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(27);
-					states.insert("CYBER_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("CYBER_STND2".to_owned()))),
+					states.insert("cyber_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("cyber_stnd2".to_owned()))),
 					});
-					states.insert("CYBER_STND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 1, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("CYBER_STND".to_owned()))),
+					states.insert("cyber_stnd2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 1, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("cyber_stnd".to_owned()))),
 					});
-					states.insert("CYBER_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CYBER_RUN2".to_owned()))),
+					states.insert("cyber_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cyber_run2".to_owned()))),
 					});
-					states.insert("CYBER_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CYBER_RUN3".to_owned()))),
+					states.insert("cyber_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cyber_run3".to_owned()))),
 					});
-					states.insert("CYBER_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CYBER_RUN4".to_owned()))),
+					states.insert("cyber_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cyber_run4".to_owned()))),
 					});
-					states.insert("CYBER_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CYBER_RUN5".to_owned()))),
+					states.insert("cyber_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cyber_run5".to_owned()))),
 					});
-					states.insert("CYBER_RUN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CYBER_RUN6".to_owned()))),
+					states.insert("cyber_run5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cyber_run6".to_owned()))),
 					});
-					states.insert("CYBER_RUN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CYBER_RUN7".to_owned()))),
+					states.insert("cyber_run6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cyber_run7".to_owned()))),
 					});
-					states.insert("CYBER_RUN7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CYBER_RUN8".to_owned()))),
+					states.insert("cyber_run7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cyber_run8".to_owned()))),
 					});
-					states.insert("CYBER_RUN8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("CYBER_RUN1".to_owned()))),
+					states.insert("cyber_run8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("cyber_run1".to_owned()))),
 					});
-					states.insert("CYBER_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 4, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("CYBER_ATK2".to_owned()))),
+					states.insert("cyber_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 4, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("cyber_atk2".to_owned()))),
 					});
-					states.insert("CYBER_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 5, full_bright: false},
-						next: Some((12 * FRAME_TIME, Some("CYBER_ATK3".to_owned()))),
+					states.insert("cyber_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 5, full_bright: false},
+						next: Some((12 * FRAME_TIME, Some("cyber_atk3".to_owned()))),
 					});
-					states.insert("CYBER_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 4, full_bright: false},
-						next: Some((12 * FRAME_TIME, Some("CYBER_ATK4".to_owned()))),
+					states.insert("cyber_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 4, full_bright: false},
+						next: Some((12 * FRAME_TIME, Some("cyber_atk4".to_owned()))),
 					});
-					states.insert("CYBER_ATK4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 5, full_bright: false},
-						next: Some((12 * FRAME_TIME, Some("CYBER_ATK5".to_owned()))),
+					states.insert("cyber_atk4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 5, full_bright: false},
+						next: Some((12 * FRAME_TIME, Some("cyber_atk5".to_owned()))),
 					});
-					states.insert("CYBER_ATK5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 4, full_bright: false},
-						next: Some((12 * FRAME_TIME, Some("CYBER_ATK6".to_owned()))),
+					states.insert("cyber_atk5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 4, full_bright: false},
+						next: Some((12 * FRAME_TIME, Some("cyber_atk6".to_owned()))),
 					});
-					states.insert("CYBER_ATK6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 5, full_bright: false},
-						next: Some((12 * FRAME_TIME, Some("CYBER_RUN1".to_owned()))),
+					states.insert("cyber_atk6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 5, full_bright: false},
+						next: Some((12 * FRAME_TIME, Some("cyber_run1".to_owned()))),
 					});
-					states.insert("CYBER_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 6, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("CYBER_RUN1".to_owned()))),
+					states.insert("cyber_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 6, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("cyber_run1".to_owned()))),
 					});
-					states.insert("CYBER_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 7, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("CYBER_DIE2".to_owned()))),
+					states.insert("cyber_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 7, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("cyber_die2".to_owned()))),
 					});
-					states.insert("CYBER_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 8, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("CYBER_DIE3".to_owned()))),
+					states.insert("cyber_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 8, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("cyber_die3".to_owned()))),
 					});
-					states.insert("CYBER_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 9, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("CYBER_DIE4".to_owned()))),
+					states.insert("cyber_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 9, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("cyber_die4".to_owned()))),
 					});
-					states.insert("CYBER_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 10, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("CYBER_DIE5".to_owned()))),
+					states.insert("cyber_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 10, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("cyber_die5".to_owned()))),
 					});
-					states.insert("CYBER_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 11, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("CYBER_DIE6".to_owned()))),
+					states.insert("cyber_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 11, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("cyber_die6".to_owned()))),
 					});
-					states.insert("CYBER_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 12, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("CYBER_DIE7".to_owned()))),
+					states.insert("cyber_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 12, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("cyber_die7".to_owned()))),
 					});
-					states.insert("CYBER_DIE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 13, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("CYBER_DIE8".to_owned()))),
+					states.insert("cyber_die7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 13, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("cyber_die8".to_owned()))),
 					});
-					states.insert("CYBER_DIE8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 14, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("CYBER_DIE9".to_owned()))),
+					states.insert("cyber_die8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 14, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("cyber_die9".to_owned()))),
 					});
-					states.insert("CYBER_DIE9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 15, full_bright: false},
-						next: Some((30 * FRAME_TIME, Some("CYBER_DIE10".to_owned()))),
+					states.insert("cyber_die9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 15, full_bright: false},
+						next: Some((30 * FRAME_TIME, Some("cyber_die10".to_owned()))),
 					});
-					states.insert("CYBER_DIE10".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CYBR.sprite"), frame: 15, full_bright: false},
+					states.insert("cyber_die10".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 15, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("CYBER_STND".to_owned()))),
-				spawn_state: Some("CYBER_STND".to_owned()),
-				see_state: Some("CYBER_RUN1".to_owned()),
-				pain_state: Some("CYBER_PAIN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("cyber_stnd".to_owned()))),
+				spawn_state: Some("cyber_stnd".to_owned()),
+				see_state: Some("cyber_run1".to_owned()),
+				pain_state: Some("cyber_pain".to_owned()),
 				melee_state: None,
-				missile_state: Some("CYBER_ATK1".to_owned()),
-				death_state: Some("CYBER_DIE1".to_owned()),
+				missile_state: Some("cyber_atk1".to_owned()),
+				death_state: Some("cyber_die1".to_owned()),
 				xdeath_state: None,
 				raise_state: None,
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("CYBORG", template);
+	asset_storage.insert_with_name("cyborg", template);
 
 	let template = EntityTemplate {
-		name: Some("PAIN"),
+		name: Some("pain"),
 		type_id: Some(EntityTypeId::Thing(71)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -3053,131 +3053,131 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("PAIN.sprite"),
+				sprite: asset_storage.load("pain.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(25);
-					states.insert("PAIN_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("PAIN_STND".to_owned()))),
+					states.insert("pain_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("pain_stnd".to_owned()))),
 					});
-					states.insert("PAIN_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("PAIN_RUN2".to_owned()))),
+					states.insert("pain_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("pain_run2".to_owned()))),
 					});
-					states.insert("PAIN_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("PAIN_RUN3".to_owned()))),
+					states.insert("pain_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("pain_run3".to_owned()))),
 					});
-					states.insert("PAIN_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("PAIN_RUN4".to_owned()))),
+					states.insert("pain_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("pain_run4".to_owned()))),
 					});
-					states.insert("PAIN_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("PAIN_RUN5".to_owned()))),
+					states.insert("pain_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("pain_run5".to_owned()))),
 					});
-					states.insert("PAIN_RUN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("PAIN_RUN6".to_owned()))),
+					states.insert("pain_run5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("pain_run6".to_owned()))),
 					});
-					states.insert("PAIN_RUN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("PAIN_RUN1".to_owned()))),
+					states.insert("pain_run6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("pain_run1".to_owned()))),
 					});
-					states.insert("PAIN_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 3, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("PAIN_ATK2".to_owned()))),
+					states.insert("pain_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 3, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("pain_atk2".to_owned()))),
 					});
-					states.insert("PAIN_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 4, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("PAIN_ATK3".to_owned()))),
+					states.insert("pain_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 4, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("pain_atk3".to_owned()))),
 					});
-					states.insert("PAIN_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 5, full_bright: true},
-						next: Some((5 * FRAME_TIME, Some("PAIN_ATK4".to_owned()))),
+					states.insert("pain_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 5, full_bright: true},
+						next: Some((5 * FRAME_TIME, Some("pain_atk4".to_owned()))),
 					});
-					states.insert("PAIN_ATK4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 5, full_bright: true},
-						next: Some((0 * FRAME_TIME, Some("PAIN_RUN1".to_owned()))),
+					states.insert("pain_atk4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 5, full_bright: true},
+						next: Some((0 * FRAME_TIME, Some("pain_run1".to_owned()))),
 					});
-					states.insert("PAIN_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 6, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("PAIN_PAIN2".to_owned()))),
+					states.insert("pain_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 6, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("pain_pain2".to_owned()))),
 					});
-					states.insert("PAIN_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 6, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("PAIN_RUN1".to_owned()))),
+					states.insert("pain_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 6, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("pain_run1".to_owned()))),
 					});
-					states.insert("PAIN_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 7, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("PAIN_DIE2".to_owned()))),
+					states.insert("pain_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 7, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("pain_die2".to_owned()))),
 					});
-					states.insert("PAIN_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 8, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("PAIN_DIE3".to_owned()))),
+					states.insert("pain_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 8, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("pain_die3".to_owned()))),
 					});
-					states.insert("PAIN_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 9, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("PAIN_DIE4".to_owned()))),
+					states.insert("pain_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 9, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("pain_die4".to_owned()))),
 					});
-					states.insert("PAIN_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 10, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("PAIN_DIE5".to_owned()))),
+					states.insert("pain_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 10, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("pain_die5".to_owned()))),
 					});
-					states.insert("PAIN_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 11, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("PAIN_DIE6".to_owned()))),
+					states.insert("pain_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 11, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("pain_die6".to_owned()))),
 					});
-					states.insert("PAIN_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 12, full_bright: true},
+					states.insert("pain_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 12, full_bright: true},
 						next: Some((8 * FRAME_TIME, None)),
 					});
-					states.insert("PAIN_RAISE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 12, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("PAIN_RAISE2".to_owned()))),
+					states.insert("pain_raise1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 12, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("pain_raise2".to_owned()))),
 					});
-					states.insert("PAIN_RAISE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 11, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("PAIN_RAISE3".to_owned()))),
+					states.insert("pain_raise2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 11, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("pain_raise3".to_owned()))),
 					});
-					states.insert("PAIN_RAISE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 10, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("PAIN_RAISE4".to_owned()))),
+					states.insert("pain_raise3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 10, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("pain_raise4".to_owned()))),
 					});
-					states.insert("PAIN_RAISE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 9, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("PAIN_RAISE5".to_owned()))),
+					states.insert("pain_raise4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 9, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("pain_raise5".to_owned()))),
 					});
-					states.insert("PAIN_RAISE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 8, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("PAIN_RAISE6".to_owned()))),
+					states.insert("pain_raise5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 8, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("pain_raise6".to_owned()))),
 					});
-					states.insert("PAIN_RAISE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PAIN.sprite"), frame: 7, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("PAIN_RUN1".to_owned()))),
+					states.insert("pain_raise6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 7, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("pain_run1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("PAIN_STND".to_owned()))),
-				spawn_state: Some("PAIN_STND".to_owned()),
-				see_state: Some("PAIN_RUN1".to_owned()),
-				pain_state: Some("PAIN_PAIN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("pain_stnd".to_owned()))),
+				spawn_state: Some("pain_stnd".to_owned()),
+				see_state: Some("pain_run1".to_owned()),
+				pain_state: Some("pain_pain".to_owned()),
 				melee_state: None,
-				missile_state: Some("PAIN_ATK1".to_owned()),
-				death_state: Some("PAIN_DIE1".to_owned()),
+				missile_state: Some("pain_atk1".to_owned()),
+				death_state: Some("pain_die1".to_owned()),
 				xdeath_state: None,
-				raise_state: Some("PAIN_RAISE1".to_owned()),
+				raise_state: Some("pain_raise1".to_owned()),
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("PAIN", template);
+	asset_storage.insert_with_name("pain", template);
 
 	let template = EntityTemplate {
-		name: Some("WOLFSS"),
+		name: Some("wolfss"),
 		type_id: Some(EntityTypeId::Thing(84)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -3186,179 +3186,179 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SSWV.sprite"),
+				sprite: asset_storage.load("sswv.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(37);
-					states.insert("SSWV_STND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SSWV_STND2".to_owned()))),
+					states.insert("sswv_stnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("sswv_stnd2".to_owned()))),
 					});
-					states.insert("SSWV_STND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 1, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SSWV_STND".to_owned()))),
+					states.insert("sswv_stnd2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 1, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("sswv_stnd".to_owned()))),
 					});
-					states.insert("SSWV_RUN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SSWV_RUN2".to_owned()))),
+					states.insert("sswv_run1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("sswv_run2".to_owned()))),
 					});
-					states.insert("SSWV_RUN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 0, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SSWV_RUN3".to_owned()))),
+					states.insert("sswv_run2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("sswv_run3".to_owned()))),
 					});
-					states.insert("SSWV_RUN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SSWV_RUN4".to_owned()))),
+					states.insert("sswv_run3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("sswv_run4".to_owned()))),
 					});
-					states.insert("SSWV_RUN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 1, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SSWV_RUN5".to_owned()))),
+					states.insert("sswv_run4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 1, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("sswv_run5".to_owned()))),
 					});
-					states.insert("SSWV_RUN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SSWV_RUN6".to_owned()))),
+					states.insert("sswv_run5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("sswv_run6".to_owned()))),
 					});
-					states.insert("SSWV_RUN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 2, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SSWV_RUN7".to_owned()))),
+					states.insert("sswv_run6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 2, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("sswv_run7".to_owned()))),
 					});
-					states.insert("SSWV_RUN7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SSWV_RUN8".to_owned()))),
+					states.insert("sswv_run7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("sswv_run8".to_owned()))),
 					});
-					states.insert("SSWV_RUN8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 3, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SSWV_RUN1".to_owned()))),
+					states.insert("sswv_run8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 3, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("sswv_run1".to_owned()))),
 					});
-					states.insert("SSWV_ATK1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 4, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SSWV_ATK2".to_owned()))),
+					states.insert("sswv_atk1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 4, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("sswv_atk2".to_owned()))),
 					});
-					states.insert("SSWV_ATK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 5, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("SSWV_ATK3".to_owned()))),
+					states.insert("sswv_atk2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 5, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("sswv_atk3".to_owned()))),
 					});
-					states.insert("SSWV_ATK3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 6, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("SSWV_ATK4".to_owned()))),
+					states.insert("sswv_atk3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 6, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("sswv_atk4".to_owned()))),
 					});
-					states.insert("SSWV_ATK4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 5, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("SSWV_ATK5".to_owned()))),
+					states.insert("sswv_atk4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 5, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("sswv_atk5".to_owned()))),
 					});
-					states.insert("SSWV_ATK5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 6, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("SSWV_ATK6".to_owned()))),
+					states.insert("sswv_atk5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 6, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("sswv_atk6".to_owned()))),
 					});
-					states.insert("SSWV_ATK6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 5, full_bright: false},
-						next: Some((1 * FRAME_TIME, Some("SSWV_ATK2".to_owned()))),
+					states.insert("sswv_atk6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 5, full_bright: false},
+						next: Some((1 * FRAME_TIME, Some("sswv_atk2".to_owned()))),
 					});
-					states.insert("SSWV_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 7, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SSWV_PAIN2".to_owned()))),
+					states.insert("sswv_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 7, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("sswv_pain2".to_owned()))),
 					});
-					states.insert("SSWV_PAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 7, full_bright: false},
-						next: Some((3 * FRAME_TIME, Some("SSWV_RUN1".to_owned()))),
+					states.insert("sswv_pain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 7, full_bright: false},
+						next: Some((3 * FRAME_TIME, Some("sswv_run1".to_owned()))),
 					});
-					states.insert("SSWV_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 8, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_DIE2".to_owned()))),
+					states.insert("sswv_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 8, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_die2".to_owned()))),
 					});
-					states.insert("SSWV_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 9, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_DIE3".to_owned()))),
+					states.insert("sswv_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 9, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_die3".to_owned()))),
 					});
-					states.insert("SSWV_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 10, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_DIE4".to_owned()))),
+					states.insert("sswv_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 10, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_die4".to_owned()))),
 					});
-					states.insert("SSWV_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 11, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_DIE5".to_owned()))),
+					states.insert("sswv_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 11, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_die5".to_owned()))),
 					});
-					states.insert("SSWV_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 12, full_bright: false},
+					states.insert("sswv_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 12, full_bright: false},
 						next: None,
 					});
-					states.insert("SSWV_XDIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 13, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_XDIE2".to_owned()))),
+					states.insert("sswv_xdie1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 13, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_xdie2".to_owned()))),
 					});
-					states.insert("SSWV_XDIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 14, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_XDIE3".to_owned()))),
+					states.insert("sswv_xdie2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 14, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_xdie3".to_owned()))),
 					});
-					states.insert("SSWV_XDIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 15, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_XDIE4".to_owned()))),
+					states.insert("sswv_xdie3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 15, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_xdie4".to_owned()))),
 					});
-					states.insert("SSWV_XDIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 16, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_XDIE5".to_owned()))),
+					states.insert("sswv_xdie4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 16, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_xdie5".to_owned()))),
 					});
-					states.insert("SSWV_XDIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 17, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_XDIE6".to_owned()))),
+					states.insert("sswv_xdie5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 17, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_xdie6".to_owned()))),
 					});
-					states.insert("SSWV_XDIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 18, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_XDIE7".to_owned()))),
+					states.insert("sswv_xdie6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 18, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_xdie7".to_owned()))),
 					});
-					states.insert("SSWV_XDIE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 19, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_XDIE8".to_owned()))),
+					states.insert("sswv_xdie7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 19, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_xdie8".to_owned()))),
 					});
-					states.insert("SSWV_XDIE8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 20, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_XDIE9".to_owned()))),
+					states.insert("sswv_xdie8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 20, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_xdie9".to_owned()))),
 					});
-					states.insert("SSWV_XDIE9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 21, full_bright: false},
+					states.insert("sswv_xdie9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 21, full_bright: false},
 						next: None,
 					});
-					states.insert("SSWV_RAISE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 12, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_RAISE2".to_owned()))),
+					states.insert("sswv_raise1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 12, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_raise2".to_owned()))),
 					});
-					states.insert("SSWV_RAISE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 11, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_RAISE3".to_owned()))),
+					states.insert("sswv_raise2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 11, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_raise3".to_owned()))),
 					});
-					states.insert("SSWV_RAISE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 10, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_RAISE4".to_owned()))),
+					states.insert("sswv_raise3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 10, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_raise4".to_owned()))),
 					});
-					states.insert("SSWV_RAISE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 9, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_RAISE5".to_owned()))),
+					states.insert("sswv_raise4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 9, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_raise5".to_owned()))),
 					});
-					states.insert("SSWV_RAISE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 8, full_bright: false},
-						next: Some((5 * FRAME_TIME, Some("SSWV_RUN1".to_owned()))),
+					states.insert("sswv_raise5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 8, full_bright: false},
+						next: Some((5 * FRAME_TIME, Some("sswv_run1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SSWV_STND".to_owned()))),
-				spawn_state: Some("SSWV_STND".to_owned()),
-				see_state: Some("SSWV_RUN1".to_owned()),
-				pain_state: Some("SSWV_PAIN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("sswv_stnd".to_owned()))),
+				spawn_state: Some("sswv_stnd".to_owned()),
+				see_state: Some("sswv_run1".to_owned()),
+				pain_state: Some("sswv_pain".to_owned()),
 				melee_state: None,
-				missile_state: Some("SSWV_ATK1".to_owned()),
-				death_state: Some("SSWV_DIE1".to_owned()),
-				xdeath_state: Some("SSWV_XDIE1".to_owned()),
-				raise_state: Some("SSWV_RAISE1".to_owned()),
+				missile_state: Some("sswv_atk1".to_owned()),
+				death_state: Some("sswv_die1".to_owned()),
+				xdeath_state: Some("sswv_xdie1".to_owned()),
+				raise_state: Some("sswv_raise1".to_owned()),
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("WOLFSS", template);
+	asset_storage.insert_with_name("wolfss", template);
 
 	let template = EntityTemplate {
-		name: Some("KEEN"),
+		name: Some("keen"),
 		type_id: Some(EntityTypeId::Thing(72)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -3370,91 +3370,91 @@ pub fn load(resources: &mut Resources) {
 				offset: 72.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("KEEN.sprite"),
+				sprite: asset_storage.load("keen.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(15);
-					states.insert("KEENSTND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("KEEN.sprite"), frame: 0, full_bright: false},
+					states.insert("keenstnd".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
-					states.insert("COMMKEEN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("KEEN.sprite"), frame: 0, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("COMMKEEN2".to_owned()))),
+					states.insert("commkeen".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 0, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("commkeen2".to_owned()))),
 					});
-					states.insert("COMMKEEN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("KEEN.sprite"), frame: 1, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("COMMKEEN3".to_owned()))),
+					states.insert("commkeen2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 1, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("commkeen3".to_owned()))),
 					});
-					states.insert("COMMKEEN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("KEEN.sprite"), frame: 2, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("COMMKEEN4".to_owned()))),
+					states.insert("commkeen3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 2, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("commkeen4".to_owned()))),
 					});
-					states.insert("COMMKEEN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("KEEN.sprite"), frame: 3, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("COMMKEEN5".to_owned()))),
+					states.insert("commkeen4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 3, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("commkeen5".to_owned()))),
 					});
-					states.insert("COMMKEEN5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("KEEN.sprite"), frame: 4, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("COMMKEEN6".to_owned()))),
+					states.insert("commkeen5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 4, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("commkeen6".to_owned()))),
 					});
-					states.insert("COMMKEEN6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("KEEN.sprite"), frame: 5, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("COMMKEEN7".to_owned()))),
+					states.insert("commkeen6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 5, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("commkeen7".to_owned()))),
 					});
-					states.insert("COMMKEEN7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("KEEN.sprite"), frame: 6, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("COMMKEEN8".to_owned()))),
+					states.insert("commkeen7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 6, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("commkeen8".to_owned()))),
 					});
-					states.insert("COMMKEEN8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("KEEN.sprite"), frame: 7, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("COMMKEEN9".to_owned()))),
+					states.insert("commkeen8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 7, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("commkeen9".to_owned()))),
 					});
-					states.insert("COMMKEEN9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("KEEN.sprite"), frame: 8, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("COMMKEEN10".to_owned()))),
+					states.insert("commkeen9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 8, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("commkeen10".to_owned()))),
 					});
-					states.insert("COMMKEEN10".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("KEEN.sprite"), frame: 9, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("COMMKEEN11".to_owned()))),
+					states.insert("commkeen10".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 9, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("commkeen11".to_owned()))),
 					});
-					states.insert("COMMKEEN11".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("KEEN.sprite"), frame: 10, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("COMMKEEN12".to_owned()))),
+					states.insert("commkeen11".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 10, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("commkeen12".to_owned()))),
 					});
-					states.insert("COMMKEEN12".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("KEEN.sprite"), frame: 11, full_bright: false},
+					states.insert("commkeen12".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 11, full_bright: false},
 						next: None,
 					});
-					states.insert("KEENPAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("KEEN.sprite"), frame: 12, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("KEENPAIN2".to_owned()))),
+					states.insert("keenpain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 12, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("keenpain2".to_owned()))),
 					});
-					states.insert("KEENPAIN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("KEEN.sprite"), frame: 12, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("KEENSTND".to_owned()))),
+					states.insert("keenpain2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 12, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("keenstnd".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("KEENSTND".to_owned()))),
-				spawn_state: Some("KEENSTND".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("keenstnd".to_owned()))),
+				spawn_state: Some("keenstnd".to_owned()),
 				see_state: None,
-				pain_state: Some("KEENPAIN".to_owned()),
+				pain_state: Some("keenpain".to_owned()),
 				melee_state: None,
 				missile_state: None,
-				death_state: Some("COMMKEEN".to_owned()),
+				death_state: Some("commkeen".to_owned()),
 				xdeath_state: None,
 				raise_state: None,
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("KEEN", template);
+	asset_storage.insert_with_name("keen", template);
 
 	let template = EntityTemplate {
-		name: Some("BOSSBRAIN"),
+		name: Some("bossbrain"),
 		type_id: Some(EntityTypeId::Thing(88)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -3463,82 +3463,82 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BBRN.sprite"),
+				sprite: asset_storage.load("bbrn.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(6);
-					states.insert("BRAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BBRN.sprite"), frame: 0, full_bright: false},
+					states.insert("brain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
-					states.insert("BRAIN_PAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BBRN.sprite"), frame: 1, full_bright: false},
-						next: Some((36 * FRAME_TIME, Some("BRAIN".to_owned()))),
+					states.insert("brain_pain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 1, full_bright: false},
+						next: Some((36 * FRAME_TIME, Some("brain".to_owned()))),
 					});
-					states.insert("BRAIN_DIE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BBRN.sprite"), frame: 0, full_bright: false},
-						next: Some((100 * FRAME_TIME, Some("BRAIN_DIE2".to_owned()))),
+					states.insert("brain_die1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false},
+						next: Some((100 * FRAME_TIME, Some("brain_die2".to_owned()))),
 					});
-					states.insert("BRAIN_DIE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BBRN.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("BRAIN_DIE3".to_owned()))),
+					states.insert("brain_die2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("brain_die3".to_owned()))),
 					});
-					states.insert("BRAIN_DIE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BBRN.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("BRAIN_DIE4".to_owned()))),
+					states.insert("brain_die3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("brain_die4".to_owned()))),
 					});
-					states.insert("BRAIN_DIE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BBRN.sprite"), frame: 0, full_bright: false},
+					states.insert("brain_die4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BRAIN".to_owned()))),
-				spawn_state: Some("BRAIN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("brain".to_owned()))),
+				spawn_state: Some("brain".to_owned()),
 				see_state: None,
-				pain_state: Some("BRAIN_PAIN".to_owned()),
+				pain_state: Some("brain_pain".to_owned()),
 				melee_state: None,
 				missile_state: None,
-				death_state: Some("BRAIN_DIE1".to_owned()),
+				death_state: Some("brain_die1".to_owned()),
 				xdeath_state: None,
 				raise_state: None,
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("BOSSBRAIN", template);
+	asset_storage.insert_with_name("bossbrain", template);
 
 	let template = EntityTemplate {
-		name: Some("BOSSSPIT"),
+		name: Some("bossspit"),
 		type_id: Some(EntityTypeId::Thing(89)),
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SSWV.sprite"),
+				sprite: asset_storage.load("sswv.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(3);
-					states.insert("BRAINEYE".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("BRAINEYE".to_owned()))),
+					states.insert("braineye".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("braineye".to_owned()))),
 					});
-					states.insert("BRAINEYESEE".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 0, full_bright: false},
-						next: Some((181 * FRAME_TIME, Some("BRAINEYE1".to_owned()))),
+					states.insert("braineyesee".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false},
+						next: Some((181 * FRAME_TIME, Some("braineye1".to_owned()))),
 					});
-					states.insert("BRAINEYE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SSWV.sprite"), frame: 0, full_bright: false},
-						next: Some((150 * FRAME_TIME, Some("BRAINEYE1".to_owned()))),
+					states.insert("braineye1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false},
+						next: Some((150 * FRAME_TIME, Some("braineye1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BRAINEYE".to_owned()))),
-				spawn_state: Some("BRAINEYE".to_owned()),
-				see_state: Some("BRAINEYESEE".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("braineye".to_owned()))),
+				spawn_state: Some("braineye".to_owned()),
+				see_state: Some("braineyesee".to_owned()),
 				pain_state: None,
 				melee_state: None,
 				missile_state: None,
@@ -3547,47 +3547,47 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("BOSSSPIT", template);
+	asset_storage.insert_with_name("bossspit", template);
 
 	let template = EntityTemplate {
-		name: Some("BOSSTARGET"),
+		name: Some("bosstarget"),
 		type_id: Some(EntityTypeId::Thing(87)),
 		components: EntityComponents::new(),
 	};
-	asset_storage.insert_with_name("BOSSTARGET", template);
+	asset_storage.insert_with_name("bosstarget", template);
 
 	let template = EntityTemplate {
-		name: Some("SPAWNSHOT"),
+		name: Some("spawnshot"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BOSF.sprite"),
+				sprite: asset_storage.load("bosf.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("SPAWN1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSF.sprite"), frame: 0, full_bright: true},
-						next: Some((3 * FRAME_TIME, Some("SPAWN2".to_owned()))),
+					states.insert("spawn1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bosf.sprite"), frame: 0, full_bright: true},
+						next: Some((3 * FRAME_TIME, Some("spawn2".to_owned()))),
 					});
-					states.insert("SPAWN2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSF.sprite"), frame: 1, full_bright: true},
-						next: Some((3 * FRAME_TIME, Some("SPAWN3".to_owned()))),
+					states.insert("spawn2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bosf.sprite"), frame: 1, full_bright: true},
+						next: Some((3 * FRAME_TIME, Some("spawn3".to_owned()))),
 					});
-					states.insert("SPAWN3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSF.sprite"), frame: 2, full_bright: true},
-						next: Some((3 * FRAME_TIME, Some("SPAWN4".to_owned()))),
+					states.insert("spawn3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bosf.sprite"), frame: 2, full_bright: true},
+						next: Some((3 * FRAME_TIME, Some("spawn4".to_owned()))),
 					});
-					states.insert("SPAWN4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BOSF.sprite"), frame: 3, full_bright: true},
-						next: Some((3 * FRAME_TIME, Some("SPAWN1".to_owned()))),
+					states.insert("spawn4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bosf.sprite"), frame: 3, full_bright: true},
+						next: Some((3 * FRAME_TIME, Some("spawn1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SPAWN1".to_owned()))),
-				spawn_state: Some("SPAWN1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("spawn1".to_owned()))),
+				spawn_state: Some("spawn1".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -3598,56 +3598,56 @@ pub fn load(resources: &mut Resources) {
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("SPAWNSHOT", template);
+	asset_storage.insert_with_name("spawnshot", template);
 
 	let template = EntityTemplate {
-		name: Some("SPAWNFIRE"),
+		name: Some("spawnfire"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("FIRE.sprite"),
+				sprite: asset_storage.load("fire.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(8);
-					states.insert("SPAWNFIRE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("SPAWNFIRE2".to_owned()))),
+					states.insert("spawnfire1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("spawnfire2".to_owned()))),
 					});
-					states.insert("SPAWNFIRE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 1, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("SPAWNFIRE3".to_owned()))),
+					states.insert("spawnfire2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("spawnfire3".to_owned()))),
 					});
-					states.insert("SPAWNFIRE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 2, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("SPAWNFIRE4".to_owned()))),
+					states.insert("spawnfire3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("spawnfire4".to_owned()))),
 					});
-					states.insert("SPAWNFIRE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 3, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("SPAWNFIRE5".to_owned()))),
+					states.insert("spawnfire4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("spawnfire5".to_owned()))),
 					});
-					states.insert("SPAWNFIRE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 4, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("SPAWNFIRE6".to_owned()))),
+					states.insert("spawnfire5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("spawnfire6".to_owned()))),
 					});
-					states.insert("SPAWNFIRE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 5, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("SPAWNFIRE7".to_owned()))),
+					states.insert("spawnfire6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 5, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("spawnfire7".to_owned()))),
 					});
-					states.insert("SPAWNFIRE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 6, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("SPAWNFIRE8".to_owned()))),
+					states.insert("spawnfire7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 6, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("spawnfire8".to_owned()))),
 					});
-					states.insert("SPAWNFIRE8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FIRE.sprite"), frame: 7, full_bright: true},
+					states.insert("spawnfire8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 7, full_bright: true},
 						next: Some((4 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SPAWNFIRE1".to_owned()))),
-				spawn_state: Some("SPAWNFIRE1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("spawnfire1".to_owned()))),
+				spawn_state: Some("spawnfire1".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -3657,10 +3657,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("SPAWNFIRE", template);
+	asset_storage.insert_with_name("spawnfire", template);
 
 	let template = EntityTemplate {
-		name: Some("BARREL"),
+		name: Some("barrel"),
 		type_id: Some(EntityTypeId::Thing(2035)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -3669,401 +3669,401 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BAR1.sprite"),
+				sprite: asset_storage.load("bar1.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(7);
-					states.insert("BAR1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAR1.sprite"), frame: 0, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("BAR2".to_owned()))),
+					states.insert("bar1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bar1.sprite"), frame: 0, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("bar2".to_owned()))),
 					});
-					states.insert("BAR2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAR1.sprite"), frame: 1, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("BAR1".to_owned()))),
+					states.insert("bar2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bar1.sprite"), frame: 1, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("bar1".to_owned()))),
 					});
-					states.insert("BEXP".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BEXP.sprite"), frame: 0, full_bright: true},
-						next: Some((5 * FRAME_TIME, Some("BEXP2".to_owned()))),
+					states.insert("bexp".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 0, full_bright: true},
+						next: Some((5 * FRAME_TIME, Some("bexp2".to_owned()))),
 					});
-					states.insert("BEXP2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BEXP.sprite"), frame: 1, full_bright: true},
-						next: Some((5 * FRAME_TIME, Some("BEXP3".to_owned()))),
+					states.insert("bexp2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 1, full_bright: true},
+						next: Some((5 * FRAME_TIME, Some("bexp3".to_owned()))),
 					});
-					states.insert("BEXP3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BEXP.sprite"), frame: 2, full_bright: true},
-						next: Some((5 * FRAME_TIME, Some("BEXP4".to_owned()))),
+					states.insert("bexp3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 2, full_bright: true},
+						next: Some((5 * FRAME_TIME, Some("bexp4".to_owned()))),
 					});
-					states.insert("BEXP4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BEXP.sprite"), frame: 3, full_bright: true},
-						next: Some((10 * FRAME_TIME, Some("BEXP5".to_owned()))),
+					states.insert("bexp4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 3, full_bright: true},
+						next: Some((10 * FRAME_TIME, Some("bexp5".to_owned()))),
 					});
-					states.insert("BEXP5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BEXP.sprite"), frame: 4, full_bright: true},
+					states.insert("bexp5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 4, full_bright: true},
 						next: Some((10 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BAR1".to_owned()))),
-				spawn_state: Some("BAR1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("bar1".to_owned()))),
+				spawn_state: Some("bar1".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
 				missile_state: None,
-				death_state: Some("BEXP".to_owned()),
+				death_state: Some("bexp".to_owned()),
 				xdeath_state: None,
 				raise_state: None,
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("BARREL", template);
+	asset_storage.insert_with_name("barrel", template);
 
 	let template = EntityTemplate {
-		name: Some("TROOPSHOT"),
+		name: Some("troopshot"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BAL1.sprite"),
+				sprite: asset_storage.load("bal1.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(5);
-					states.insert("TBALL1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAL1.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("TBALL2".to_owned()))),
+					states.insert("tball1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("tball2".to_owned()))),
 					});
-					states.insert("TBALL2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAL1.sprite"), frame: 1, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("TBALL1".to_owned()))),
+					states.insert("tball2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 1, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("tball1".to_owned()))),
 					});
-					states.insert("TBALLX1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAL1.sprite"), frame: 2, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("TBALLX2".to_owned()))),
+					states.insert("tballx1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 2, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("tballx2".to_owned()))),
 					});
-					states.insert("TBALLX2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAL1.sprite"), frame: 3, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("TBALLX3".to_owned()))),
+					states.insert("tballx2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 3, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("tballx3".to_owned()))),
 					});
-					states.insert("TBALLX3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAL1.sprite"), frame: 4, full_bright: true},
+					states.insert("tballx3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 4, full_bright: true},
 						next: Some((6 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("TBALL1".to_owned()))),
-				spawn_state: Some("TBALL1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("tball1".to_owned()))),
+				spawn_state: Some("tball1".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
 				missile_state: None,
-				death_state: Some("TBALLX1".to_owned()),
+				death_state: Some("tballx1".to_owned()),
 				xdeath_state: None,
 				raise_state: None,
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("TROOPSHOT", template);
+	asset_storage.insert_with_name("troopshot", template);
 
 	let template = EntityTemplate {
-		name: Some("HEADSHOT"),
+		name: Some("headshot"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BAL2.sprite"),
+				sprite: asset_storage.load("bal2.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(5);
-					states.insert("RBALL1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAL2.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("RBALL2".to_owned()))),
+					states.insert("rball1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("rball2".to_owned()))),
 					});
-					states.insert("RBALL2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAL2.sprite"), frame: 1, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("RBALL1".to_owned()))),
+					states.insert("rball2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 1, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("rball1".to_owned()))),
 					});
-					states.insert("RBALLX1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAL2.sprite"), frame: 2, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("RBALLX2".to_owned()))),
+					states.insert("rballx1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 2, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("rballx2".to_owned()))),
 					});
-					states.insert("RBALLX2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAL2.sprite"), frame: 3, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("RBALLX3".to_owned()))),
+					states.insert("rballx2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 3, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("rballx3".to_owned()))),
 					});
-					states.insert("RBALLX3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BAL2.sprite"), frame: 4, full_bright: true},
+					states.insert("rballx3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 4, full_bright: true},
 						next: Some((6 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("RBALL1".to_owned()))),
-				spawn_state: Some("RBALL1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("rball1".to_owned()))),
+				spawn_state: Some("rball1".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
 				missile_state: None,
-				death_state: Some("RBALLX1".to_owned()),
+				death_state: Some("rballx1".to_owned()),
 				xdeath_state: None,
 				raise_state: None,
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("HEADSHOT", template);
+	asset_storage.insert_with_name("headshot", template);
 
 	let template = EntityTemplate {
-		name: Some("ROCKET"),
+		name: Some("rocket"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("MISL.sprite"),
+				sprite: asset_storage.load("misl.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("ROCKET".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("MISL.sprite"), frame: 0, full_bright: true},
-						next: Some((1 * FRAME_TIME, Some("ROCKET".to_owned()))),
+					states.insert("rocket".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 0, full_bright: true},
+						next: Some((1 * FRAME_TIME, Some("rocket".to_owned()))),
 					});
-					states.insert("EXPLODE1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("MISL.sprite"), frame: 1, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("EXPLODE2".to_owned()))),
+					states.insert("explode1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 1, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("explode2".to_owned()))),
 					});
-					states.insert("EXPLODE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("MISL.sprite"), frame: 2, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("EXPLODE3".to_owned()))),
+					states.insert("explode2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 2, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("explode3".to_owned()))),
 					});
-					states.insert("EXPLODE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("MISL.sprite"), frame: 3, full_bright: true},
+					states.insert("explode3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 3, full_bright: true},
 						next: Some((4 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("ROCKET".to_owned()))),
-				spawn_state: Some("ROCKET".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("rocket".to_owned()))),
+				spawn_state: Some("rocket".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
 				missile_state: None,
-				death_state: Some("EXPLODE1".to_owned()),
+				death_state: Some("explode1".to_owned()),
 				xdeath_state: None,
 				raise_state: None,
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("ROCKET", template);
+	asset_storage.insert_with_name("rocket", template);
 
 	let template = EntityTemplate {
-		name: Some("PLASMA"),
+		name: Some("plasma"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("PLSS.sprite"),
+				sprite: asset_storage.load("plss.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(7);
-					states.insert("PLASBALL".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLSS.sprite"), frame: 0, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PLASBALL2".to_owned()))),
+					states.insert("plasball".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("plss.sprite"), frame: 0, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("plasball2".to_owned()))),
 					});
-					states.insert("PLASBALL2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLSS.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PLASBALL".to_owned()))),
+					states.insert("plasball2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("plss.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("plasball".to_owned()))),
 					});
-					states.insert("PLASEXP".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLSE.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("PLASEXP2".to_owned()))),
+					states.insert("plasexp".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("plasexp2".to_owned()))),
 					});
-					states.insert("PLASEXP2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLSE.sprite"), frame: 1, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("PLASEXP3".to_owned()))),
+					states.insert("plasexp2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 1, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("plasexp3".to_owned()))),
 					});
-					states.insert("PLASEXP3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLSE.sprite"), frame: 2, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("PLASEXP4".to_owned()))),
+					states.insert("plasexp3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 2, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("plasexp4".to_owned()))),
 					});
-					states.insert("PLASEXP4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLSE.sprite"), frame: 3, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("PLASEXP5".to_owned()))),
+					states.insert("plasexp4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 3, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("plasexp5".to_owned()))),
 					});
-					states.insert("PLASEXP5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLSE.sprite"), frame: 4, full_bright: true},
+					states.insert("plasexp5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 4, full_bright: true},
 						next: Some((4 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("PLASBALL".to_owned()))),
-				spawn_state: Some("PLASBALL".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("plasball".to_owned()))),
+				spawn_state: Some("plasball".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
 				missile_state: None,
-				death_state: Some("PLASEXP".to_owned()),
+				death_state: Some("plasexp".to_owned()),
 				xdeath_state: None,
 				raise_state: None,
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("PLASMA", template);
+	asset_storage.insert_with_name("plasma", template);
 
 	let template = EntityTemplate {
-		name: Some("BFG"),
+		name: Some("bfg"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BFS1.sprite"),
+				sprite: asset_storage.load("bfs1.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(8);
-					states.insert("BFGSHOT".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BFS1.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BFGSHOT2".to_owned()))),
+					states.insert("bfgshot".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bfs1.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("bfgshot2".to_owned()))),
 					});
-					states.insert("BFGSHOT2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BFS1.sprite"), frame: 1, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BFGSHOT".to_owned()))),
+					states.insert("bfgshot2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bfs1.sprite"), frame: 1, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("bfgshot".to_owned()))),
 					});
-					states.insert("BFGLAND".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BFE1.sprite"), frame: 0, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("BFGLAND2".to_owned()))),
+					states.insert("bfgland".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 0, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("bfgland2".to_owned()))),
 					});
-					states.insert("BFGLAND2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BFE1.sprite"), frame: 1, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("BFGLAND3".to_owned()))),
+					states.insert("bfgland2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 1, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("bfgland3".to_owned()))),
 					});
-					states.insert("BFGLAND3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BFE1.sprite"), frame: 2, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("BFGLAND4".to_owned()))),
+					states.insert("bfgland3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 2, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("bfgland4".to_owned()))),
 					});
-					states.insert("BFGLAND4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BFE1.sprite"), frame: 3, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("BFGLAND5".to_owned()))),
+					states.insert("bfgland4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 3, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("bfgland5".to_owned()))),
 					});
-					states.insert("BFGLAND5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BFE1.sprite"), frame: 4, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("BFGLAND6".to_owned()))),
+					states.insert("bfgland5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 4, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("bfgland6".to_owned()))),
 					});
-					states.insert("BFGLAND6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BFE1.sprite"), frame: 5, full_bright: true},
+					states.insert("bfgland6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 5, full_bright: true},
 						next: Some((8 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BFGSHOT".to_owned()))),
-				spawn_state: Some("BFGSHOT".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("bfgshot".to_owned()))),
+				spawn_state: Some("bfgshot".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
 				missile_state: None,
-				death_state: Some("BFGLAND".to_owned()),
+				death_state: Some("bfgland".to_owned()),
 				xdeath_state: None,
 				raise_state: None,
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("BFG", template);
+	asset_storage.insert_with_name("bfg", template);
 
 	let template = EntityTemplate {
-		name: Some("ARACHPLAZ"),
+		name: Some("arachplaz"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("APLS.sprite"),
+				sprite: asset_storage.load("apls.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(7);
-					states.insert("ARACH_PLAZ".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("APLS.sprite"), frame: 0, full_bright: true},
-						next: Some((5 * FRAME_TIME, Some("ARACH_PLAZ2".to_owned()))),
+					states.insert("arach_plaz".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("apls.sprite"), frame: 0, full_bright: true},
+						next: Some((5 * FRAME_TIME, Some("arach_plaz2".to_owned()))),
 					});
-					states.insert("ARACH_PLAZ2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("APLS.sprite"), frame: 1, full_bright: true},
-						next: Some((5 * FRAME_TIME, Some("ARACH_PLAZ".to_owned()))),
+					states.insert("arach_plaz2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("apls.sprite"), frame: 1, full_bright: true},
+						next: Some((5 * FRAME_TIME, Some("arach_plaz".to_owned()))),
 					});
-					states.insert("ARACH_PLEX".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("APBX.sprite"), frame: 0, full_bright: true},
-						next: Some((5 * FRAME_TIME, Some("ARACH_PLEX2".to_owned()))),
+					states.insert("arach_plex".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 0, full_bright: true},
+						next: Some((5 * FRAME_TIME, Some("arach_plex2".to_owned()))),
 					});
-					states.insert("ARACH_PLEX2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("APBX.sprite"), frame: 1, full_bright: true},
-						next: Some((5 * FRAME_TIME, Some("ARACH_PLEX3".to_owned()))),
+					states.insert("arach_plex2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 1, full_bright: true},
+						next: Some((5 * FRAME_TIME, Some("arach_plex3".to_owned()))),
 					});
-					states.insert("ARACH_PLEX3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("APBX.sprite"), frame: 2, full_bright: true},
-						next: Some((5 * FRAME_TIME, Some("ARACH_PLEX4".to_owned()))),
+					states.insert("arach_plex3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 2, full_bright: true},
+						next: Some((5 * FRAME_TIME, Some("arach_plex4".to_owned()))),
 					});
-					states.insert("ARACH_PLEX4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("APBX.sprite"), frame: 3, full_bright: true},
-						next: Some((5 * FRAME_TIME, Some("ARACH_PLEX5".to_owned()))),
+					states.insert("arach_plex4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 3, full_bright: true},
+						next: Some((5 * FRAME_TIME, Some("arach_plex5".to_owned()))),
 					});
-					states.insert("ARACH_PLEX5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("APBX.sprite"), frame: 4, full_bright: true},
+					states.insert("arach_plex5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 4, full_bright: true},
 						next: Some((5 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("ARACH_PLAZ".to_owned()))),
-				spawn_state: Some("ARACH_PLAZ".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("arach_plaz".to_owned()))),
+				spawn_state: Some("arach_plaz".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
 				missile_state: None,
-				death_state: Some("ARACH_PLEX".to_owned()),
+				death_state: Some("arach_plex".to_owned()),
 				xdeath_state: None,
 				raise_state: None,
 			})
 			.with_component(Velocity::default()),
 	};
-	asset_storage.insert_with_name("ARACHPLAZ", template);
+	asset_storage.insert_with_name("arachplaz", template);
 
 	let template = EntityTemplate {
-		name: Some("PUFF"),
+		name: Some("puff"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("PUFF.sprite"),
+				sprite: asset_storage.load("puff.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("PUFF1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PUFF.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("PUFF2".to_owned()))),
+					states.insert("puff1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("puff2".to_owned()))),
 					});
-					states.insert("PUFF2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PUFF.sprite"), frame: 1, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("PUFF3".to_owned()))),
+					states.insert("puff2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 1, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("puff3".to_owned()))),
 					});
-					states.insert("PUFF3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PUFF.sprite"), frame: 2, full_bright: false},
-						next: Some((4 * FRAME_TIME, Some("PUFF4".to_owned()))),
+					states.insert("puff3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 2, full_bright: false},
+						next: Some((4 * FRAME_TIME, Some("puff4".to_owned()))),
 					});
-					states.insert("PUFF4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PUFF.sprite"), frame: 3, full_bright: false},
+					states.insert("puff4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 3, full_bright: false},
 						next: Some((4 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("PUFF1".to_owned()))),
-				spawn_state: Some("PUFF1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("puff1".to_owned()))),
+				spawn_state: Some("puff1".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4073,36 +4073,36 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("PUFF", template);
+	asset_storage.insert_with_name("puff", template);
 
 	let template = EntityTemplate {
-		name: Some("BLOOD"),
+		name: Some("blood"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BLUD.sprite"),
+				sprite: asset_storage.load("blud.sprite"),
 				frame: 2,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(3);
-					states.insert("BLOOD1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BLUD.sprite"), frame: 2, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BLOOD2".to_owned()))),
+					states.insert("blood1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("blud.sprite"), frame: 2, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("blood2".to_owned()))),
 					});
-					states.insert("BLOOD2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BLUD.sprite"), frame: 1, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BLOOD3".to_owned()))),
+					states.insert("blood2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("blud.sprite"), frame: 1, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("blood3".to_owned()))),
 					});
-					states.insert("BLOOD3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BLUD.sprite"), frame: 0, full_bright: false},
+					states.insert("blood3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("blud.sprite"), frame: 0, full_bright: false},
 						next: Some((8 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BLOOD1".to_owned()))),
-				spawn_state: Some("BLOOD1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("blood1".to_owned()))),
+				spawn_state: Some("blood1".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4112,72 +4112,72 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("BLOOD", template);
+	asset_storage.insert_with_name("blood", template);
 
 	let template = EntityTemplate {
-		name: Some("TFOG"),
+		name: Some("tfog"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("TFOG.sprite"),
+				sprite: asset_storage.load("tfog.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(12);
-					states.insert("TFOG".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TFOG.sprite"), frame: 0, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("TFOG01".to_owned()))),
+					states.insert("tfog".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 0, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("tfog01".to_owned()))),
 					});
-					states.insert("TFOG01".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TFOG.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("TFOG02".to_owned()))),
+					states.insert("tfog01".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("tfog02".to_owned()))),
 					});
-					states.insert("TFOG02".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TFOG.sprite"), frame: 0, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("TFOG2".to_owned()))),
+					states.insert("tfog02".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 0, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("tfog2".to_owned()))),
 					});
-					states.insert("TFOG2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TFOG.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("TFOG3".to_owned()))),
+					states.insert("tfog2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("tfog3".to_owned()))),
 					});
-					states.insert("TFOG3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TFOG.sprite"), frame: 2, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("TFOG4".to_owned()))),
+					states.insert("tfog3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 2, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("tfog4".to_owned()))),
 					});
-					states.insert("TFOG4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TFOG.sprite"), frame: 3, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("TFOG5".to_owned()))),
+					states.insert("tfog4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 3, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("tfog5".to_owned()))),
 					});
-					states.insert("TFOG5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TFOG.sprite"), frame: 4, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("TFOG6".to_owned()))),
+					states.insert("tfog5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 4, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("tfog6".to_owned()))),
 					});
-					states.insert("TFOG6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TFOG.sprite"), frame: 5, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("TFOG7".to_owned()))),
+					states.insert("tfog6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 5, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("tfog7".to_owned()))),
 					});
-					states.insert("TFOG7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TFOG.sprite"), frame: 6, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("TFOG8".to_owned()))),
+					states.insert("tfog7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 6, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("tfog8".to_owned()))),
 					});
-					states.insert("TFOG8".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TFOG.sprite"), frame: 7, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("TFOG9".to_owned()))),
+					states.insert("tfog8".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 7, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("tfog9".to_owned()))),
 					});
-					states.insert("TFOG9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TFOG.sprite"), frame: 8, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("TFOG10".to_owned()))),
+					states.insert("tfog9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 8, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("tfog10".to_owned()))),
 					});
-					states.insert("TFOG10".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TFOG.sprite"), frame: 9, full_bright: true},
+					states.insert("tfog10".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 9, full_bright: true},
 						next: Some((6 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("TFOG".to_owned()))),
-				spawn_state: Some("TFOG".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("tfog".to_owned()))),
+				spawn_state: Some("tfog".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4187,52 +4187,52 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("TFOG", template);
+	asset_storage.insert_with_name("tfog", template);
 
 	let template = EntityTemplate {
-		name: Some("IFOG"),
+		name: Some("ifog"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("IFOG.sprite"),
+				sprite: asset_storage.load("ifog.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(7);
-					states.insert("IFOG".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("IFOG.sprite"), frame: 0, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("IFOG01".to_owned()))),
+					states.insert("ifog".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 0, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("ifog01".to_owned()))),
 					});
-					states.insert("IFOG01".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("IFOG.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("IFOG02".to_owned()))),
+					states.insert("ifog01".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("ifog02".to_owned()))),
 					});
-					states.insert("IFOG02".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("IFOG.sprite"), frame: 0, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("IFOG2".to_owned()))),
+					states.insert("ifog02".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 0, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("ifog2".to_owned()))),
 					});
-					states.insert("IFOG2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("IFOG.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("IFOG3".to_owned()))),
+					states.insert("ifog2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("ifog3".to_owned()))),
 					});
-					states.insert("IFOG3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("IFOG.sprite"), frame: 2, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("IFOG4".to_owned()))),
+					states.insert("ifog3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 2, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("ifog4".to_owned()))),
 					});
-					states.insert("IFOG4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("IFOG.sprite"), frame: 3, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("IFOG5".to_owned()))),
+					states.insert("ifog4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 3, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("ifog5".to_owned()))),
 					});
-					states.insert("IFOG5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("IFOG.sprite"), frame: 4, full_bright: true},
+					states.insert("ifog5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 4, full_bright: true},
 						next: Some((6 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("IFOG".to_owned()))),
-				spawn_state: Some("IFOG".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("ifog".to_owned()))),
+				spawn_state: Some("ifog".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4242,47 +4242,47 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("IFOG", template);
+	asset_storage.insert_with_name("ifog", template);
 
 	let template = EntityTemplate {
-		name: Some("TELEPORTMAN"),
+		name: Some("teleportman"),
 		type_id: Some(EntityTypeId::Thing(14)),
 		components: EntityComponents::new(),
 	};
-	asset_storage.insert_with_name("TELEPORTMAN", template);
+	asset_storage.insert_with_name("teleportman", template);
 
 	let template = EntityTemplate {
-		name: Some("EXTRABFG"),
+		name: Some("extrabfg"),
 		type_id: None,
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BFE2.sprite"),
+				sprite: asset_storage.load("bfe2.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("BFGEXP".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BFE2.sprite"), frame: 0, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("BFGEXP2".to_owned()))),
+					states.insert("bfgexp".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bfe2.sprite"), frame: 0, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("bfgexp2".to_owned()))),
 					});
-					states.insert("BFGEXP2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BFE2.sprite"), frame: 1, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("BFGEXP3".to_owned()))),
+					states.insert("bfgexp2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bfe2.sprite"), frame: 1, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("bfgexp3".to_owned()))),
 					});
-					states.insert("BFGEXP3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BFE2.sprite"), frame: 2, full_bright: true},
-						next: Some((8 * FRAME_TIME, Some("BFGEXP4".to_owned()))),
+					states.insert("bfgexp3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bfe2.sprite"), frame: 2, full_bright: true},
+						next: Some((8 * FRAME_TIME, Some("bfgexp4".to_owned()))),
 					});
-					states.insert("BFGEXP4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BFE2.sprite"), frame: 3, full_bright: true},
+					states.insert("bfgexp4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bfe2.sprite"), frame: 3, full_bright: true},
 						next: Some((8 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BFGEXP".to_owned()))),
-				spawn_state: Some("BFGEXP".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("bfgexp".to_owned()))),
+				spawn_state: Some("bfgexp".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4292,10 +4292,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("EXTRABFG", template);
+	asset_storage.insert_with_name("extrabfg", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC0"),
+		name: Some("misc0"),
 		type_id: Some(EntityTypeId::Thing(2018)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4304,25 +4304,25 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("ARM1.sprite"),
+				sprite: asset_storage.load("arm1.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(2);
-					states.insert("ARM1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("ARM1.sprite"), frame: 0, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("ARM1A".to_owned()))),
+					states.insert("arm1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("arm1.sprite"), frame: 0, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("arm1a".to_owned()))),
 					});
-					states.insert("ARM1A".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("ARM1.sprite"), frame: 1, full_bright: true},
-						next: Some((7 * FRAME_TIME, Some("ARM1".to_owned()))),
+					states.insert("arm1a".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("arm1.sprite"), frame: 1, full_bright: true},
+						next: Some((7 * FRAME_TIME, Some("arm1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("ARM1".to_owned()))),
-				spawn_state: Some("ARM1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("arm1".to_owned()))),
+				spawn_state: Some("arm1".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4332,10 +4332,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC0", template);
+	asset_storage.insert_with_name("misc0", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC1"),
+		name: Some("misc1"),
 		type_id: Some(EntityTypeId::Thing(2019)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4344,25 +4344,25 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("ARM2.sprite"),
+				sprite: asset_storage.load("arm2.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(2);
-					states.insert("ARM2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("ARM2.sprite"), frame: 0, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("ARM2A".to_owned()))),
+					states.insert("arm2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("arm2.sprite"), frame: 0, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("arm2a".to_owned()))),
 					});
-					states.insert("ARM2A".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("ARM2.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("ARM2".to_owned()))),
+					states.insert("arm2a".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("arm2.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("arm2".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("ARM2".to_owned()))),
-				spawn_state: Some("ARM2".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("arm2".to_owned()))),
+				spawn_state: Some("arm2".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4372,10 +4372,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC1", template);
+	asset_storage.insert_with_name("misc1", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC2"),
+		name: Some("misc2"),
 		type_id: Some(EntityTypeId::Thing(2014)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4384,41 +4384,41 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BON1.sprite"),
+				sprite: asset_storage.load("bon1.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(6);
-					states.insert("BON1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BON1.sprite"), frame: 0, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("BON1A".to_owned()))),
+					states.insert("bon1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 0, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("bon1a".to_owned()))),
 					});
-					states.insert("BON1A".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BON1.sprite"), frame: 1, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("BON1B".to_owned()))),
+					states.insert("bon1a".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 1, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("bon1b".to_owned()))),
 					});
-					states.insert("BON1B".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BON1.sprite"), frame: 2, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("BON1C".to_owned()))),
+					states.insert("bon1b".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 2, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("bon1c".to_owned()))),
 					});
-					states.insert("BON1C".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BON1.sprite"), frame: 3, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("BON1D".to_owned()))),
+					states.insert("bon1c".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 3, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("bon1d".to_owned()))),
 					});
-					states.insert("BON1D".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BON1.sprite"), frame: 2, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("BON1E".to_owned()))),
+					states.insert("bon1d".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 2, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("bon1e".to_owned()))),
 					});
-					states.insert("BON1E".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BON1.sprite"), frame: 1, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("BON1".to_owned()))),
+					states.insert("bon1e".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 1, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("bon1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BON1".to_owned()))),
-				spawn_state: Some("BON1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("bon1".to_owned()))),
+				spawn_state: Some("bon1".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4428,10 +4428,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC2", template);
+	asset_storage.insert_with_name("misc2", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC3"),
+		name: Some("misc3"),
 		type_id: Some(EntityTypeId::Thing(2015)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4440,41 +4440,41 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BON2.sprite"),
+				sprite: asset_storage.load("bon2.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(6);
-					states.insert("BON2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BON2.sprite"), frame: 0, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("BON2A".to_owned()))),
+					states.insert("bon2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 0, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("bon2a".to_owned()))),
 					});
-					states.insert("BON2A".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BON2.sprite"), frame: 1, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("BON2B".to_owned()))),
+					states.insert("bon2a".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 1, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("bon2b".to_owned()))),
 					});
-					states.insert("BON2B".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BON2.sprite"), frame: 2, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("BON2C".to_owned()))),
+					states.insert("bon2b".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 2, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("bon2c".to_owned()))),
 					});
-					states.insert("BON2C".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BON2.sprite"), frame: 3, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("BON2D".to_owned()))),
+					states.insert("bon2c".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 3, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("bon2d".to_owned()))),
 					});
-					states.insert("BON2D".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BON2.sprite"), frame: 2, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("BON2E".to_owned()))),
+					states.insert("bon2d".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 2, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("bon2e".to_owned()))),
 					});
-					states.insert("BON2E".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BON2.sprite"), frame: 1, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("BON2".to_owned()))),
+					states.insert("bon2e".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 1, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("bon2".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BON2".to_owned()))),
-				spawn_state: Some("BON2".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("bon2".to_owned()))),
+				spawn_state: Some("bon2".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4484,10 +4484,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC3", template);
+	asset_storage.insert_with_name("misc3", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC4"),
+		name: Some("misc4"),
 		type_id: Some(EntityTypeId::Thing(5)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4496,25 +4496,25 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BKEY.sprite"),
+				sprite: asset_storage.load("bkey.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(2);
-					states.insert("BKEY".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BKEY.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("BKEY2".to_owned()))),
+					states.insert("bkey".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bkey.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("bkey2".to_owned()))),
 					});
-					states.insert("BKEY2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BKEY.sprite"), frame: 1, full_bright: true},
-						next: Some((10 * FRAME_TIME, Some("BKEY".to_owned()))),
+					states.insert("bkey2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bkey.sprite"), frame: 1, full_bright: true},
+						next: Some((10 * FRAME_TIME, Some("bkey".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BKEY".to_owned()))),
-				spawn_state: Some("BKEY".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("bkey".to_owned()))),
+				spawn_state: Some("bkey".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4524,10 +4524,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC4", template);
+	asset_storage.insert_with_name("misc4", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC5"),
+		name: Some("misc5"),
 		type_id: Some(EntityTypeId::Thing(13)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4536,25 +4536,25 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("RKEY.sprite"),
+				sprite: asset_storage.load("rkey.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(2);
-					states.insert("RKEY".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("RKEY.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("RKEY2".to_owned()))),
+					states.insert("rkey".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("rkey.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("rkey2".to_owned()))),
 					});
-					states.insert("RKEY2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("RKEY.sprite"), frame: 1, full_bright: true},
-						next: Some((10 * FRAME_TIME, Some("RKEY".to_owned()))),
+					states.insert("rkey2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("rkey.sprite"), frame: 1, full_bright: true},
+						next: Some((10 * FRAME_TIME, Some("rkey".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("RKEY".to_owned()))),
-				spawn_state: Some("RKEY".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("rkey".to_owned()))),
+				spawn_state: Some("rkey".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4564,10 +4564,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC5", template);
+	asset_storage.insert_with_name("misc5", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC6"),
+		name: Some("misc6"),
 		type_id: Some(EntityTypeId::Thing(6)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4576,25 +4576,25 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("YKEY.sprite"),
+				sprite: asset_storage.load("ykey.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(2);
-					states.insert("YKEY".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("YKEY.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("YKEY2".to_owned()))),
+					states.insert("ykey".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("ykey.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("ykey2".to_owned()))),
 					});
-					states.insert("YKEY2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("YKEY.sprite"), frame: 1, full_bright: true},
-						next: Some((10 * FRAME_TIME, Some("YKEY".to_owned()))),
+					states.insert("ykey2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("ykey.sprite"), frame: 1, full_bright: true},
+						next: Some((10 * FRAME_TIME, Some("ykey".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("YKEY".to_owned()))),
-				spawn_state: Some("YKEY".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("ykey".to_owned()))),
+				spawn_state: Some("ykey".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4604,10 +4604,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC6", template);
+	asset_storage.insert_with_name("misc6", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC7"),
+		name: Some("misc7"),
 		type_id: Some(EntityTypeId::Thing(39)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4616,25 +4616,25 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("YSKU.sprite"),
+				sprite: asset_storage.load("ysku.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(2);
-					states.insert("YSKULL".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("YSKU.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("YSKULL2".to_owned()))),
+					states.insert("yskull".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("ysku.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("yskull2".to_owned()))),
 					});
-					states.insert("YSKULL2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("YSKU.sprite"), frame: 1, full_bright: true},
-						next: Some((10 * FRAME_TIME, Some("YSKULL".to_owned()))),
+					states.insert("yskull2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("ysku.sprite"), frame: 1, full_bright: true},
+						next: Some((10 * FRAME_TIME, Some("yskull".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("YSKULL".to_owned()))),
-				spawn_state: Some("YSKULL".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("yskull".to_owned()))),
+				spawn_state: Some("yskull".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4644,10 +4644,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC7", template);
+	asset_storage.insert_with_name("misc7", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC8"),
+		name: Some("misc8"),
 		type_id: Some(EntityTypeId::Thing(38)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4656,25 +4656,25 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("RSKU.sprite"),
+				sprite: asset_storage.load("rsku.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(2);
-					states.insert("RSKULL".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("RSKU.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("RSKULL2".to_owned()))),
+					states.insert("rskull".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("rsku.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("rskull2".to_owned()))),
 					});
-					states.insert("RSKULL2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("RSKU.sprite"), frame: 1, full_bright: true},
-						next: Some((10 * FRAME_TIME, Some("RSKULL".to_owned()))),
+					states.insert("rskull2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("rsku.sprite"), frame: 1, full_bright: true},
+						next: Some((10 * FRAME_TIME, Some("rskull".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("RSKULL".to_owned()))),
-				spawn_state: Some("RSKULL".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("rskull".to_owned()))),
+				spawn_state: Some("rskull".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4684,10 +4684,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC8", template);
+	asset_storage.insert_with_name("misc8", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC9"),
+		name: Some("misc9"),
 		type_id: Some(EntityTypeId::Thing(40)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4696,25 +4696,25 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BSKU.sprite"),
+				sprite: asset_storage.load("bsku.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(2);
-					states.insert("BSKULL".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSKU.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("BSKULL2".to_owned()))),
+					states.insert("bskull".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bsku.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("bskull2".to_owned()))),
 					});
-					states.insert("BSKULL2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BSKU.sprite"), frame: 1, full_bright: true},
-						next: Some((10 * FRAME_TIME, Some("BSKULL".to_owned()))),
+					states.insert("bskull2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bsku.sprite"), frame: 1, full_bright: true},
+						next: Some((10 * FRAME_TIME, Some("bskull".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BSKULL".to_owned()))),
-				spawn_state: Some("BSKULL".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("bskull".to_owned()))),
+				spawn_state: Some("bskull".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4724,10 +4724,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC9", template);
+	asset_storage.insert_with_name("misc9", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC10"),
+		name: Some("misc10"),
 		type_id: Some(EntityTypeId::Thing(2011)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4736,21 +4736,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("STIM.sprite"),
+				sprite: asset_storage.load("stim.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("STIM".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("STIM.sprite"), frame: 0, full_bright: false},
+					states.insert("stim".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("stim.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("STIM".to_owned()))),
-				spawn_state: Some("STIM".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("stim".to_owned()))),
+				spawn_state: Some("stim".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4760,10 +4760,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC10", template);
+	asset_storage.insert_with_name("misc10", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC11"),
+		name: Some("misc11"),
 		type_id: Some(EntityTypeId::Thing(2012)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4772,21 +4772,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("MEDI.sprite"),
+				sprite: asset_storage.load("medi.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("MEDI".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("MEDI.sprite"), frame: 0, full_bright: false},
+					states.insert("medi".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("medi.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("MEDI".to_owned()))),
-				spawn_state: Some("MEDI".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("medi".to_owned()))),
+				spawn_state: Some("medi".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4796,10 +4796,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC11", template);
+	asset_storage.insert_with_name("misc11", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC12"),
+		name: Some("misc12"),
 		type_id: Some(EntityTypeId::Thing(2013)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4808,41 +4808,41 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SOUL.sprite"),
+				sprite: asset_storage.load("soul.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(6);
-					states.insert("SOUL".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SOUL.sprite"), frame: 0, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("SOUL2".to_owned()))),
+					states.insert("soul".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 0, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("soul2".to_owned()))),
 					});
-					states.insert("SOUL2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SOUL.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("SOUL3".to_owned()))),
+					states.insert("soul2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("soul3".to_owned()))),
 					});
-					states.insert("SOUL3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SOUL.sprite"), frame: 2, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("SOUL4".to_owned()))),
+					states.insert("soul3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 2, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("soul4".to_owned()))),
 					});
-					states.insert("SOUL4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SOUL.sprite"), frame: 3, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("SOUL5".to_owned()))),
+					states.insert("soul4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 3, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("soul5".to_owned()))),
 					});
-					states.insert("SOUL5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SOUL.sprite"), frame: 2, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("SOUL6".to_owned()))),
+					states.insert("soul5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 2, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("soul6".to_owned()))),
 					});
-					states.insert("SOUL6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SOUL.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("SOUL".to_owned()))),
+					states.insert("soul6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("soul".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SOUL".to_owned()))),
-				spawn_state: Some("SOUL".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("soul".to_owned()))),
+				spawn_state: Some("soul".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4852,10 +4852,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC12", template);
+	asset_storage.insert_with_name("misc12", template);
 
 	let template = EntityTemplate {
-		name: Some("INV"),
+		name: Some("inv"),
 		type_id: Some(EntityTypeId::Thing(2022)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4864,33 +4864,33 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("PINV.sprite"),
+				sprite: asset_storage.load("pinv.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("PINV".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PINV.sprite"), frame: 0, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PINV2".to_owned()))),
+					states.insert("pinv".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pinv.sprite"), frame: 0, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("pinv2".to_owned()))),
 					});
-					states.insert("PINV2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PINV.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PINV3".to_owned()))),
+					states.insert("pinv2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pinv.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("pinv3".to_owned()))),
 					});
-					states.insert("PINV3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PINV.sprite"), frame: 2, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PINV4".to_owned()))),
+					states.insert("pinv3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pinv.sprite"), frame: 2, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("pinv4".to_owned()))),
 					});
-					states.insert("PINV4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PINV.sprite"), frame: 3, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PINV".to_owned()))),
+					states.insert("pinv4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pinv.sprite"), frame: 3, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("pinv".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("PINV".to_owned()))),
-				spawn_state: Some("PINV".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("pinv".to_owned()))),
+				spawn_state: Some("pinv".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4900,10 +4900,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("INV", template);
+	asset_storage.insert_with_name("inv", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC13"),
+		name: Some("misc13"),
 		type_id: Some(EntityTypeId::Thing(2023)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4912,21 +4912,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("PSTR.sprite"),
+				sprite: asset_storage.load("pstr.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("PSTR".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PSTR.sprite"), frame: 0, full_bright: true},
+					states.insert("pstr".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pstr.sprite"), frame: 0, full_bright: true},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("PSTR".to_owned()))),
-				spawn_state: Some("PSTR".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("pstr".to_owned()))),
+				spawn_state: Some("pstr".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4936,10 +4936,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC13", template);
+	asset_storage.insert_with_name("misc13", template);
 
 	let template = EntityTemplate {
-		name: Some("INS"),
+		name: Some("ins"),
 		type_id: Some(EntityTypeId::Thing(2024)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4948,33 +4948,33 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("PINS.sprite"),
+				sprite: asset_storage.load("pins.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("PINS".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PINS.sprite"), frame: 0, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PINS2".to_owned()))),
+					states.insert("pins".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pins.sprite"), frame: 0, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("pins2".to_owned()))),
 					});
-					states.insert("PINS2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PINS.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PINS3".to_owned()))),
+					states.insert("pins2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pins.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("pins3".to_owned()))),
 					});
-					states.insert("PINS3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PINS.sprite"), frame: 2, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PINS4".to_owned()))),
+					states.insert("pins3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pins.sprite"), frame: 2, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("pins4".to_owned()))),
 					});
-					states.insert("PINS4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PINS.sprite"), frame: 3, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PINS".to_owned()))),
+					states.insert("pins4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pins.sprite"), frame: 3, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("pins".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("PINS".to_owned()))),
-				spawn_state: Some("PINS".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("pins".to_owned()))),
+				spawn_state: Some("pins".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -4984,10 +4984,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("INS", template);
+	asset_storage.insert_with_name("ins", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC14"),
+		name: Some("misc14"),
 		type_id: Some(EntityTypeId::Thing(2025)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -4996,21 +4996,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SUIT.sprite"),
+				sprite: asset_storage.load("suit.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("SUIT".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SUIT.sprite"), frame: 0, full_bright: true},
+					states.insert("suit".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("suit.sprite"), frame: 0, full_bright: true},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SUIT".to_owned()))),
-				spawn_state: Some("SUIT".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("suit".to_owned()))),
+				spawn_state: Some("suit".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5020,10 +5020,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC14", template);
+	asset_storage.insert_with_name("misc14", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC15"),
+		name: Some("misc15"),
 		type_id: Some(EntityTypeId::Thing(2026)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5032,41 +5032,41 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("PMAP.sprite"),
+				sprite: asset_storage.load("pmap.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(6);
-					states.insert("PMAP".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PMAP.sprite"), frame: 0, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PMAP2".to_owned()))),
+					states.insert("pmap".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 0, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("pmap2".to_owned()))),
 					});
-					states.insert("PMAP2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PMAP.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PMAP3".to_owned()))),
+					states.insert("pmap2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("pmap3".to_owned()))),
 					});
-					states.insert("PMAP3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PMAP.sprite"), frame: 2, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PMAP4".to_owned()))),
+					states.insert("pmap3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 2, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("pmap4".to_owned()))),
 					});
-					states.insert("PMAP4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PMAP.sprite"), frame: 3, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PMAP5".to_owned()))),
+					states.insert("pmap4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 3, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("pmap5".to_owned()))),
 					});
-					states.insert("PMAP5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PMAP.sprite"), frame: 2, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PMAP6".to_owned()))),
+					states.insert("pmap5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 2, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("pmap6".to_owned()))),
 					});
-					states.insert("PMAP6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PMAP.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PMAP".to_owned()))),
+					states.insert("pmap6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("pmap".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("PMAP".to_owned()))),
-				spawn_state: Some("PMAP".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("pmap".to_owned()))),
+				spawn_state: Some("pmap".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5076,10 +5076,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC15", template);
+	asset_storage.insert_with_name("misc15", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC16"),
+		name: Some("misc16"),
 		type_id: Some(EntityTypeId::Thing(2045)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5088,25 +5088,25 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("PVIS.sprite"),
+				sprite: asset_storage.load("pvis.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(2);
-					states.insert("PVIS".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PVIS.sprite"), frame: 0, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("PVIS2".to_owned()))),
+					states.insert("pvis".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pvis.sprite"), frame: 0, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("pvis2".to_owned()))),
 					});
-					states.insert("PVIS2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PVIS.sprite"), frame: 1, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("PVIS".to_owned()))),
+					states.insert("pvis2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pvis.sprite"), frame: 1, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("pvis".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("PVIS".to_owned()))),
-				spawn_state: Some("PVIS".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("pvis".to_owned()))),
+				spawn_state: Some("pvis".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5116,10 +5116,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC16", template);
+	asset_storage.insert_with_name("misc16", template);
 
 	let template = EntityTemplate {
-		name: Some("MEGA"),
+		name: Some("mega"),
 		type_id: Some(EntityTypeId::Thing(83)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5128,33 +5128,33 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("MEGA.sprite"),
+				sprite: asset_storage.load("mega.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("MEGA".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("MEGA.sprite"), frame: 0, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("MEGA2".to_owned()))),
+					states.insert("mega".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("mega.sprite"), frame: 0, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("mega2".to_owned()))),
 					});
-					states.insert("MEGA2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("MEGA.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("MEGA3".to_owned()))),
+					states.insert("mega2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("mega.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("mega3".to_owned()))),
 					});
-					states.insert("MEGA3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("MEGA.sprite"), frame: 2, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("MEGA4".to_owned()))),
+					states.insert("mega3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("mega.sprite"), frame: 2, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("mega4".to_owned()))),
 					});
-					states.insert("MEGA4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("MEGA.sprite"), frame: 3, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("MEGA".to_owned()))),
+					states.insert("mega4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("mega.sprite"), frame: 3, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("mega".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("MEGA".to_owned()))),
-				spawn_state: Some("MEGA".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("mega".to_owned()))),
+				spawn_state: Some("mega".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5164,10 +5164,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MEGA", template);
+	asset_storage.insert_with_name("mega", template);
 
 	let template = EntityTemplate {
-		name: Some("CLIP"),
+		name: Some("clip"),
 		type_id: Some(EntityTypeId::Thing(2007)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5176,21 +5176,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("CLIP.sprite"),
+				sprite: asset_storage.load("clip.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("CLIP".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CLIP.sprite"), frame: 0, full_bright: false},
+					states.insert("clip".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("clip.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("CLIP".to_owned()))),
-				spawn_state: Some("CLIP".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("clip".to_owned()))),
+				spawn_state: Some("clip".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5200,10 +5200,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("CLIP", template);
+	asset_storage.insert_with_name("clip", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC17"),
+		name: Some("misc17"),
 		type_id: Some(EntityTypeId::Thing(2048)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5212,21 +5212,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("AMMO.sprite"),
+				sprite: asset_storage.load("ammo.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("AMMO".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("AMMO.sprite"), frame: 0, full_bright: false},
+					states.insert("ammo".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("ammo.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("AMMO".to_owned()))),
-				spawn_state: Some("AMMO".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("ammo".to_owned()))),
+				spawn_state: Some("ammo".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5236,10 +5236,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC17", template);
+	asset_storage.insert_with_name("misc17", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC18"),
+		name: Some("misc18"),
 		type_id: Some(EntityTypeId::Thing(2010)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5248,21 +5248,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("ROCK.sprite"),
+				sprite: asset_storage.load("rock.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("ROCK".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("ROCK.sprite"), frame: 0, full_bright: false},
+					states.insert("rock".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("rock.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("ROCK".to_owned()))),
-				spawn_state: Some("ROCK".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("rock".to_owned()))),
+				spawn_state: Some("rock".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5272,10 +5272,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC18", template);
+	asset_storage.insert_with_name("misc18", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC19"),
+		name: Some("misc19"),
 		type_id: Some(EntityTypeId::Thing(2046)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5284,21 +5284,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BROK.sprite"),
+				sprite: asset_storage.load("brok.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("BROK".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BROK.sprite"), frame: 0, full_bright: false},
+					states.insert("brok".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("brok.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BROK".to_owned()))),
-				spawn_state: Some("BROK".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("brok".to_owned()))),
+				spawn_state: Some("brok".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5308,10 +5308,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC19", template);
+	asset_storage.insert_with_name("misc19", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC20"),
+		name: Some("misc20"),
 		type_id: Some(EntityTypeId::Thing(2047)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5320,21 +5320,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("CELL.sprite"),
+				sprite: asset_storage.load("cell.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("CELL".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CELL.sprite"), frame: 0, full_bright: false},
+					states.insert("cell".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cell.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("CELL".to_owned()))),
-				spawn_state: Some("CELL".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("cell".to_owned()))),
+				spawn_state: Some("cell".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5344,10 +5344,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC20", template);
+	asset_storage.insert_with_name("misc20", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC21"),
+		name: Some("misc21"),
 		type_id: Some(EntityTypeId::Thing(17)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5356,21 +5356,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("CELP.sprite"),
+				sprite: asset_storage.load("celp.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("CELP".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CELP.sprite"), frame: 0, full_bright: false},
+					states.insert("celp".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("celp.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("CELP".to_owned()))),
-				spawn_state: Some("CELP".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("celp".to_owned()))),
+				spawn_state: Some("celp".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5380,10 +5380,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC21", template);
+	asset_storage.insert_with_name("misc21", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC22"),
+		name: Some("misc22"),
 		type_id: Some(EntityTypeId::Thing(2008)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5392,21 +5392,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SHEL.sprite"),
+				sprite: asset_storage.load("shel.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("SHEL".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SHEL.sprite"), frame: 0, full_bright: false},
+					states.insert("shel".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("shel.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SHEL".to_owned()))),
-				spawn_state: Some("SHEL".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("shel".to_owned()))),
+				spawn_state: Some("shel".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5416,10 +5416,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC22", template);
+	asset_storage.insert_with_name("misc22", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC23"),
+		name: Some("misc23"),
 		type_id: Some(EntityTypeId::Thing(2049)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5428,21 +5428,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SBOX.sprite"),
+				sprite: asset_storage.load("sbox.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("SBOX".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SBOX.sprite"), frame: 0, full_bright: false},
+					states.insert("sbox".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sbox.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SBOX".to_owned()))),
-				spawn_state: Some("SBOX".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("sbox".to_owned()))),
+				spawn_state: Some("sbox".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5452,10 +5452,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC23", template);
+	asset_storage.insert_with_name("misc23", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC24"),
+		name: Some("misc24"),
 		type_id: Some(EntityTypeId::Thing(8)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5464,21 +5464,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BPAK.sprite"),
+				sprite: asset_storage.load("bpak.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("BPAK".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BPAK.sprite"), frame: 0, full_bright: false},
+					states.insert("bpak".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bpak.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BPAK".to_owned()))),
-				spawn_state: Some("BPAK".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("bpak".to_owned()))),
+				spawn_state: Some("bpak".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5488,10 +5488,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC24", template);
+	asset_storage.insert_with_name("misc24", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC25"),
+		name: Some("misc25"),
 		type_id: Some(EntityTypeId::Thing(2006)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5500,21 +5500,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BFUG.sprite"),
+				sprite: asset_storage.load("bfug.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("BFUG".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BFUG.sprite"), frame: 0, full_bright: false},
+					states.insert("bfug".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("bfug.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BFUG".to_owned()))),
-				spawn_state: Some("BFUG".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("bfug".to_owned()))),
+				spawn_state: Some("bfug".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5524,10 +5524,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC25", template);
+	asset_storage.insert_with_name("misc25", template);
 
 	let template = EntityTemplate {
-		name: Some("CHAINGUN"),
+		name: Some("chaingun"),
 		type_id: Some(EntityTypeId::Thing(2002)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5536,21 +5536,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("MGUN.sprite"),
+				sprite: asset_storage.load("mgun.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("MGUN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("MGUN.sprite"), frame: 0, full_bright: false},
+					states.insert("mgun".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("mgun.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("MGUN".to_owned()))),
-				spawn_state: Some("MGUN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("mgun".to_owned()))),
+				spawn_state: Some("mgun".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5560,10 +5560,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("CHAINGUN", template);
+	asset_storage.insert_with_name("chaingun", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC26"),
+		name: Some("misc26"),
 		type_id: Some(EntityTypeId::Thing(2005)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5572,21 +5572,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("CSAW.sprite"),
+				sprite: asset_storage.load("csaw.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("CSAW".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CSAW.sprite"), frame: 0, full_bright: false},
+					states.insert("csaw".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("csaw.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("CSAW".to_owned()))),
-				spawn_state: Some("CSAW".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("csaw".to_owned()))),
+				spawn_state: Some("csaw".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5596,10 +5596,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC26", template);
+	asset_storage.insert_with_name("misc26", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC27"),
+		name: Some("misc27"),
 		type_id: Some(EntityTypeId::Thing(2003)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5608,21 +5608,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("LAUN.sprite"),
+				sprite: asset_storage.load("laun.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("LAUN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("LAUN.sprite"), frame: 0, full_bright: false},
+					states.insert("laun".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("laun.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("LAUN".to_owned()))),
-				spawn_state: Some("LAUN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("laun".to_owned()))),
+				spawn_state: Some("laun".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5632,10 +5632,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC27", template);
+	asset_storage.insert_with_name("misc27", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC28"),
+		name: Some("misc28"),
 		type_id: Some(EntityTypeId::Thing(2004)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5644,21 +5644,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("PLAS.sprite"),
+				sprite: asset_storage.load("plas.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("PLAS".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAS.sprite"), frame: 0, full_bright: false},
+					states.insert("plas".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("plas.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("PLAS".to_owned()))),
-				spawn_state: Some("PLAS".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("plas".to_owned()))),
+				spawn_state: Some("plas".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5668,10 +5668,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC28", template);
+	asset_storage.insert_with_name("misc28", template);
 
 	let template = EntityTemplate {
-		name: Some("SHOTGUN"),
+		name: Some("shotgun"),
 		type_id: Some(EntityTypeId::Thing(2001)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5680,21 +5680,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SHOT.sprite"),
+				sprite: asset_storage.load("shot.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("SHOT".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SHOT.sprite"), frame: 0, full_bright: false},
+					states.insert("shot".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("shot.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SHOT".to_owned()))),
-				spawn_state: Some("SHOT".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("shot".to_owned()))),
+				spawn_state: Some("shot".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5704,10 +5704,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("SHOTGUN", template);
+	asset_storage.insert_with_name("shotgun", template);
 
 	let template = EntityTemplate {
-		name: Some("SUPERSHOTGUN"),
+		name: Some("supershotgun"),
 		type_id: Some(EntityTypeId::Thing(82)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5716,21 +5716,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SGN2.sprite"),
+				sprite: asset_storage.load("sgn2.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("SHOT2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SGN2.sprite"), frame: 0, full_bright: false},
+					states.insert("shot2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sgn2.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SHOT2".to_owned()))),
-				spawn_state: Some("SHOT2".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("shot2".to_owned()))),
+				spawn_state: Some("shot2".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5740,10 +5740,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("SUPERSHOTGUN", template);
+	asset_storage.insert_with_name("supershotgun", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC29"),
+		name: Some("misc29"),
 		type_id: Some(EntityTypeId::Thing(85)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5752,33 +5752,33 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("TLMP.sprite"),
+				sprite: asset_storage.load("tlmp.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("TECHLAMP".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TLMP.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("TECHLAMP2".to_owned()))),
+					states.insert("techlamp".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tlmp.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("techlamp2".to_owned()))),
 					});
-					states.insert("TECHLAMP2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TLMP.sprite"), frame: 1, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("TECHLAMP3".to_owned()))),
+					states.insert("techlamp2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tlmp.sprite"), frame: 1, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("techlamp3".to_owned()))),
 					});
-					states.insert("TECHLAMP3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TLMP.sprite"), frame: 2, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("TECHLAMP4".to_owned()))),
+					states.insert("techlamp3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tlmp.sprite"), frame: 2, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("techlamp4".to_owned()))),
 					});
-					states.insert("TECHLAMP4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TLMP.sprite"), frame: 3, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("TECHLAMP".to_owned()))),
+					states.insert("techlamp4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tlmp.sprite"), frame: 3, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("techlamp".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("TECHLAMP".to_owned()))),
-				spawn_state: Some("TECHLAMP".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("techlamp".to_owned()))),
+				spawn_state: Some("techlamp".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5788,10 +5788,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC29", template);
+	asset_storage.insert_with_name("misc29", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC30"),
+		name: Some("misc30"),
 		type_id: Some(EntityTypeId::Thing(86)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5800,33 +5800,33 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("TLP2.sprite"),
+				sprite: asset_storage.load("tlp2.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("TECH2LAMP".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TLP2.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("TECH2LAMP2".to_owned()))),
+					states.insert("tech2lamp".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tlp2.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("tech2lamp2".to_owned()))),
 					});
-					states.insert("TECH2LAMP2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TLP2.sprite"), frame: 1, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("TECH2LAMP3".to_owned()))),
+					states.insert("tech2lamp2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tlp2.sprite"), frame: 1, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("tech2lamp3".to_owned()))),
 					});
-					states.insert("TECH2LAMP3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TLP2.sprite"), frame: 2, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("TECH2LAMP4".to_owned()))),
+					states.insert("tech2lamp3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tlp2.sprite"), frame: 2, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("tech2lamp4".to_owned()))),
 					});
-					states.insert("TECH2LAMP4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TLP2.sprite"), frame: 3, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("TECH2LAMP".to_owned()))),
+					states.insert("tech2lamp4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tlp2.sprite"), frame: 3, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("tech2lamp".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("TECH2LAMP".to_owned()))),
-				spawn_state: Some("TECH2LAMP".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("tech2lamp".to_owned()))),
+				spawn_state: Some("tech2lamp".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5836,10 +5836,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC30", template);
+	asset_storage.insert_with_name("misc30", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC31"),
+		name: Some("misc31"),
 		type_id: Some(EntityTypeId::Thing(2028)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5848,21 +5848,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("COLU.sprite"),
+				sprite: asset_storage.load("colu.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("COLU".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("COLU.sprite"), frame: 0, full_bright: true},
+					states.insert("colu".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("colu.sprite"), frame: 0, full_bright: true},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("COLU".to_owned()))),
-				spawn_state: Some("COLU".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("colu".to_owned()))),
+				spawn_state: Some("colu".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5872,10 +5872,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC31", template);
+	asset_storage.insert_with_name("misc31", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC32"),
+		name: Some("misc32"),
 		type_id: Some(EntityTypeId::Thing(30)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5884,21 +5884,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("COL1.sprite"),
+				sprite: asset_storage.load("col1.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("TALLGRNCOL".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("COL1.sprite"), frame: 0, full_bright: false},
+					states.insert("tallgrncol".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("col1.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("TALLGRNCOL".to_owned()))),
-				spawn_state: Some("TALLGRNCOL".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("tallgrncol".to_owned()))),
+				spawn_state: Some("tallgrncol".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5908,10 +5908,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC32", template);
+	asset_storage.insert_with_name("misc32", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC33"),
+		name: Some("misc33"),
 		type_id: Some(EntityTypeId::Thing(31)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5920,21 +5920,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("COL2.sprite"),
+				sprite: asset_storage.load("col2.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("SHRTGRNCOL".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("COL2.sprite"), frame: 0, full_bright: false},
+					states.insert("shrtgrncol".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("col2.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SHRTGRNCOL".to_owned()))),
-				spawn_state: Some("SHRTGRNCOL".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("shrtgrncol".to_owned()))),
+				spawn_state: Some("shrtgrncol".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5944,10 +5944,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC33", template);
+	asset_storage.insert_with_name("misc33", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC34"),
+		name: Some("misc34"),
 		type_id: Some(EntityTypeId::Thing(32)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5956,21 +5956,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("COL3.sprite"),
+				sprite: asset_storage.load("col3.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("TALLREDCOL".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("COL3.sprite"), frame: 0, full_bright: false},
+					states.insert("tallredcol".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("col3.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("TALLREDCOL".to_owned()))),
-				spawn_state: Some("TALLREDCOL".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("tallredcol".to_owned()))),
+				spawn_state: Some("tallredcol".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -5980,10 +5980,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC34", template);
+	asset_storage.insert_with_name("misc34", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC35"),
+		name: Some("misc35"),
 		type_id: Some(EntityTypeId::Thing(33)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -5992,21 +5992,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("COL4.sprite"),
+				sprite: asset_storage.load("col4.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("SHRTREDCOL".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("COL4.sprite"), frame: 0, full_bright: false},
+					states.insert("shrtredcol".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("col4.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SHRTREDCOL".to_owned()))),
-				spawn_state: Some("SHRTREDCOL".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("shrtredcol".to_owned()))),
+				spawn_state: Some("shrtredcol".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6016,10 +6016,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC35", template);
+	asset_storage.insert_with_name("misc35", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC36"),
+		name: Some("misc36"),
 		type_id: Some(EntityTypeId::Thing(37)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6028,21 +6028,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("COL6.sprite"),
+				sprite: asset_storage.load("col6.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("SKULLCOL".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("COL6.sprite"), frame: 0, full_bright: false},
+					states.insert("skullcol".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("col6.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SKULLCOL".to_owned()))),
-				spawn_state: Some("SKULLCOL".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("skullcol".to_owned()))),
+				spawn_state: Some("skullcol".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6052,10 +6052,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC36", template);
+	asset_storage.insert_with_name("misc36", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC37"),
+		name: Some("misc37"),
 		type_id: Some(EntityTypeId::Thing(36)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6064,25 +6064,25 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("COL5.sprite"),
+				sprite: asset_storage.load("col5.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(2);
-					states.insert("HEARTCOL".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("COL5.sprite"), frame: 0, full_bright: false},
-						next: Some((14 * FRAME_TIME, Some("HEARTCOL2".to_owned()))),
+					states.insert("heartcol".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("col5.sprite"), frame: 0, full_bright: false},
+						next: Some((14 * FRAME_TIME, Some("heartcol2".to_owned()))),
 					});
-					states.insert("HEARTCOL2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("COL5.sprite"), frame: 1, full_bright: false},
-						next: Some((14 * FRAME_TIME, Some("HEARTCOL".to_owned()))),
+					states.insert("heartcol2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("col5.sprite"), frame: 1, full_bright: false},
+						next: Some((14 * FRAME_TIME, Some("heartcol".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("HEARTCOL".to_owned()))),
-				spawn_state: Some("HEARTCOL".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("heartcol".to_owned()))),
+				spawn_state: Some("heartcol".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6092,10 +6092,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC37", template);
+	asset_storage.insert_with_name("misc37", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC38"),
+		name: Some("misc38"),
 		type_id: Some(EntityTypeId::Thing(41)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6104,33 +6104,33 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("CEYE.sprite"),
+				sprite: asset_storage.load("ceye.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("EVILEYE".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CEYE.sprite"), frame: 0, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("EVILEYE2".to_owned()))),
+					states.insert("evileye".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("ceye.sprite"), frame: 0, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("evileye2".to_owned()))),
 					});
-					states.insert("EVILEYE2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CEYE.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("EVILEYE3".to_owned()))),
+					states.insert("evileye2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("ceye.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("evileye3".to_owned()))),
 					});
-					states.insert("EVILEYE3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CEYE.sprite"), frame: 2, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("EVILEYE4".to_owned()))),
+					states.insert("evileye3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("ceye.sprite"), frame: 2, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("evileye4".to_owned()))),
 					});
-					states.insert("EVILEYE4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CEYE.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("EVILEYE".to_owned()))),
+					states.insert("evileye4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("ceye.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("evileye".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("EVILEYE".to_owned()))),
-				spawn_state: Some("EVILEYE".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("evileye".to_owned()))),
+				spawn_state: Some("evileye".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6140,10 +6140,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC38", template);
+	asset_storage.insert_with_name("misc38", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC39"),
+		name: Some("misc39"),
 		type_id: Some(EntityTypeId::Thing(42)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6152,29 +6152,29 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("FSKU.sprite"),
+				sprite: asset_storage.load("fsku.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(3);
-					states.insert("FLOATSKULL".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FSKU.sprite"), frame: 0, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("FLOATSKULL2".to_owned()))),
+					states.insert("floatskull".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fsku.sprite"), frame: 0, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("floatskull2".to_owned()))),
 					});
-					states.insert("FLOATSKULL2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FSKU.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("FLOATSKULL3".to_owned()))),
+					states.insert("floatskull2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fsku.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("floatskull3".to_owned()))),
 					});
-					states.insert("FLOATSKULL3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FSKU.sprite"), frame: 2, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("FLOATSKULL".to_owned()))),
+					states.insert("floatskull3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fsku.sprite"), frame: 2, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("floatskull".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("FLOATSKULL".to_owned()))),
-				spawn_state: Some("FLOATSKULL".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("floatskull".to_owned()))),
+				spawn_state: Some("floatskull".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6184,10 +6184,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC39", template);
+	asset_storage.insert_with_name("misc39", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC40"),
+		name: Some("misc40"),
 		type_id: Some(EntityTypeId::Thing(43)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6196,21 +6196,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("TRE1.sprite"),
+				sprite: asset_storage.load("tre1.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("TORCHTREE".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TRE1.sprite"), frame: 0, full_bright: false},
+					states.insert("torchtree".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tre1.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("TORCHTREE".to_owned()))),
-				spawn_state: Some("TORCHTREE".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("torchtree".to_owned()))),
+				spawn_state: Some("torchtree".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6220,10 +6220,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC40", template);
+	asset_storage.insert_with_name("misc40", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC41"),
+		name: Some("misc41"),
 		type_id: Some(EntityTypeId::Thing(44)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6232,33 +6232,33 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("TBLU.sprite"),
+				sprite: asset_storage.load("tblu.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("BLUETORCH".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TBLU.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BLUETORCH2".to_owned()))),
+					states.insert("bluetorch".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tblu.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("bluetorch2".to_owned()))),
 					});
-					states.insert("BLUETORCH2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TBLU.sprite"), frame: 1, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BLUETORCH3".to_owned()))),
+					states.insert("bluetorch2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tblu.sprite"), frame: 1, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("bluetorch3".to_owned()))),
 					});
-					states.insert("BLUETORCH3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TBLU.sprite"), frame: 2, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BLUETORCH4".to_owned()))),
+					states.insert("bluetorch3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tblu.sprite"), frame: 2, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("bluetorch4".to_owned()))),
 					});
-					states.insert("BLUETORCH4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TBLU.sprite"), frame: 3, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BLUETORCH".to_owned()))),
+					states.insert("bluetorch4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tblu.sprite"), frame: 3, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("bluetorch".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BLUETORCH".to_owned()))),
-				spawn_state: Some("BLUETORCH".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("bluetorch".to_owned()))),
+				spawn_state: Some("bluetorch".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6268,10 +6268,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC41", template);
+	asset_storage.insert_with_name("misc41", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC42"),
+		name: Some("misc42"),
 		type_id: Some(EntityTypeId::Thing(45)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6280,33 +6280,33 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("TGRN.sprite"),
+				sprite: asset_storage.load("tgrn.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("GREENTORCH".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TGRN.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("GREENTORCH2".to_owned()))),
+					states.insert("greentorch".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tgrn.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("greentorch2".to_owned()))),
 					});
-					states.insert("GREENTORCH2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TGRN.sprite"), frame: 1, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("GREENTORCH3".to_owned()))),
+					states.insert("greentorch2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tgrn.sprite"), frame: 1, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("greentorch3".to_owned()))),
 					});
-					states.insert("GREENTORCH3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TGRN.sprite"), frame: 2, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("GREENTORCH4".to_owned()))),
+					states.insert("greentorch3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tgrn.sprite"), frame: 2, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("greentorch4".to_owned()))),
 					});
-					states.insert("GREENTORCH4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TGRN.sprite"), frame: 3, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("GREENTORCH".to_owned()))),
+					states.insert("greentorch4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tgrn.sprite"), frame: 3, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("greentorch".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("GREENTORCH".to_owned()))),
-				spawn_state: Some("GREENTORCH".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("greentorch".to_owned()))),
+				spawn_state: Some("greentorch".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6316,10 +6316,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC42", template);
+	asset_storage.insert_with_name("misc42", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC43"),
+		name: Some("misc43"),
 		type_id: Some(EntityTypeId::Thing(46)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6328,33 +6328,33 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("TRED.sprite"),
+				sprite: asset_storage.load("tred.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("REDTORCH".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TRED.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("REDTORCH2".to_owned()))),
+					states.insert("redtorch".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tred.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("redtorch2".to_owned()))),
 					});
-					states.insert("REDTORCH2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TRED.sprite"), frame: 1, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("REDTORCH3".to_owned()))),
+					states.insert("redtorch2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tred.sprite"), frame: 1, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("redtorch3".to_owned()))),
 					});
-					states.insert("REDTORCH3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TRED.sprite"), frame: 2, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("REDTORCH4".to_owned()))),
+					states.insert("redtorch3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tred.sprite"), frame: 2, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("redtorch4".to_owned()))),
 					});
-					states.insert("REDTORCH4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TRED.sprite"), frame: 3, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("REDTORCH".to_owned()))),
+					states.insert("redtorch4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tred.sprite"), frame: 3, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("redtorch".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("REDTORCH".to_owned()))),
-				spawn_state: Some("REDTORCH".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("redtorch".to_owned()))),
+				spawn_state: Some("redtorch".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6364,10 +6364,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC43", template);
+	asset_storage.insert_with_name("misc43", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC44"),
+		name: Some("misc44"),
 		type_id: Some(EntityTypeId::Thing(55)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6376,33 +6376,33 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SMBT.sprite"),
+				sprite: asset_storage.load("smbt.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("BTORCHSHRT".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SMBT.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BTORCHSHRT2".to_owned()))),
+					states.insert("btorchshrt".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("smbt.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("btorchshrt2".to_owned()))),
 					});
-					states.insert("BTORCHSHRT2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SMBT.sprite"), frame: 1, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BTORCHSHRT3".to_owned()))),
+					states.insert("btorchshrt2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("smbt.sprite"), frame: 1, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("btorchshrt3".to_owned()))),
 					});
-					states.insert("BTORCHSHRT3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SMBT.sprite"), frame: 2, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BTORCHSHRT4".to_owned()))),
+					states.insert("btorchshrt3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("smbt.sprite"), frame: 2, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("btorchshrt4".to_owned()))),
 					});
-					states.insert("BTORCHSHRT4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SMBT.sprite"), frame: 3, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BTORCHSHRT".to_owned()))),
+					states.insert("btorchshrt4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("smbt.sprite"), frame: 3, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("btorchshrt".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BTORCHSHRT".to_owned()))),
-				spawn_state: Some("BTORCHSHRT".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("btorchshrt".to_owned()))),
+				spawn_state: Some("btorchshrt".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6412,10 +6412,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC44", template);
+	asset_storage.insert_with_name("misc44", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC45"),
+		name: Some("misc45"),
 		type_id: Some(EntityTypeId::Thing(56)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6424,33 +6424,33 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SMGT.sprite"),
+				sprite: asset_storage.load("smgt.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("GTORCHSHRT".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SMGT.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("GTORCHSHRT2".to_owned()))),
+					states.insert("gtorchshrt".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("smgt.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("gtorchshrt2".to_owned()))),
 					});
-					states.insert("GTORCHSHRT2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SMGT.sprite"), frame: 1, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("GTORCHSHRT3".to_owned()))),
+					states.insert("gtorchshrt2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("smgt.sprite"), frame: 1, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("gtorchshrt3".to_owned()))),
 					});
-					states.insert("GTORCHSHRT3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SMGT.sprite"), frame: 2, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("GTORCHSHRT4".to_owned()))),
+					states.insert("gtorchshrt3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("smgt.sprite"), frame: 2, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("gtorchshrt4".to_owned()))),
 					});
-					states.insert("GTORCHSHRT4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SMGT.sprite"), frame: 3, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("GTORCHSHRT".to_owned()))),
+					states.insert("gtorchshrt4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("smgt.sprite"), frame: 3, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("gtorchshrt".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("GTORCHSHRT".to_owned()))),
-				spawn_state: Some("GTORCHSHRT".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("gtorchshrt".to_owned()))),
+				spawn_state: Some("gtorchshrt".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6460,10 +6460,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC45", template);
+	asset_storage.insert_with_name("misc45", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC46"),
+		name: Some("misc46"),
 		type_id: Some(EntityTypeId::Thing(57)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6472,33 +6472,33 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SMRT.sprite"),
+				sprite: asset_storage.load("smrt.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("RTORCHSHRT".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SMRT.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("RTORCHSHRT2".to_owned()))),
+					states.insert("rtorchshrt".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("smrt.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("rtorchshrt2".to_owned()))),
 					});
-					states.insert("RTORCHSHRT2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SMRT.sprite"), frame: 1, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("RTORCHSHRT3".to_owned()))),
+					states.insert("rtorchshrt2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("smrt.sprite"), frame: 1, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("rtorchshrt3".to_owned()))),
 					});
-					states.insert("RTORCHSHRT3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SMRT.sprite"), frame: 2, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("RTORCHSHRT4".to_owned()))),
+					states.insert("rtorchshrt3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("smrt.sprite"), frame: 2, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("rtorchshrt4".to_owned()))),
 					});
-					states.insert("RTORCHSHRT4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SMRT.sprite"), frame: 3, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("RTORCHSHRT".to_owned()))),
+					states.insert("rtorchshrt4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("smrt.sprite"), frame: 3, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("rtorchshrt".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("RTORCHSHRT".to_owned()))),
-				spawn_state: Some("RTORCHSHRT".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("rtorchshrt".to_owned()))),
+				spawn_state: Some("rtorchshrt".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6508,10 +6508,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC46", template);
+	asset_storage.insert_with_name("misc46", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC47"),
+		name: Some("misc47"),
 		type_id: Some(EntityTypeId::Thing(47)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6520,21 +6520,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SMIT.sprite"),
+				sprite: asset_storage.load("smit.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("STALAGTITE".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SMIT.sprite"), frame: 0, full_bright: false},
+					states.insert("stalagtite".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("smit.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("STALAGTITE".to_owned()))),
-				spawn_state: Some("STALAGTITE".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("stalagtite".to_owned()))),
+				spawn_state: Some("stalagtite".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6544,10 +6544,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC47", template);
+	asset_storage.insert_with_name("misc47", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC48"),
+		name: Some("misc48"),
 		type_id: Some(EntityTypeId::Thing(48)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6556,21 +6556,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("ELEC.sprite"),
+				sprite: asset_storage.load("elec.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("TECHPILLAR".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("ELEC.sprite"), frame: 0, full_bright: false},
+					states.insert("techpillar".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("elec.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("TECHPILLAR".to_owned()))),
-				spawn_state: Some("TECHPILLAR".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("techpillar".to_owned()))),
+				spawn_state: Some("techpillar".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6580,10 +6580,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC48", template);
+	asset_storage.insert_with_name("misc48", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC49"),
+		name: Some("misc49"),
 		type_id: Some(EntityTypeId::Thing(34)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6592,21 +6592,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("CAND.sprite"),
+				sprite: asset_storage.load("cand.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("CANDLESTIK".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CAND.sprite"), frame: 0, full_bright: true},
+					states.insert("candlestik".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cand.sprite"), frame: 0, full_bright: true},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("CANDLESTIK".to_owned()))),
-				spawn_state: Some("CANDLESTIK".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("candlestik".to_owned()))),
+				spawn_state: Some("candlestik".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6616,10 +6616,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC49", template);
+	asset_storage.insert_with_name("misc49", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC50"),
+		name: Some("misc50"),
 		type_id: Some(EntityTypeId::Thing(35)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6628,21 +6628,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("CBRA.sprite"),
+				sprite: asset_storage.load("cbra.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("CANDELABRA".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("CBRA.sprite"), frame: 0, full_bright: true},
+					states.insert("candelabra".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("cbra.sprite"), frame: 0, full_bright: true},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("CANDELABRA".to_owned()))),
-				spawn_state: Some("CANDELABRA".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("candelabra".to_owned()))),
+				spawn_state: Some("candelabra".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6652,10 +6652,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC50", template);
+	asset_storage.insert_with_name("misc50", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC51"),
+		name: Some("misc51"),
 		type_id: Some(EntityTypeId::Thing(49)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6667,33 +6667,33 @@ pub fn load(resources: &mut Resources) {
 				offset: 68.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("GOR1.sprite"),
+				sprite: asset_storage.load("gor1.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("BLOODYTWITCH".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("GOR1.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("BLOODYTWITCH2".to_owned()))),
+					states.insert("bloodytwitch".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("bloodytwitch2".to_owned()))),
 					});
-					states.insert("BLOODYTWITCH2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("GOR1.sprite"), frame: 1, full_bright: false},
-						next: Some((15 * FRAME_TIME, Some("BLOODYTWITCH3".to_owned()))),
+					states.insert("bloodytwitch2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 1, full_bright: false},
+						next: Some((15 * FRAME_TIME, Some("bloodytwitch3".to_owned()))),
 					});
-					states.insert("BLOODYTWITCH3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("GOR1.sprite"), frame: 2, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BLOODYTWITCH4".to_owned()))),
+					states.insert("bloodytwitch3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 2, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bloodytwitch4".to_owned()))),
 					});
-					states.insert("BLOODYTWITCH4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("GOR1.sprite"), frame: 1, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("BLOODYTWITCH".to_owned()))),
+					states.insert("bloodytwitch4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 1, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("bloodytwitch".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BLOODYTWITCH".to_owned()))),
-				spawn_state: Some("BLOODYTWITCH".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("bloodytwitch".to_owned()))),
+				spawn_state: Some("bloodytwitch".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6703,10 +6703,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC51", template);
+	asset_storage.insert_with_name("misc51", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC52"),
+		name: Some("misc52"),
 		type_id: Some(EntityTypeId::Thing(50)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6718,21 +6718,21 @@ pub fn load(resources: &mut Resources) {
 				offset: 84.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("GOR2.sprite"),
+				sprite: asset_storage.load("gor2.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("MEAT2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("GOR2.sprite"), frame: 0, full_bright: false},
+					states.insert("meat2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("gor2.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("MEAT2".to_owned()))),
-				spawn_state: Some("MEAT2".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("meat2".to_owned()))),
+				spawn_state: Some("meat2".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6742,10 +6742,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC52", template);
+	asset_storage.insert_with_name("misc52", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC53"),
+		name: Some("misc53"),
 		type_id: Some(EntityTypeId::Thing(51)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6757,21 +6757,21 @@ pub fn load(resources: &mut Resources) {
 				offset: 84.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("GOR3.sprite"),
+				sprite: asset_storage.load("gor3.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("MEAT3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("GOR3.sprite"), frame: 0, full_bright: false},
+					states.insert("meat3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("gor3.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("MEAT3".to_owned()))),
-				spawn_state: Some("MEAT3".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("meat3".to_owned()))),
+				spawn_state: Some("meat3".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6781,10 +6781,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC53", template);
+	asset_storage.insert_with_name("misc53", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC54"),
+		name: Some("misc54"),
 		type_id: Some(EntityTypeId::Thing(52)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6796,21 +6796,21 @@ pub fn load(resources: &mut Resources) {
 				offset: 68.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("GOR4.sprite"),
+				sprite: asset_storage.load("gor4.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("MEAT4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("GOR4.sprite"), frame: 0, full_bright: false},
+					states.insert("meat4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("gor4.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("MEAT4".to_owned()))),
-				spawn_state: Some("MEAT4".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("meat4".to_owned()))),
+				spawn_state: Some("meat4".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6820,10 +6820,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC54", template);
+	asset_storage.insert_with_name("misc54", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC55"),
+		name: Some("misc55"),
 		type_id: Some(EntityTypeId::Thing(53)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6835,21 +6835,21 @@ pub fn load(resources: &mut Resources) {
 				offset: 52.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("GOR5.sprite"),
+				sprite: asset_storage.load("gor5.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("MEAT5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("GOR5.sprite"), frame: 0, full_bright: false},
+					states.insert("meat5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("gor5.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("MEAT5".to_owned()))),
-				spawn_state: Some("MEAT5".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("meat5".to_owned()))),
+				spawn_state: Some("meat5".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6859,10 +6859,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC55", template);
+	asset_storage.insert_with_name("misc55", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC56"),
+		name: Some("misc56"),
 		type_id: Some(EntityTypeId::Thing(59)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6874,21 +6874,21 @@ pub fn load(resources: &mut Resources) {
 				offset: 84.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("GOR2.sprite"),
+				sprite: asset_storage.load("gor2.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("MEAT2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("GOR2.sprite"), frame: 0, full_bright: false},
+					states.insert("meat2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("gor2.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("MEAT2".to_owned()))),
-				spawn_state: Some("MEAT2".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("meat2".to_owned()))),
+				spawn_state: Some("meat2".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6898,10 +6898,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC56", template);
+	asset_storage.insert_with_name("misc56", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC57"),
+		name: Some("misc57"),
 		type_id: Some(EntityTypeId::Thing(60)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6913,21 +6913,21 @@ pub fn load(resources: &mut Resources) {
 				offset: 68.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("GOR4.sprite"),
+				sprite: asset_storage.load("gor4.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("MEAT4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("GOR4.sprite"), frame: 0, full_bright: false},
+					states.insert("meat4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("gor4.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("MEAT4".to_owned()))),
-				spawn_state: Some("MEAT4".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("meat4".to_owned()))),
+				spawn_state: Some("meat4".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6937,10 +6937,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC57", template);
+	asset_storage.insert_with_name("misc57", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC58"),
+		name: Some("misc58"),
 		type_id: Some(EntityTypeId::Thing(61)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6952,21 +6952,21 @@ pub fn load(resources: &mut Resources) {
 				offset: 52.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("GOR3.sprite"),
+				sprite: asset_storage.load("gor3.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("MEAT3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("GOR3.sprite"), frame: 0, full_bright: false},
+					states.insert("meat3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("gor3.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("MEAT3".to_owned()))),
-				spawn_state: Some("MEAT3".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("meat3".to_owned()))),
+				spawn_state: Some("meat3".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -6976,10 +6976,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC58", template);
+	asset_storage.insert_with_name("misc58", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC59"),
+		name: Some("misc59"),
 		type_id: Some(EntityTypeId::Thing(62)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -6991,21 +6991,21 @@ pub fn load(resources: &mut Resources) {
 				offset: 52.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("GOR5.sprite"),
+				sprite: asset_storage.load("gor5.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("MEAT5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("GOR5.sprite"), frame: 0, full_bright: false},
+					states.insert("meat5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("gor5.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("MEAT5".to_owned()))),
-				spawn_state: Some("MEAT5".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("meat5".to_owned()))),
+				spawn_state: Some("meat5".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7015,10 +7015,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC59", template);
+	asset_storage.insert_with_name("misc59", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC60"),
+		name: Some("misc60"),
 		type_id: Some(EntityTypeId::Thing(63)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7030,33 +7030,33 @@ pub fn load(resources: &mut Resources) {
 				offset: 68.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("GOR1.sprite"),
+				sprite: asset_storage.load("gor1.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(4);
-					states.insert("BLOODYTWITCH".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("GOR1.sprite"), frame: 0, full_bright: false},
-						next: Some((10 * FRAME_TIME, Some("BLOODYTWITCH2".to_owned()))),
+					states.insert("bloodytwitch".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 0, full_bright: false},
+						next: Some((10 * FRAME_TIME, Some("bloodytwitch2".to_owned()))),
 					});
-					states.insert("BLOODYTWITCH2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("GOR1.sprite"), frame: 1, full_bright: false},
-						next: Some((15 * FRAME_TIME, Some("BLOODYTWITCH3".to_owned()))),
+					states.insert("bloodytwitch2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 1, full_bright: false},
+						next: Some((15 * FRAME_TIME, Some("bloodytwitch3".to_owned()))),
 					});
-					states.insert("BLOODYTWITCH3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("GOR1.sprite"), frame: 2, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("BLOODYTWITCH4".to_owned()))),
+					states.insert("bloodytwitch3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 2, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("bloodytwitch4".to_owned()))),
 					});
-					states.insert("BLOODYTWITCH4".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("GOR1.sprite"), frame: 1, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("BLOODYTWITCH".to_owned()))),
+					states.insert("bloodytwitch4".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 1, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("bloodytwitch".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BLOODYTWITCH".to_owned()))),
-				spawn_state: Some("BLOODYTWITCH".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("bloodytwitch".to_owned()))),
+				spawn_state: Some("bloodytwitch".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7066,10 +7066,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC60", template);
+	asset_storage.insert_with_name("misc60", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC61"),
+		name: Some("misc61"),
 		type_id: Some(EntityTypeId::Thing(22)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7078,21 +7078,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("HEAD.sprite"),
+				sprite: asset_storage.load("head.sprite"),
 				frame: 11,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("HEAD_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HEAD.sprite"), frame: 11, full_bright: false},
+					states.insert("head_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 11, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("HEAD_DIE6".to_owned()))),
-				spawn_state: Some("HEAD_DIE6".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("head_die6".to_owned()))),
+				spawn_state: Some("head_die6".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7102,10 +7102,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC61", template);
+	asset_storage.insert_with_name("misc61", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC62"),
+		name: Some("misc62"),
 		type_id: Some(EntityTypeId::Thing(15)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7114,21 +7114,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("PLAY.sprite"),
+				sprite: asset_storage.load("play.sprite"),
 				frame: 13,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("PLAY_DIE7".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 13, full_bright: false},
+					states.insert("play_die7".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 13, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("PLAY_DIE7".to_owned()))),
-				spawn_state: Some("PLAY_DIE7".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("play_die7".to_owned()))),
+				spawn_state: Some("play_die7".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7138,10 +7138,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC62", template);
+	asset_storage.insert_with_name("misc62", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC63"),
+		name: Some("misc63"),
 		type_id: Some(EntityTypeId::Thing(18)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7150,21 +7150,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("POSS.sprite"),
+				sprite: asset_storage.load("poss.sprite"),
 				frame: 11,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("POSS_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POSS.sprite"), frame: 11, full_bright: false},
+					states.insert("poss_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 11, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("POSS_DIE5".to_owned()))),
-				spawn_state: Some("POSS_DIE5".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("poss_die5".to_owned()))),
+				spawn_state: Some("poss_die5".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7174,10 +7174,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC63", template);
+	asset_storage.insert_with_name("misc63", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC64"),
+		name: Some("misc64"),
 		type_id: Some(EntityTypeId::Thing(21)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7186,21 +7186,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SARG.sprite"),
+				sprite: asset_storage.load("sarg.sprite"),
 				frame: 13,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("SARG_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SARG.sprite"), frame: 13, full_bright: false},
+					states.insert("sarg_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SARG_DIE6".to_owned()))),
-				spawn_state: Some("SARG_DIE6".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("sarg_die6".to_owned()))),
+				spawn_state: Some("sarg_die6".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7210,10 +7210,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC64", template);
+	asset_storage.insert_with_name("misc64", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC65"),
+		name: Some("misc65"),
 		type_id: Some(EntityTypeId::Thing(23)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7222,21 +7222,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SKUL.sprite"),
+				sprite: asset_storage.load("skul.sprite"),
 				frame: 10,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("SKULL_DIE6".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SKUL.sprite"), frame: 10, full_bright: false},
+					states.insert("skull_die6".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 10, full_bright: false},
 						next: Some((6 * FRAME_TIME, None)),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SKULL_DIE6".to_owned()))),
-				spawn_state: Some("SKULL_DIE6".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("skull_die6".to_owned()))),
+				spawn_state: Some("skull_die6".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7246,10 +7246,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC65", template);
+	asset_storage.insert_with_name("misc65", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC66"),
+		name: Some("misc66"),
 		type_id: Some(EntityTypeId::Thing(20)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7258,21 +7258,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("TROO.sprite"),
+				sprite: asset_storage.load("troo.sprite"),
 				frame: 12,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("TROO_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TROO.sprite"), frame: 12, full_bright: false},
+					states.insert("troo_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 12, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("TROO_DIE5".to_owned()))),
-				spawn_state: Some("TROO_DIE5".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("troo_die5".to_owned()))),
+				spawn_state: Some("troo_die5".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7282,10 +7282,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC66", template);
+	asset_storage.insert_with_name("misc66", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC67"),
+		name: Some("misc67"),
 		type_id: Some(EntityTypeId::Thing(19)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7294,21 +7294,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("SPOS.sprite"),
+				sprite: asset_storage.load("spos.sprite"),
 				frame: 11,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("SPOS_DIE5".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("SPOS.sprite"), frame: 11, full_bright: false},
+					states.insert("spos_die5".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 11, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SPOS_DIE5".to_owned()))),
-				spawn_state: Some("SPOS_DIE5".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("spos_die5".to_owned()))),
+				spawn_state: Some("spos_die5".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7318,10 +7318,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC67", template);
+	asset_storage.insert_with_name("misc67", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC68"),
+		name: Some("misc68"),
 		type_id: Some(EntityTypeId::Thing(10)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7330,21 +7330,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("PLAY.sprite"),
+				sprite: asset_storage.load("play.sprite"),
 				frame: 22,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("PLAY_XDIE9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 22, full_bright: false},
+					states.insert("play_xdie9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 22, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("PLAY_XDIE9".to_owned()))),
-				spawn_state: Some("PLAY_XDIE9".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("play_xdie9".to_owned()))),
+				spawn_state: Some("play_xdie9".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7354,10 +7354,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC68", template);
+	asset_storage.insert_with_name("misc68", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC69"),
+		name: Some("misc69"),
 		type_id: Some(EntityTypeId::Thing(12)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7366,21 +7366,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("PLAY.sprite"),
+				sprite: asset_storage.load("play.sprite"),
 				frame: 22,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("PLAY_XDIE9".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("PLAY.sprite"), frame: 22, full_bright: false},
+					states.insert("play_xdie9".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 22, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("PLAY_XDIE9".to_owned()))),
-				spawn_state: Some("PLAY_XDIE9".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("play_xdie9".to_owned()))),
+				spawn_state: Some("play_xdie9".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7390,10 +7390,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC69", template);
+	asset_storage.insert_with_name("misc69", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC70"),
+		name: Some("misc70"),
 		type_id: Some(EntityTypeId::Thing(28)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7402,21 +7402,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("POL2.sprite"),
+				sprite: asset_storage.load("pol2.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("HEADSONSTICK".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POL2.sprite"), frame: 0, full_bright: false},
+					states.insert("headsonstick".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pol2.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("HEADSONSTICK".to_owned()))),
-				spawn_state: Some("HEADSONSTICK".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("headsonstick".to_owned()))),
+				spawn_state: Some("headsonstick".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7426,10 +7426,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC70", template);
+	asset_storage.insert_with_name("misc70", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC71"),
+		name: Some("misc71"),
 		type_id: Some(EntityTypeId::Thing(24)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7438,21 +7438,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::empty(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("POL5.sprite"),
+				sprite: asset_storage.load("pol5.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("GIBS".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POL5.sprite"), frame: 0, full_bright: false},
+					states.insert("gibs".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pol5.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("GIBS".to_owned()))),
-				spawn_state: Some("GIBS".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("gibs".to_owned()))),
+				spawn_state: Some("gibs".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7462,10 +7462,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC71", template);
+	asset_storage.insert_with_name("misc71", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC72"),
+		name: Some("misc72"),
 		type_id: Some(EntityTypeId::Thing(27)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7474,21 +7474,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("POL4.sprite"),
+				sprite: asset_storage.load("pol4.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("HEADONASTICK".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POL4.sprite"), frame: 0, full_bright: false},
+					states.insert("headonastick".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pol4.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("HEADONASTICK".to_owned()))),
-				spawn_state: Some("HEADONASTICK".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("headonastick".to_owned()))),
+				spawn_state: Some("headonastick".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7498,10 +7498,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC72", template);
+	asset_storage.insert_with_name("misc72", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC73"),
+		name: Some("misc73"),
 		type_id: Some(EntityTypeId::Thing(29)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7510,25 +7510,25 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("POL3.sprite"),
+				sprite: asset_storage.load("pol3.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(2);
-					states.insert("HEADCANDLES".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POL3.sprite"), frame: 0, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("HEADCANDLES2".to_owned()))),
+					states.insert("headcandles".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pol3.sprite"), frame: 0, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("headcandles2".to_owned()))),
 					});
-					states.insert("HEADCANDLES2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POL3.sprite"), frame: 1, full_bright: true},
-						next: Some((6 * FRAME_TIME, Some("HEADCANDLES".to_owned()))),
+					states.insert("headcandles2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pol3.sprite"), frame: 1, full_bright: true},
+						next: Some((6 * FRAME_TIME, Some("headcandles".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("HEADCANDLES".to_owned()))),
-				spawn_state: Some("HEADCANDLES".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("headcandles".to_owned()))),
+				spawn_state: Some("headcandles".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7538,10 +7538,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC73", template);
+	asset_storage.insert_with_name("misc73", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC74"),
+		name: Some("misc74"),
 		type_id: Some(EntityTypeId::Thing(25)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7550,21 +7550,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("POL1.sprite"),
+				sprite: asset_storage.load("pol1.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("DEADSTICK".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POL1.sprite"), frame: 0, full_bright: false},
+					states.insert("deadstick".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pol1.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("DEADSTICK".to_owned()))),
-				spawn_state: Some("DEADSTICK".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("deadstick".to_owned()))),
+				spawn_state: Some("deadstick".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7574,10 +7574,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC74", template);
+	asset_storage.insert_with_name("misc74", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC75"),
+		name: Some("misc75"),
 		type_id: Some(EntityTypeId::Thing(26)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7586,25 +7586,25 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("POL6.sprite"),
+				sprite: asset_storage.load("pol6.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(2);
-					states.insert("LIVESTICK".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POL6.sprite"), frame: 0, full_bright: false},
-						next: Some((6 * FRAME_TIME, Some("LIVESTICK2".to_owned()))),
+					states.insert("livestick".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pol6.sprite"), frame: 0, full_bright: false},
+						next: Some((6 * FRAME_TIME, Some("livestick2".to_owned()))),
 					});
-					states.insert("LIVESTICK2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POL6.sprite"), frame: 1, full_bright: false},
-						next: Some((8 * FRAME_TIME, Some("LIVESTICK".to_owned()))),
+					states.insert("livestick2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pol6.sprite"), frame: 1, full_bright: false},
+						next: Some((8 * FRAME_TIME, Some("livestick".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("LIVESTICK".to_owned()))),
-				spawn_state: Some("LIVESTICK".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("livestick".to_owned()))),
+				spawn_state: Some("livestick".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7614,10 +7614,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC75", template);
+	asset_storage.insert_with_name("misc75", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC76"),
+		name: Some("misc76"),
 		type_id: Some(EntityTypeId::Thing(54)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7626,21 +7626,21 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("TRE2.sprite"),
+				sprite: asset_storage.load("tre2.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("BIGTREE".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("TRE2.sprite"), frame: 0, full_bright: false},
+					states.insert("bigtree".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("tre2.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BIGTREE".to_owned()))),
-				spawn_state: Some("BIGTREE".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("bigtree".to_owned()))),
+				spawn_state: Some("bigtree".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7650,10 +7650,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC76", template);
+	asset_storage.insert_with_name("misc76", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC77"),
+		name: Some("misc77"),
 		type_id: Some(EntityTypeId::Thing(70)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7662,29 +7662,29 @@ pub fn load(resources: &mut Resources) {
 				solid_mask: SolidMask::all(),
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("FCAN.sprite"),
+				sprite: asset_storage.load("fcan.sprite"),
 				frame: 0,
 				full_bright: true,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(3);
-					states.insert("BBAR1".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FCAN.sprite"), frame: 0, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BBAR2".to_owned()))),
+					states.insert("bbar1".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fcan.sprite"), frame: 0, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("bbar2".to_owned()))),
 					});
-					states.insert("BBAR2".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FCAN.sprite"), frame: 1, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BBAR3".to_owned()))),
+					states.insert("bbar2".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fcan.sprite"), frame: 1, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("bbar3".to_owned()))),
 					});
-					states.insert("BBAR3".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("FCAN.sprite"), frame: 2, full_bright: true},
-						next: Some((4 * FRAME_TIME, Some("BBAR1".to_owned()))),
+					states.insert("bbar3".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("fcan.sprite"), frame: 2, full_bright: true},
+						next: Some((4 * FRAME_TIME, Some("bbar1".to_owned()))),
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BBAR1".to_owned()))),
-				spawn_state: Some("BBAR1".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("bbar1".to_owned()))),
+				spawn_state: Some("bbar1".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7694,10 +7694,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC77", template);
+	asset_storage.insert_with_name("misc77", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC78"),
+		name: Some("misc78"),
 		type_id: Some(EntityTypeId::Thing(73)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7709,21 +7709,21 @@ pub fn load(resources: &mut Resources) {
 				offset: 88.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("HDB1.sprite"),
+				sprite: asset_storage.load("hdb1.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("HANGNOGUTS".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HDB1.sprite"), frame: 0, full_bright: false},
+					states.insert("hangnoguts".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("hdb1.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("HANGNOGUTS".to_owned()))),
-				spawn_state: Some("HANGNOGUTS".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("hangnoguts".to_owned()))),
+				spawn_state: Some("hangnoguts".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7733,10 +7733,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC78", template);
+	asset_storage.insert_with_name("misc78", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC79"),
+		name: Some("misc79"),
 		type_id: Some(EntityTypeId::Thing(74)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7748,21 +7748,21 @@ pub fn load(resources: &mut Resources) {
 				offset: 88.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("HDB2.sprite"),
+				sprite: asset_storage.load("hdb2.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("HANGBNOBRAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HDB2.sprite"), frame: 0, full_bright: false},
+					states.insert("hangbnobrain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("hdb2.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("HANGBNOBRAIN".to_owned()))),
-				spawn_state: Some("HANGBNOBRAIN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("hangbnobrain".to_owned()))),
+				spawn_state: Some("hangbnobrain".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7772,10 +7772,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC79", template);
+	asset_storage.insert_with_name("misc79", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC80"),
+		name: Some("misc80"),
 		type_id: Some(EntityTypeId::Thing(75)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7787,21 +7787,21 @@ pub fn load(resources: &mut Resources) {
 				offset: 64.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("HDB3.sprite"),
+				sprite: asset_storage.load("hdb3.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("HANGTLOOKDN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HDB3.sprite"), frame: 0, full_bright: false},
+					states.insert("hangtlookdn".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("hdb3.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("HANGTLOOKDN".to_owned()))),
-				spawn_state: Some("HANGTLOOKDN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("hangtlookdn".to_owned()))),
+				spawn_state: Some("hangtlookdn".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7811,10 +7811,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC80", template);
+	asset_storage.insert_with_name("misc80", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC81"),
+		name: Some("misc81"),
 		type_id: Some(EntityTypeId::Thing(76)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7826,21 +7826,21 @@ pub fn load(resources: &mut Resources) {
 				offset: 64.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("HDB4.sprite"),
+				sprite: asset_storage.load("hdb4.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("HANGTSKULL".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HDB4.sprite"), frame: 0, full_bright: false},
+					states.insert("hangtskull".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("hdb4.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("HANGTSKULL".to_owned()))),
-				spawn_state: Some("HANGTSKULL".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("hangtskull".to_owned()))),
+				spawn_state: Some("hangtskull".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7850,10 +7850,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC81", template);
+	asset_storage.insert_with_name("misc81", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC82"),
+		name: Some("misc82"),
 		type_id: Some(EntityTypeId::Thing(77)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7865,21 +7865,21 @@ pub fn load(resources: &mut Resources) {
 				offset: 64.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("HDB5.sprite"),
+				sprite: asset_storage.load("hdb5.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("HANGTLOOKUP".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HDB5.sprite"), frame: 0, full_bright: false},
+					states.insert("hangtlookup".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("hdb5.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("HANGTLOOKUP".to_owned()))),
-				spawn_state: Some("HANGTLOOKUP".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("hangtlookup".to_owned()))),
+				spawn_state: Some("hangtlookup".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7889,10 +7889,10 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC82", template);
+	asset_storage.insert_with_name("misc82", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC83"),
+		name: Some("misc83"),
 		type_id: Some(EntityTypeId::Thing(78)),
 		components: EntityComponents::new()
 			.with_component(BoxCollider {
@@ -7904,21 +7904,21 @@ pub fn load(resources: &mut Resources) {
 				offset: 64.0,
 			})
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("HDB6.sprite"),
+				sprite: asset_storage.load("hdb6.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("HANGTNOBRAIN".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("HDB6.sprite"), frame: 0, full_bright: false},
+					states.insert("hangtnobrain".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("hdb6.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("HANGTNOBRAIN".to_owned()))),
-				spawn_state: Some("HANGTNOBRAIN".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("hangtnobrain".to_owned()))),
+				spawn_state: Some("hangtnobrain".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7928,28 +7928,28 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC83", template);
+	asset_storage.insert_with_name("misc83", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC84"),
+		name: Some("misc84"),
 		type_id: Some(EntityTypeId::Thing(79)),
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("POB1.sprite"),
+				sprite: asset_storage.load("pob1.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("COLONGIBS".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POB1.sprite"), frame: 0, full_bright: false},
+					states.insert("colongibs".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pob1.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("COLONGIBS".to_owned()))),
-				spawn_state: Some("COLONGIBS".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("colongibs".to_owned()))),
+				spawn_state: Some("colongibs".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7959,28 +7959,28 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC84", template);
+	asset_storage.insert_with_name("misc84", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC85"),
+		name: Some("misc85"),
 		type_id: Some(EntityTypeId::Thing(80)),
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("POB2.sprite"),
+				sprite: asset_storage.load("pob2.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("SMALLPOOL".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("POB2.sprite"), frame: 0, full_bright: false},
+					states.insert("smallpool".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("pob2.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("SMALLPOOL".to_owned()))),
-				spawn_state: Some("SMALLPOOL".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("smallpool".to_owned()))),
+				spawn_state: Some("smallpool".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -7990,28 +7990,28 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC85", template);
+	asset_storage.insert_with_name("misc85", template);
 
 	let template = EntityTemplate {
-		name: Some("MISC86"),
+		name: Some("misc86"),
 		type_id: Some(EntityTypeId::Thing(81)),
 		components: EntityComponents::new()
 			.with_component(SpriteRender {
-				sprite: asset_storage.load("BRS1.sprite"),
+				sprite: asset_storage.load("brs1.sprite"),
 				frame: 0,
 				full_bright: false,
 			})
 			.with_component(State {
 				states: Arc::new({
 					let mut states = HashMap::with_capacity(1);
-					states.insert("BRAINSTEM".to_owned(), StateDef {
-						sprite: SpriteRender {sprite: asset_storage.load("BRS1.sprite"), frame: 0, full_bright: false},
+					states.insert("brainstem".to_owned(), StateDef {
+						sprite: SpriteRender {sprite: asset_storage.load("brs1.sprite"), frame: 0, full_bright: false},
 						next: None,
 					});
 					states
 				}),
-				next: Some((Timer::new(Duration::default()), Some("BRAINSTEM".to_owned()))),
-				spawn_state: Some("BRAINSTEM".to_owned()),
+				next: Some((Timer::new(Duration::default()), Some("brainstem".to_owned()))),
+				spawn_state: Some("brainstem".to_owned()),
 				see_state: None,
 				pain_state: None,
 				melee_state: None,
@@ -8021,5 +8021,5 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			}),
 	};
-	asset_storage.insert_with_name("MISC86", template);
+	asset_storage.insert_with_name("misc86", template);
 }

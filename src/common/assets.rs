@@ -290,6 +290,6 @@ impl HandleAllocator {
 }
 
 pub trait DataSource: Send + Sync + 'static {
-	fn load(&self, path: &str) -> anyhow::Result<Vec<u8>>;
+	fn load(&self, path: &RelativePath) -> anyhow::Result<Vec<u8>>;
 	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a>;
 }

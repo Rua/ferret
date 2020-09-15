@@ -17,6 +17,7 @@ use legion::{
 use nalgebra::{Vector2, Vector3};
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
+use relative_path::RelativePath;
 use std::{
 	path::PathBuf,
 	time::{Duration, Instant},
@@ -210,7 +211,7 @@ fn main() -> anyhow::Result<()> {
 					stretch: [true, false],
 				},
 				doom::ui::UiImage {
-					image: asset_storage.load("FLOOR7_2.flat"),
+					image: asset_storage.load("floor7_2.flat"),
 				},
 			),
 			(
@@ -221,7 +222,7 @@ fn main() -> anyhow::Result<()> {
 					stretch: [false; 2],
 				},
 				doom::ui::UiImage {
-					image: asset_storage.load("STBAR.patch"),
+					image: asset_storage.load("stbar.patch"),
 				},
 			),
 			(
@@ -232,7 +233,7 @@ fn main() -> anyhow::Result<()> {
 					stretch: [false; 2],
 				},
 				doom::ui::UiImage {
-					image: asset_storage.load("STARMS.patch"),
+					image: asset_storage.load("starms.patch"),
 				},
 			),
 			(
@@ -243,7 +244,7 @@ fn main() -> anyhow::Result<()> {
 					stretch: [false; 2],
 				},
 				doom::ui::UiImage {
-					image: asset_storage.load("STFST00.patch"),
+					image: asset_storage.load("stfst00.patch"),
 				},
 			),
 		]);
@@ -414,6 +415,7 @@ fn load_wads(loader: &mut doom::wad::WadLoader, arg_matches: &ArgMatches) -> any
 
 fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow::Result<()> {
 	log::info!("Starting map {}...", name);
+	let name_lower = name.to_ascii_lowercase();
 	let start_time = Instant::now();
 
 	log::info!("Loading entity data...");
@@ -424,7 +426,7 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 	log::info!("Loading map...");
 	let map_handle = {
 		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-		asset_storage.load(&format!("{}.map", name))
+		asset_storage.load(&format!("{}.map", name_lower))
 	};
 
 	log::info!("Processing assets...");
@@ -434,7 +436,7 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 
 		// Palette
 		let palette_handle: AssetHandle<doom::image::Palette> =
-			asset_storage.load("PLAYPAL.palette");
+			asset_storage.load("playpal.palette");
 
 		// Images
 		asset_storage.process::<doom::image::Image, _>(|data, asset_storage| {
@@ -473,7 +475,11 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 	log::info!("Spawning entities...");
 	let things = {
 		let asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-		doom::map::load::build_things(&asset_storage.source().load(&format!("{}/+{}", name, 1))?)?
+		doom::map::load::build_things(
+			&asset_storage
+				.source()
+				.load(&RelativePath::new(&name_lower).with_extension("things"))?,
+		)?
 	};
 	doom::map::spawn_map_entities(world, &resources, &map_handle)?;
 	doom::map::spawn_things(things, world, resources, &map_handle)?;

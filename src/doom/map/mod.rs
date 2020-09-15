@@ -29,8 +29,7 @@ use std::{fmt::Debug, time::Duration};
 
 #[derive(Debug)]
 pub struct Map {
-	pub anims_flat: FnvHashMap<AssetHandle<Image>, Anim>,
-	pub anims_wall: FnvHashMap<AssetHandle<Image>, Anim>,
+	pub anims: FnvHashMap<AssetHandle<Image>, Anim>,
 	pub bbox: AABB2,
 	pub linedefs: Vec<Linedef>,
 	pub nodes: Vec<Node>,
@@ -42,8 +41,7 @@ pub struct Map {
 
 #[derive(Clone, Debug)]
 pub struct MapDynamic {
-	pub anim_states_flat: FnvHashMap<AssetHandle<Image>, AnimState>,
-	pub anim_states_wall: FnvHashMap<AssetHandle<Image>, AnimState>,
+	pub anim_states: FnvHashMap<AssetHandle<Image>, AnimState>,
 	pub map: AssetHandle<Map>,
 	pub linedefs: Vec<LinedefDynamic>,
 	pub sectors: Vec<SectorDynamic>,
@@ -362,9 +360,9 @@ pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Res
 
 	// Fetch entity template
 	let asset_storage = <Read<AssetStorage>>::fetch_mut(resources);
-	let template = match asset_storage.get_by_name::<EntityTemplate>("PLAYER") {
+	let template = match asset_storage.get_by_name::<EntityTemplate>("player") {
 		Some(template) => template,
-		None => bail!("Entity type not found: {}", "PLAYER"),
+		None => bail!("Entity type not found: {}", "player"),
 	};
 
 	// Create entity and add components
@@ -390,21 +388,8 @@ pub fn spawn_map_entities(
 
 	// Create map entity
 	let map_entity = command_buffer.push(());
-	let anim_states_flat = map
-		.anims_flat
-		.iter()
-		.map(|(k, v)| {
-			(
-				k.clone(),
-				AnimState {
-					frame: 0,
-					timer: Timer::new(v.frame_time),
-				},
-			)
-		})
-		.collect();
-	let anim_states_wall = map
-		.anims_wall
+	let anim_states = map
+		.anims
 		.iter()
 		.map(|(k, v)| {
 			(
@@ -418,8 +403,7 @@ pub fn spawn_map_entities(
 		.collect();
 
 	let mut map_dynamic = MapDynamic {
-		anim_states_flat,
-		anim_states_wall,
+		anim_states,
 		map: map_handle.clone(),
 		linedefs: Vec::with_capacity(map.linedefs.len()),
 		sectors: Vec::with_capacity(map.sectors.len()),

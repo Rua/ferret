@@ -4,7 +4,7 @@ use crate::{
 		geometry::{Angle, Interval, Line2, Plane2, Plane3, Side, AABB2},
 	},
 	doom::{
-		data::anims::{AnimData, ANIMS_FLAT, ANIMS_WALL, SWITCHES},
+		data::anims::{AnimData, ANIMS, SWITCHES},
 		image::Image,
 		map::{
 			textures::TextureType, Anim, Linedef, Map, Node, NodeChild, Sector, SectorSlot, Seg,
@@ -52,32 +52,30 @@ pub fn import_map(
 ) -> anyhow::Result<Box<dyn ImportData>> {
 	let source = asset_storage.source();
 
-	let gl_path = path.with_file_name(format!("GL_{}", path));
-	let stem = gl_path.file_stem().unwrap();
+	let gl_path = path.with_file_name(format!("gl_{}", path));
 	let gl_data = (|| -> Option<GLMapData> {
 		Some(GLMapData {
-			gl_vert: source.load(&format!("{}/+{}", stem, 1)).ok()?,
-			gl_segs: source.load(&format!("{}/+{}", stem, 2)).ok()?,
-			gl_ssect: source.load(&format!("{}/+{}", stem, 3)).ok()?,
-			gl_nodes: source.load(&format!("{}/+{}", stem, 4)).ok()?,
+			gl_vert: source.load(&gl_path.with_extension("gl_vert")).ok()?,
+			gl_segs: source.load(&gl_path.with_extension("gl_segs")).ok()?,
+			gl_ssect: source.load(&gl_path.with_extension("gl_ssect")).ok()?,
+			gl_nodes: source.load(&gl_path.with_extension("gl_nodes")).ok()?,
 		})
 	})();
 
-	let stem = path.file_stem().unwrap();
 	let map_data = MapData {
-		linedefs: source.load(&format!("{}/+{}", stem, 2))?,
-		sidedefs: source.load(&format!("{}/+{}", stem, 3))?,
-		vertexes: source.load(&format!("{}/+{}", stem, 4))?,
-		segs: source.load(&format!("{}/+{}", stem, 5))?,
-		ssectors: source.load(&format!("{}/+{}", stem, 6))?,
-		nodes: source.load(&format!("{}/+{}", stem, 7))?,
-		sectors: source.load(&format!("{}/+{}", stem, 8))?,
+		linedefs: source.load(&path.with_extension("linedefs"))?,
+		sidedefs: source.load(&path.with_extension("sidedefs"))?,
+		vertexes: source.load(&path.with_extension("vertexes"))?,
+		segs: source.load(&path.with_extension("segs"))?,
+		ssectors: source.load(&path.with_extension("ssectors"))?,
+		nodes: source.load(&path.with_extension("nodes"))?,
+		sectors: source.load(&path.with_extension("sectors"))?,
 		gl_data,
 	};
 
 	Ok(Box::new(build_map(
 		map_data,
-		"SKY1.texture",
+		"sky1.texture",
 		asset_storage,
 	)?))
 }
@@ -157,8 +155,7 @@ pub fn build_map(
 	}
 
 	Ok(Map {
-		anims_flat: get_anims(&ANIMS_FLAT, asset_storage),
-		anims_wall: get_anims(&ANIMS_WALL, asset_storage),
+		anims: get_anims(&ANIMS, asset_storage),
 		bbox,
 		linedefs,
 		nodes,
@@ -200,7 +197,7 @@ fn build_sectors(data: &[u8], asset_storage: &mut AssetStorage) -> anyhow::Resul
 					if &name == "-" {
 						TextureType::None
 					} else {
-						if &name == "F_SKY1" {
+						if &name == "f_sky1" {
 							TextureType::Sky
 						} else {
 							TextureType::Normal(asset_storage.load(&format!("{}.flat", name)))
@@ -213,7 +210,7 @@ fn build_sectors(data: &[u8], asset_storage: &mut AssetStorage) -> anyhow::Resul
 					if &name == "-" {
 						TextureType::None
 					} else {
-						if &name == "F_SKY1" {
+						if &name == "f_sky1" {
 							TextureType::Sky
 						} else {
 							TextureType::Normal(asset_storage.load(&format!("{}.flat", name)))
@@ -262,7 +259,7 @@ fn build_sidedefs(
 					if &name == "-" {
 						TextureType::None
 					} else {
-						if &name == "F_SKY1" {
+						if &name == "f_sky1" {
 							TextureType::Sky
 						} else {
 							TextureType::Normal(asset_storage.load(&format!("{}.texture", name)))
@@ -275,7 +272,7 @@ fn build_sidedefs(
 					if &name == "-" {
 						TextureType::None
 					} else {
-						if &name == "F_SKY1" {
+						if &name == "f_sky1" {
 							TextureType::Sky
 						} else {
 							TextureType::Normal(asset_storage.load(&format!("{}.texture", name)))
@@ -288,7 +285,7 @@ fn build_sidedefs(
 					if &name == "-" {
 						TextureType::None
 					} else {
-						if &name == "F_SKY1" {
+						if &name == "f_sky1" {
 							TextureType::Sky
 						} else {
 							TextureType::Normal(asset_storage.load(&format!("{}.texture", name)))

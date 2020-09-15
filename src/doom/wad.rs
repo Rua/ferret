@@ -1,7 +1,8 @@
 use crate::common::assets::DataSource;
-use anyhow::{anyhow, ensure};
+use anyhow::{anyhow, bail, ensure, Context};
 use arrayvec::ArrayString;
 use byteorder::{ReadBytesExt, LE};
+use relative_path::RelativePath;
 use std::{
 	collections::HashSet,
 	fs::File,
@@ -60,12 +61,12 @@ impl WadLoader {
 		for _ in 0..dir_length {
 			let offset = reader.read_u32::<LE>()? as u64;
 			let size = reader.read_u32::<LE>()? as usize;
-			let name = read_string(&mut reader)?.to_ascii_uppercase();
+			let name = read_string(&mut reader)?;
 
-			self.lump_names.insert(name.clone());
+			self.lump_names.insert(name.as_str().to_owned());
 			self.lumps.push(Lump {
 				path: path.into(),
-				name,
+				name: name.as_str().to_owned(),
 				offset,
 				size,
 			});
@@ -82,15 +83,8 @@ impl WadLoader {
 }
 
 impl DataSource for WadLoader {
-	fn load(&self, path: &str) -> anyhow::Result<Vec<u8>> {
-		let path = path.to_ascii_uppercase();
-
-		let (path, offset) = if let Some(index) = path.rfind("/+") {
-			let (path, rest) = path.split_at(index);
-			(path, rest[2..].parse()?)
-		} else {
-			(path.as_str(), 0)
-		};
+	fn load(&self, path: &RelativePath) -> anyhow::Result<Vec<u8>> {
+		let lump_name = path.file_stem().context("Empty file name")?;
 
 		// Find the index of this lump in the list
 		let index = self
@@ -98,11 +92,39 @@ impl DataSource for WadLoader {
 			.iter()
 			.enumerate()
 			.rev()
-			.filter_map(|(i, lump)| if lump.name == path { Some(i) } else { None })
+			.filter_map(|(i, lump)| {
+				if lump.name == lump_name {
+					Some(i)
+				} else {
+					None
+				}
+			})
 			.next()
-			.ok_or(anyhow!("Lump \"{}\" not found", path))?;
+			.ok_or(anyhow!("Lump \"{}\" not found", lump_name))?;
+
+		let offset = match path.extension() {
+			Some("things") | Some("gl_vert") => 1,
+			Some("linedefs") | Some("gl_segs") => 2,
+			Some("sidedefs") | Some("gl_ssect") => 3,
+			Some("vertexes") | Some("gl_nodes") => 4,
+			Some("segs") => 5,
+			Some("ssectors") => 6,
+			Some("nodes") => 7,
+			Some("sectors") => 8,
+			Some("reject") => 9,
+			Some("blockmap") => 10,
+			_ => 0,
+		};
 
 		let lump = &self.lumps[index + offset];
+
+		if offset != 0 && path.extension().unwrap() != lump.name {
+			bail!(
+				"Lump \"{}\" for map \"{}\" not found",
+				path.extension().unwrap(),
+				lump_name
+			);
+		}
 
 		// Read lump
 		let mut file = BufReader::new(File::open(&lump.path)?);
@@ -121,5 +143,8 @@ impl DataSource for WadLoader {
 pub fn read_string<R: Read>(reader: &mut R) -> anyhow::Result<ArrayString<[u8; 8]>> {
 	let mut buf = [0u8; 8];
 	reader.read_exact(&mut buf)?;
-	Ok(ArrayString::from(std::str::from_utf8(&buf)?.trim_end_matches('\0')).unwrap())
+	let mut string =
+		ArrayString::from(std::str::from_utf8(&mut buf)?.trim_end_matches('\0')).unwrap();
+	string.make_ascii_lowercase();
+	Ok(string)
 }

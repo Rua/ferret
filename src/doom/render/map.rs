@@ -128,8 +128,8 @@ impl DrawStep for DrawMap {
 				let index_buffer = self.index_buffer_pool.chunk(mesh.1)?;
 
 				// Redirect animation frames
-				let handle = if let Some(anim_state) = map_dynamic.anim_states_wall.get(&handle) {
-					let anim = &map.anims_wall[&handle];
+				let handle = if let Some(anim_state) = map_dynamic.anim_states.get(&handle) {
+					let anim = &map.anims[&handle];
 					&anim.frames[anim_state.frame]
 				} else {
 					&handle
@@ -162,8 +162,8 @@ impl DrawStep for DrawMap {
 				let index_buffer = self.index_buffer_pool.chunk(mesh.1)?;
 
 				// Redirect animation frames
-				let handle = if let Some(anim_state) = map_dynamic.anim_states_flat.get(&handle) {
-					let anim = &map.anims_flat[&handle];
+				let handle = if let Some(anim_state) = map_dynamic.anim_states.get(&handle) {
+					let anim = &map.anims[&handle];
 					&anim.frames[anim_state.frame]
 				} else {
 					&handle

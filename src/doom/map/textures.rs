@@ -19,8 +19,7 @@ pub fn import_flat(
 	path: &RelativePath,
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Box<dyn ImportData>> {
-	let stem = path.file_stem().context("Empty file name")?;
-	let mut reader = Cursor::new(asset_storage.source().load(stem)?);
+	let mut reader = Cursor::new(asset_storage.source().load(path)?);
 	let mut pixels = [0u8; 64 * 64];
 	reader.read_exact(&mut pixels)?;
 
@@ -35,16 +34,15 @@ pub fn import_wall(
 	path: &RelativePath,
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Box<dyn ImportData>> {
-	let texture1_handle = asset_storage.load::<Textures>("TEXTURE1");
-	let texture2_handle = asset_storage.load::<Textures>("TEXTURE2");
+	let texture1_handle = asset_storage.load::<Textures>("texture1");
+	let texture2_handle = asset_storage.load::<Textures>("texture2");
 	let texture1 = asset_storage.get(&texture1_handle).unwrap();
 	let texture2 = asset_storage.get(&texture2_handle);
 
-	let stem = path.file_stem().context("Empty file name")?;
-	let name = stem.to_ascii_uppercase();
+	let name = path.file_stem().context("Empty file name")?;
 	let texture_info = texture1
-		.get(&name)
-		.or(texture2.and_then(|t| t.get(&name)))
+		.get(name)
+		.or(texture2.and_then(|t| t.get(name)))
 		.ok_or(anyhow!("Texture {} does not exist", name))?
 		.clone();
 	let mut data = vec![IAColor::default(); texture_info.size[0] * texture_info.size[1]];
@@ -109,8 +107,7 @@ pub fn import_pnames(
 	path: &RelativePath,
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Box<dyn ImportData>> {
-	let stem = path.file_stem().context("Empty file name")?;
-	let mut reader = Cursor::new(asset_storage.source().load(stem)?);
+	let mut reader = Cursor::new(asset_storage.source().load(path)?);
 	let count = reader.read_u32::<LE>()? as usize;
 	let mut ret = Vec::with_capacity(count);
 
@@ -144,11 +141,9 @@ pub fn import_textures(
 	path: &RelativePath,
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Box<dyn ImportData>> {
-	let pnames_handle = asset_storage.load::<PNames>("PNAMES");
+	let pnames_handle = asset_storage.load::<PNames>("pnames");
 	let pnames = asset_storage.get(&pnames_handle).unwrap();
-
-	let stem = path.file_stem().context("Empty file name")?;
-	let mut reader = Cursor::new(asset_storage.source().load(stem)?);
+	let mut reader = Cursor::new(asset_storage.source().load(path)?);
 
 	let count = reader.read_u32::<LE>()? as usize;
 	let mut offsets = Vec::with_capacity(count);
@@ -163,7 +158,7 @@ pub fn import_textures(
 			.map(|offset| {
 				reader.seek(SeekFrom::Start(offset))?;
 
-				let name = read_string(&mut reader)?.to_ascii_uppercase();
+				let name = read_string(&mut reader)?;
 				reader.read_u32::<LE>()?; // unused
 				let size = [reader.read_u16::<LE>()?, reader.read_u16::<LE>()?];
 				reader.read_u32::<LE>()?; // unused
@@ -183,7 +178,7 @@ pub fn import_textures(
 				}
 
 				Ok((
-					name,
+					name.as_str().to_owned(),
 					TextureInfo {
 						size: [size[0] as usize, size[1] as usize],
 						patches,

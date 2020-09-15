@@ -6,7 +6,7 @@ use crate::{
 	},
 	doom::{client::Client, components::Transform},
 };
-use anyhow::{ensure, Context};
+use anyhow::ensure;
 use byteorder::{ReadBytesExt, LE};
 use crossbeam_channel::Sender;
 use legion::{
@@ -29,8 +29,7 @@ pub fn import_sound(
 	path: &RelativePath,
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Box<dyn ImportData>> {
-	let stem = path.file_stem().context("Empty file name")?;
-	let mut reader = Cursor::new(asset_storage.source().load(stem)?);
+	let mut reader = Cursor::new(asset_storage.source().load(path)?);
 	let signature = reader.read_u16::<LE>()?;
 
 	ensure!(signature == 3, "No Doom sound file signature found");

@@ -9,137 +9,134 @@ pub struct AnimData {
 }
 
 lazy_static! {
-	pub static ref ANIMS_FLAT: Vec<AnimData> = vec![
+	pub static ref ANIMS: Vec<AnimData> = vec![
 		// Doom 1
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["NUKAGE1.flat", "NUKAGE2.flat", "NUKAGE3.flat"]
+			frames: vec!["nukage1.flat", "nukage2.flat", "nukage3.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["FWATER1.flat", "FWATER2.flat", "FWATER3.flat", "FWATER4.flat"]
+			frames: vec!["fwater1.flat", "fwater2.flat", "fwater3.flat", "fwater4.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["LAVA1.flat", "LAVA2.flat", "LAVA3.flat", "LAVA4.flat"]
+			frames: vec!["lava1.flat", "lava2.flat", "lava3.flat", "lava4.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["BLOOD1.flat", "BLOOD2.flat", "BLOOD3.flat"]
+			frames: vec!["blood1.flat", "blood2.flat", "blood3.flat"]
 		},
 
 		// Doom 2
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["RROCK5.flat", "RROCK6.flat", "RROCK7.flat", "RROCK8.flat"]
+			frames: vec!["rrock5.flat", "rrock6.flat", "rrock7.flat", "rrock8.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["SLIME1.flat", "SLIME2.flat", "SLIME3.flat", "SLIME4.flat"]
+			frames: vec!["slime1.flat", "slime2.flat", "slime3.flat", "slime4.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["SLIME5.flat", "SLIME6.flat", "SLIME7.flat", "SLIME8.flat"]
+			frames: vec!["slime5.flat", "slime6.flat", "slime7.flat", "slime8.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["SLIME9.flat", "SLIME10.flat", "SLIME11.flat", "SLIME12.flat"]
-		},
-	];
-	pub static ref ANIMS_WALL: Vec<AnimData> = vec![
-		// Doom 2
-		AnimData {
-			frame_time: 8 * FRAME_TIME,
-			frames: vec!["BLODGR1.texture", "BLODGR2.texture", "BLODGR3.texture", "BLODGR4.texture"]
+			frames: vec!["slime9.flat", "slime10.flat", "slime11.flat", "slime12.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["SLADRIP1.texture", "SLADRIP2.texture", "SLADRIP3.texture"]
+			frames: vec!["blodgr1.texture", "blodgr2.texture", "blodgr3.texture", "blodgr4.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["BLODRIP1.texture", "BLODRIP2.texture", "BLODRIP3.texture", "BLODRIP4.texture"]
+			frames: vec!["sladrip1.texture", "sladrip2.texture", "sladrip3.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["FIREWALA.texture", "FIREWALB.texture", "FIREWALL.texture"]
+			frames: vec!["blodrip1.texture", "blodrip2.texture", "blodrip3.texture", "blodrip4.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["GSTFONT1.texture", "GSTFONT2.texture", "GSTFONT3.texture"]
+			frames: vec!["firewala.texture", "firewalb.texture", "firewall.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["FIRELAV3.texture", "FIRELAVA.texture"]
+			frames: vec!["gstfont1.texture", "gstfont2.texture", "gstfont3.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["FIREMAG1.texture", "FIREMAG2.texture", "FIREMAG3.texture"]
+			frames: vec!["firelav3.texture", "firelava.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["FIREBLU1.texture", "FIREBLU2.texture"]
+			frames: vec!["firemag1.texture", "firemag2.texture", "firemag3.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["ROCKRED1.texture", "ROCKRED2.texture", "ROCKRED3.texture"]
+			frames: vec!["fireblu1.texture", "fireblu2.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["BFALL1.texture", "BFALL2.texture", "BFALL3.texture", "BFALL4.texture"]
+			frames: vec!["rockred1.texture", "rockred2.texture", "rockred3.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["SFALL1.texture", "SFALL2.texture", "SFALL3.texture", "SFALL4.texture"]
+			frames: vec!["bfall1.texture", "bfall2.texture", "bfall3.texture", "bfall4.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["DBRAIN1.texture", "DBRAIN2.texture", "DBRAIN3.texture", "DBRAIN4.texture"]
+			frames: vec!["sfall1.texture", "sfall2.texture", "sfall3.texture", "sfall4.texture"]
+		},
+		AnimData {
+			frame_time: 8 * FRAME_TIME,
+			frames: vec!["dbrain1.texture", "dbrain2.texture", "dbrain3.texture", "dbrain4.texture"]
 		},
 	];
 	pub static ref SWITCHES: Vec<[&'static str; 2]> = vec![
 		// Doom 1
-		["SW1BRCOM.texture", "SW2BRCOM.texture"],
-		["SW1BRN1.texture", "SW2BRN1.texture"],
-		["SW1BRN2.texture", "SW2BRN2.texture"],
-		["SW1BRNGN.texture", "SW2BRNGN.texture"],
-		["SW1BROWN.texture", "SW2BROWN.texture"],
-		["SW1COMM.texture", "SW2COMM.texture"],
-		["SW1COMP.texture", "SW2COMP.texture"],
-		["SW1DIRT.texture", "SW2DIRT.texture"],
-		["SW1EXIT.texture", "SW2EXIT.texture"],
-		["SW1GRAY.texture", "SW2GRAY.texture"],
-		["SW1GRAY1.texture", "SW2GRAY1.texture"],
-		["SW1METAL.texture", "SW2METAL.texture"],
-		["SW1PIPE.texture", "SW2PIPE.texture"],
-		["SW1SLAD.texture", "SW2SLAD.texture"],
-		["SW1STARG.texture", "SW2STARG.texture"],
-		["SW1STON1.texture", "SW2STON1.texture"],
-		["SW1STON2.texture", "SW2STON2.texture"],
-		["SW1STONE.texture", "SW2STONE.texture"],
-		["SW1STRTN.texture", "SW2STRTN.texture"],
-		["SW1BLUE.texture", "SW2BLUE.texture"],
-		["SW1CMT.texture", 	"SW2CMT.texture"],
-		["SW1GARG.texture", "SW2GARG.texture"],
-		["SW1GSTON.texture", "SW2GSTON.texture"],
-		["SW1HOT.texture", 	"SW2HOT.texture"],
-		["SW1LION.texture", "SW2LION.texture"],
-		["SW1SATYR.texture", "SW2SATYR.texture"],
-		["SW1SKIN.texture", "SW2SKIN.texture"],
-		["SW1VINE.texture", "SW2VINE.texture"],
-		["SW1WOOD.texture", "SW2WOOD.texture"],
+		["sw1brcom.texture", "sw2brcom.texture"],
+		["sw1brn1.texture", "sw2brn1.texture"],
+		["sw1brn2.texture", "sw2brn2.texture"],
+		["sw1brngn.texture", "sw2brngn.texture"],
+		["sw1brown.texture", "sw2brown.texture"],
+		["sw1comm.texture", "sw2comm.texture"],
+		["sw1comp.texture", "sw2comp.texture"],
+		["sw1dirt.texture", "sw2dirt.texture"],
+		["sw1exit.texture", "sw2exit.texture"],
+		["sw1gray.texture", "sw2gray.texture"],
+		["sw1gray1.texture", "sw2gray1.texture"],
+		["sw1metal.texture", "sw2metal.texture"],
+		["sw1pipe.texture", "sw2pipe.texture"],
+		["sw1slad.texture", "sw2slad.texture"],
+		["sw1starg.texture", "sw2starg.texture"],
+		["sw1ston1.texture", "sw2ston1.texture"],
+		["sw1ston2.texture", "sw2ston2.texture"],
+		["sw1stone.texture", "sw2stone.texture"],
+		["sw1strtn.texture", "sw2strtn.texture"],
+		["sw1blue.texture", "sw2blue.texture"],
+		["sw1cmt.texture", 	"sw2cmt.texture"],
+		["sw1garg.texture", "sw2garg.texture"],
+		["sw1gston.texture", "sw2gston.texture"],
+		["sw1hot.texture", 	"sw2hot.texture"],
+		["sw1lion.texture", "sw2lion.texture"],
+		["sw1satyr.texture", "sw2satyr.texture"],
+		["sw1skin.texture", "sw2skin.texture"],
+		["sw1vine.texture", "sw2vine.texture"],
+		["sw1wood.texture", "sw2wood.texture"],
 
-		// Doom 2
-		["SW1PANEL.texture", "SW2PANEL.texture"],
-		["SW1ROCK.texture", "SW2ROCK.texture"],
-		["SW1MET2.texture", "SW2MET2.texture"],
-		["SW1WDMET.texture", "SW2WDMET.texture"],
-		["SW1BRIK.texture", "SW2BRIK.texture"],
-		["SW1MOD1.texture", "SW2MOD1.texture"],
-		["SW1ZIM.texture", 	"SW2ZIM.texture"],
-		["SW1STON6.texture", "SW2STON6.texture"],
-		["SW1TEK.texture", 	"SW2TEK.texture"],
-		["SW1MARB.texture", "SW2MARB.texture"],
-		["SW1SKULL.texture", "SW2SKULL.texture"],
+		// doom 2
+		["sw1panel.texture", "sw2panel.texture"],
+		["sw1rock.texture", "sw2rock.texture"],
+		["sw1met2.texture", "sw2met2.texture"],
+		["sw1wdmet.texture", "sw2wdmet.texture"],
+		["sw1brik.texture", "sw2brik.texture"],
+		["sw1mod1.texture", "sw2mod1.texture"],
+		["sw1zim.texture", 	"sw2zim.texture"],
+		["sw1ston6.texture", "sw2ston6.texture"],
+		["sw1tek.texture", 	"sw2tek.texture"],
+		["sw1marb.texture", "sw2marb.texture"],
+		["sw1skull.texture", "sw2skull.texture"],
 	];
 }

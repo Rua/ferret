@@ -87,7 +87,7 @@ pub fn import_sprite(
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Box<dyn ImportData>> {
 	lazy_static! {
-		static ref SPRITENAME: Regex = Regex::new(r#"^....[A-Z][0-9](?:[A-Z][0-9])?$"#).unwrap();
+		static ref SPRITENAME: Regex = Regex::new(r#"^....[a-z][0-9](?:[a-z][0-9])?$"#).unwrap();
 	}
 
 	let stem = path.file_stem().context("Empty file name")?;
@@ -102,7 +102,7 @@ pub fn import_sprite(
 		.filter(|n| n.starts_with(stem) && SPRITENAME.is_match(n))
 	{
 		// Regular frame
-		let frame = lump_name.chars().nth(4).unwrap() as isize - 'A' as isize;
+		let frame = lump_name.chars().nth(4).unwrap() as isize - 'a' as isize;
 		assert!(frame >= 0 && frame < 29);
 		let rotation = lump_name.chars().nth(5).unwrap() as isize - '1' as isize;
 		assert!(rotation >= -1 && rotation < 8);
@@ -118,7 +118,7 @@ pub fn import_sprite(
 
 		// Horizontally flipped frame, if any
 		if lump_name.len() == 8 {
-			let frame = lump_name.chars().nth(6).unwrap() as isize - 'A' as isize;
+			let frame = lump_name.chars().nth(6).unwrap() as isize - 'a' as isize;
 			assert!(frame >= 0 && frame < 29);
 			let rotation = lump_name.chars().nth(7).unwrap() as isize - '1' as isize;
 			assert!(rotation >= -1 && rotation < 8);

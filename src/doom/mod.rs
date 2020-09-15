@@ -50,8 +50,8 @@ pub fn import(
 		Some("texture") => import_wall,
 		Some(ext) => bail!("Unsupported file extension: {}", ext),
 		None => match path.file_name() {
-			Some("PNAMES") => import_pnames,
-			Some("TEXTURE1") | Some("TEXTURE2") => import_textures,
+			Some("pnames") => import_pnames,
+			Some("texture1") | Some("texture2") => import_textures,
 			Some(name) => bail!("File has no extension: {}", name),
 			None => bail!("Path ends in '..'"),
 		},

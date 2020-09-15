@@ -1,5 +1,4 @@
 use crate::common::assets::{Asset, AssetStorage, ImportData};
-use anyhow::Context;
 use byteorder::{ReadBytesExt, LE};
 use relative_path::RelativePath;
 use std::{
@@ -44,8 +43,7 @@ pub fn import_palette(
 	path: &RelativePath,
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Box<dyn ImportData>> {
-	let stem = path.file_stem().context("Empty file name")?;
-	let mut reader = Cursor::new(asset_storage.source().load(stem)?);
+	let mut reader = Cursor::new(asset_storage.source().load(path)?);
 	let mut palette = [RGBAColor {
 		r: 0,
 		g: 0,
@@ -89,8 +87,7 @@ pub fn import_patch(
 	path: &RelativePath,
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Box<dyn ImportData>> {
-	let stem = path.file_stem().context("Empty file name")?;
-	let mut reader = Cursor::new(asset_storage.source().load(stem)?);
+	let mut reader = Cursor::new(asset_storage.source().load(path)?);
 
 	let size = [
 		reader.read_u16::<LE>()? as usize,
