@@ -19,7 +19,7 @@ use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
 	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
-	framebuffer::{RenderPassAbstract, Subpass},
+	framebuffer::{FramebufferAbstract, RenderPassAbstract, Subpass},
 	impl_vertex,
 	pipeline::{GraphicsPipeline, GraphicsPipelineAbstract},
 	sampler::Sampler,
@@ -84,28 +84,14 @@ impl DrawStep for DrawUi {
 		world: &World,
 		resources: &Resources,
 	) -> anyhow::Result<()> {
-		let framebuffer_dimensions = [
-			draw_context.framebuffer.width() as f32,
-			draw_context.framebuffer.height() as f32,
-		];
+		let ui_params = UiParams::new(&draw_context.framebuffer);
 		let viewport = &mut draw_context.dynamic_state.viewports.as_mut().unwrap()[0];
 		viewport.origin = [0.0, 0.0];
-		viewport.dimensions = [framebuffer_dimensions[0], framebuffer_dimensions[1]];
-
-		let ratio = (framebuffer_dimensions[0] / framebuffer_dimensions[1]) / (4.0 / 3.0);
-
-		// If the current aspect ratio is wider than 4:3, stretch horizontally.
-		// If narrower, stretch vertically.
-		let ui_base_dimensions = Vector2::new(320.0, 200.0);
-		let ui_dimensions = if ratio >= 1.0 {
-			Vector2::new(ui_base_dimensions[0] * ratio, ui_base_dimensions[1])
-		} else {
-			Vector2::new(ui_base_dimensions[0], ui_base_dimensions[1] / ratio)
-		};
+		viewport.dimensions = ui_params.framebuffer_dimensions.into();
 
 		let proj = ortho_matrix(AABB3::from_intervals(Vector3::new(
-			Interval::new(0.0, ui_dimensions[0]),
-			Interval::new(0.0, ui_dimensions[1]),
+			Interval::new(0.0, ui_params.dimensions[0]),
+			Interval::new(0.0, ui_params.dimensions[1]),
 			Interval::new(1000.0, 0.0),
 		)));
 
@@ -122,12 +108,6 @@ impl DrawStep for DrawUi {
 		));
 
 		let (asset_storage, sampler) = <(Read<AssetStorage>, Read<Arc<Sampler>>)>::fetch(resources);
-		let alignment_offsets = [
-			Vector2::zeros(),
-			(ui_dimensions - ui_base_dimensions) * 0.5,
-			ui_dimensions - ui_base_dimensions,
-		];
-		let stretch_offsets = [Vector2::zeros(), ui_dimensions - ui_base_dimensions];
 
 		// Group draws into batches by texture
 		let mut batches: FnvHashMap<AssetHandle<Image>, Vec<InstanceData>> = FnvHashMap::default();
@@ -136,16 +116,20 @@ impl DrawStep for DrawUi {
 			// Set up instance data
 			let image = asset_storage.get(&ui_image.image).unwrap();
 			let position = Vector3::new(
-				ui_transform.position[0] + alignment_offsets[ui_transform.alignment[0] as usize][0]
+				ui_transform.position[0]
+					+ ui_params.alignment_offsets[ui_transform.alignment[0] as usize][0]
 					- image.offset[0] as f32,
-				ui_transform.position[1] + alignment_offsets[ui_transform.alignment[1] as usize][1]
+				ui_transform.position[1]
+					+ ui_params.alignment_offsets[ui_transform.alignment[1] as usize][1]
 					- image.offset[1] as f32,
 				ui_transform.position[2],
 			);
 
 			let size = Vector2::new(
-				ui_transform.size[0] + stretch_offsets[ui_transform.stretch[0] as usize][0],
-				ui_transform.size[1] + stretch_offsets[ui_transform.stretch[1] as usize][1],
+				ui_transform.size[0]
+					+ ui_params.stretch_offsets[ui_transform.stretch[0] as usize][0],
+				ui_transform.size[1]
+					+ ui_params.stretch_offsets[ui_transform.stretch[1] as usize][1],
 			);
 
 			let instance_data = InstanceData {
@@ -215,3 +199,40 @@ pub struct InstanceData {
 	pub in_size: [f32; 2],
 }
 impl_vertex!(InstanceData, in_position, in_size);
+
+pub struct UiParams {
+	pub dimensions: Vector2<f32>,
+	pub framebuffer_dimensions: Vector2<f32>,
+	pub alignment_offsets: [Vector2<f32>; 3],
+	pub stretch_offsets: [Vector2<f32>; 2],
+}
+
+impl UiParams {
+	pub fn new<T: FramebufferAbstract + Send + Sync>(framebuffer: &T) -> UiParams {
+		let framebuffer_dimensions =
+			Vector2::new(framebuffer.width() as f32, framebuffer.height() as f32);
+		let ratio = (framebuffer_dimensions[0] / framebuffer_dimensions[1]) / (4.0 / 3.0);
+
+		// If the current aspect ratio is wider than 4:3, stretch horizontally.
+		// If narrower, stretch vertically.
+		let base_dimensions = Vector2::new(320.0, 200.0);
+		let dimensions = if ratio >= 1.0 {
+			Vector2::new(base_dimensions[0] * ratio, base_dimensions[1])
+		} else {
+			Vector2::new(base_dimensions[0], base_dimensions[1] / ratio)
+		};
+		let alignment_offsets = [
+			Vector2::zeros(),
+			(dimensions - base_dimensions) * 0.5,
+			dimensions - base_dimensions,
+		];
+		let stretch_offsets = [Vector2::zeros(), dimensions - base_dimensions];
+
+		UiParams {
+			dimensions,
+			framebuffer_dimensions,
+			alignment_offsets,
+			stretch_offsets,
+		}
+	}
+}

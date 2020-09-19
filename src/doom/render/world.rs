@@ -3,7 +3,12 @@ use crate::{
 		geometry::{perspective_matrix, Interval},
 		video::{DrawContext, DrawStep, RenderContext},
 	},
-	doom::{camera::Camera, client::Client, components::Transform, render::map::Matrices},
+	doom::{
+		camera::Camera,
+		client::Client,
+		components::Transform,
+		render::{map::Matrices, ui::UiParams},
+	},
 };
 use anyhow::Context;
 use legion::{systems::ResourceSet, EntityStore, Read, Resources, World};
@@ -64,16 +69,14 @@ impl DrawStep for DrawWorld {
 		world: &World,
 		resources: &Resources,
 	) -> anyhow::Result<()> {
-		let framebuffer_dimensions = [
-			draw_context.framebuffer.width() as f32,
-			draw_context.framebuffer.height() as f32,
-		];
-		let ratio = (framebuffer_dimensions[0] / framebuffer_dimensions[1]) / (4.0 / 3.0);
+		let ui_params = UiParams::new(&draw_context.framebuffer);
+
 		let viewport = &mut draw_context.dynamic_state.viewports.as_mut().unwrap()[0];
 		viewport.origin = [0.0, 0.0];
 		viewport.dimensions = [
-			framebuffer_dimensions[0],
-			ratio.min(1.0) * (1.0 - 32.0 / 200.0) * framebuffer_dimensions[1],
+			ui_params.framebuffer_dimensions[0],
+			//ratio.min(1.0) * (1.0 - 32.0 / 200.0) * framebuffer_dimensions[1],
+			(1.0 - 32.0 / ui_params.dimensions[1]) * ui_params.framebuffer_dimensions[1],
 		];
 
 		// Projection matrix
