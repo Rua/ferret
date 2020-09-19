@@ -200,6 +200,7 @@ pub struct InstanceData {
 }
 impl_vertex!(InstanceData, in_position, in_size);
 
+#[derive(Clone, Copy, Debug)]
 pub struct UiParams {
 	pub dimensions: Vector2<f32>,
 	pub framebuffer_dimensions: Vector2<f32>,
