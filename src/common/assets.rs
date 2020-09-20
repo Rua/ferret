@@ -138,9 +138,16 @@ impl AssetStorage {
 				if let Some(unprocessed) = &mut storage.unprocessed {
 					unprocessed.push((handle.clone(), import_result, name.to_owned()));
 				} else {
-					let data = import_result.unwrap();
-					let asset = *data.downcast().ok().unwrap();
-					storage.assets.insert(handle.id(), asset);
+					match import_result {
+						Ok(data) => {
+							log::trace!("Loaded '{}'", name);
+							let asset = *data.downcast().ok().unwrap();
+							storage.assets.insert(handle.id(), asset);
+						}
+						Err(e) => {
+							log::error!("'{}' could not be loaded: {}", name, e);
+						}
+					};
 				}
 
 				handle
@@ -167,11 +174,11 @@ impl AssetStorage {
 			// Build the asset
 			let asset = match data.and_then(|d| process_func(d, self)) {
 				Ok(asset) => {
-					log::trace!("Asset '{}' loaded", name);
+					log::trace!("Loaded '{}'", name);
 					asset
 				}
 				Err(e) => {
-					log::error!("Asset '{}' could not be loaded: {}", name, e);
+					log::error!("'{}' could not be loaded: {}", name, e);
 					continue;
 				}
 			};
