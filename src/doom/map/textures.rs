@@ -32,9 +32,14 @@ pub fn import_wall(
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Box<dyn ImportData>> {
 	let texture1_handle = asset_storage.load::<Textures>("texture1");
-	let texture2_handle = asset_storage.load::<Textures>("texture2");
+	let texture2_handle = if asset_storage.source().exists(RelativePath::new("texture2")) {
+		Some(asset_storage.load::<Textures>("texture2"))
+	} else {
+		None
+	};
+
 	let texture1 = asset_storage.get(&texture1_handle).unwrap();
-	let texture2 = asset_storage.get(&texture2_handle);
+	let texture2 = texture2_handle.map(|h| asset_storage.get(&h).unwrap());
 
 	let name = path.file_stem().context("Empty file name")?;
 	let texture_info = texture1

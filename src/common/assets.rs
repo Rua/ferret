@@ -145,7 +145,7 @@ impl AssetStorage {
 							storage.assets.insert(handle.id(), asset);
 						}
 						Err(e) => {
-							log::error!("'{}' could not be loaded: {}", name, e);
+							panic!("'{}' could not be loaded: {}", name, e);
 						}
 					};
 				}
@@ -178,8 +178,7 @@ impl AssetStorage {
 					asset
 				}
 				Err(e) => {
-					log::error!("'{}' could not be loaded: {}", name, e);
-					continue;
+					panic!("'{}' could not be loaded: {}", name, e);
 				}
 			};
 
@@ -295,5 +294,6 @@ impl HandleAllocator {
 
 pub trait DataSource: Send + Sync + 'static {
 	fn load(&self, path: &RelativePath) -> anyhow::Result<Vec<u8>>;
+	fn exists(&self, path: &RelativePath) -> bool;
 	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a>;
 }

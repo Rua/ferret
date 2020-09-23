@@ -1,5 +1,5 @@
 use crate::common::assets::DataSource;
-use anyhow::{anyhow, bail, ensure, Context};
+use anyhow::{bail, ensure};
 use arrayvec::ArrayString;
 use byteorder::{ReadBytesExt, LE};
 use relative_path::RelativePath;
@@ -80,14 +80,12 @@ impl WadLoader {
 	pub fn wads(&self) -> impl Iterator<Item = &Path> {
 		self.wads.iter().map(PathBuf::as_path)
 	}
-}
 
-impl DataSource for WadLoader {
-	fn load(&self, path: &RelativePath) -> anyhow::Result<Vec<u8>> {
-		let lump_name = path.file_stem().context("Empty file name")?;
+	fn index_for_name(&self, path: &RelativePath) -> anyhow::Result<usize> {
+		let lump_name = path.file_stem().unwrap();
 
 		// Find the index of this lump in the list
-		let index = self
+		let index = match self
 			.lumps
 			.iter()
 			.enumerate()
@@ -100,7 +98,10 @@ impl DataSource for WadLoader {
 				}
 			})
 			.next()
-			.ok_or(anyhow!("Lump \"{}\" not found", lump_name))?;
+		{
+			Some(index) => index,
+			None => bail!("Lump \"{}\" not found", lump_name),
+		};
 
 		let offset = match path.extension() {
 			Some("things") | Some("gl_vert") => 1,
@@ -116,7 +117,8 @@ impl DataSource for WadLoader {
 			_ => 0,
 		};
 
-		let lump = &self.lumps[index + offset];
+		let ret = index + offset;
+		let lump = &self.lumps[ret];
 
 		if offset != 0 && path.extension().unwrap() != lump.name {
 			bail!(
@@ -126,6 +128,15 @@ impl DataSource for WadLoader {
 			);
 		}
 
+		Ok(ret)
+	}
+}
+
+impl DataSource for WadLoader {
+	fn load(&self, path: &RelativePath) -> anyhow::Result<Vec<u8>> {
+		let index = self.index_for_name(path)?;
+		let lump = &self.lumps[index];
+
 		// Read lump
 		let mut file = BufReader::new(File::open(&lump.path)?);
 		let mut data = vec![0; lump.size];
@@ -133,6 +144,10 @@ impl DataSource for WadLoader {
 		file.read_exact(&mut data)?;
 
 		Ok(data)
+	}
+
+	fn exists(&self, path: &RelativePath) -> bool {
+		self.index_for_name(path).is_ok()
 	}
 
 	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a> {
