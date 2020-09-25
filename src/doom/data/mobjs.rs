@@ -8,12 +8,13 @@ use crate::{
 		data::FRAME_TIME,
 		entitytemplate::{EntityTemplate, EntityTypeId},
 		physics::{BoxCollider, SolidMask},
-		render::sprite::SpriteRender,
+		render::{psprite::PlayerSpriteRender, sprite::SpriteRender},
 		state::{State, StateDef},
+		ui::{UiAlignment, UiTransform},
 	},
 };
 use legion::{systems::ResourceSet, Resources, Write};
-use nalgebra::Vector3;
+use nalgebra::{Vector2, Vector3};
 use std::{collections::HashMap, default::Default, sync::Arc, time::Duration};
 
 #[rustfmt::skip]
@@ -77,6 +78,14 @@ pub fn load(resources: &mut Resources) {
 				deviation_position: 0.0,
 				deviation_velocity: 0.0,
 				impact_sound: asset_storage.load("dsoof.sound"),
+			})
+			.with_component(PlayerSpriteRender {
+				weapon: SpriteRender {
+					sprite: asset_storage.load("pisg.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				flash: None,
 			})
 			.with_component(SpriteRender {
 				sprite: asset_storage.load("play.sprite"),
@@ -193,6 +202,12 @@ pub fn load(resources: &mut Resources) {
 				death_state: Some("play_die1".to_owned()),
 				xdeath_state: Some("play_xdie1".to_owned()),
 				raise_state: None,
+			})
+			.with_component(UiTransform {
+				position: Vector3::new(0.0, 0.0, 1.0),
+				alignment: [UiAlignment::Middle, UiAlignment::Far],
+				size: Vector2::new(0.0, 0.0),
+				stretch: [false; 2],
 			})
 			.with_component(User {
 				error_sound: asset_storage.load("dsnoway.sound"),

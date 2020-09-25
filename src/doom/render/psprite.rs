@@ -8,10 +8,14 @@ use crate::{
 	},
 	doom::{
 		image::Image,
-		ui::{UiImage, UiTransform},
+		render::{
+			sprite::SpriteRender,
+			ui::{ui_frag, ui_vert, InstanceData, Matrices, UiParams},
+		},
+		ui::UiTransform,
 	},
 };
-use anyhow::Context;
+use anyhow::{bail, Context};
 use fnv::FnvHashMap;
 use legion::{systems::ResourceSet, IntoQuery, Read, Resources, World};
 use nalgebra::{Vector2, Vector3};
@@ -19,13 +23,12 @@ use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
 	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
-	framebuffer::{FramebufferAbstract, RenderPassAbstract, Subpass},
-	impl_vertex,
+	framebuffer::{RenderPassAbstract, Subpass},
 	pipeline::{GraphicsPipeline, GraphicsPipelineAbstract},
 	sampler::Sampler,
 };
 
-pub struct DrawUi {
+pub struct DrawPlayerSprites {
 	instance_buffer_pool: CpuBufferPool<InstanceData>,
 	matrix_uniform_pool: CpuBufferPool<Matrices>,
 	matrix_set_pool: FixedSizeDescriptorSetsPool,
@@ -33,11 +36,11 @@ pub struct DrawUi {
 	texture_set_pool: FixedSizeDescriptorSetsPool,
 }
 
-impl DrawUi {
+impl DrawPlayerSprites {
 	pub fn new(
 		render_context: &RenderContext,
 		render_pass: &Arc<dyn RenderPassAbstract + Send + Sync>,
-	) -> anyhow::Result<DrawUi> {
+	) -> anyhow::Result<DrawPlayerSprites> {
 		let device = render_pass.device();
 
 		// Create pipeline
@@ -54,7 +57,6 @@ impl DrawUi {
 				.fragment_shader(frag.main_entry_point(), ())
 				.triangle_fan()
 				.viewports_dynamic_scissors_irrelevant(1)
-				.depth_stencil_simple_depth()
 				.build(device.clone())
 				.context("Couldn't create pipeline")?,
 		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
@@ -62,7 +64,7 @@ impl DrawUi {
 		let layout = pipeline.descriptor_set_layout(0).unwrap();
 		let matrix_set_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
 
-		Ok(DrawUi {
+		Ok(DrawPlayerSprites {
 			instance_buffer_pool: CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer()),
 			matrix_uniform_pool: CpuBufferPool::new(
 				render_context.device().clone(),
@@ -77,7 +79,7 @@ impl DrawUi {
 	}
 }
 
-impl DrawStep for DrawUi {
+impl DrawStep for DrawPlayerSprites {
 	fn draw(
 		&mut self,
 		draw_context: &mut DrawContext,
@@ -112,9 +114,25 @@ impl DrawStep for DrawUi {
 		// Group draws into batches by texture
 		let mut batches: FnvHashMap<AssetHandle<Image>, Vec<InstanceData>> = FnvHashMap::default();
 
-		for (ui_image, ui_transform) in <(&UiImage, &UiTransform)>::query().iter(world) {
+		for (player_sprite_render, ui_transform) in
+			<(&PlayerSpriteRender, &UiTransform)>::query().iter(world)
+		{
+			let sprite_render = &player_sprite_render.weapon;
+
 			// Set up instance data
-			let image = asset_storage.get(&ui_image.image).unwrap();
+			let sprite = asset_storage.get(&sprite_render.sprite).unwrap();
+			let frame = &sprite.frames()[sprite_render.frame];
+
+			// This frame has no images, nothing to draw
+			if frame.is_empty() {
+				continue;
+			} else if frame.len() > 1 {
+				bail!("Player sprite has rotation images");
+			}
+
+			let image_handle = &frame[0].handle;
+			let image = asset_storage.get(image_handle).unwrap();
+
 			let position = Vector3::new(
 				ui_transform.position[0]
 					+ ui_params.alignment_offsets[ui_transform.alignment[0] as usize][0]
@@ -126,10 +144,8 @@ impl DrawStep for DrawUi {
 			);
 
 			let size = Vector2::new(
-				ui_transform.size[0]
-					+ ui_params.stretch_offsets[ui_transform.stretch[0] as usize][0],
-				ui_transform.size[1]
-					+ ui_params.stretch_offsets[ui_transform.stretch[1] as usize][1],
+				image.image.dimensions().width() as f32,
+				image.image.dimensions().height() as f32,
 			);
 
 			let instance_data = InstanceData {
@@ -138,7 +154,7 @@ impl DrawStep for DrawUi {
 			};
 
 			// Add to batches
-			match batches.entry(ui_image.image.clone()) {
+			match batches.entry(image_handle.clone()) {
 				Entry::Occupied(mut entry) => {
 					entry.get_mut().push(instance_data);
 				}
@@ -177,63 +193,8 @@ impl DrawStep for DrawUi {
 	}
 }
 
-pub mod ui_vert {
-	vulkano_shaders::shader! {
-		ty: "vertex",
-		path: "shaders/ui.vert",
-	}
-}
-
-pub use ui_vert::ty::Matrices;
-
-pub mod ui_frag {
-	vulkano_shaders::shader! {
-		ty: "fragment",
-		path: "shaders/ui.frag",
-	}
-}
-
-#[derive(Clone, Debug, Default)]
-pub struct InstanceData {
-	pub in_position: [f32; 3],
-	pub in_size: [f32; 2],
-}
-impl_vertex!(InstanceData, in_position, in_size);
-
-#[derive(Clone, Copy, Debug)]
-pub struct UiParams {
-	pub dimensions: Vector2<f32>,
-	pub framebuffer_dimensions: Vector2<f32>,
-	pub alignment_offsets: [Vector2<f32>; 3],
-	pub stretch_offsets: [Vector2<f32>; 2],
-}
-
-impl UiParams {
-	pub fn new<T: FramebufferAbstract + Send + Sync>(framebuffer: &T) -> UiParams {
-		let framebuffer_dimensions =
-			Vector2::new(framebuffer.width() as f32, framebuffer.height() as f32);
-		let ratio = (framebuffer_dimensions[0] / framebuffer_dimensions[1]) / (4.0 / 3.0);
-
-		// If the current aspect ratio is wider than 4:3, stretch horizontally.
-		// If narrower, stretch vertically.
-		let base_dimensions = Vector2::new(320.0, 200.0);
-		let dimensions = if ratio >= 1.0 {
-			Vector2::new(base_dimensions[0] * ratio, base_dimensions[1])
-		} else {
-			Vector2::new(base_dimensions[0], base_dimensions[1] / ratio)
-		};
-		let alignment_offsets = [
-			Vector2::zeros(),
-			(dimensions - base_dimensions) * 0.5,
-			dimensions - base_dimensions,
-		];
-		let stretch_offsets = [Vector2::zeros(), dimensions - base_dimensions];
-
-		UiParams {
-			dimensions,
-			framebuffer_dimensions,
-			alignment_offsets,
-			stretch_offsets,
-		}
-	}
+#[derive(Clone, Debug)]
+pub struct PlayerSpriteRender {
+	pub weapon: SpriteRender,
+	pub flash: Option<SpriteRender>,
 }

@@ -96,6 +96,10 @@ fn main() -> anyhow::Result<()> {
 			.context("Couldn't create DrawSprites")?,
 	);
 	draw_list.add_step(
+		doom::render::psprite::DrawPlayerSprites::new(&render_context, draw_list.render_pass())
+			.context("Couldn't create DrawPlayerSprites")?,
+	);
+	draw_list.add_step(
 		doom::render::ui::DrawUi::new(&render_context, draw_list.render_pass())
 			.context("Couldn't create DrawUi")?,
 	);

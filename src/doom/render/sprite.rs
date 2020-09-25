@@ -92,7 +92,7 @@ impl DrawStep for DrawSprites {
 		for (entity, sprite_render, transform) in
 			<(Entity, &SpriteRender, &Transform)>::query().iter(world)
 		{
-			// Don't render the player's own sprite
+			// Don't draw the player's own sprite
 			if let Some(view_entity) = client.entity {
 				if *entity == view_entity {
 					continue;
@@ -102,7 +102,7 @@ impl DrawStep for DrawSprites {
 			let sprite = asset_storage.get(&sprite_render.sprite).unwrap();
 			let frame = &sprite.frames()[sprite_render.frame];
 
-			// This frame has no images, nothing to render
+			// This frame has no images, nothing to draw
 			if frame.is_empty() {
 				continue;
 			}
