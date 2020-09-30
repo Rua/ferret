@@ -7,6 +7,7 @@ use crate::common::{
 	geometry::{AABB2, AABB3},
 	input::InputState,
 	quadtree::Quadtree,
+	time::FrameTime,
 	video::{AsBytes, DrawList, RenderContext, RenderTarget},
 };
 use anyhow::{bail, Context};
@@ -133,7 +134,10 @@ fn main() -> anyhow::Result<()> {
 	resources.insert(InputState::new());
 	resources.insert(Vec::<(AssetHandle<Sound>, Entity)>::new());
 	resources.insert(doom::client::Client::default());
-	resources.insert(doom::data::FRAME_TIME);
+	resources.insert(FrameTime {
+		delta: doom::data::FRAME_TIME,
+		total: Duration::default(),
+	});
 
 	let mut loader = doom::wad::WadLoader::new();
 	load_wads(&mut loader, &arg_matches)?;
@@ -355,13 +359,16 @@ fn main() -> anyhow::Result<()> {
 		leftover_time += delta;
 
 		if leftover_time >= doom::data::FRAME_TIME {
-			leftover_time -= doom::data::FRAME_TIME;
-
 			update_dispatcher.execute(&mut world, &mut resources);
 
-			// Reset input delta state
 			{
-				let mut input_state = resources.get_mut::<InputState>().unwrap();
+				let (mut frame_time, mut input_state) =
+					<(Write<FrameTime>, Write<InputState>)>::fetch_mut(&mut resources);
+
+				leftover_time -= doom::data::FRAME_TIME;
+				frame_time.delta = doom::data::FRAME_TIME;
+				frame_time.total += doom::data::FRAME_TIME;
+
 				input_state.reset();
 			}
 		}

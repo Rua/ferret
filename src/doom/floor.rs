@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		audio::Sound,
-		timer::Timer,
+		time::Timer,
 	},
 	doom::{
 		client::{UseAction, UseEvent},

@@ -1,4 +1,7 @@
-use crate::{common::timer::Timer, doom::render::sprite::SpriteRender};
+use crate::{
+	common::time::{FrameTime, Timer},
+	doom::render::sprite::SpriteRender,
+};
 use legion::{systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
@@ -24,16 +27,16 @@ pub struct StateDef {
 
 pub fn state_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("state_system")
-		.read_resource::<Duration>()
+		.read_resource::<FrameTime>()
 		.with_query(<(Entity, &mut SpriteRender, &mut State)>::query())
 		.build(move |command_buffer, world, resources, query| {
-			let delta = resources;
+			let frame_time = resources;
 
 			for (entity, sprite_render, state) in query.iter_mut(world) {
 				let state = &mut *state;
 
 				if let Some((timer, next)) = &mut state.next {
-					timer.tick(**delta);
+					timer.tick(frame_time.delta);
 
 					while timer.is_zero() {
 						if let Some(new_state_name) = next {

@@ -1,5 +1,11 @@
 use std::time::Duration;
 
+#[derive(Clone, Copy, Debug)]
+pub struct FrameTime {
+	pub delta: Duration,
+	pub total: Duration,
+}
+
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Timer {
 	time: Duration,

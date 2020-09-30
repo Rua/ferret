@@ -1,5 +1,5 @@
 use crate::{
-	common::{assets::AssetHandle, audio::Sound, geometry::Angle},
+	common::{assets::AssetHandle, audio::Sound, geometry::Angle, time::FrameTime},
 	doom::{
 		components::Velocity,
 		data::FRAME_RATE,
@@ -15,7 +15,6 @@ use std::time::Duration;
 pub struct Camera {
 	pub base: Vector3<f32>,
 	pub offset: Vector3<f32>,
-	pub bob_angle: Angle,
 	pub bob_max: f32,
 	pub bob_period: Duration,
 	pub deviation_position: f32,
@@ -34,14 +33,14 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 		.register_reader();
 
 	SystemBuilder::new("camera_system")
-		.read_resource::<Duration>()
+		.read_resource::<FrameTime>()
 		.read_resource::<EventChannel<StepEvent>>()
 		.read_resource::<EventChannel<TouchEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<&mut Camera>::query())
 		.with_query(<(&Velocity, &mut Camera)>::query())
 		.build(move |_, world, resources, queries| {
-			let (delta, step_event_channel, touch_event_channel, sound_queue) = resources;
+			let (frame_time, step_event_channel, touch_event_channel, sound_queue) = resources;
 
 			// Entity hitting the ground
 			for touch_event in touch_event_channel.read(&mut touch_event_reader) {
@@ -70,8 +69,9 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 				// Calculate deviation
 				if camera.deviation_position != 0.0 || camera.deviation_velocity != 0.0 {
 					const DEVIATION_ACCEL: f32 = 0.25 * FRAME_RATE * FRAME_RATE;
-					camera.deviation_position += camera.deviation_velocity * delta.as_secs_f32();
-					camera.deviation_velocity += DEVIATION_ACCEL * delta.as_secs_f32();
+					camera.deviation_position +=
+						camera.deviation_velocity * frame_time.delta.as_secs_f32();
+					camera.deviation_velocity += DEVIATION_ACCEL * frame_time.delta.as_secs_f32();
 
 					if camera.deviation_position > 0.0 {
 						// Hit the top
@@ -88,13 +88,12 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 				}
 
 				// Calculate movement bobbing
-				let div = delta.as_secs_f64() / camera.bob_period.as_secs_f64(); // TODO replace with div_duration_f64 once it's stable
-				camera.bob_angle += Angle::from_units(div);
-
 				let velocity2 =
 					Vector2::new(velocity.velocity[0], velocity.velocity[1]) / FRAME_RATE;
-				let amplitude = (velocity2.norm_squared() * 0.25).min(camera.bob_max) * 0.5;
-				let bob = amplitude * camera.bob_angle.sin() as f32;
+				let bob_amplitude = (velocity2.norm_squared() * 0.25).min(camera.bob_max);
+
+				let div = frame_time.total.as_secs_f64() / camera.bob_period.as_secs_f64(); // TODO replace with div_duration_f64 once it's stable
+				let bob = bob_amplitude * 0.5 * Angle::from_units(div).sin() as f32;
 
 				// Set camera position
 				camera.offset[2] = camera.deviation_position + bob;

@@ -5,6 +5,7 @@ use crate::{
 		geometry::{Line2, AABB3},
 		input::{Bindings, InputState},
 		quadtree::Quadtree,
+		time::FrameTime,
 	},
 	doom::{
 		camera::Camera,
@@ -21,7 +22,6 @@ use crate::{
 use legion::{systems::Runnable, Entity, EntityStore, IntoQuery, Resources, SystemBuilder};
 use nalgebra::{Vector2, Vector3};
 use shrev::EventChannel;
-use std::time::Duration;
 
 #[derive(Default)]
 pub struct Client {
@@ -61,7 +61,7 @@ pub fn player_move_system() -> impl Runnable {
 	SystemBuilder::new("player_move_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
-		.read_resource::<Duration>()
+		.read_resource::<FrameTime>()
 		.read_resource::<Quadtree>()
 		.with_query(<&mut Transform>::query())
 		.with_query(<&MapDynamic>::query())
@@ -70,7 +70,7 @@ pub fn player_move_system() -> impl Runnable {
 		.read_component::<BoxCollider>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
 		.build(move |_, world, resources, queries| {
-			let (asset_storage, client, delta, quadtree) = resources;
+			let (asset_storage, client, frame_time, quadtree) = resources;
 
 			if let Some(entity) = client.entity {
 				// Apply rotation
@@ -126,8 +126,8 @@ pub fn player_move_system() -> impl Runnable {
 
 					let angles = Vector3::new(0.into(), 0.into(), transform.rotation[2]);
 					let axes = crate::common::geometry::angles_to_axes(angles);
-					let accel =
-						(axes[0] * move_dir[0] + axes[1] * move_dir[1]) * delta.as_secs_f32();
+					let accel = (axes[0] * move_dir[0] + axes[1] * move_dir[1])
+						* frame_time.delta.as_secs_f32();
 
 					velocity.velocity += accel;
 				}

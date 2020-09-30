@@ -1,5 +1,8 @@
 use crate::{
-	common::{assets::AssetStorage, timer::Timer},
+	common::{
+		assets::AssetStorage,
+		time::{FrameTime, Timer},
+	},
 	doom::{
 		data::FRAME_TIME,
 		map::{MapDynamic, SectorRef},
@@ -13,12 +16,12 @@ use std::time::Duration;
 pub fn light_flash_system() -> impl Runnable {
 	SystemBuilder::new("light_flash_system")
 		.read_resource::<AssetStorage>()
-		.read_resource::<Duration>()
+		.read_resource::<FrameTime>()
 		.write_resource::<Pcg64Mcg>()
 		.with_query(<(&SectorRef, &mut LightFlash)>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.build(move |_, world, resources, queries| {
-			let (asset_storage, delta, rng) = resources;
+			let (asset_storage, frame_time, rng) = resources;
 			let (mut world0, mut world) = world.split_for_query(&queries.0);
 
 			for (sector_ref, mut light_flash) in queries.0.iter_mut(&mut world0) {
@@ -28,7 +31,7 @@ pub fn light_flash_system() -> impl Runnable {
 					.unwrap();
 				let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 
-				light_flash.timer.tick(**delta);
+				light_flash.timer.tick(frame_time.delta);
 
 				if light_flash.timer.is_zero() {
 					light_flash.state = !light_flash.state;
@@ -104,11 +107,11 @@ impl Default for LightFlashType {
 pub fn light_glow_system() -> impl Runnable {
 	SystemBuilder::new("light_glow_system")
 		.read_resource::<AssetStorage>()
-		.read_resource::<Duration>()
+		.read_resource::<FrameTime>()
 		.with_query(<(&SectorRef, &mut LightGlow)>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.build(move |_, world, resources, queries| {
-			let (asset_storage, delta) = resources;
+			let (asset_storage, frame_time) = resources;
 			let (mut world0, mut world) = world.split_for_query(&queries.0);
 
 			for (sector_ref, mut light_glow) in queries.0.iter_mut(&mut world0) {
@@ -120,7 +123,7 @@ pub fn light_glow_system() -> impl Runnable {
 
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 				let sector = &map.sectors[sector_ref.index];
-				let speed = light_glow.speed * delta.as_secs_f32();
+				let speed = light_glow.speed * frame_time.delta.as_secs_f32();
 
 				if light_glow.state {
 					sector_dynamic.light_level += speed;

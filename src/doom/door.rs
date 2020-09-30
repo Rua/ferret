@@ -3,7 +3,7 @@ use crate::{
 		assets::{AssetHandle, AssetStorage},
 		audio::Sound,
 		geometry::Side,
-		timer::Timer,
+		time::{FrameTime, Timer},
 	},
 	doom::{
 		client::{UseAction, UseEvent},
@@ -63,12 +63,12 @@ pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
 		.register_reader();
 
 	SystemBuilder::new("door_active_system")
-		.read_resource::<Duration>()
+		.read_resource::<FrameTime>()
 		.read_resource::<EventChannel<SectorMoveEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<(Entity, &mut CeilingMove, &mut DoorActive)>::query())
 		.build(move |command_buffer, world, resources, query| {
-			let (delta, sector_move_event_channel, sound_queue) = resources;
+			let (frame_time, sector_move_event_channel, sound_queue) = resources;
 
 			for (entity, ceiling_move, mut door_active) in query.iter_mut(world) {
 				let sector_move = &mut ceiling_move.0;
@@ -77,7 +77,7 @@ pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
 					continue;
 				}
 
-				door_active.wait_timer.tick(**delta);
+				door_active.wait_timer.tick(frame_time.delta);
 
 				if door_active.wait_timer.is_zero() {
 					let sound = if sector_move.target == door_active.close_height {

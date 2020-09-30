@@ -1,6 +1,6 @@
 #![allow(unused_variables)]
 use crate::{
-	common::{assets::AssetStorage, component::EntityComponents, geometry::Angle, timer::Timer},
+	common::{assets::AssetStorage, component::EntityComponents, time::Timer},
 	doom::{
 		camera::Camera,
 		client::User,
@@ -72,7 +72,6 @@ pub fn load(resources: &mut Resources) {
 			.with_component(Camera {
 				base: Vector3::new(0.0, 0.0, 41.0),
 				offset: Vector3::zeros(),
-				bob_angle: Angle::default(),
 				bob_max: 16.0,
 				bob_period: 20 * FRAME_TIME,
 				deviation_position: 0.0,

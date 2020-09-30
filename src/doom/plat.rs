@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		audio::Sound,
-		timer::Timer,
+		time::{FrameTime, Timer},
 	},
 	doom::{
 		client::{UseAction, UseEvent},
@@ -64,14 +64,14 @@ pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
 		.register_reader();
 
 	SystemBuilder::new("plat_active_system")
-		.read_resource::<Duration>()
+		.read_resource::<FrameTime>()
 		.read_resource::<EventChannel<SectorMoveEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<(Entity, &mut FloorMove, &mut PlatActive)>::query())
 		.read_component::<BoxCollider>() // used by SectorTracer
 		.read_component::<Transform>() // used by SectorTracer
 		.build(move |command_buffer, world, resources, query| {
-			let (delta, sector_move_event_channel, sound_queue) = resources;
+			let (frame_time, sector_move_event_channel, sound_queue) = resources;
 
 			for (entity, floor_move, plat_active) in query.iter_mut(world) {
 				let sector_move = &mut floor_move.0;
@@ -80,7 +80,7 @@ pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
 					continue;
 				}
 
-				plat_active.wait_timer.tick(**delta);
+				plat_active.wait_timer.tick(frame_time.delta);
 
 				if plat_active.wait_timer.is_zero() {
 					if let Some(sound) = &plat_active.start_sound {

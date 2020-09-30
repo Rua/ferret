@@ -6,7 +6,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		geometry::{Angle, Interval, Line2, Plane2, Side, AABB2},
-		timer::Timer,
+		time::Timer,
 	},
 	doom::{
 		components::{SpawnOnCeiling, SpawnPoint, Transform},
