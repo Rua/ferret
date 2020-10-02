@@ -152,15 +152,12 @@ impl DrawStep for DrawSprites {
 		// Draw the batches
 		for (image_handle, instance_data) in batches {
 			let image = asset_storage.get(image_handle).unwrap();
-			let matrix = Matrix4::new_translation(&Vector3::new(
-				-image.offset[0] as f32,
-				-image.offset[1] as f32,
-				0.0,
-			)) * Matrix4::new_nonuniform_scaling(&Vector3::new(
-				image.image.dimensions().width() as f32,
-				image.image.dimensions().height() as f32,
-				1.0,
-			));
+			let matrix = Matrix4::new_translation(&-image.offset.fixed_resize(0.0))
+				* Matrix4::new_nonuniform_scaling(&Vector3::new(
+					image.image.dimensions().width() as f32,
+					image.image.dimensions().height() as f32,
+					1.0,
+				));
 
 			draw_context.descriptor_sets.truncate(1);
 			draw_context.descriptor_sets.push(Arc::new(

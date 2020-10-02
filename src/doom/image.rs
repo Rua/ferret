@@ -1,5 +1,6 @@
 use crate::common::assets::{AssetStorage, ImportData};
 use byteorder::{ReadBytesExt, LE};
+use nalgebra::Vector2;
 use relative_path::RelativePath;
 use std::{
 	io::{Cursor, Read, Seek, SeekFrom},
@@ -60,12 +61,12 @@ pub fn import_palette(
 pub struct ImageData {
 	pub data: Vec<IAColor>,
 	pub size: [usize; 2],
-	pub offset: [isize; 2],
+	pub offset: Vector2<isize>,
 }
 
 pub struct Image {
 	pub image: Arc<dyn ImageViewAccess + Send + Sync>,
-	pub offset: [isize; 2],
+	pub offset: Vector2<f32>,
 }
 
 pub fn import_patch(
@@ -78,10 +79,10 @@ pub fn import_patch(
 		reader.read_u16::<LE>()? as usize,
 		reader.read_u16::<LE>()? as usize,
 	];
-	let offset = [
+	let offset = Vector2::new(
 		reader.read_i16::<LE>()? as isize,
 		reader.read_i16::<LE>()? as isize,
-	];
+	);
 	let mut column_offsets = Vec::new();
 
 	for _ in 0..size[0] {

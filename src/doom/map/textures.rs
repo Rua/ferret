@@ -9,6 +9,7 @@ use anyhow::{anyhow, Context};
 use arrayvec::ArrayString;
 use byteorder::{ReadBytesExt, LE};
 use fnv::FnvHashMap;
+use nalgebra::Vector2;
 use relative_path::RelativePath;
 use std::io::{Cursor, Read, Seek, SeekFrom};
 
@@ -23,7 +24,7 @@ pub fn import_flat(
 	Ok(Box::new(ImageData {
 		data: pixels.iter().map(|&i| IAColor { i, a: 0xFF }).collect(),
 		size: [64, 64],
-		offset: [0, 0],
+		offset: Vector2::zeros(),
 	}))
 }
 
@@ -94,7 +95,7 @@ pub fn import_wall(
 	Ok(Box::new(ImageData {
 		data,
 		size: texture_info.size,
-		offset: [0, 0],
+		offset: Vector2::zeros(),
 	}))
 }
 
@@ -117,7 +118,7 @@ pub fn import_pnames(
 
 #[derive(Clone, Debug)]
 pub struct PatchInfo {
-	pub offset: [isize; 2],
+	pub offset: Vector2<isize>,
 	pub name: String,
 }
 
@@ -159,14 +160,14 @@ pub fn import_textures(
 				let mut patches = Vec::with_capacity(patch_count);
 
 				for _ in 0..patch_count {
-					let offset = [reader.read_i16::<LE>()?, reader.read_i16::<LE>()?];
+					let offset = Vector2::new(
+						reader.read_i16::<LE>()? as isize,
+						reader.read_i16::<LE>()? as isize,
+					);
 					let index = reader.read_u16::<LE>()? as usize;
 					let name = format!("{}.patch", pnames[index]);
 					reader.read_u32::<LE>()?; // unused
-					patches.push(PatchInfo {
-						offset: [offset[0] as isize, offset[1] as isize],
-						name,
-					})
+					patches.push(PatchInfo { offset, name })
 				}
 
 				Ok((

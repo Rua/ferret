@@ -478,7 +478,7 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 
 			Ok(crate::doom::image::Image {
 				image,
-				offset: image_data.offset,
+				offset: Vector2::new(image_data.offset[0] as f32, image_data.offset[1] as f32),
 			})
 		});
 	}

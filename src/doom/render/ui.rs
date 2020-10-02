@@ -8,13 +8,13 @@ use crate::{
 	},
 	doom::{
 		image::Image,
-		ui::{UiImage, UiTransform},
+		ui::{UiAlignment, UiImage, UiTransform},
 	},
 };
 use anyhow::Context;
 use fnv::FnvHashMap;
 use legion::{systems::ResourceSet, IntoQuery, Read, Resources, World};
-use nalgebra::{Vector2, Vector3};
+use nalgebra::{Vector2, Vector3, U1, U3};
 use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
@@ -115,22 +115,11 @@ impl DrawStep for DrawUi {
 		for (ui_image, ui_transform) in <(&UiImage, &UiTransform)>::query().iter(world) {
 			// Set up instance data
 			let image = asset_storage.get(&ui_image.image).unwrap();
-			let position = Vector3::new(
-				ui_transform.position[0]
-					+ ui_params.alignment_offsets[ui_transform.alignment[0] as usize][0]
-					- image.offset[0] as f32,
-				ui_transform.position[1]
-					+ ui_params.alignment_offsets[ui_transform.alignment[1] as usize][1]
-					- image.offset[1] as f32,
-				ui_transform.position[2],
-			);
+			let position = ui_transform.position
+				+ (ui_params.align(ui_transform.alignment) - image.offset)
+					.fixed_resize::<U3, U1>(0.0);
 
-			let size = Vector2::new(
-				ui_transform.size[0]
-					+ ui_params.stretch_offsets[ui_transform.stretch[0] as usize][0],
-				ui_transform.size[1]
-					+ ui_params.stretch_offsets[ui_transform.stretch[1] as usize][1],
-			);
+			let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
 
 			let instance_data = InstanceData {
 				in_position: position.into(),
@@ -235,5 +224,19 @@ impl UiParams {
 			alignment_offsets,
 			stretch_offsets,
 		}
+	}
+
+	pub fn align(&self, alignment: [UiAlignment; 2]) -> Vector2<f32> {
+		Vector2::new(
+			self.alignment_offsets[alignment[0] as usize][0],
+			self.alignment_offsets[alignment[1] as usize][1],
+		)
+	}
+
+	pub fn stretch(&self, stretch: [bool; 2]) -> Vector2<f32> {
+		Vector2::new(
+			self.stretch_offsets[stretch[0] as usize][0],
+			self.stretch_offsets[stretch[1] as usize][1],
+		)
 	}
 }

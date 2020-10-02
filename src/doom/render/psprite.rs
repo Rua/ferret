@@ -18,7 +18,7 @@ use crate::{
 use anyhow::{bail, Context};
 use fnv::FnvHashMap;
 use legion::{systems::ResourceSet, IntoQuery, Read, Resources, World};
-use nalgebra::{Vector2, Vector3};
+use nalgebra::{Vector2, Vector3, U1, U3};
 use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
@@ -133,15 +133,10 @@ impl DrawStep for DrawPlayerSprites {
 			let image_handle = &frame[0].handle;
 			let image = asset_storage.get(image_handle).unwrap();
 
-			let position = Vector3::new(
-				ui_transform.position[0]
-					+ ui_params.alignment_offsets[ui_transform.alignment[0] as usize][0]
-					- image.offset[0] as f32,
-				ui_transform.position[1]
-					+ ui_params.alignment_offsets[ui_transform.alignment[1] as usize][1]
-					- image.offset[1] as f32,
-				ui_transform.position[2],
-			);
+			let position = ui_transform.position
+				+ (ui_params.align(ui_transform.alignment) - image.offset
+					+ Vector2::new(0.0, 16.0))
+				.fixed_resize::<U3, U1>(0.0);
 
 			let size = Vector2::new(
 				image.image.dimensions().width() as f32,
