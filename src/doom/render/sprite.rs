@@ -14,7 +14,7 @@ use crate::{
 use anyhow::Context;
 use fnv::FnvHashMap;
 use legion::{systems::ResourceSet, Entity, EntityStore, IntoQuery, Read, Resources, World};
-use nalgebra::{Matrix4, Vector2, Vector3};
+use nalgebra::{Matrix4, Vector2};
 use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
@@ -153,11 +153,7 @@ impl DrawStep for DrawSprites {
 		for (image_handle, instance_data) in batches {
 			let image = asset_storage.get(image_handle).unwrap();
 			let matrix = Matrix4::new_translation(&-image.offset.fixed_resize(0.0))
-				* Matrix4::new_nonuniform_scaling(&Vector3::new(
-					image.image.dimensions().width() as f32,
-					image.image.dimensions().height() as f32,
-					1.0,
-				));
+				* Matrix4::new_nonuniform_scaling(&image.size().fixed_resize(1.0));
 
 			draw_context.descriptor_sets.truncate(1);
 			draw_context.descriptor_sets.push(Arc::new(

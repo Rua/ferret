@@ -139,19 +139,12 @@ impl DrawStep for DrawPlayerSprites {
 
 			let image_handle = &frame[0].handle;
 			let image = asset_storage.get(image_handle).unwrap();
-
-			let position = (ui_transform.position + ui_params.align(ui_transform.alignment)
-				- image.offset + Vector2::new(0.0, 16.0))
-			.fixed_resize::<U3, U1>(ui_transform.depth);
-
-			let size = Vector2::new(
-				image.image.dimensions().width() as f32,
-				image.image.dimensions().height() as f32,
-			);
+			let position = ui_transform.position + ui_params.align(ui_transform.alignment)
+				- image.offset + Vector2::new(0.0, 16.0);
 
 			let instance_data = InstanceData {
-				in_position: position.into(),
-				in_size: size.into(),
+				in_position: position.fixed_resize::<U3, U1>(ui_transform.depth).into(),
+				in_size: image.size().into(),
 			};
 
 			// Add to batches

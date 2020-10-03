@@ -69,6 +69,13 @@ pub struct Image {
 	pub offset: Vector2<f32>,
 }
 
+impl Image {
+	pub fn size(&self) -> Vector2<f32> {
+		let [width, height] = self.image.dimensions().width_height();
+		Vector2::new(width as f32, height as f32)
+	}
+}
+
 pub fn import_patch(
 	path: &RelativePath,
 	asset_storage: &mut AssetStorage,
