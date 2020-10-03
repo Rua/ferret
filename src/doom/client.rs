@@ -72,65 +72,68 @@ pub fn player_move_system() -> impl Runnable {
 		.build(move |_, world, resources, queries| {
 			let (asset_storage, client, frame_time, quadtree) = resources;
 
-			if let Some(entity) = client.entity {
-				// Apply rotation
-				{
-					let transform = queries.0.get_mut(world, entity).unwrap();
+			let client_entity = match client.entity {
+				Some(e) => e,
+				None => return,
+			};
 
-					transform.rotation[1] += (client.command.pitch * 1e6) as i32;
-					transform.rotation[1].0 =
-						num_traits::clamp(transform.rotation[1].0, -0x4000_0000, 0x4000_0000);
+			// Apply rotation
+			{
+				let transform = queries.0.get_mut(world, client_entity).unwrap();
 
-					transform.rotation[2] -= (client.command.yaw * 1e6) as i32;
+				transform.rotation[1] += (client.command.pitch * 1e6) as i32;
+				transform.rotation[1].0 =
+					num_traits::clamp(transform.rotation[1].0, -0x4000_0000, 0x4000_0000);
+
+				transform.rotation[2] -= (client.command.yaw * 1e6) as i32;
+			}
+
+			// Apply acceleration
+			{
+				if client.command.forward == 0.0 && client.command.strafe == 0.0 {
+					return;
 				}
 
-				// Apply acceleration
-				{
-					if client.command.forward == 0.0 && client.command.strafe == 0.0 {
-						return;
-					}
+				let map_dynamic = queries.1.iter(world).next().unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
 
-					let map_dynamic = queries.1.iter(world).next().unwrap();
-					let map = asset_storage.get(&map_dynamic.map).unwrap();
+				let entity_bbox = {
+					let (transform, box_collider) = queries.2.get(world, client_entity).unwrap();
+					AABB3::from_radius_height(box_collider.radius, box_collider.height)
+						.offset(transform.position)
+				};
 
-					let entity_bbox = {
-						let (transform, box_collider) = queries.2.get(world, entity).unwrap();
-						AABB3::from_radius_height(box_collider.radius, box_collider.height)
-							.offset(transform.position)
-					};
+				let tracer = EntityTracer {
+					map,
+					map_dynamic,
+					quadtree: &quadtree,
+					world,
+				};
 
-					let tracer = EntityTracer {
-						map,
-						map_dynamic,
-						quadtree: &quadtree,
-						world,
-					};
+				let trace = tracer.trace(
+					&entity_bbox,
+					Vector3::new(0.0, 0.0, -0.25),
+					SolidMask::NON_MONSTER, // TODO solid mask
+				);
 
-					let trace = tracer.trace(
-						&entity_bbox,
-						Vector3::new(0.0, 0.0, -0.25),
-						SolidMask::NON_MONSTER, // TODO solid mask
-					);
-
-					if trace.collision.is_none() {
-						// Player is not on ground
-						return;
-					}
-
-					let move_dir = Vector2::new(
-						client.command.forward.max(-1.0).min(1.0) * FORWARD_ACCEL,
-						client.command.strafe.max(-1.0).min(1.0) * STRAFE_ACCEL,
-					);
-
-					let (transform, velocity) = queries.3.get_mut(world, entity).unwrap();
-
-					let angles = Vector3::new(0.into(), 0.into(), transform.rotation[2]);
-					let axes = crate::common::geometry::angles_to_axes(angles);
-					let accel = (axes[0] * move_dir[0] + axes[1] * move_dir[1])
-						* frame_time.delta.as_secs_f32();
-
-					velocity.velocity += accel;
+				if trace.collision.is_none() {
+					// Player is not on ground
+					return;
 				}
+
+				let move_dir = Vector2::new(
+					client.command.forward.max(-1.0).min(1.0) * FORWARD_ACCEL,
+					client.command.strafe.max(-1.0).min(1.0) * STRAFE_ACCEL,
+				);
+
+				let (transform, velocity) = queries.3.get_mut(world, client_entity).unwrap();
+
+				let angles = Vector3::new(0.into(), 0.into(), transform.rotation[2]);
+				let axes = crate::common::geometry::angles_to_axes(angles);
+				let accel = (axes[0] * move_dir[0] + axes[1] * move_dir[1])
+					* frame_time.delta.as_secs_f32();
+
+				velocity.velocity += accel;
 			}
 		})
 }

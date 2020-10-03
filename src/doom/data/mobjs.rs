@@ -204,7 +204,8 @@ pub fn load(resources: &mut Resources) {
 				raise_state: None,
 			})
 			.with_component(UiTransform {
-				position: Vector3::new(0.0, 0.0, 1.0),
+				position: Vector2::new(0.0, 0.0),
+				depth: 1.0,
 				alignment: [UiAlignment::Middle, UiAlignment::Far],
 				size: Vector2::new(0.0, 0.0),
 				stretch: [false; 2],

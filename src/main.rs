@@ -15,7 +15,7 @@ use clap::{App, Arg, ArgMatches};
 use legion::{
 	systems::ResourceSet, Entity, IntoQuery, Read, Resources, Schedule, World, WorldOptions, Write,
 };
-use nalgebra::{Vector2, Vector3};
+use nalgebra::Vector2;
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
 use relative_path::RelativePath;
@@ -213,7 +213,8 @@ fn main() -> anyhow::Result<()> {
 		world.extend(vec![
 			(
 				doom::ui::UiTransform {
-					position: Vector3::new(0.0, 168.0, 1.0),
+					position: Vector2::new(0.0, 168.0),
+					depth: 1.0,
 					alignment: [doom::ui::UiAlignment::Near, doom::ui::UiAlignment::Far],
 					size: Vector2::new(320.0, 32.0),
 					stretch: [true, false],
@@ -224,7 +225,8 @@ fn main() -> anyhow::Result<()> {
 			),
 			(
 				doom::ui::UiTransform {
-					position: Vector3::new(0.0, 168.0, 2.0),
+					position: Vector2::new(0.0, 168.0),
+					depth: 2.0,
 					alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
 					size: Vector2::new(320.0, 32.0),
 					stretch: [false; 2],
@@ -235,7 +237,8 @@ fn main() -> anyhow::Result<()> {
 			),
 			(
 				doom::ui::UiTransform {
-					position: Vector3::new(104.0, 168.0, 3.0),
+					position: Vector2::new(104.0, 168.0),
+					depth: 3.0,
 					alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
 					size: Vector2::new(40.0, 32.0),
 					stretch: [false; 2],
@@ -246,7 +249,8 @@ fn main() -> anyhow::Result<()> {
 			),
 			(
 				doom::ui::UiTransform {
-					position: Vector3::new(143.0, 168.0, 10.0),
+					position: Vector2::new(143.0, 168.0),
+					depth: 10.0,
 					alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
 					size: Vector2::new(24.0, 29.0),
 					stretch: [false; 2],

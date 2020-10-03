@@ -1,12 +1,13 @@
 use crate::{common::assets::AssetHandle, doom::image::Image};
 use derivative::Derivative;
-use nalgebra::{Vector2, Vector3};
+use nalgebra::Vector2;
 
 #[derive(Clone, Copy, Debug, Derivative)]
 #[derivative(Default)]
 pub struct UiTransform {
-	#[derivative(Default(value = "Vector3::zeros()"))]
-	pub position: Vector3<f32>,
+	#[derivative(Default(value = "Vector2::zeros()"))]
+	pub position: Vector2<f32>,
+	pub depth: f32,
 	pub alignment: [UiAlignment; 2],
 	#[derivative(Default(value = "Vector2::zeros()"))]
 	pub size: Vector2<f32>,

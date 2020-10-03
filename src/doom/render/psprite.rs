@@ -7,6 +7,7 @@ use crate::{
 		},
 	},
 	doom::{
+		client::Client,
 		image::Image,
 		render::{
 			sprite::SpriteRender,
@@ -16,10 +17,9 @@ use crate::{
 	},
 };
 use anyhow::{bail, Context};
-use fnv::FnvHashMap;
 use legion::{systems::ResourceSet, IntoQuery, Read, Resources, World};
 use nalgebra::{Vector2, Vector3, U1, U3};
-use std::{collections::hash_map::Entry, sync::Arc};
+use std::{iter::once, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
 	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
@@ -109,16 +109,23 @@ impl DrawStep for DrawPlayerSprites {
 				.build()?,
 		));
 
-		let (asset_storage, sampler) = <(Read<AssetStorage>, Read<Arc<Sampler>>)>::fetch(resources);
+		let (asset_storage, client, sampler) =
+			<(Read<AssetStorage>, Read<Client>, Read<Arc<Sampler>>)>::fetch(resources);
 
-		// Group draws into batches by texture
-		let mut batches: FnvHashMap<AssetHandle<Image>, Vec<InstanceData>> = FnvHashMap::default();
+		let client_entity = match client.entity {
+			Some(e) => e,
+			None => return Ok(()),
+		};
 
-		for (player_sprite_render, ui_transform) in
-			<(&PlayerSpriteRender, &UiTransform)>::query().iter(world)
-		{
-			let sprite_render = &player_sprite_render.weapon;
+		let (player_sprite_render, ui_transform) =
+			match <(&PlayerSpriteRender, &UiTransform)>::query().get(world, client_entity) {
+				Ok(x) => x,
+				Err(_) => return Ok(()),
+			};
 
+		let mut batches: Vec<(AssetHandle<Image>, InstanceData)> = Vec::new();
+
+		for sprite_render in once(&player_sprite_render.weapon).chain(&player_sprite_render.flash) {
 			// Set up instance data
 			let sprite = asset_storage.get(&sprite_render.sprite).unwrap();
 			let frame = &sprite.frames()[sprite_render.frame];
@@ -133,10 +140,9 @@ impl DrawStep for DrawPlayerSprites {
 			let image_handle = &frame[0].handle;
 			let image = asset_storage.get(image_handle).unwrap();
 
-			let position = ui_transform.position
-				+ (ui_params.align(ui_transform.alignment) - image.offset
-					+ Vector2::new(0.0, 16.0))
-				.fixed_resize::<U3, U1>(0.0);
+			let position = (ui_transform.position + ui_params.align(ui_transform.alignment)
+				- image.offset + Vector2::new(0.0, 16.0))
+			.fixed_resize::<U3, U1>(ui_transform.depth);
 
 			let size = Vector2::new(
 				image.image.dimensions().width() as f32,
@@ -149,14 +155,7 @@ impl DrawStep for DrawPlayerSprites {
 			};
 
 			// Add to batches
-			match batches.entry(image_handle.clone()) {
-				Entry::Occupied(mut entry) => {
-					entry.get_mut().push(instance_data);
-				}
-				Entry::Vacant(entry) => {
-					entry.insert(vec![instance_data]);
-				}
-			}
+			batches.push((image_handle.clone(), instance_data));
 		}
 
 		// Draw the batches
@@ -170,7 +169,7 @@ impl DrawStep for DrawPlayerSprites {
 					.build()?,
 			));
 
-			let instance_buffer = self.instance_buffer_pool.chunk(instance_data)?;
+			let instance_buffer = self.instance_buffer_pool.next(instance_data)?;
 
 			draw_context
 				.commands

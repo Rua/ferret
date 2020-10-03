@@ -115,9 +115,9 @@ impl DrawStep for DrawUi {
 		for (ui_image, ui_transform) in <(&UiImage, &UiTransform)>::query().iter(world) {
 			// Set up instance data
 			let image = asset_storage.get(&ui_image.image).unwrap();
-			let position = ui_transform.position
-				+ (ui_params.align(ui_transform.alignment) - image.offset)
-					.fixed_resize::<U3, U1>(0.0);
+			let position = (ui_transform.position + ui_params.align(ui_transform.alignment)
+				- image.offset)
+				.fixed_resize::<U3, U1>(ui_transform.depth);
 
 			let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
 
