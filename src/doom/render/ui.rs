@@ -12,10 +12,9 @@ use crate::{
 	},
 };
 use anyhow::Context;
-use fnv::FnvHashMap;
-use legion::{systems::ResourceSet, IntoQuery, Read, Resources, World};
-use nalgebra::{Vector2, Vector3, U1, U3};
-use std::{collections::hash_map::Entry, sync::Arc};
+use legion::{systems::ResourceSet, Entity, IntoQuery, Read, Resources, World};
+use nalgebra::{Vector2, Vector3};
+use std::{cmp::Ordering, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
 	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
@@ -54,7 +53,6 @@ impl DrawUi {
 				.fragment_shader(frag.main_entry_point(), ())
 				.triangle_fan()
 				.viewports_dynamic_scissors_irrelevant(1)
-				.depth_stencil_simple_depth()
 				.build(device.clone())
 				.context("Couldn't create pipeline")?,
 		) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
@@ -107,12 +105,21 @@ impl DrawStep for DrawUi {
 				.build()?,
 		));
 
+		// Sort UiTransform entities by depth
+		let mut entities: Vec<(f32, Entity)> = <(Entity, &UiTransform)>::query()
+			.iter(world)
+			.map(|(&entity, ui_transform)| (ui_transform.depth, entity))
+			.collect();
+		entities.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(Ordering::Equal));
+
+		// Group draws into batches by texture, preserving depth order
+		let mut batches: Vec<(AssetHandle<Image>, Vec<InstanceData>)> = Vec::new();
 		let (asset_storage, sampler) = <(Read<AssetStorage>, Read<Arc<Sampler>>)>::fetch(resources);
 
-		// Group draws into batches by texture
-		let mut batches: FnvHashMap<AssetHandle<Image>, Vec<InstanceData>> = FnvHashMap::default();
-
-		for (ui_image, ui_transform) in <(&UiImage, &UiTransform)>::query().iter(world) {
+		for (ui_image, ui_transform) in entities
+			.into_iter()
+			.filter_map(|(_, entity)| <(&UiImage, &UiTransform)>::query().get(world, entity).ok())
+		{
 			// Set up instance data
 			let image = asset_storage.get(&ui_image.image).unwrap();
 			let position =
@@ -120,18 +127,14 @@ impl DrawStep for DrawUi {
 			let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
 
 			let instance_data = InstanceData {
-				in_position: position.fixed_resize::<U3, U1>(ui_transform.depth).into(),
+				in_position: position.into(),
 				in_size: size.into(),
 			};
 
 			// Add to batches
-			match batches.entry(ui_image.image.clone()) {
-				Entry::Occupied(mut entry) => {
-					entry.get_mut().push(instance_data);
-				}
-				Entry::Vacant(entry) => {
-					entry.insert(vec![instance_data]);
-				}
+			match batches.last_mut() {
+				Some((i, id)) if *i == ui_image.image => id.push(instance_data),
+				_ => batches.push((ui_image.image.clone(), vec![instance_data])),
 			}
 		}
 
@@ -182,7 +185,7 @@ pub mod ui_frag {
 
 #[derive(Clone, Debug, Default)]
 pub struct InstanceData {
-	pub in_position: [f32; 3],
+	pub in_position: [f32; 2],
 	pub in_size: [f32; 2],
 }
 impl_vertex!(InstanceData, in_position, in_size);

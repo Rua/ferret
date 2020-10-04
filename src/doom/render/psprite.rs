@@ -18,7 +18,7 @@ use crate::{
 };
 use anyhow::{bail, Context};
 use legion::{systems::ResourceSet, IntoQuery, Read, Resources, World};
-use nalgebra::{Vector2, Vector3, U1, U3};
+use nalgebra::{Vector2, Vector3};
 use std::{iter::once, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
@@ -143,7 +143,7 @@ impl DrawStep for DrawPlayerSprites {
 				- image.offset + Vector2::new(0.0, 16.0);
 
 			let instance_data = InstanceData {
-				in_position: position.fixed_resize::<U3, U1>(ui_transform.depth).into(),
+				in_position: position.into(),
 				in_size: image.size().into(),
 			};
 
