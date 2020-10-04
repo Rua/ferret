@@ -4,7 +4,7 @@ use crate::{
 		components::Velocity,
 		data::FRAME_RATE,
 		physics::{StepEvent, TouchEvent},
-		ui::UiTransform,
+		render::psprite::PlayerSpriteRender,
 	},
 };
 use legion::{systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};
@@ -40,7 +40,7 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<EventChannel<TouchEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<&mut Camera>::query())
-		.with_query(<(&Velocity, &mut Camera, &mut UiTransform)>::query())
+		.with_query(<(&Velocity, &mut Camera, &mut PlayerSpriteRender)>::query())
 		.build(move |_, world, resources, queries| {
 			let (frame_time, step_event_channel, touch_event_channel, sound_queue) = resources;
 
@@ -67,7 +67,7 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 				}
 			}
 
-			for (velocity, mut camera, ui_transform) in queries.1.iter_mut(world) {
+			for (velocity, mut camera, player_sprite_render) in queries.1.iter_mut(world) {
 				// Calculate deviation
 				if camera.deviation_position != 0.0 || camera.deviation_velocity != 0.0 {
 					const DEVIATION_ACCEL: f32 = 0.25 * FRAME_RATE * FRAME_RATE;
@@ -105,10 +105,10 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 				let mut angle = Angle::from_units(
 					frame_time.total.as_secs_f64() / camera.weapon_bob_period.as_secs_f64(),
 				);
-				ui_transform.position[0] = 1.0 + bob_amplitude * angle.cos() as f32;
+				player_sprite_render.position[0] = 1.0 + bob_amplitude * angle.cos() as f32;
 
 				angle.0 &= 0x7FFF_FFFF;
-				ui_transform.position[1] = bob_amplitude * angle.sin() as f32;
+				player_sprite_render.position[1] = bob_amplitude * angle.sin() as f32;
 			}
 		})
 }

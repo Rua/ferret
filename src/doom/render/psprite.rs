@@ -13,7 +13,7 @@ use crate::{
 			sprite::SpriteRender,
 			ui::{ui_frag, ui_vert, InstanceData, Matrices, UiParams},
 		},
-		ui::UiTransform,
+		ui::UiAlignment,
 	},
 };
 use anyhow::{bail, Context};
@@ -117,11 +117,10 @@ impl DrawStep for DrawPlayerSprites {
 			None => return Ok(()),
 		};
 
-		let (player_sprite_render, ui_transform) =
-			match <(&PlayerSpriteRender, &UiTransform)>::query().get(world, client_entity) {
-				Ok(x) => x,
-				Err(_) => return Ok(()),
-			};
+		let player_sprite_render = match <&PlayerSpriteRender>::query().get(world, client_entity) {
+			Ok(x) => x,
+			Err(_) => return Ok(()),
+		};
 
 		let mut batches: Vec<(AssetHandle<Image>, InstanceData)> = Vec::new();
 
@@ -139,7 +138,8 @@ impl DrawStep for DrawPlayerSprites {
 
 			let image_handle = &frame[0].handle;
 			let image = asset_storage.get(image_handle).unwrap();
-			let position = ui_transform.position + ui_params.align(ui_transform.alignment)
+			let position = player_sprite_render.position
+				+ ui_params.align([UiAlignment::Middle, UiAlignment::Far])
 				- image.offset + Vector2::new(0.0, 16.0);
 
 			let instance_data = InstanceData {
@@ -182,6 +182,7 @@ impl DrawStep for DrawPlayerSprites {
 
 #[derive(Clone, Debug)]
 pub struct PlayerSpriteRender {
+	pub position: Vector2<f32>,
 	pub weapon: SpriteRender,
 	pub flash: Option<SpriteRender>,
 }

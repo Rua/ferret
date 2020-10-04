@@ -10,7 +10,6 @@ use crate::{
 		physics::{BoxCollider, SolidMask},
 		render::{psprite::PlayerSpriteRender, sprite::SpriteRender},
 		state::{State, StateDef},
-		ui::{UiAlignment, UiTransform},
 	},
 };
 use legion::{systems::ResourceSet, Resources, Write};
@@ -80,6 +79,7 @@ pub fn load(resources: &mut Resources) {
 				impact_sound: asset_storage.load("dsoof.sound"),
 			})
 			.with_component(PlayerSpriteRender {
+				position: Vector2::new(0.0, 0.0),
 				weapon: SpriteRender {
 					sprite: asset_storage.load("pisg.sprite"),
 					frame: 0,
@@ -202,13 +202,6 @@ pub fn load(resources: &mut Resources) {
 				death_state: Some("play_die1".to_owned()),
 				xdeath_state: Some("play_xdie1".to_owned()),
 				raise_state: None,
-			})
-			.with_component(UiTransform {
-				position: Vector2::new(0.0, 0.0),
-				depth: 1.0,
-				alignment: [UiAlignment::Middle, UiAlignment::Far],
-				size: Vector2::new(0.0, 0.0),
-				stretch: [false; 2],
 			})
 			.with_component(User {
 				error_sound: asset_storage.load("dsnoway.sound"),
