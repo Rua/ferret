@@ -18,7 +18,7 @@ derivative = "2.1"
 downcast-rs = "1.2"
 fnv = "1.0"
 lazy_static = "1.4"
-legion = {version = "0.3.0"}
+legion = {version = "0.3.0", default-features = false}
 log = {version = "0.4.8", features = ["std"]}
 nalgebra = "0.22.0"
 num-traits = "0.2.11"
@@ -34,7 +34,7 @@ smallvec = "1.4"
 vulkano = {git = "https://github.com/vulkano-rs/vulkano"}
 vulkano-shaders = "0.19"
 vulkano-win = {git = "https://github.com/vulkano-rs/vulkano"}
-winit = {version = "0.22.2", features = ["serde"]}
+winit = {version = "0.22.2"}
 
 [profile.dev]
 opt-level = 1
