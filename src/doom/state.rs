@@ -2,27 +2,30 @@ use crate::{
 	common::time::{FrameTime, Timer},
 	doom::render::sprite::SpriteRender,
 };
+use arrayvec::ArrayString;
 use legion::{systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
+pub type StateName = ArrayString<[u8; 16]>;
+
 #[derive(Clone, Debug)]
 pub struct State {
-	pub states: Arc<HashMap<String, StateDef>>,
-	pub next: Option<(Timer, Option<String>)>,
-	pub spawn_state: Option<String>,
-	pub see_state: Option<String>,
-	pub pain_state: Option<String>,
-	pub melee_state: Option<String>,
-	pub missile_state: Option<String>,
-	pub death_state: Option<String>,
-	pub xdeath_state: Option<String>,
-	pub raise_state: Option<String>,
+	pub states: Arc<HashMap<StateName, StateDef>>,
+	pub next: Option<(Timer, Option<StateName>)>,
+	pub spawn_state: Option<StateName>,
+	pub see_state: Option<StateName>,
+	pub pain_state: Option<StateName>,
+	pub melee_state: Option<StateName>,
+	pub missile_state: Option<StateName>,
+	pub death_state: Option<StateName>,
+	pub xdeath_state: Option<StateName>,
+	pub raise_state: Option<StateName>,
 }
 
 #[derive(Clone, Debug)]
 pub struct StateDef {
 	pub sprite: SpriteRender,
-	pub next: Option<(Duration, Option<String>)>,
+	pub next: Option<(Duration, Option<StateName>)>,
 }
 
 pub fn state_system(_resources: &mut Resources) -> impl Runnable {
