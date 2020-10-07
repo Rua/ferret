@@ -1,26 +1,15 @@
 use crate::{
-	common::time::{FrameTime, Timer},
-	doom::render::sprite::SpriteRender,
+	common::{
+		assets::AssetStorage,
+		time::{FrameTime, Timer},
+	},
+	doom::{entitytemplate::EntityTemplateRef, render::sprite::SpriteRender},
 };
 use arrayvec::ArrayString;
 use legion::{systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::time::Duration;
 
 pub type StateName = ArrayString<[u8; 16]>;
-
-#[derive(Clone, Debug)]
-pub struct State {
-	pub states: Arc<HashMap<StateName, StateDef>>,
-	pub next: Option<(Timer, Option<StateName>)>,
-	pub spawn_state: Option<StateName>,
-	pub see_state: Option<StateName>,
-	pub pain_state: Option<StateName>,
-	pub melee_state: Option<StateName>,
-	pub missile_state: Option<StateName>,
-	pub death_state: Option<StateName>,
-	pub xdeath_state: Option<StateName>,
-	pub raise_state: Option<StateName>,
-}
 
 #[derive(Clone, Debug)]
 pub struct StateDef {
@@ -28,14 +17,21 @@ pub struct StateDef {
 	pub next: Option<(Duration, Option<StateName>)>,
 }
 
+#[derive(Clone, Debug)]
+pub struct State {
+	pub current: Option<StateName>,
+	pub next: Option<(Timer, Option<StateName>)>,
+}
+
 pub fn state_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("state_system")
+		.read_resource::<AssetStorage>()
 		.read_resource::<FrameTime>()
-		.with_query(<(Entity, &mut SpriteRender, &mut State)>::query())
+		.with_query(<(Entity, &EntityTemplateRef, &mut SpriteRender, &mut State)>::query())
 		.build(move |command_buffer, world, resources, query| {
-			let frame_time = resources;
+			let (asset_storage, frame_time) = resources;
 
-			for (entity, sprite_render, state) in query.iter_mut(world) {
+			for (entity, template_ref, sprite_render, state) in query.iter_mut(world) {
 				let state = &mut *state;
 
 				if let Some((timer, next)) = &mut state.next {
@@ -43,7 +39,8 @@ pub fn state_system(_resources: &mut Resources) -> impl Runnable {
 
 					while timer.is_zero() {
 						if let Some(new_state_name) = next {
-							let new_state = state
+							let template = asset_storage.get(&template_ref.0).unwrap();
+							let new_state = template
 								.states
 								.get(new_state_name)
 								.expect("Invalid next state name");

@@ -496,11 +496,11 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 				.load(&RelativePath::new(&name_lower).with_extension("things"))?,
 		)?
 	};
-	doom::map::spawn_map_entities(world, &resources, &map_handle)?;
-	doom::map::spawn_things(things, world, resources, &map_handle)?;
+	doom::map::spawn::spawn_map_entities(world, &resources, &map_handle)?;
+	doom::map::spawn::spawn_things(things, world, resources, &map_handle)?;
 
 	// Spawn player
-	let entity = doom::map::spawn_player(world, resources)?;
+	let entity = doom::map::spawn::spawn_player(world, resources)?;
 	<Write<doom::client::Client>>::fetch_mut(resources).entity = Some(entity);
 
 	// Create quadtree and add entities to it

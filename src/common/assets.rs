@@ -81,16 +81,6 @@ impl AssetStorage {
 	}
 
 	#[inline]
-	pub fn get_by_name<A: Asset>(&self, name: &str) -> Option<&A> {
-		let storage = storage::<A>(&self.storages);
-		storage
-			.names
-			.get(name)
-			.and_then(WeakHandle::upgrade)
-			.and_then(|handle| storage.assets.get(&handle.id()))
-	}
-
-	#[inline]
 	pub fn insert<A: Asset>(&mut self, asset: A) -> AssetHandle<A> {
 		let handle = self.handle_allocator.allocate();
 		let storage = storage_mut::<A>(&mut self.storages);
