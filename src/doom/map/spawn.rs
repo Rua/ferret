@@ -11,6 +11,7 @@ use crate::{
 			AnimState, LinedefDynamic, LinedefRef, Map, MapDynamic, SectorDynamic, SectorRef,
 			SidedefDynamic, Thing, ThingFlags,
 		},
+		state::State,
 	},
 };
 use anyhow::bail;
@@ -74,6 +75,18 @@ pub fn spawn_things(
 				rotation: Vector3::new(0.into(), 0.into(), thing.angle),
 			},
 		);
+
+		// Set spawn state
+		if let Some(spawn_state) = template.spawn_state {
+			let new_state = &template.states[&spawn_state];
+			command_buffer.add_component(
+				entity,
+				State {
+					current: spawn_state,
+					timer: new_state.next.map(|(time, _)| Timer::new(time)),
+				},
+			);
+		}
 	}
 
 	command_buffer.flush(world);

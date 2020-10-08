@@ -1,6 +1,6 @@
 #![allow(unused_variables)]
 use crate::{
-	common::{assets::AssetStorage, component::EntityComponents, time::Timer},
+	common::{assets::AssetStorage, component::EntityComponents},
 	doom::{
 		camera::Camera,
 		client::User,
@@ -10,12 +10,12 @@ use crate::{
 		physics::{BoxCollider, SolidMask},
 		psprite::PlayerSpriteRender,
 		sprite::SpriteRender,
-		state::{State, StateDef, StateName},
+		state::{StateDef, StateName},
 	},
 };
 use legion::{systems::ResourceSet, Resources, Write};
 use nalgebra::{Vector2, Vector3};
-use std::{collections::HashMap, default::Default, time::Duration};
+use std::{collections::HashMap, default::Default};
 
 #[rustfmt::skip]
 pub fn load(resources: &mut Resources) {
@@ -201,10 +201,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: false,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("play").unwrap()))),
-			})
 			.with_component(User {
 				error_sound: asset_storage.load("dsnoway.sound"),
 			})
@@ -369,10 +365,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("poss.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("poss_stnd").unwrap()))),
 			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
@@ -539,10 +531,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("spos.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("spos_stnd").unwrap()))),
 			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
@@ -720,10 +708,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: false,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("vile_stnd").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -862,10 +846,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("fire.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("fire1").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -1040,10 +1020,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: false,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("skel_stnd").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -1084,10 +1060,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: true,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("tracer").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -1126,10 +1098,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("puff.sprite"),
 				frame: 1,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("smoke1").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -1335,10 +1303,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: false,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("fatt_stnd").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -1378,10 +1342,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("manf.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("fatshot1").unwrap()))),
 			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
@@ -1557,10 +1517,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: false,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("cpos_stnd").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -1724,10 +1680,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: false,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("troo_stnd").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -1864,10 +1816,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("sarg.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("sarg_stnd").unwrap()))),
 			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
@@ -2006,10 +1954,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: false,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("sarg_stnd").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -2118,10 +2062,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("head.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("head_stnd").unwrap()))),
 			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
@@ -2269,10 +2209,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: false,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("boss_stnd").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -2312,10 +2248,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("bal7.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("brball1").unwrap()))),
 			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
@@ -2463,10 +2395,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: false,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("bos2_stnd").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -2558,10 +2486,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("skul.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("skull_stnd").unwrap()))),
 			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
@@ -2714,10 +2638,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("spid.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("spid_stnd").unwrap()))),
 			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
@@ -2888,10 +2808,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: false,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("bspi_stnd").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -3028,10 +2944,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: false,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("cyber_stnd").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -3160,10 +3072,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("pain.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("pain_stnd").unwrap()))),
 			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
@@ -3343,10 +3251,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: false,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("sswv_stnd").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -3436,10 +3340,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: false,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("keenstnd").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -3490,10 +3390,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: false,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("brain").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -3525,10 +3421,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("sswv.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("braineye").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -3571,10 +3463,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("bosf.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("spawn1").unwrap()))),
 			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
@@ -3626,10 +3514,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("fire.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("spawnfire1").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -3683,10 +3567,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: false,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("bar1").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -3726,10 +3606,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("bal1.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("tball1").unwrap()))),
 			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
@@ -3771,10 +3647,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: true,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("rball1").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -3810,10 +3682,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("misl.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("rocket").unwrap()))),
 			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
@@ -3862,10 +3730,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("plss.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("plasball").unwrap()))),
 			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
@@ -3919,10 +3783,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: true,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("bfgshot").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -3971,10 +3831,6 @@ pub fn load(resources: &mut Resources) {
 				frame: 0,
 				full_bright: true,
 			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("arach_plaz").unwrap()))),
-			})
 			.with_component(Velocity::default()),
 		.. EntityTemplate::default()
 	};
@@ -4009,10 +3865,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("puff.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("puff1").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4043,10 +3895,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("blud.sprite"),
 				frame: 2,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("blood1").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4113,10 +3961,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("tfog.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("tfog").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4163,10 +4007,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("ifog.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("ifog").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4209,10 +4049,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("bfe2.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("bfgexp").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4244,10 +4080,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("arm1.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("arm1").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4279,10 +4111,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("arm2.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("arm2").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4330,10 +4158,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("bon1.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("bon1").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4381,10 +4205,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("bon2.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("bon2").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4416,10 +4236,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("bkey.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("bkey").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4451,10 +4267,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("rkey.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("rkey").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4486,10 +4298,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("ykey.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("ykey").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4521,10 +4329,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("ysku.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("yskull").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4556,10 +4360,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("rsku.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("rskull").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4591,10 +4391,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("bsku.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("bskull").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4622,10 +4418,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("stim.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("stim").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4653,10 +4445,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("medi.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("medi").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4704,10 +4492,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("soul.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("soul").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4747,10 +4531,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("pinv.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("pinv").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4778,10 +4558,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("pstr.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("pstr").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4821,10 +4597,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("pins.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("pins").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4852,10 +4624,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("suit.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("suit").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4903,10 +4671,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("pmap.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("pmap").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4938,10 +4702,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("pvis.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("pvis").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -4981,10 +4741,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("mega.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("mega").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5012,10 +4768,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("clip.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("clip").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5043,10 +4795,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("ammo.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("ammo").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5074,10 +4822,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("rock.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("rock").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5105,10 +4849,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("brok.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("brok").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5136,10 +4876,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("cell.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("cell").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5167,10 +4903,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("celp.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("celp").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5198,10 +4930,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("shel.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("shel").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5229,10 +4957,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("sbox.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("sbox").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5260,10 +4984,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("bpak.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("bpak").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5291,10 +5011,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("bfug.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("bfug").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5322,10 +5038,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("mgun.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("mgun").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5353,10 +5065,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("csaw.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("csaw").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5384,10 +5092,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("laun.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("laun").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5415,10 +5119,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("plas.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("plas").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5446,10 +5146,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("shot.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("shot").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5477,10 +5173,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("sgn2.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("shot2").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5520,10 +5212,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("tlmp.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("techlamp").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5563,10 +5251,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("tlp2.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("tech2lamp").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5594,10 +5278,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("colu.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("colu").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5625,10 +5305,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("col1.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("tallgrncol").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5656,10 +5332,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("col2.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("shrtgrncol").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5687,10 +5359,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("col3.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("tallredcol").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5718,10 +5386,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("col4.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("shrtredcol").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5749,10 +5413,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("col6.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("skullcol").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5784,10 +5444,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("col5.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("heartcol").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5827,10 +5483,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("ceye.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("evileye").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5866,10 +5518,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("fsku.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("floatskull").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5897,10 +5545,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("tre1.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("torchtree").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5940,10 +5584,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("tblu.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("bluetorch").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -5983,10 +5623,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("tgrn.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("greentorch").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6026,10 +5662,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("tred.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("redtorch").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6069,10 +5701,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("smbt.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("btorchshrt").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6112,10 +5740,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("smgt.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("gtorchshrt").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6155,10 +5779,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("smrt.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("rtorchshrt").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6186,10 +5806,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("smit.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("stalagtite").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6217,10 +5833,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("elec.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("techpillar").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6248,10 +5860,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("cand.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("candlestik").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6279,10 +5887,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("cbra.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("candelabra").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6325,10 +5929,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("gor1.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("bloodytwitch").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6359,10 +5959,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("gor2.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("meat2").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6393,10 +5989,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("gor3.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("meat3").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6427,10 +6019,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("gor4.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("meat4").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6461,10 +6049,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("gor5.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("meat5").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6495,10 +6079,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("gor2.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("meat2").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6529,10 +6109,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("gor4.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("meat4").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6563,10 +6139,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("gor3.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("meat3").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6597,10 +6169,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("gor5.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("meat5").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6643,10 +6211,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("gor1.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("bloodytwitch").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6674,10 +6238,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("head.sprite"),
 				frame: 11,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("head_die6").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6705,10 +6265,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("play.sprite"),
 				frame: 13,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("play_die7").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6736,10 +6292,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("poss.sprite"),
 				frame: 11,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("poss_die5").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6767,10 +6319,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("sarg.sprite"),
 				frame: 13,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("sarg_die6").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6798,10 +6346,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("skul.sprite"),
 				frame: 10,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("skull_die6").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6829,10 +6373,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("troo.sprite"),
 				frame: 12,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("troo_die5").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6860,10 +6400,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("spos.sprite"),
 				frame: 11,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("spos_die5").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6891,10 +6427,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("play.sprite"),
 				frame: 22,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("play_xdie9").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6922,10 +6454,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("play.sprite"),
 				frame: 22,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("play_xdie9").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6953,10 +6481,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("pol2.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("headsonstick").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -6984,10 +6508,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("pol5.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("gibs").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -7015,10 +6535,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("pol4.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("headonastick").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -7050,10 +6566,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("pol3.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("headcandles").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -7081,10 +6593,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("pol1.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("deadstick").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -7116,10 +6624,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("pol6.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("livestick").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -7147,10 +6651,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("tre2.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("bigtree").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -7186,10 +6686,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("fcan.sprite"),
 				frame: 0,
 				full_bright: true,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("bbar1").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -7220,10 +6716,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("hdb1.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("hangnoguts").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -7254,10 +6746,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("hdb2.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("hangbnobrain").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -7288,10 +6776,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("hdb3.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("hangtlookdn").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -7322,10 +6806,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("hdb4.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("hangtskull").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -7356,10 +6836,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("hdb5.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("hangtlookup").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -7390,10 +6866,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("hdb6.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("hangtnobrain").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -7416,10 +6888,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("pob1.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("colongibs").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -7442,10 +6910,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("pob2.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("smallpool").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
@@ -7468,10 +6932,6 @@ pub fn load(resources: &mut Resources) {
 				sprite: asset_storage.load("brs1.sprite"),
 				frame: 0,
 				full_bright: false,
-			})
-			.with_component(State {
-				current: None,
-				next: Some((Timer::new(Duration::default()), Some(StateName::from("brainstem").unwrap()))),
 			}),
 		.. EntityTemplate::default()
 	};
