@@ -3,7 +3,7 @@ use crate::{
 		assets::AssetStorage,
 		time::{FrameTime, Timer},
 	},
-	doom::{entitytemplate::EntityTemplateRef, render::sprite::SpriteRender},
+	doom::{entitytemplate::EntityTemplateRef, sprite::SpriteRender},
 };
 use arrayvec::ArrayString;
 use legion::{systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};

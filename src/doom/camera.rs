@@ -4,7 +4,7 @@ use crate::{
 		components::Velocity,
 		data::FRAME_RATE,
 		physics::{StepEvent, TouchEvent},
-		render::psprite::PlayerSpriteRender,
+		psprite::PlayerSpriteRender,
 	},
 };
 use legion::{systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};

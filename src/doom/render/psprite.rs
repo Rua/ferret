@@ -9,17 +9,15 @@ use crate::{
 	doom::{
 		client::Client,
 		image::Image,
-		render::{
-			sprite::SpriteRender,
-			ui::{ui_frag, ui_vert, InstanceData, Matrices, UiParams},
-		},
+		psprite::PlayerSpriteRender,
+		render::ui::{ui_frag, ui_vert, InstanceData, Matrices, UiParams},
 		ui::UiAlignment,
 	},
 };
 use anyhow::{bail, Context};
 use legion::{systems::ResourceSet, IntoQuery, Read, Resources, World};
 use nalgebra::{Vector2, Vector3};
-use std::{iter::once, sync::Arc};
+use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
 	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
@@ -124,7 +122,7 @@ impl DrawStep for DrawPlayerSprites {
 
 		let mut batches: Vec<(AssetHandle<Image>, InstanceData)> = Vec::new();
 
-		for sprite_render in once(&player_sprite_render.weapon).chain(&player_sprite_render.flash) {
+		for sprite_render in player_sprite_render.slots.iter().flatten() {
 			// Set up instance data
 			let sprite = asset_storage.get(&sprite_render.sprite).unwrap();
 			let frame = &sprite.frames()[sprite_render.frame];
@@ -178,11 +176,4 @@ impl DrawStep for DrawPlayerSprites {
 
 		Ok(())
 	}
-}
-
-#[derive(Clone, Debug)]
-pub struct PlayerSpriteRender {
-	pub position: Vector2<f32>,
-	pub weapon: SpriteRender,
-	pub flash: Option<SpriteRender>,
 }

@@ -8,7 +8,8 @@ use crate::{
 		data::FRAME_TIME,
 		entitytemplate::{EntityTemplate, EntityTypeId},
 		physics::{BoxCollider, SolidMask},
-		render::{psprite::PlayerSpriteRender, sprite::SpriteRender},
+		psprite::PlayerSpriteRender,
+		sprite::SpriteRender,
 		state::{State, StateDef, StateName},
 	},
 };
@@ -186,12 +187,14 @@ pub fn load(resources: &mut Resources) {
 			})
 			.with_component(PlayerSpriteRender {
 				position: Vector2::new(0.0, 0.0),
-				weapon: SpriteRender {
-					sprite: asset_storage.load("pisg.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				flash: None,
+				slots: [
+					Some(SpriteRender {
+						sprite: asset_storage.load("pisg.sprite"),
+						frame: 0,
+						full_bright: false,
+					}),
+					None,
+				],
 			})
 			.with_component(SpriteRender {
 				sprite: asset_storage.load("play.sprite"),

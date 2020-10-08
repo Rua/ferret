@@ -17,6 +17,13 @@ pub struct SpriteImageInfo {
 	pub handle: AssetHandle<Image>,
 }
 
+#[derive(Clone, Debug)]
+pub struct SpriteRender {
+	pub sprite: AssetHandle<Sprite>,
+	pub frame: usize,
+	pub full_bright: bool,
+}
+
 impl Sprite {
 	pub fn frames(&self) -> &Vec<Vec<SpriteImageInfo>> {
 		&self.frames

@@ -8,7 +8,7 @@ use crate::{
 	},
 	doom::{
 		client::Client, components::Transform, image::Image, map::MapDynamic,
-		render::world::normal_frag, sprite::Sprite,
+		render::world::normal_frag, sprite::SpriteRender,
 	},
 };
 use anyhow::Context;
@@ -207,10 +207,3 @@ pub struct InstanceData {
 	pub in_light_level: f32,
 }
 impl_vertex!(InstanceData, in_transform, in_flip, in_light_level);
-
-#[derive(Clone, Debug)]
-pub struct SpriteRender {
-	pub sprite: AssetHandle<Sprite>,
-	pub frame: usize,
-	pub full_bright: bool,
-}
