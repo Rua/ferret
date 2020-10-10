@@ -11,7 +11,7 @@ use crate::{
 			AnimState, LinedefDynamic, LinedefRef, Map, MapDynamic, SectorDynamic, SectorRef,
 			SidedefDynamic, Thing, ThingFlags,
 		},
-		state::State,
+		state::{State, StateName},
 	},
 };
 use anyhow::bail;
@@ -77,13 +77,12 @@ pub fn spawn_things(
 		);
 
 		// Set spawn state
-		if let Some(spawn_state) = template.spawn_state {
-			let new_state = &template.states[&spawn_state];
+		if let Some(spawn_state) = template.states.get("spawn00") {
 			command_buffer.add_component(
 				entity,
 				State {
-					current: spawn_state,
-					timer: new_state.next.map(|(time, _)| Timer::new(time)),
+					current: StateName::from("spawn00").unwrap(),
+					timer: spawn_state.next.map(|(time, _)| Timer::new(time)),
 				},
 			);
 		}
