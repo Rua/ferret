@@ -77,12 +77,13 @@ pub fn spawn_things(
 		);
 
 		// Set spawn state
-		if let Some(spawn_state) = template.states.get("spawn00") {
+		let new = (StateName::from("spawn").unwrap(), 0);
+		if let Some(new_state) = template.states.get(&new.0).and_then(|x| x.get(new.1)) {
 			command_buffer.add_component(
 				entity,
 				State {
-					current: StateName::from("spawn00").unwrap(),
-					timer: spawn_state.next.map(|(time, _)| Timer::new(time)),
+					current: new,
+					timer: new_state.next.map(|(time, _)| Timer::new(time)),
 				},
 			);
 		}

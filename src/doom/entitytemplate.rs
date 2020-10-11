@@ -8,7 +8,7 @@ use std::collections::HashMap;
 pub struct EntityTemplate {
 	pub name: Option<&'static str>,
 	pub type_id: Option<EntityTypeId>,
-	pub states: HashMap<StateName, StateDef>,
+	pub states: HashMap<StateName, Vec<StateDef>>,
 	pub components: EntityComponents,
 }
 

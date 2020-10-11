@@ -14,12 +14,12 @@ pub type StateName = ArrayString<[u8; 16]>;
 #[derive(Clone, Debug)]
 pub struct StateDef {
 	pub sprite: SpriteRender,
-	pub next: Option<(Duration, Option<StateName>)>,
+	pub next: Option<(Duration, Option<(StateName, usize)>)>,
 }
 
 #[derive(Clone, Debug)]
 pub struct State {
-	pub current: StateName,
+	pub current: (StateName, usize),
 	pub timer: Option<Timer>,
 }
 
@@ -37,11 +37,12 @@ pub fn state_system(_resources: &mut Resources) -> impl Runnable {
 				timer.as_mut().map(|t| t.tick(frame_time.delta));
 
 				while timer.map_or(false, |t| t.is_zero()) {
-					if let Some(new_state_name) = states[current].next.unwrap().1 {
+					if let Some(new) = states[&current.0][current.1].next.unwrap().1 {
 						let new_state = states
-							.get(&new_state_name)
+							.get(&new.0)
+							.and_then(|x| x.get(new.1))
 							.expect("Invalid next state name");
-						*current = new_state_name;
+						*current = new;
 						*sprite_render = new_state.sprite.clone();
 						*timer = new_state.next.map(|(time, _)| Timer::new(time));
 					} else {
