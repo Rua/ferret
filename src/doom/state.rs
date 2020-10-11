@@ -37,19 +37,19 @@ pub fn state_system(_resources: &mut Resources) -> impl Runnable {
 				timer.as_mut().map(|t| t.tick(frame_time.delta));
 
 				while timer.map_or(false, |t| t.is_zero()) {
-					if let Some(new) = states[&current.0][current.1].next.unwrap().1 {
-						let new_state = states
-							.get(&new.0)
-							.and_then(|x| x.get(new.1))
-							.expect("Invalid next state name");
-						*current = new;
-						*sprite_render = new_state.sprite.clone();
-						*timer = new_state.next.map(|(time, _)| Timer::new(time));
+					let new = if let Some(new) = states[&current.0][current.1].next.unwrap().1 {
+						new
 					} else {
-						// Delete the entity if the next state is None
-						*timer = None;
-						command_buffer.remove(*entity);
-					}
+						(current.0, (current.1 + 1) % states[&current.0].len())
+					};
+
+					let new_state = states
+						.get(&new.0)
+						.and_then(|x| x.get(new.1))
+						.expect("Invalid next state name");
+					*current = new;
+					*sprite_render = new_state.sprite.clone();
+					*timer = new_state.next.map(|(time, _)| Timer::new(time));
 				}
 			}
 		})
