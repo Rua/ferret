@@ -1,7 +1,8 @@
 use crate::{
-	common::{assets::AssetHandle, component::EntityComponents},
+	common::assets::AssetHandle,
 	doom::state::{StateDef, StateName},
 };
+use legion::World;
 use std::collections::HashMap;
 
 #[derive(Default)]
@@ -9,7 +10,7 @@ pub struct EntityTemplate {
 	pub name: Option<&'static str>,
 	pub type_id: Option<EntityTypeId>,
 	pub states: HashMap<StateName, Vec<StateDef>>,
-	pub components: EntityComponents,
+	pub world: World,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

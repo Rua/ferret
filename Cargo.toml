@@ -18,7 +18,7 @@ derivative = "2.1"
 downcast-rs = "1.2"
 fnv = "1.0"
 lazy_static = "1.4"
-legion = {version = "0.3.0", default-features = false}
+legion = {version = "0.3.1", default-features = false}
 log = {version = "0.4.8", features = ["std"]}
 nalgebra = "0.22.0"
 num-traits = "0.2.11"

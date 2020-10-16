@@ -1,5 +1,5 @@
 use crate::{
-	common::{assets::AssetStorage, component::EntityComponents},
+	common::assets::AssetStorage,
 	doom::{
 		client::UseAction,
 		data::{FRAME_RATE, FRAME_TIME},
@@ -12,7 +12,7 @@ use crate::{
 		texture::TextureScroll,
 	},
 };
-use legion::{systems::ResourceSet, Resources, Write};
+use legion::{systems::ResourceSet, Resources, World, Write};
 use nalgebra::Vector2;
 use std::time::Duration;
 
@@ -27,20 +27,25 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(1)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorUse(DoorUse {
-				retrigger: true,
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Closed,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: 150 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorUse(DoorUse {
+					retrigger: true,
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Closed,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: 150 * FRAME_TIME,
+						can_reverse: true,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					}
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -49,20 +54,25 @@ pub fn load(resources: &mut Resources) {
 	// TODO blue key
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(26)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorUse(DoorUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Closed,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: 150 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorUse(DoorUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Closed,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: 150 * FRAME_TIME,
+						can_reverse: true,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				retrigger: true,
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -71,20 +81,25 @@ pub fn load(resources: &mut Resources) {
 	// TODO red key
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(28)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorUse(DoorUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Closed,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: 150 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorUse(DoorUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Closed,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: 150 * FRAME_TIME,
+						can_reverse: true,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				retrigger: true,
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -93,20 +108,25 @@ pub fn load(resources: &mut Resources) {
 	// TODO yellow key
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(27)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorUse(DoorUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Closed,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: 150 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorUse(DoorUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Closed,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: 150 * FRAME_TIME,
+						can_reverse: true,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				retrigger: true,
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -114,20 +134,25 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(117)),
-		components: EntityComponents::new()
-		.with_component(UseAction::DoorUse(DoorUse {
+		world: {
+			let mut world = World::default();
+			world.push((
+			UseAction::DoorUse(DoorUse {
 			params: DoorParams {
-				start_state: DoorState::Closed,
-				end_state: DoorState::Closed,
-				speed: 8.0 * FRAME_RATE,
-				wait_time: 150 * FRAME_TIME,
-				can_reverse: true,
+					start_state: DoorState::Closed,
+					end_state: DoorState::Closed,
+					speed: 8.0 * FRAME_RATE,
+					wait_time: 150 * FRAME_TIME,
+					can_reverse: true,
 
-				open_sound: Some(asset_storage.load("dsbdopn.sound")),
-				close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					open_sound: Some(asset_storage.load("dsbdopn.sound")),
+					close_sound: Some(asset_storage.load("dsbdcls.sound")),
 			},
 			retrigger: true,
-		})),
+			}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -139,20 +164,25 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(31)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorUse(DoorUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorUse(DoorUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				retrigger: false,
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -161,20 +191,25 @@ pub fn load(resources: &mut Resources) {
 	// TODO blue key
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(32)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorUse(DoorUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorUse(DoorUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				retrigger: false,
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -183,20 +218,25 @@ pub fn load(resources: &mut Resources) {
 	// TODO red key
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(33)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorUse(DoorUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorUse(DoorUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				retrigger: false,
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -205,20 +245,25 @@ pub fn load(resources: &mut Resources) {
 	// TODO yellow key
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(34)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorUse(DoorUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorUse(DoorUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				retrigger: false,
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -226,20 +271,25 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(118)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorUse(DoorUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorUse(DoorUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				retrigger: false,
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -251,23 +301,28 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(63)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Closed,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: 150 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Closed,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: 150 * FRAME_TIME,
+						can_reverse: true,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -275,23 +330,28 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(114)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Closed,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: 150 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Closed,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: 150 * FRAME_TIME,
+						can_reverse: true,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -299,23 +359,28 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(29)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Closed,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: 150 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Closed,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: 150 * FRAME_TIME,
+						can_reverse: true,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -323,23 +388,28 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(111)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Closed,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: 150 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Closed,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: 150 * FRAME_TIME,
+						can_reverse: true,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -351,23 +421,28 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(61)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -375,23 +450,28 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(115)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -400,23 +480,28 @@ pub fn load(resources: &mut Resources) {
 	// TODO blue key
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(99)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -425,23 +510,28 @@ pub fn load(resources: &mut Resources) {
 	// TODO red key
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(134)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -450,23 +540,28 @@ pub fn load(resources: &mut Resources) {
 	// TODO yellow key
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(136)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -474,23 +569,28 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(103)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -498,23 +598,28 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(112)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -523,23 +628,28 @@ pub fn load(resources: &mut Resources) {
 	// TODO blue key
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(133)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -548,23 +658,28 @@ pub fn load(resources: &mut Resources) {
 	// TODO red key
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(135)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -573,23 +688,28 @@ pub fn load(resources: &mut Resources) {
 	// TODO yellow key
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(137)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -601,23 +721,28 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(42)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Open,
-					end_state: DoorState::Closed,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Open,
+						end_state: DoorState::Closed,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -625,23 +750,28 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(116)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Open,
-					end_state: DoorState::Closed,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Open,
+						end_state: DoorState::Closed,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -649,23 +779,28 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(113)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Open,
-					end_state: DoorState::Closed,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Open,
+						end_state: DoorState::Closed,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -673,23 +808,28 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(50)),
-		components: EntityComponents::new()
-			.with_component(UseAction::DoorSwitchUse(DoorSwitchUse {
-				params: DoorParams {
-					start_state: DoorState::Open,
-					end_state: DoorState::Closed,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::DoorSwitchUse(DoorSwitchUse {
+					params: DoorParams {
+						start_state: DoorState::Open,
+						end_state: DoorState::Closed,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -701,20 +841,25 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(90)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::DoorTouch(DoorTouch {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Closed,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: 150 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::DoorTouch(DoorTouch {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Closed,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: 150 * FRAME_TIME,
+						can_reverse: true,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				retrigger: true,
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -722,20 +867,25 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(105)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::DoorTouch(DoorTouch {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Closed,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: 150 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::DoorTouch(DoorTouch {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Closed,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: 150 * FRAME_TIME,
+						can_reverse: true,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				retrigger: true,
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -743,20 +893,25 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(4)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::DoorTouch(DoorTouch {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Closed,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: 150 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::DoorTouch(DoorTouch {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Closed,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: 150 * FRAME_TIME,
+						can_reverse: true,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				retrigger: false,
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -764,20 +919,25 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(108)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::DoorTouch(DoorTouch {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Closed,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: 150 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::DoorTouch(DoorTouch {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Closed,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: 150 * FRAME_TIME,
+						can_reverse: true,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				retrigger: false,
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -789,20 +949,25 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(86)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::DoorTouch(DoorTouch {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::DoorTouch(DoorTouch {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				retrigger: true,
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -810,20 +975,25 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(106)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::DoorTouch(DoorTouch {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::DoorTouch(DoorTouch {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				retrigger: true,
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -831,20 +1001,25 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(2)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::DoorTouch(DoorTouch {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::DoorTouch(DoorTouch {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				retrigger: false,
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -852,20 +1027,25 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(109)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::DoorTouch(DoorTouch {
-				params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Open,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::DoorTouch(DoorTouch {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Open,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				retrigger: false,
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -877,20 +1057,25 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(75)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::DoorTouch(DoorTouch {
-				params: DoorParams {
-					start_state: DoorState::Open,
-					end_state: DoorState::Closed,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::DoorTouch(DoorTouch {
+					params: DoorParams {
+						start_state: DoorState::Open,
+						end_state: DoorState::Closed,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				retrigger: true,
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -898,20 +1083,25 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(107)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::DoorTouch(DoorTouch {
-				params: DoorParams {
-					start_state: DoorState::Open,
-					end_state: DoorState::Closed,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::DoorTouch(DoorTouch {
+					params: DoorParams {
+						start_state: DoorState::Open,
+						end_state: DoorState::Closed,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				retrigger: true,
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -919,20 +1109,25 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(3)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::DoorTouch(DoorTouch {
-				params: DoorParams {
-					start_state: DoorState::Open,
-					end_state: DoorState::Closed,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::DoorTouch(DoorTouch {
+					params: DoorParams {
+						start_state: DoorState::Open,
+						end_state: DoorState::Closed,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				retrigger: false,
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -940,20 +1135,25 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(110)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::DoorTouch(DoorTouch {
-				params: DoorParams {
-					start_state: DoorState::Open,
-					end_state: DoorState::Closed,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: Duration::default(),
-					can_reverse: false,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::DoorTouch(DoorTouch {
+					params: DoorParams {
+						start_state: DoorState::Open,
+						end_state: DoorState::Closed,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: Duration::default(),
+						can_reverse: false,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-				},
-				retrigger: false,
-			})),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -965,20 +1165,25 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(76)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::DoorTouch(DoorTouch {
-				params: DoorParams {
-					start_state: DoorState::Open,
-					end_state: DoorState::Open,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: 30 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::DoorTouch(DoorTouch {
+					params: DoorParams {
+						start_state: DoorState::Open,
+						end_state: DoorState::Open,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: 30 * FRAME_TIME,
+						can_reverse: true,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				retrigger: true,
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -986,20 +1191,25 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(16)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::DoorTouch(DoorTouch {
-				params: DoorParams {
-					start_state: DoorState::Open,
-					end_state: DoorState::Open,
-					speed: 2.0 * FRAME_RATE,
-					wait_time: 30 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::DoorTouch(DoorTouch {
+					params: DoorParams {
+						start_state: DoorState::Open,
+						end_state: DoorState::Open,
+						speed: 2.0 * FRAME_RATE,
+						wait_time: 30 * FRAME_TIME,
+						can_reverse: true,
 
-					open_sound: Some(asset_storage.load("dsdoropn.sound")),
-					close_sound: Some(asset_storage.load("dsdorcls.sound")),
-				},
-				retrigger: false,
-			})),
+						open_sound: Some(asset_storage.load("dsdoropn.sound")),
+						close_sound: Some(asset_storage.load("dsdorcls.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1011,21 +1221,26 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow, offset 512
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(140)),
-		components: EntityComponents::new()
-			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::Current,
-					target_height_offset: 512.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::FloorSwitchUse(FloorSwitchUse {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::Current,
+						target_height_offset: 512.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1037,21 +1252,26 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(60)),
-		components: EntityComponents::new()
-			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourFloor,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::FloorSwitchUse(FloorSwitchUse {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourFloor,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1059,21 +1279,26 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(23)),
-		components: EntityComponents::new()
-			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourFloor,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::FloorSwitchUse(FloorSwitchUse {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourFloor,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1085,21 +1310,26 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(69)),
-		components: EntityComponents::new()
-			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::FloorSwitchUse(FloorSwitchUse {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1107,21 +1337,26 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(18)),
-		components: EntityComponents::new()
-			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::FloorSwitchUse(FloorSwitchUse {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1129,21 +1364,26 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, fast, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(132)),
-		components: EntityComponents::new()
-			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
-				params: FloorParams {
-					speed: 4.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::FloorSwitchUse(FloorSwitchUse {
+					params: FloorParams {
+						speed: 4.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1151,21 +1391,26 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, fast, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(131)),
-		components: EntityComponents::new()
-			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
-				params: FloorParams {
-					speed: 4.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::FloorSwitchUse(FloorSwitchUse {
+					params: FloorParams {
+						speed: 4.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1177,21 +1422,26 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(64)),
-		components: EntityComponents::new()
-			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::FloorSwitchUse(FloorSwitchUse {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1199,21 +1449,26 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(101)),
-		components: EntityComponents::new()
-			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::FloorSwitchUse(FloorSwitchUse {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1222,21 +1477,26 @@ pub fn load(resources: &mut Resources) {
 	// TODO crush
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(65)),
-		components: EntityComponents::new()
-			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
-					target_height_offset: -8.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::FloorSwitchUse(FloorSwitchUse {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
+						target_height_offset: -8.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1245,21 +1505,26 @@ pub fn load(resources: &mut Resources) {
 	// TODO crush
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(55)),
-		components: EntityComponents::new()
-			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
-					target_height_offset: -8.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::FloorSwitchUse(FloorSwitchUse {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
+						target_height_offset: -8.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1271,21 +1536,26 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(45)),
-		components: EntityComponents::new()
-			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::HighestNeighbourFloor,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::FloorSwitchUse(FloorSwitchUse {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::HighestNeighbourFloor,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1293,21 +1563,26 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(102)),
-		components: EntityComponents::new()
-			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::HighestNeighbourFloor,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::FloorSwitchUse(FloorSwitchUse {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::HighestNeighbourFloor,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1315,21 +1590,26 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, fast, offset +8
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(70)),
-		components: EntityComponents::new()
-			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
-				params: FloorParams {
-					speed: 4.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::HighestNeighbourFloor,
-					target_height_offset: 8.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::FloorSwitchUse(FloorSwitchUse {
+					params: FloorParams {
+						speed: 4.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::HighestNeighbourFloor,
+						target_height_offset: 8.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1337,21 +1617,26 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, fast, offset +8
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(71)),
-		components: EntityComponents::new()
-			.with_component(UseAction::FloorSwitchUse(FloorSwitchUse {
-				params: FloorParams {
-					speed: 4.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::HighestNeighbourFloor,
-					target_height_offset: 8.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::FloorSwitchUse(FloorSwitchUse {
+					params: FloorParams {
+						speed: 4.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::HighestNeighbourFloor,
+						target_height_offset: 8.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1363,18 +1648,23 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow, offset 24
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(92)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::Current,
-					target_height_offset: 24.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: true,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::Current,
+						target_height_offset: 24.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1382,18 +1672,23 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow, offset 24
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(58)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::Current,
-					target_height_offset: 24.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: false,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::Current,
+						target_height_offset: 24.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1402,18 +1697,23 @@ pub fn load(resources: &mut Resources) {
 	// TODO change type
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(93)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::Current,
-					target_height_offset: 24.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: true,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::Current,
+						target_height_offset: 24.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1422,18 +1722,23 @@ pub fn load(resources: &mut Resources) {
 	// TODO change type
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(59)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::Current,
-					target_height_offset: 24.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: false,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::Current,
+						target_height_offset: 24.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1445,18 +1750,23 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(82)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourFloor,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: true,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourFloor,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1464,18 +1774,23 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(38)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourFloor,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: false,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourFloor,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1484,18 +1799,23 @@ pub fn load(resources: &mut Resources) {
 	// TODO type change
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(84)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourFloor,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: true,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourFloor,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1504,18 +1824,23 @@ pub fn load(resources: &mut Resources) {
 	// TODO type change
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(37)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourFloor,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: false,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourFloor,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1527,18 +1852,23 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(128)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: true,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1546,18 +1876,23 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(119)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: false,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1565,18 +1900,23 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, fast, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(129)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 4.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: true,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 4.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1584,18 +1924,23 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, fast, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(130)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 4.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: false,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 4.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1607,18 +1952,23 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(91)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: true,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1626,18 +1976,23 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(5)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: false,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1646,18 +2001,23 @@ pub fn load(resources: &mut Resources) {
 	// TODO crush
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(94)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
-					target_height_offset: -8.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: true,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
+						target_height_offset: -8.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1666,18 +2026,23 @@ pub fn load(resources: &mut Resources) {
 	// TODO crush
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(56)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
-					target_height_offset: -8.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: false,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
+						target_height_offset: -8.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1689,18 +2054,23 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(83)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::HighestNeighbourFloor,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: true,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::HighestNeighbourFloor,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1708,18 +2078,23 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow, offset 0
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(19)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 1.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::HighestNeighbourFloor,
-					target_height_offset: 0.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: false,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 1.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::HighestNeighbourFloor,
+						target_height_offset: 0.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1727,18 +2102,23 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, fast, offset +8
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(98)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 4.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::HighestNeighbourFloor,
-					target_height_offset: 8.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: true,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 4.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::HighestNeighbourFloor,
+						target_height_offset: 8.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1746,18 +2126,23 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, fast, offset +8
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(36)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::FloorTouch(FloorTouch {
-				params: FloorParams {
-					speed: 4.0 * FRAME_RATE,
-					target_height_base: FloorTargetHeight::HighestNeighbourFloor,
-					target_height_offset: 8.0,
-					move_sound: Some(asset_storage.load("dsstnmov.sound")),
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
-				},
-				retrigger: false,
-			})),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::FloorTouch(FloorTouch {
+					params: FloorParams {
+						speed: 4.0 * FRAME_RATE,
+						target_height_base: FloorTargetHeight::HighestNeighbourFloor,
+						target_height_offset: 8.0,
+						move_sound: Some(asset_storage.load("dsstnmov.sound")),
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1769,28 +2154,33 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(62)),
-		components: EntityComponents::new()
-			.with_component(UseAction::PlatSwitchUse(PlatSwitchUse {
-				params: PlatParams {
-					speed: 4.0 * FRAME_RATE,
-					wait_time: 105 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::PlatSwitchUse(PlatSwitchUse {
+					params: PlatParams {
+						speed: 4.0 * FRAME_RATE,
+						wait_time: 105 * FRAME_TIME,
+						can_reverse: true,
 
-					start_sound: Some(asset_storage.load("dspstart.sound")),
-					move_sound: None,
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
+						start_sound: Some(asset_storage.load("dspstart.sound")),
+						move_sound: None,
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
 
-					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
-					low_height_offset: 0.0,
-					high_height_base: PlatTargetHeight::Current,
-					high_height_offset: 0.0,
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+						low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+						low_height_offset: 0.0,
+						high_height_base: PlatTargetHeight::Current,
+						high_height_offset: 0.0,
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1798,28 +2188,33 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(123)),
-		components: EntityComponents::new()
-			.with_component(UseAction::PlatSwitchUse(PlatSwitchUse {
-				params: PlatParams {
-					speed: 8.0 * FRAME_RATE,
-					wait_time: 105 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::PlatSwitchUse(PlatSwitchUse {
+					params: PlatParams {
+						speed: 8.0 * FRAME_RATE,
+						wait_time: 105 * FRAME_TIME,
+						can_reverse: true,
 
-					start_sound: Some(asset_storage.load("dspstart.sound")),
-					move_sound: None,
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
+						start_sound: Some(asset_storage.load("dspstart.sound")),
+						move_sound: None,
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
 
-					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
-					low_height_offset: 0.0,
-					high_height_base: PlatTargetHeight::Current,
-					high_height_offset: 0.0,
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: Some(35 * FRAME_TIME),
-				},
-			})),
+						low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+						low_height_offset: 0.0,
+						high_height_base: PlatTargetHeight::Current,
+						high_height_offset: 0.0,
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: Some(35 * FRAME_TIME),
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1827,28 +2222,33 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(21)),
-		components: EntityComponents::new()
-			.with_component(UseAction::PlatSwitchUse(PlatSwitchUse {
-				params: PlatParams {
-					speed: 4.0 * FRAME_RATE,
-					wait_time: 105 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::PlatSwitchUse(PlatSwitchUse {
+					params: PlatParams {
+						speed: 4.0 * FRAME_RATE,
+						wait_time: 105 * FRAME_TIME,
+						can_reverse: true,
 
-					start_sound: Some(asset_storage.load("dspstart.sound")),
-					move_sound: None,
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
+						start_sound: Some(asset_storage.load("dspstart.sound")),
+						move_sound: None,
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
 
-					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
-					low_height_offset: 0.0,
-					high_height_base: PlatTargetHeight::Current,
-					high_height_offset: 0.0,
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+						low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+						low_height_offset: 0.0,
+						high_height_base: PlatTargetHeight::Current,
+						high_height_offset: 0.0,
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1856,28 +2256,33 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(122)),
-		components: EntityComponents::new()
-			.with_component(UseAction::PlatSwitchUse(PlatSwitchUse {
-				params: PlatParams {
-					speed: 8.0 * FRAME_RATE,
-					wait_time: 105 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				UseAction::PlatSwitchUse(PlatSwitchUse {
+					params: PlatParams {
+						speed: 8.0 * FRAME_RATE,
+						wait_time: 105 * FRAME_TIME,
+						can_reverse: true,
 
-					start_sound: Some(asset_storage.load("dspstart.sound")),
-					move_sound: None,
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
+						start_sound: Some(asset_storage.load("dspstart.sound")),
+						move_sound: None,
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
 
-					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
-					low_height_offset: 0.0,
-					high_height_base: PlatTargetHeight::Current,
-					high_height_offset: 0.0,
-				},
-				switch_params: SwitchParams {
-					sound: Some(asset_storage.load("dsswtchn.sound")),
-					retrigger_time: None,
-				},
-			})),
+						low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+						low_height_offset: 0.0,
+						high_height_base: PlatTargetHeight::Current,
+						high_height_offset: 0.0,
+					},
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchn.sound")),
+						retrigger_time: None,
+					},
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1889,25 +2294,30 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(88)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::PlatTouch(PlatTouch {
-				params: PlatParams {
-					speed: 4.0 * FRAME_RATE,
-					wait_time: 105 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::PlatTouch(PlatTouch {
+					params: PlatParams {
+						speed: 4.0 * FRAME_RATE,
+						wait_time: 105 * FRAME_TIME,
+						can_reverse: true,
 
-					start_sound: Some(asset_storage.load("dspstart.sound")),
-					move_sound: None,
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
+						start_sound: Some(asset_storage.load("dspstart.sound")),
+						move_sound: None,
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
 
-					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
-					low_height_offset: 0.0,
-					high_height_base: PlatTargetHeight::Current,
-					high_height_offset: 0.0,
-				},
-				retrigger: true,
-			})),
+						low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+						low_height_offset: 0.0,
+						high_height_base: PlatTargetHeight::Current,
+						high_height_offset: 0.0,
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1915,25 +2325,30 @@ pub fn load(resources: &mut Resources) {
 	// Retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(120)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::PlatTouch(PlatTouch {
-				params: PlatParams {
-					speed: 8.0 * FRAME_RATE,
-					wait_time: 105 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::PlatTouch(PlatTouch {
+					params: PlatParams {
+						speed: 8.0 * FRAME_RATE,
+						wait_time: 105 * FRAME_TIME,
+						can_reverse: true,
 
-					start_sound: Some(asset_storage.load("dspstart.sound")),
-					move_sound: None,
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
+						start_sound: Some(asset_storage.load("dspstart.sound")),
+						move_sound: None,
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
 
-					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
-					low_height_offset: 0.0,
-					high_height_base: PlatTargetHeight::Current,
-					high_height_offset: 0.0,
-				},
-				retrigger: true,
-			})),
+						low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+						low_height_offset: 0.0,
+						high_height_base: PlatTargetHeight::Current,
+						high_height_offset: 0.0,
+					},
+					retrigger: true,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1941,25 +2356,30 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, slow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(10)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::PlatTouch(PlatTouch {
-				params: PlatParams {
-					speed: 4.0 * FRAME_RATE,
-					wait_time: 105 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::PlatTouch(PlatTouch {
+					params: PlatParams {
+						speed: 4.0 * FRAME_RATE,
+						wait_time: 105 * FRAME_TIME,
+						can_reverse: true,
 
-					start_sound: Some(asset_storage.load("dspstart.sound")),
-					move_sound: None,
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
+						start_sound: Some(asset_storage.load("dspstart.sound")),
+						move_sound: None,
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
 
-					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
-					low_height_offset: 0.0,
-					high_height_base: PlatTargetHeight::Current,
-					high_height_offset: 0.0,
-				},
-				retrigger: false,
-			})),
+						low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+						low_height_offset: 0.0,
+						high_height_base: PlatTargetHeight::Current,
+						high_height_offset: 0.0,
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -1967,25 +2387,30 @@ pub fn load(resources: &mut Resources) {
 	// No retrigger, fast
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(121)),
-		components: EntityComponents::new()
-			.with_component(TouchAction::PlatTouch(PlatTouch {
-				params: PlatParams {
-					speed: 8.0 * FRAME_RATE,
-					wait_time: 105 * FRAME_TIME,
-					can_reverse: true,
+		world: {
+			let mut world = World::default();
+			world.push((
+				TouchAction::PlatTouch(PlatTouch {
+					params: PlatParams {
+						speed: 8.0 * FRAME_RATE,
+						wait_time: 105 * FRAME_TIME,
+						can_reverse: true,
 
-					start_sound: Some(asset_storage.load("dspstart.sound")),
-					move_sound: None,
-					move_sound_time: 8 * FRAME_TIME,
-					finish_sound: Some(asset_storage.load("dspstop.sound")),
+						start_sound: Some(asset_storage.load("dspstart.sound")),
+						move_sound: None,
+						move_sound_time: 8 * FRAME_TIME,
+						finish_sound: Some(asset_storage.load("dspstop.sound")),
 
-					low_height_base: PlatTargetHeight::LowestNeighbourFloor,
-					low_height_offset: 0.0,
-					high_height_base: PlatTargetHeight::Current,
-					high_height_offset: 0.0,
-				},
-				retrigger: false,
-			})),
+						low_height_base: PlatTargetHeight::LowestNeighbourFloor,
+						low_height_offset: 0.0,
+						high_height_base: PlatTargetHeight::Current,
+						high_height_offset: 0.0,
+					},
+					retrigger: false,
+				}),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -2134,10 +2559,15 @@ pub fn load(resources: &mut Resources) {
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(48)),
-		components: EntityComponents::new()
-			.with_component(TextureScroll {
-				speed: Vector2::new(35.0, 0.0),
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				TextureScroll {
+					speed: Vector2::new(35.0, 0.0),
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);

@@ -140,6 +140,7 @@ fn calculate_volumes(client_transform: &Transform, entity_transform: &Transform)
 	volumes * distance_factor
 }
 
+#[derive(Clone, Debug)]
 pub struct SoundPlaying {
 	pub controller: SoundController,
 }

@@ -16,8 +16,10 @@ use crate::{
 };
 use anyhow::bail;
 use legion::{
+	any,
 	systems::{CommandBuffer, ResourceSet},
-	Entity, IntoQuery, Read, Resources, World,
+	world::Duplicate,
+	Entity, IntoQuery, Read, Resources, World, Write,
 };
 use nalgebra::{Vector2, Vector3};
 
@@ -27,7 +29,8 @@ pub fn spawn_things(
 	resources: &mut Resources,
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
-	let asset_storage = <Read<AssetStorage>>::fetch_mut(resources);
+	let (asset_storage, mut merger) =
+		<(Read<AssetStorage>, Write<Duplicate>)>::fetch_mut(resources);
 
 	let mut command_buffer = CommandBuffer::new(world);
 
@@ -52,11 +55,15 @@ pub fn spawn_things(
 			}
 		};
 
-		// Create entity and add components
-		let entity = command_buffer.push(());
-		template
-			.components
-			.add_to_entity(entity, &mut command_buffer);
+		let entity = if template.world.is_empty() {
+			log::debug!("Thing {} has empty template world", i);
+
+			command_buffer.push(())
+		} else {
+			// Create entity and add components
+			let entity_map = world.clone_from(&template.world, &any(), &mut *merger);
+			entity_map.into_iter().map(|(_, to)| to).next().unwrap()
+		};
 
 		// Set entity template reference
 		command_buffer.add_component(entity, EntityTemplateRef(handle.clone()));
@@ -112,13 +119,17 @@ pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Res
 	let mut command_buffer = CommandBuffer::new(world);
 
 	// Get spawn point transform
-	let transform = <(&Transform, &SpawnPoint)>::query()
+	let transform = match <(&Transform, &SpawnPoint)>::query()
 		.iter(world)
 		.find_map(|(t, s)| if s.player_num == 1 { Some(*t) } else { None })
-		.unwrap();
+	{
+		Some(x) => x,
+		None => bail!("Spawn point for player 1 not found"),
+	};
 
 	// Fetch entity template
-	let asset_storage = <Read<AssetStorage>>::fetch_mut(resources);
+	let (asset_storage, mut merger) =
+		<(Read<AssetStorage>, Write<Duplicate>)>::fetch_mut(resources);
 	let handle = match asset_storage.handle_for::<EntityTemplate>("player") {
 		Some(template) => template,
 		None => bail!("Entity type not found: {}", "player"),
@@ -126,11 +137,9 @@ pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Res
 	let template = asset_storage.get(&handle).unwrap();
 
 	// Create entity and add components
-	let entity = command_buffer.push(());
+	let entity_map = world.clone_from(&template.world, &any(), &mut *merger);
+	let entity = entity_map.into_iter().map(|(_, to)| to).next().unwrap();
 
-	template
-		.components
-		.add_to_entity(entity, &mut command_buffer);
 	command_buffer.add_component(entity, transform);
 
 	// Set entity template reference
@@ -143,11 +152,12 @@ pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Res
 
 pub fn spawn_map_entities(
 	world: &mut World,
-	resources: &Resources,
+	resources: &mut Resources,
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
 	let mut command_buffer = CommandBuffer::new(world);
-	let asset_storage = <Read<AssetStorage>>::fetch(resources);
+	let (asset_storage, mut merger) =
+		<(Read<AssetStorage>, Write<Duplicate>)>::fetch_mut(resources);
 	let map = asset_storage.get(&map_handle).unwrap();
 
 	// Create map entity
@@ -175,8 +185,40 @@ pub fn spawn_map_entities(
 
 	// Create linedef entities
 	for (i, linedef) in map.linedefs.iter().enumerate() {
-		// Create entity and set reference
-		let entity = command_buffer.push(());
+		let entity = if let Some(special_type) = linedef.special_type {
+			// Fetch and add entity template
+			let (handle, template) = match asset_storage
+				.iter::<EntityTemplate>()
+				.find(|(_, template)| template.type_id == Some(EntityTypeId::Linedef(special_type)))
+			{
+				Some(entry) => entry,
+				None => {
+					log::warn!("Linedef {} has invalid special type {}", i, special_type);
+					continue;
+				}
+			};
+
+			let entity = if template.world.is_empty() {
+				log::debug!(
+					"Linedef {} has special type {} with empty template world",
+					i,
+					special_type
+				);
+
+				command_buffer.push(())
+			} else {
+				let entity_map = world.clone_from(&template.world, &any(), &mut *merger);
+				entity_map.into_iter().map(|(_, to)| to).next().unwrap()
+			};
+
+			// Set entity template reference
+			command_buffer.add_component(entity, EntityTemplateRef(handle.clone()));
+
+			entity
+		} else {
+			command_buffer.push(())
+		};
+
 		let sidedefs = [
 			linedef.sidedefs[0].as_ref().map(|sidedef| SidedefDynamic {
 				textures: sidedef.textures.clone(),
@@ -197,41 +239,44 @@ pub fn spawn_map_entities(
 				index: i,
 			},
 		);
-
-		if let Some(special_type) = linedef.special_type {
-			// Fetch and add entity template
-			let (handle, template) = match asset_storage
-				.iter::<EntityTemplate>()
-				.find(|(_, template)| template.type_id == Some(EntityTypeId::Linedef(special_type)))
-			{
-				Some(entry) => entry,
-				None => {
-					log::warn!("Linedef {} has invalid special type {}", i, special_type);
-					continue;
-				}
-			};
-
-			template
-				.components
-				.add_to_entity(entity, &mut command_buffer);
-
-			// Set entity template reference
-			command_buffer.add_component(entity, EntityTemplateRef(handle.clone()));
-
-			if template.components.len() == 0 {
-				log::debug!(
-					"Linedef {} has special type {} with empty template",
-					i,
-					special_type
-				);
-			}
-		}
 	}
 
 	// Create sector entities
 	for (i, sector) in map.sectors.iter().enumerate() {
-		// Create entity and set reference
-		let entity = command_buffer.push(());
+		let entity = if let Some(special_type) = sector.special_type {
+			// Fetch and add entity template
+			let (handle, template) = match asset_storage
+				.iter::<EntityTemplate>()
+				.find(|(_, template)| template.type_id == Some(EntityTypeId::Sector(special_type)))
+			{
+				Some(entry) => entry,
+				None => {
+					log::warn!("Sector {} has invalid special type {}", i, special_type);
+					continue;
+				}
+			};
+
+			let entity = if template.world.is_empty() {
+				log::debug!(
+					"Sector {} has special type {} with empty template world",
+					i,
+					special_type
+				);
+
+				command_buffer.push(())
+			} else {
+				let entity_map = world.clone_from(&template.world, &any(), &mut *merger);
+				entity_map.into_iter().map(|(_, to)| to).next().unwrap()
+			};
+
+			// Set entity template reference
+			command_buffer.add_component(entity, EntityTemplateRef(handle.clone()));
+
+			entity
+		} else {
+			command_buffer.push(())
+		};
+
 		map_dynamic.sectors.push(SectorDynamic {
 			entity,
 			light_level: sector.light_level,
@@ -266,35 +311,6 @@ pub fn spawn_map_entities(
 				rotation: Vector3::new(0.into(), 0.into(), 0.into()),
 			},
 		);
-
-		if let Some(special_type) = sector.special_type {
-			// Fetch and add entity template
-			let (handle, template) = match asset_storage
-				.iter::<EntityTemplate>()
-				.find(|(_, template)| template.type_id == Some(EntityTypeId::Sector(special_type)))
-			{
-				Some(entry) => entry,
-				None => {
-					log::warn!("Sector {} has invalid special type {}", i, special_type);
-					continue;
-				}
-			};
-
-			template
-				.components
-				.add_to_entity(entity, &mut command_buffer);
-
-			// Set entity template reference
-			command_buffer.add_component(entity, EntityTemplateRef(handle.clone()));
-
-			if template.components.len() == 0 {
-				log::debug!(
-					"Sector {} has special type {} with empty template",
-					i,
-					special_type
-				);
-			}
-		}
 	}
 
 	command_buffer.add_component(map_entity, map_dynamic);

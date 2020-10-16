@@ -1,6 +1,6 @@
 #![allow(unused_variables)]
 use crate::{
-	common::{assets::AssetStorage, component::EntityComponents},
+	common::assets::AssetStorage,
 	doom::{
 		camera::Camera,
 		client::User,
@@ -13,7 +13,7 @@ use crate::{
 		state::{StateDef, StateName},
 	},
 };
-use legion::{systems::ResourceSet, Resources, Write};
+use legion::{systems::ResourceSet, Resources, World, Write};
 use nalgebra::{Vector2, Vector3};
 use std::{collections::HashMap, default::Default};
 
@@ -23,39 +23,64 @@ pub fn load(resources: &mut Resources) {
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Thing(1)),
-		components: EntityComponents::new()
-			.with_component(SpawnPoint { player_num: 1 }),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpawnPoint { player_num: 1 },
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Thing(2)),
-		components: EntityComponents::new()
-			.with_component(SpawnPoint { player_num: 2 }),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpawnPoint { player_num: 2 },
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Thing(3)),
-		components: EntityComponents::new()
-			.with_component(SpawnPoint { player_num: 3 }),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpawnPoint { player_num: 3 },
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Thing(4)),
-		components: EntityComponents::new()
-			.with_component(SpawnPoint { player_num: 4 }),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpawnPoint { player_num: 4 },
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Thing(11)),
-		components: EntityComponents::new(),
+		world: {
+			let mut world = World::default();
+			world.push((
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -175,42 +200,47 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 56.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(Camera {
-				base: Vector3::new(0.0, 0.0, 41.0),
-				offset: Vector3::zeros(),
-				bob_max: 16.0,
-				view_bob_period: 20 * FRAME_TIME,
-				weapon_bob_period: 64 * FRAME_TIME,
-				deviation_position: 0.0,
-				deviation_velocity: 0.0,
-				impact_sound: asset_storage.load("dsoof.sound"),
-			})
-			.with_component(PlayerSpriteRender {
-				position: Vector2::new(0.0, 0.0),
-				slots: [
-					Some(SpriteRender {
-						sprite: asset_storage.load("pisg.sprite"),
-						frame: 0,
-						full_bright: false,
-					}),
-					None,
-				],
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("play.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(User {
-				error_sound: asset_storage.load("dsnoway.sound"),
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				Camera {
+					base: Vector3::new(0.0, 0.0, 41.0),
+					offset: Vector3::zeros(),
+					bob_max: 16.0,
+					view_bob_period: 20 * FRAME_TIME,
+					weapon_bob_period: 64 * FRAME_TIME,
+					deviation_position: 0.0,
+					deviation_velocity: 0.0,
+					impact_sound: asset_storage.load("dsoof.sound"),
+				},
+				PlayerSpriteRender {
+					position: Vector2::new(0.0, 0.0),
+					slots: [
+						Some(SpriteRender {
+							sprite: asset_storage.load("pisg.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+						None,
+					],
+				},
+				SpriteRender {
+					sprite: asset_storage.load("play.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				User {
+					error_sound: asset_storage.load("dsnoway.sound"),
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("player", template);
@@ -368,18 +398,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 56.0,
-				radius: 20.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("poss.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 20.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("poss.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("possessed", template);
@@ -541,18 +576,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 56.0,
-				radius: 20.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("spos.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 20.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("spos.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("shotguy", template);
@@ -722,18 +762,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 56.0,
-				radius: 20.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("vile.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 20.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("vile.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("vile", template);
@@ -867,12 +912,17 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("fire.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("fire.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("fire", template);
@@ -1042,18 +1092,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 56.0,
-				radius: 20.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("skel.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 20.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("skel.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("undead", template);
@@ -1089,13 +1144,18 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("fatb.sprite"),
-				frame: 0,
-				full_bright: true,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("fatb.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("tracer", template);
@@ -1129,12 +1189,17 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("puff.sprite"),
-				frame: 1,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("puff.sprite"),
+					frame: 1,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("smoke", template);
@@ -1334,18 +1399,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 64.0,
-				radius: 48.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("fatt.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 64.0,
+					radius: 48.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("fatt.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("fatso", template);
@@ -1381,13 +1451,18 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("manf.sprite"),
-				frame: 0,
-				full_bright: true,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("manf.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("fatshot", template);
@@ -1557,18 +1632,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 56.0,
-				radius: 20.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("cpos.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 20.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("cpos.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("chainguy", template);
@@ -1740,18 +1820,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 56.0,
-				radius: 20.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("troo.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 20.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("troo.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("troop", template);
@@ -1883,18 +1968,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 56.0,
-				radius: 30.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("sarg.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 30.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("sarg.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("sergeant", template);
@@ -2026,18 +2116,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 56.0,
-				radius: 30.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("sarg.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 30.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("sarg.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("shadows", template);
@@ -2141,18 +2236,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 56.0,
-				radius: 31.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("head.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 31.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("head.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("head", template);
@@ -2306,18 +2406,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 64.0,
-				radius: 24.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("boss.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 64.0,
+					radius: 24.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("boss.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("bruiser", template);
@@ -2353,13 +2458,18 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("bal7.sprite"),
-				frame: 0,
-				full_bright: true,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("bal7.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("bruisershot", template);
@@ -2513,18 +2623,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 64.0,
-				radius: 24.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("bos2.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 64.0,
+					radius: 24.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bos2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("knight", template);
@@ -2610,18 +2725,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 56.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("skul.sprite"),
-				frame: 0,
-				full_bright: true,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("skul.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("skull", template);
@@ -2767,18 +2887,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 100.0,
-				radius: 128.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("spid.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 100.0,
+					radius: 128.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("spid.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("spider", template);
@@ -2942,18 +3067,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 64.0,
-				radius: 64.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("bspi.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 64.0,
+					radius: 64.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bspi.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("baby", template);
@@ -3083,18 +3213,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 110.0,
-				radius: 40.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("cybr.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 110.0,
+					radius: 40.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("cybr.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("cyborg", template);
@@ -3218,18 +3353,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 56.0,
-				radius: 31.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("pain.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 31.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pain.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("pain", template);
@@ -3403,18 +3543,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 56.0,
-				radius: 20.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("sswv.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 20.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("sswv.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("wolfss", template);
@@ -3492,21 +3637,26 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 72.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 72.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("keen.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 72.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpawnOnCeiling {
+					offset: 72.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("keen.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("keen", template);
@@ -3548,18 +3698,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("bbrn.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bbrn.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("bossbrain", template);
@@ -3587,12 +3742,17 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("sswv.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("sswv.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("bossspit", template);
@@ -3600,7 +3760,12 @@ pub fn load(resources: &mut Resources) {
 	let template = EntityTemplate {
 		name: Some("bosstarget"),
 		type_id: Some(EntityTypeId::Thing(87)),
-		components: EntityComponents::new(),
+		world: {
+			let mut world = World::default();
+			world.push((
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("bosstarget", template);
@@ -3630,13 +3795,18 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("bosf.sprite"),
-				frame: 0,
-				full_bright: true,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("bosf.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("spawnshot", template);
@@ -3682,12 +3852,17 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("fire.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("fire.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("spawnfire", template);
@@ -3731,18 +3906,23 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 42.0,
-				radius: 10.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("bar1.sprite"),
-				frame: 0,
-				full_bright: false,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 42.0,
+					radius: 10.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bar1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("barrel", template);
@@ -3778,13 +3958,18 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("bal1.sprite"),
-				frame: 0,
-				full_bright: true,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("bal1.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("troopshot", template);
@@ -3820,13 +4005,18 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("bal2.sprite"),
-				frame: 0,
-				full_bright: true,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("bal2.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("headshot", template);
@@ -3858,13 +4048,18 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("misl.sprite"),
-				frame: 0,
-				full_bright: true,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("misl.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("rocket", template);
@@ -3908,13 +4103,18 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("plss.sprite"),
-				frame: 0,
-				full_bright: true,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("plss.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("plasma", template);
@@ -3962,13 +4162,18 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("bfs1.sprite"),
-				frame: 0,
-				full_bright: true,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("bfs1.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("bfg", template);
@@ -4012,13 +4217,18 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("apls.sprite"),
-				frame: 0,
-				full_bright: true,
-			})
-			.with_component(Velocity::default()),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("apls.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				Velocity::default(),
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("arachplaz", template);
@@ -4048,12 +4258,17 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("puff.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("puff.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("puff", template);
@@ -4079,12 +4294,17 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("blud.sprite"),
-				frame: 2,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("blud.sprite"),
+					frame: 2,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("blood", template);
@@ -4146,12 +4366,17 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("tfog.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("tfog.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("tfog", template);
@@ -4193,12 +4418,17 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("ifog.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("ifog.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("ifog", template);
@@ -4206,7 +4436,12 @@ pub fn load(resources: &mut Resources) {
 	let template = EntityTemplate {
 		name: Some("teleportman"),
 		type_id: Some(EntityTypeId::Thing(14)),
-		components: EntityComponents::new(),
+		world: {
+			let mut world = World::default();
+			world.push((
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("teleportman", template);
@@ -4236,12 +4471,17 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("bfe2.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("bfe2.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("extrabfg", template);
@@ -4263,17 +4503,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("arm1.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("arm1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc0", template);
@@ -4295,17 +4540,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("arm2.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("arm2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc1", template);
@@ -4343,17 +4593,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("bon1.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bon1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc2", template);
@@ -4391,17 +4646,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("bon2.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bon2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc3", template);
@@ -4423,17 +4683,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("bkey.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bkey.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc4", template);
@@ -4455,17 +4720,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("rkey.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("rkey.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc5", template);
@@ -4487,17 +4757,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("ykey.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("ykey.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc6", template);
@@ -4519,17 +4794,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("ysku.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("ysku.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc7", template);
@@ -4551,17 +4831,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("rsku.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("rsku.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc8", template);
@@ -4583,17 +4868,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("bsku.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bsku.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc9", template);
@@ -4611,17 +4901,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("stim.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("stim.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc10", template);
@@ -4639,17 +4934,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("medi.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("medi.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc11", template);
@@ -4687,17 +4987,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("soul.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("soul.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc12", template);
@@ -4727,17 +5032,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("pinv.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pinv.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("inv", template);
@@ -4755,17 +5065,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("pstr.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pstr.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc13", template);
@@ -4795,17 +5110,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("pins.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pins.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("ins", template);
@@ -4823,17 +5143,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("suit.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("suit.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc14", template);
@@ -4871,17 +5196,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("pmap.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pmap.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc15", template);
@@ -4903,17 +5233,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("pvis.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pvis.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc16", template);
@@ -4943,17 +5278,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("mega.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("mega.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("mega", template);
@@ -4971,17 +5311,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("clip.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("clip.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("clip", template);
@@ -4999,17 +5344,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("ammo.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("ammo.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc17", template);
@@ -5027,17 +5377,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("rock.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("rock.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc18", template);
@@ -5055,17 +5410,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("brok.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("brok.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc19", template);
@@ -5083,17 +5443,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("cell.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("cell.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc20", template);
@@ -5111,17 +5476,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("celp.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("celp.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc21", template);
@@ -5139,17 +5509,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("shel.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("shel.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc22", template);
@@ -5167,17 +5542,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("sbox.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("sbox.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc23", template);
@@ -5195,17 +5575,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("bpak.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bpak.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc24", template);
@@ -5223,17 +5608,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("bfug.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bfug.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc25", template);
@@ -5251,17 +5641,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("mgun.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("mgun.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("chaingun", template);
@@ -5279,17 +5674,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("csaw.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("csaw.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc26", template);
@@ -5307,17 +5707,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("laun.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("laun.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc27", template);
@@ -5335,17 +5740,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("plas.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("plas.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc28", template);
@@ -5363,17 +5773,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("shot.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("shot.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("shotgun", template);
@@ -5391,17 +5806,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("sgn2.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("sgn2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("supershotgun", template);
@@ -5431,17 +5851,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("tlmp.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("tlmp.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc29", template);
@@ -5471,17 +5896,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("tlp2.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("tlp2.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc30", template);
@@ -5499,17 +5929,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("colu.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("colu.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc31", template);
@@ -5527,17 +5962,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("col1.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("col1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc32", template);
@@ -5555,17 +5995,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("col2.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("col2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc33", template);
@@ -5583,17 +6028,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("col3.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("col3.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc34", template);
@@ -5611,17 +6061,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("col4.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("col4.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc35", template);
@@ -5639,17 +6094,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("col6.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("col6.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc36", template);
@@ -5671,17 +6131,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("col5.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("col5.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc37", template);
@@ -5711,17 +6176,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("ceye.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("ceye.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc38", template);
@@ -5747,17 +6217,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("fsku.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("fsku.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc39", template);
@@ -5775,17 +6250,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("tre1.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("tre1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc40", template);
@@ -5815,17 +6295,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("tblu.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("tblu.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc41", template);
@@ -5855,17 +6340,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("tgrn.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("tgrn.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc42", template);
@@ -5895,17 +6385,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("tred.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("tred.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc43", template);
@@ -5935,17 +6430,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("smbt.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("smbt.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc44", template);
@@ -5975,17 +6475,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("smgt.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("smgt.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc45", template);
@@ -6015,17 +6520,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("smrt.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("smrt.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc46", template);
@@ -6043,17 +6553,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("smit.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("smit.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc47", template);
@@ -6071,17 +6586,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("elec.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("elec.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc48", template);
@@ -6099,17 +6619,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("cand.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("cand.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc49", template);
@@ -6127,17 +6652,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("cbra.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("cbra.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc50", template);
@@ -6167,20 +6697,25 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 68.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 68.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("gor1.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 68.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpawnOnCeiling {
+					offset: 68.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc51", template);
@@ -6198,20 +6733,25 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 84.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 84.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("gor2.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 84.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpawnOnCeiling {
+					offset: 84.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc52", template);
@@ -6229,20 +6769,25 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 84.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 84.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("gor3.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 84.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpawnOnCeiling {
+					offset: 84.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor3.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc53", template);
@@ -6260,20 +6805,25 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 68.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 68.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("gor4.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 68.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpawnOnCeiling {
+					offset: 68.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor4.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc54", template);
@@ -6291,20 +6841,25 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 52.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 52.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("gor5.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 52.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpawnOnCeiling {
+					offset: 52.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor5.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc55", template);
@@ -6322,20 +6877,25 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 84.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 84.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("gor2.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 84.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpawnOnCeiling {
+					offset: 84.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc56", template);
@@ -6353,20 +6913,25 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 68.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 68.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("gor4.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 68.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpawnOnCeiling {
+					offset: 68.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor4.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc57", template);
@@ -6384,20 +6949,25 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 52.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 52.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("gor3.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 52.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpawnOnCeiling {
+					offset: 52.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor3.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc58", template);
@@ -6415,20 +6985,25 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 52.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 52.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("gor5.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 52.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpawnOnCeiling {
+					offset: 52.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor5.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc59", template);
@@ -6458,20 +7033,25 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 68.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 68.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("gor1.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 68.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpawnOnCeiling {
+					offset: 68.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc60", template);
@@ -6489,17 +7069,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("head.sprite"),
-				frame: 11,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("head.sprite"),
+					frame: 11,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc61", template);
@@ -6517,17 +7102,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("play.sprite"),
-				frame: 13,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("play.sprite"),
+					frame: 13,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc62", template);
@@ -6545,17 +7135,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("poss.sprite"),
-				frame: 11,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("poss.sprite"),
+					frame: 11,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc63", template);
@@ -6573,17 +7168,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("sarg.sprite"),
-				frame: 13,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("sarg.sprite"),
+					frame: 13,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc64", template);
@@ -6601,17 +7201,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("skul.sprite"),
-				frame: 10,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("skul.sprite"),
+					frame: 10,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc65", template);
@@ -6629,17 +7234,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("troo.sprite"),
-				frame: 12,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("troo.sprite"),
+					frame: 12,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc66", template);
@@ -6657,17 +7267,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("spos.sprite"),
-				frame: 11,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("spos.sprite"),
+					frame: 11,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc67", template);
@@ -6685,17 +7300,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("play.sprite"),
-				frame: 22,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("play.sprite"),
+					frame: 22,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc68", template);
@@ -6713,17 +7333,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("play.sprite"),
-				frame: 22,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("play.sprite"),
+					frame: 22,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc69", template);
@@ -6741,17 +7366,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("pol2.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pol2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc70", template);
@@ -6769,17 +7399,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 20.0,
-				solid_mask: SolidMask::empty(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("pol5.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_mask: SolidMask::empty(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pol5.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc71", template);
@@ -6797,17 +7432,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("pol4.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pol4.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc72", template);
@@ -6829,17 +7469,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("pol3.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pol3.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc73", template);
@@ -6857,17 +7502,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("pol1.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pol1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc74", template);
@@ -6889,17 +7539,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("pol6.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pol6.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc75", template);
@@ -6917,17 +7572,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 32.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("tre2.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 32.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("tre2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc76", template);
@@ -6953,17 +7613,22 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 16.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("fcan.sprite"),
-				frame: 0,
-				full_bright: true,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("fcan.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc77", template);
@@ -6981,20 +7646,25 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 88.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 88.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("hdb1.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 88.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpawnOnCeiling {
+					offset: 88.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("hdb1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc78", template);
@@ -7012,20 +7682,25 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 88.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 88.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("hdb2.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 88.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpawnOnCeiling {
+					offset: 88.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("hdb2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc79", template);
@@ -7043,20 +7718,25 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 64.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 64.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("hdb3.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 64.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpawnOnCeiling {
+					offset: 64.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("hdb3.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc80", template);
@@ -7074,20 +7754,25 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 64.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 64.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("hdb4.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 64.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpawnOnCeiling {
+					offset: 64.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("hdb4.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc81", template);
@@ -7105,20 +7790,25 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 64.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 64.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("hdb5.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 64.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpawnOnCeiling {
+					offset: 64.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("hdb5.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc82", template);
@@ -7136,20 +7826,25 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(BoxCollider {
-				height: 64.0,
-				radius: 16.0,
-				solid_mask: SolidMask::all(),
-			})
-			.with_component(SpawnOnCeiling {
-				offset: 64.0,
-			})
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("hdb6.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 64.0,
+					radius: 16.0,
+					solid_mask: SolidMask::all(),
+				},
+				SpawnOnCeiling {
+					offset: 64.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("hdb6.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc83", template);
@@ -7167,12 +7862,17 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("pob1.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("pob1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc84", template);
@@ -7190,12 +7890,17 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("pob2.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("pob2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc85", template);
@@ -7213,12 +7918,17 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
-		components: EntityComponents::new()
-			.with_component(SpriteRender {
-				sprite: asset_storage.load("brs1.sprite"),
-				frame: 0,
-				full_bright: false,
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				SpriteRender {
+					sprite: asset_storage.load("brs1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("misc86", template);

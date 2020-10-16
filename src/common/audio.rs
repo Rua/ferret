@@ -118,11 +118,13 @@ impl Iterator for SoundSource {
 	}
 }
 
+#[derive(Clone, Debug)]
 pub struct SoundController {
 	controls: Arc<Controls>,
 	is_playing: Arc<AtomicUsize>,
 }
 
+#[derive(Debug)]
 struct Controls {
 	stopped: AtomicBool,
 	volumes: Mutex<[f32; 2]>,

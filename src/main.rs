@@ -13,7 +13,8 @@ use crate::common::{
 use anyhow::{bail, Context};
 use clap::{App, Arg, ArgMatches};
 use legion::{
-	systems::ResourceSet, Entity, IntoQuery, Read, Resources, Schedule, World, WorldOptions, Write,
+	systems::ResourceSet, world::Duplicate, Entity, IntoQuery, Read, Resources, Schedule, World,
+	WorldOptions, Write,
 };
 use nalgebra::Vector2;
 use rand::SeedableRng;
@@ -159,6 +160,7 @@ fn main() -> anyhow::Result<()> {
 		};
 	command_sender.send(format!("map {}", map)).ok();
 
+	// Asset types
 	let mut asset_storage = AssetStorage::new(doom::import, loader);
 	asset_storage.add_storage::<doom::entitytemplate::EntityTemplate>(false);
 	asset_storage.add_storage::<doom::image::Image>(true);
@@ -170,6 +172,35 @@ fn main() -> anyhow::Result<()> {
 	asset_storage.add_storage::<doom::sprite::Sprite>(false);
 	asset_storage.add_storage::<doom::sound::Sound>(false);
 	resources.insert(asset_storage);
+
+	// Component types
+	let mut merger = Duplicate::new();
+	merger.register_clone::<doom::camera::Camera>();
+	merger.register_clone::<doom::client::UseAction>();
+	merger.register_clone::<doom::client::User>();
+	merger.register_clone::<doom::components::SpawnOnCeiling>();
+	merger.register_clone::<doom::components::SpawnPoint>();
+	merger.register_clone::<doom::components::Transform>();
+	merger.register_clone::<doom::components::Velocity>();
+	merger.register_clone::<doom::door::DoorActive>();
+	merger.register_clone::<doom::entitytemplate::EntityTemplateRef>();
+	merger.register_clone::<doom::floor::FloorActive>();
+	merger.register_clone::<doom::light::LightFlash>();
+	merger.register_clone::<doom::light::LightGlow>();
+	merger.register_clone::<doom::map::LinedefRef>();
+	merger.register_clone::<doom::map::MapDynamic>();
+	merger.register_clone::<doom::map::SectorRef>();
+	merger.register_clone::<doom::physics::BoxCollider>();
+	merger.register_clone::<doom::physics::TouchAction>();
+	merger.register_clone::<doom::plat::PlatActive>();
+	merger.register_clone::<doom::psprite::PlayerSpriteRender>();
+	merger.register_clone::<doom::sectormove::CeilingMove>();
+	merger.register_clone::<doom::sectormove::FloorMove>();
+	merger.register_clone::<doom::sound::SoundPlaying>();
+	merger.register_clone::<doom::sprite::SpriteRender>();
+	merger.register_clone::<doom::switch::SwitchActive>();
+	merger.register_clone::<doom::texture::TextureScroll>();
+	resources.insert(merger);
 
 	// Create systems
 	#[rustfmt::skip]
@@ -496,7 +527,7 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 				.load(&RelativePath::new(&name_lower).with_extension("things"))?,
 		)?
 	};
-	doom::map::spawn::spawn_map_entities(world, &resources, &map_handle)?;
+	doom::map::spawn::spawn_map_entities(world, resources, &map_handle)?;
 	doom::map::spawn::spawn_things(things, world, resources, &map_handle)?;
 
 	// Spawn player

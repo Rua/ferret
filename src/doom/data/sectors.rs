@@ -1,12 +1,12 @@
 use crate::{
-	common::{assets::AssetStorage, component::EntityComponents},
+	common::assets::AssetStorage,
 	doom::{
 		data::{FRAME_RATE, FRAME_TIME},
 		entitytemplate::{EntityTemplate, EntityTypeId},
 		light::{LightFlash, LightFlashType, LightGlow},
 	},
 };
-use legion::{systems::ResourceSet, Resources, Write};
+use legion::{systems::ResourceSet, Resources, World, Write};
 
 #[rustfmt::skip]
 pub fn load(resources: &mut Resources) {
@@ -15,12 +15,17 @@ pub fn load(resources: &mut Resources) {
 	// Blink random
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Sector(1)),
-		components: EntityComponents::new()
-			.with_component(LightFlash {
-				off_time: 8 * FRAME_TIME,
-				on_time: 64 * FRAME_TIME,
-				..LightFlash::default()
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				LightFlash {
+					off_time: 8 * FRAME_TIME,
+					on_time: 64 * FRAME_TIME,
+					..LightFlash::default()
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -28,13 +33,18 @@ pub fn load(resources: &mut Resources) {
 	// Fast strobe unsynchronised
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Sector(2)),
-		components: EntityComponents::new()
-			.with_component(LightFlash {
-				flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
-				off_time: 15 * FRAME_TIME,
-				on_time: 5 * FRAME_TIME,
-				..LightFlash::default()
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				LightFlash {
+					flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
+					off_time: 15 * FRAME_TIME,
+					on_time: 5 * FRAME_TIME,
+					..LightFlash::default()
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -42,13 +52,18 @@ pub fn load(resources: &mut Resources) {
 	// Slow strobe unsynchronised
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Sector(3)),
-		components: EntityComponents::new()
-			.with_component(LightFlash {
-				flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
-				off_time: 35 * FRAME_TIME,
-				on_time: 5 * FRAME_TIME,
-				..LightFlash::default()
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				LightFlash {
+					flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
+					off_time: 35 * FRAME_TIME,
+					on_time: 5 * FRAME_TIME,
+					..LightFlash::default()
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -56,13 +71,18 @@ pub fn load(resources: &mut Resources) {
 	// Fast strobe unsynchronised + 20% damage
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Sector(4)),
-		components: EntityComponents::new()
-			.with_component(LightFlash {
-				flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
-				off_time: 15 * FRAME_TIME,
-				on_time: 5 * FRAME_TIME,
-				..LightFlash::default()
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				LightFlash {
+					flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
+					off_time: 15 * FRAME_TIME,
+					on_time: 5 * FRAME_TIME,
+					..LightFlash::default()
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -84,11 +104,16 @@ pub fn load(resources: &mut Resources) {
 	// Glow
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Sector(8)),
-		components: EntityComponents::new()
-			.with_component(LightGlow {
-				speed: (8.0 / 256.0) * FRAME_RATE,
-				..LightGlow::default()
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				LightGlow {
+					speed: (8.0 / 256.0) * FRAME_RATE,
+					..LightGlow::default()
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -117,13 +142,18 @@ pub fn load(resources: &mut Resources) {
 	// Slow strobe
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Sector(12)),
-		components: EntityComponents::new()
-			.with_component(LightFlash {
-				flash_type: LightFlashType::Strobe,
-				off_time: 35 * FRAME_TIME,
-				on_time: 5 * FRAME_TIME,
-				..LightFlash::default()
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				LightFlash {
+					flash_type: LightFlashType::Strobe,
+					off_time: 35 * FRAME_TIME,
+					on_time: 5 * FRAME_TIME,
+					..LightFlash::default()
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
@@ -131,13 +161,18 @@ pub fn load(resources: &mut Resources) {
 	// Fast strobe
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Sector(13)),
-		components: EntityComponents::new()
-			.with_component(LightFlash {
-				flash_type: LightFlashType::Strobe,
-				off_time: 15 * FRAME_TIME,
-				on_time: 5 * FRAME_TIME,
-				..LightFlash::default()
-			}),
+		world: {
+			let mut world = World::default();
+			world.push((
+				LightFlash {
+					flash_type: LightFlashType::Strobe,
+					off_time: 15 * FRAME_TIME,
+					on_time: 5 * FRAME_TIME,
+					..LightFlash::default()
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert(template);
