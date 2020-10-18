@@ -28,10 +28,10 @@ pub fn state_system(_resources: &mut Resources) -> impl Runnable {
 		.read_resource::<AssetStorage>()
 		.read_resource::<FrameTime>()
 		.with_query(<(Entity, &EntityTemplateRef, &mut SpriteRender, &mut State)>::query())
-		.build(move |command_buffer, world, resources, query| {
+		.build(move |_command_buffer, world, resources, query| {
 			let (asset_storage, frame_time) = resources;
 
-			for (entity, template_ref, sprite_render, state) in query.iter_mut(world) {
+			for (_entity, template_ref, sprite_render, state) in query.iter_mut(world) {
 				let states = &asset_storage.get(&template_ref.0).unwrap().states;
 				let State { current, timer } = state;
 				timer.as_mut().map(|t| t.tick(frame_time.delta));

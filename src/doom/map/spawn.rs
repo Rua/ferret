@@ -18,10 +18,11 @@ use anyhow::bail;
 use legion::{
 	any,
 	systems::{CommandBuffer, ResourceSet},
-	world::Duplicate,
-	Entity, IntoQuery, Read, Resources, World, Write,
+	Entity, IntoQuery, Read, Resources, World,
 };
+use legion_prefab::{SpawnCloneImpl, SpawnCloneImplHandlerSet};
 use nalgebra::{Vector2, Vector3};
+use std::collections::HashMap;
 
 pub fn spawn_things(
 	things: Vec<Thing>,
@@ -29,8 +30,11 @@ pub fn spawn_things(
 	resources: &mut Resources,
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
-	let (asset_storage, mut merger) =
-		<(Read<AssetStorage>, Write<Duplicate>)>::fetch_mut(resources);
+	let (asset_storage, handler_set) =
+		<(Read<AssetStorage>, Read<SpawnCloneImplHandlerSet>)>::fetch(resources);
+	let components = HashMap::new();
+	let entity_map = HashMap::default();
+	let mut merger = SpawnCloneImpl::new(&handler_set, &components, &resources, &entity_map);
 
 	let mut command_buffer = CommandBuffer::new(world);
 
@@ -61,7 +65,7 @@ pub fn spawn_things(
 			command_buffer.push(())
 		} else {
 			// Create entity and add components
-			let entity_map = world.clone_from(&template.world, &any(), &mut *merger);
+			let entity_map = world.clone_from(&template.world, &any(), &mut merger);
 			entity_map.into_iter().map(|(_, to)| to).next().unwrap()
 		};
 
@@ -128,8 +132,12 @@ pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Res
 	};
 
 	// Fetch entity template
-	let (asset_storage, mut merger) =
-		<(Read<AssetStorage>, Write<Duplicate>)>::fetch_mut(resources);
+	let (asset_storage, handler_set) =
+		<(Read<AssetStorage>, Read<SpawnCloneImplHandlerSet>)>::fetch(resources);
+	let components = HashMap::new();
+	let entity_map = HashMap::default();
+	let mut merger = SpawnCloneImpl::new(&handler_set, &components, &resources, &entity_map);
+
 	let handle = match asset_storage.handle_for::<EntityTemplate>("player") {
 		Some(template) => template,
 		None => bail!("Entity type not found: {}", "player"),
@@ -137,7 +145,7 @@ pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Res
 	let template = asset_storage.get(&handle).unwrap();
 
 	// Create entity and add components
-	let entity_map = world.clone_from(&template.world, &any(), &mut *merger);
+	let entity_map = world.clone_from(&template.world, &any(), &mut merger);
 	let entity = entity_map.into_iter().map(|(_, to)| to).next().unwrap();
 
 	command_buffer.add_component(entity, transform);
@@ -156,8 +164,12 @@ pub fn spawn_map_entities(
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
 	let mut command_buffer = CommandBuffer::new(world);
-	let (asset_storage, mut merger) =
-		<(Read<AssetStorage>, Write<Duplicate>)>::fetch_mut(resources);
+	let (asset_storage, handler_set) =
+		<(Read<AssetStorage>, Read<SpawnCloneImplHandlerSet>)>::fetch(resources);
+	let components = HashMap::new();
+	let entity_map = HashMap::default();
+	let mut merger = SpawnCloneImpl::new(&handler_set, &components, &resources, &entity_map);
+
 	let map = asset_storage.get(&map_handle).unwrap();
 
 	// Create map entity
@@ -207,7 +219,7 @@ pub fn spawn_map_entities(
 
 				command_buffer.push(())
 			} else {
-				let entity_map = world.clone_from(&template.world, &any(), &mut *merger);
+				let entity_map = world.clone_from(&template.world, &any(), &mut merger);
 				entity_map.into_iter().map(|(_, to)| to).next().unwrap()
 			};
 
@@ -265,7 +277,7 @@ pub fn spawn_map_entities(
 
 				command_buffer.push(())
 			} else {
-				let entity_map = world.clone_from(&template.world, &any(), &mut *merger);
+				let entity_map = world.clone_from(&template.world, &any(), &mut merger);
 				entity_map.into_iter().map(|(_, to)| to).next().unwrap()
 			};
 
