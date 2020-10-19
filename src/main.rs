@@ -7,13 +7,13 @@ use crate::common::{
 	geometry::{AABB2, AABB3},
 	input::InputState,
 	quadtree::Quadtree,
+	resources_merger::ResourcesMergerHandlerSet,
 	time::FrameTime,
 	video::{AsBytes, DrawList, RenderContext, RenderTarget},
 };
 use anyhow::{bail, Context};
 use clap::{App, Arg, ArgMatches};
 use legion::{systems::ResourceSet, Entity, IntoQuery, Read, Resources, Schedule, World, Write};
-use legion_prefab::SpawnCloneImplHandlerSet;
 use nalgebra::Vector2;
 use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
@@ -172,34 +172,32 @@ fn main() -> anyhow::Result<()> {
 	resources.insert(asset_storage);
 
 	// Component types
-	let mut handler_set = SpawnCloneImplHandlerSet::new();
-	handler_set.add_mapping_into::<doom::camera::Camera, doom::camera::Camera>();
-	handler_set.add_mapping_into::<doom::client::UseAction, doom::client::UseAction>();
-	handler_set.add_mapping_into::<doom::client::User, doom::client::User>();
-	handler_set
-		.add_mapping_into::<doom::components::SpawnOnCeiling, doom::components::SpawnOnCeiling>();
-	handler_set.add_mapping_into::<doom::components::SpawnPoint, doom::components::SpawnPoint>();
-	handler_set.add_mapping_into::<doom::components::Transform, doom::components::Transform>();
-	handler_set.add_mapping_into::<doom::components::Velocity, doom::components::Velocity>();
-	handler_set.add_mapping_into::<doom::door::DoorActive, doom::door::DoorActive>();
-	handler_set.add_mapping_into::<doom::entitytemplate::EntityTemplateRef, doom::entitytemplate::EntityTemplateRef>();
-	handler_set.add_mapping_into::<doom::floor::FloorActive, doom::floor::FloorActive>();
-	handler_set.add_mapping_into::<doom::light::LightFlash, doom::light::LightFlash>();
-	handler_set.add_mapping_into::<doom::light::LightGlow, doom::light::LightGlow>();
-	handler_set.add_mapping_into::<doom::map::LinedefRef, doom::map::LinedefRef>();
-	handler_set.add_mapping_into::<doom::map::MapDynamic, doom::map::MapDynamic>();
-	handler_set.add_mapping_into::<doom::map::SectorRef, doom::map::SectorRef>();
-	handler_set.add_mapping_into::<doom::physics::BoxCollider, doom::physics::BoxCollider>();
-	handler_set.add_mapping_into::<doom::physics::TouchAction, doom::physics::TouchAction>();
-	handler_set.add_mapping_into::<doom::plat::PlatActive, doom::plat::PlatActive>();
-	handler_set
-		.add_mapping_into::<doom::psprite::PlayerSpriteRender, doom::psprite::PlayerSpriteRender>();
-	handler_set.add_mapping_into::<doom::sectormove::CeilingMove, doom::sectormove::CeilingMove>();
-	handler_set.add_mapping_into::<doom::sectormove::FloorMove, doom::sectormove::FloorMove>();
-	handler_set.add_mapping_into::<doom::sound::SoundPlaying, doom::sound::SoundPlaying>();
-	handler_set.add_mapping_into::<doom::sprite::SpriteRender, doom::sprite::SpriteRender>();
-	handler_set.add_mapping_into::<doom::switch::SwitchActive, doom::switch::SwitchActive>();
-	handler_set.add_mapping_into::<doom::texture::TextureScroll, doom::texture::TextureScroll>();
+	let mut handler_set = ResourcesMergerHandlerSet::new();
+	handler_set.register_clone::<doom::camera::Camera>();
+	handler_set.register_clone::<doom::client::UseAction>();
+	handler_set.register_clone::<doom::client::User>();
+	handler_set.register_clone::<doom::components::SpawnOnCeiling>();
+	handler_set.register_clone::<doom::components::SpawnPoint>();
+	handler_set.register_clone::<doom::components::Transform>();
+	handler_set.register_clone::<doom::components::Velocity>();
+	handler_set.register_clone::<doom::door::DoorActive>();
+	handler_set.register_clone::<doom::entitytemplate::EntityTemplateRef>();
+	handler_set.register_clone::<doom::floor::FloorActive>();
+	handler_set.register_clone::<doom::light::LightFlash>();
+	handler_set.register_clone::<doom::light::LightGlow>();
+	handler_set.register_clone::<doom::map::LinedefRef>();
+	handler_set.register_clone::<doom::map::MapDynamic>();
+	handler_set.register_clone::<doom::map::SectorRef>();
+	handler_set.register_clone::<doom::physics::BoxCollider>();
+	handler_set.register_clone::<doom::physics::TouchAction>();
+	handler_set.register_clone::<doom::plat::PlatActive>();
+	handler_set.register_clone::<doom::psprite::PlayerSpriteRender>();
+	handler_set.register_clone::<doom::sectormove::CeilingMove>();
+	handler_set.register_clone::<doom::sectormove::FloorMove>();
+	handler_set.register_clone::<doom::sound::SoundPlaying>();
+	handler_set.register_clone::<doom::sprite::SpriteRender>();
+	handler_set.register_clone::<doom::switch::SwitchActive>();
+	handler_set.register_clone::<doom::texture::TextureScroll>();
 	resources.insert(handler_set);
 
 	// Create systems

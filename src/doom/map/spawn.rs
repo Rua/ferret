@@ -2,6 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		geometry::AABB2,
+		resources_merger::{ResourcesMerger, ResourcesMergerHandlerSet},
 		time::Timer,
 	},
 	doom::{
@@ -20,9 +21,7 @@ use legion::{
 	systems::{CommandBuffer, ResourceSet},
 	Entity, IntoQuery, Read, Resources, World,
 };
-use legion_prefab::{SpawnCloneImpl, SpawnCloneImplHandlerSet};
 use nalgebra::{Vector2, Vector3};
-use std::collections::HashMap;
 
 pub fn spawn_things(
 	things: Vec<Thing>,
@@ -31,10 +30,8 @@ pub fn spawn_things(
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
 	let (asset_storage, handler_set) =
-		<(Read<AssetStorage>, Read<SpawnCloneImplHandlerSet>)>::fetch(resources);
-	let components = HashMap::new();
-	let entity_map = HashMap::default();
-	let mut merger = SpawnCloneImpl::new(&handler_set, &components, &resources, &entity_map);
+		<(Read<AssetStorage>, Read<ResourcesMergerHandlerSet>)>::fetch(resources);
+	let mut merger = ResourcesMerger::new(&handler_set, &resources);
 
 	let mut command_buffer = CommandBuffer::new(world);
 
@@ -133,10 +130,8 @@ pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Res
 
 	// Fetch entity template
 	let (asset_storage, handler_set) =
-		<(Read<AssetStorage>, Read<SpawnCloneImplHandlerSet>)>::fetch(resources);
-	let components = HashMap::new();
-	let entity_map = HashMap::default();
-	let mut merger = SpawnCloneImpl::new(&handler_set, &components, &resources, &entity_map);
+		<(Read<AssetStorage>, Read<ResourcesMergerHandlerSet>)>::fetch(resources);
+	let mut merger = ResourcesMerger::new(&handler_set, &resources);
 
 	let handle = match asset_storage.handle_for::<EntityTemplate>("player") {
 		Some(template) => template,
@@ -165,10 +160,8 @@ pub fn spawn_map_entities(
 ) -> anyhow::Result<()> {
 	let mut command_buffer = CommandBuffer::new(world);
 	let (asset_storage, handler_set) =
-		<(Read<AssetStorage>, Read<SpawnCloneImplHandlerSet>)>::fetch(resources);
-	let components = HashMap::new();
-	let entity_map = HashMap::default();
-	let mut merger = SpawnCloneImpl::new(&handler_set, &components, &resources, &entity_map);
+		<(Read<AssetStorage>, Read<ResourcesMergerHandlerSet>)>::fetch(resources);
+	let mut merger = ResourcesMerger::new(&handler_set, &resources);
 
 	let map = asset_storage.get(&map_handle).unwrap();
 
