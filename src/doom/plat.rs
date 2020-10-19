@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		audio::Sound,
-		time::{FrameTime, Timer},
+		time::{FrameTime, OldTimer},
 	},
 	doom::{
 		client::{UseAction, UseEvent},
@@ -24,7 +24,7 @@ use std::time::Duration;
 #[derive(Clone, Debug)]
 pub struct PlatActive {
 	pub speed: f32,
-	pub wait_timer: Timer,
+	pub wait_timer: OldTimer,
 	pub can_reverse: bool,
 
 	pub start_sound: Option<AssetHandle<Sound>>,
@@ -302,7 +302,7 @@ fn activate(
 			velocity: 0.0,
 			target: sector_dynamic.interval.min,
 			sound: params.move_sound.clone(),
-			sound_timer: Timer::new(params.move_sound_time),
+			sound_timer: OldTimer::new(params.move_sound_time),
 		}),
 	);
 
@@ -310,7 +310,7 @@ fn activate(
 		sector_dynamic.entity,
 		PlatActive {
 			speed: params.speed,
-			wait_timer: Timer::new_zero(params.wait_time),
+			wait_timer: OldTimer::new_zero(params.wait_time),
 			can_reverse: params.can_reverse,
 
 			start_sound: params.start_sound.clone(),

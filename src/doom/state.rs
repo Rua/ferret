@@ -1,7 +1,7 @@
 use crate::{
 	common::{
 		assets::AssetStorage,
-		time::{FrameTime, Timer},
+		time::{FrameTime, OldTimer},
 	},
 	doom::{entitytemplate::EntityTemplateRef, sprite::SpriteRender},
 };
@@ -20,7 +20,7 @@ pub struct StateDef {
 #[derive(Clone, Debug)]
 pub struct State {
 	pub current: (StateName, usize),
-	pub timer: Option<Timer>,
+	pub timer: Option<OldTimer>,
 }
 
 pub fn state_system(_resources: &mut Resources) -> impl Runnable {
@@ -49,7 +49,7 @@ pub fn state_system(_resources: &mut Resources) -> impl Runnable {
 						.expect("Invalid next state name");
 					*current = new;
 					*sprite_render = new_state.sprite.clone();
-					*timer = new_state.next.map(|(time, _)| Timer::new(time));
+					*timer = new_state.next.map(|(time, _)| OldTimer::new(time));
 				}
 			}
 		})

@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		audio::Sound,
-		time::{FrameTime, Timer},
+		time::{FrameTime, OldTimer},
 	},
 	doom::{
 		image::Image,
@@ -26,7 +26,7 @@ pub struct SwitchActive {
 	pub sound: Option<AssetHandle<Sound>>,
 	pub texture: AssetHandle<Image>,
 	pub texture_slot: SidedefSlot,
-	pub timer: Timer,
+	pub timer: OldTimer,
 }
 
 pub fn switch_active_system() -> impl Runnable {
@@ -104,7 +104,7 @@ pub fn activate(
 							sound: params.sound.clone(),
 							texture: old,
 							texture_slot: slot,
-							timer: Timer::new(time_left),
+							timer: OldTimer::new(time_left),
 						},
 					);
 				}

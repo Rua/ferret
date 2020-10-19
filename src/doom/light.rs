@@ -1,7 +1,7 @@
 use crate::{
 	common::{
 		assets::AssetStorage,
-		time::{FrameTime, Timer},
+		time::{FrameTime, OldTimer},
 	},
 	doom::{
 		data::FRAME_TIME,
@@ -86,7 +86,7 @@ pub fn light_flash_system() -> impl Runnable {
 pub struct LightFlash {
 	pub on_time: Duration,
 	pub off_time: Duration,
-	pub timer: Timer,
+	pub timer: OldTimer,
 	pub state: bool,
 	pub flash_type: LightFlashType,
 }

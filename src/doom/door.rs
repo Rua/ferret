@@ -3,7 +3,7 @@ use crate::{
 		assets::{AssetHandle, AssetStorage},
 		audio::Sound,
 		geometry::Side,
-		time::{FrameTime, Timer},
+		time::{FrameTime, OldTimer},
 	},
 	doom::{
 		client::{UseAction, UseEvent},
@@ -26,7 +26,7 @@ pub struct DoorActive {
 	pub state: DoorState,
 	pub end_state: DoorState,
 	pub speed: f32,
-	pub wait_timer: Timer,
+	pub wait_timer: OldTimer,
 	pub can_reverse: bool,
 
 	pub open_sound: Option<AssetHandle<Sound>>,
@@ -384,7 +384,7 @@ fn activate(
 			velocity: 0.0,
 			target: sector_dynamic.interval.max,
 			sound: None,
-			sound_timer: Timer::default(),
+			sound_timer: OldTimer::default(),
 		}),
 	);
 
@@ -394,7 +394,7 @@ fn activate(
 			state: params.start_state,
 			end_state: params.end_state,
 			speed: params.speed,
-			wait_timer: Timer::new_zero(params.wait_time),
+			wait_timer: OldTimer::new_zero(params.wait_time),
 			can_reverse: params.can_reverse,
 
 			open_sound: params.open_sound.clone(),

@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		audio::Sound,
-		time::Timer,
+		time::OldTimer,
 	},
 	doom::{
 		client::{UseAction, UseEvent},
@@ -265,7 +265,7 @@ fn activate(
 			velocity: direction * params.speed,
 			target,
 			sound: params.move_sound.clone(),
-			sound_timer: Timer::new_zero(params.move_sound_time),
+			sound_timer: OldTimer::new_zero(params.move_sound_time),
 		}),
 	);
 

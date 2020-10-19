@@ -3,7 +3,7 @@ use crate::{
 		assets::{AssetHandle, AssetStorage},
 		audio::Sound,
 		quadtree::Quadtree,
-		time::{FrameTime, Timer},
+		time::{FrameTime, OldTimer},
 	},
 	doom::{
 		components::Transform,
@@ -25,7 +25,7 @@ pub struct SectorMove {
 	pub velocity: f32,
 	pub target: f32,
 	pub sound: Option<AssetHandle<Sound>>,
-	pub sound_timer: Timer,
+	pub sound_timer: OldTimer,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]

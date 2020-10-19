@@ -7,7 +7,7 @@ use crate::{
 	common::{
 		assets::AssetHandle,
 		geometry::{Angle, Interval, Line2, Plane2, Side, AABB2},
-		time::Timer,
+		time::OldTimer,
 	},
 	doom::{
 		image::Image,
@@ -51,7 +51,7 @@ pub struct Anim {
 #[derive(Clone, Copy, Debug)]
 pub struct AnimState {
 	pub frame: usize,
-	pub timer: Timer,
+	pub timer: OldTimer,
 }
 
 pub struct Thing {

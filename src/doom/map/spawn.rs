@@ -3,7 +3,7 @@ use crate::{
 		assets::{AssetHandle, AssetStorage},
 		geometry::AABB2,
 		resources_merger::{ResourcesMerger, ResourcesMergerHandlerSet},
-		time::Timer,
+		time::OldTimer,
 	},
 	doom::{
 		components::{SpawnOnCeiling, SpawnPoint, Transform},
@@ -91,7 +91,7 @@ pub fn spawn_things(
 				entity,
 				State {
 					current: new,
-					timer: new_state.next.map(|(time, _)| Timer::new(time)),
+					timer: new_state.next.map(|(time, _)| OldTimer::new(time)),
 				},
 			);
 		}
@@ -175,7 +175,7 @@ pub fn spawn_map_entities(
 				k.clone(),
 				AnimState {
 					frame: 0,
-					timer: Timer::new(v.frame_time),
+					timer: OldTimer::new(v.frame_time),
 				},
 			)
 		})

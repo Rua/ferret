@@ -6,22 +6,50 @@ pub struct FrameTime {
 	pub total: Duration,
 }
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug)]
 pub struct Timer {
+	target_time: Duration,
+	wait_time: Duration,
+}
+
+impl Timer {
+	pub fn new(current_time: Duration, wait_time: Duration) -> Self {
+		Self {
+			target_time: current_time + wait_time,
+			wait_time,
+		}
+	}
+
+	pub fn is_elapsed(&self, current_time: Duration) -> bool {
+		current_time >= self.target_time
+	}
+
+	pub fn restart(&mut self) {
+		self.target_time += self.wait_time;
+	}
+
+	pub fn restart_with(&mut self, wait_time: Duration) {
+		self.wait_time = wait_time;
+		self.target_time += self.wait_time;
+	}
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct OldTimer {
 	time: Duration,
 	time_left: Duration,
 }
 
-impl Timer {
-	pub fn new(time: Duration) -> Timer {
-		Timer {
+impl OldTimer {
+	pub fn new(time: Duration) -> OldTimer {
+		OldTimer {
 			time,
 			time_left: time,
 		}
 	}
 
-	pub fn new_zero(time: Duration) -> Timer {
-		Timer {
+	pub fn new_zero(time: Duration) -> OldTimer {
+		OldTimer {
 			time,
 			time_left: Duration::default(),
 		}
