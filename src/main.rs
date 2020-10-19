@@ -4,19 +4,18 @@ mod doom;
 use crate::common::{
 	assets::{AssetHandle, AssetStorage},
 	audio::Sound,
+	frame::{frame_rng_system, FrameRng, FrameRngDef, FrameState},
 	geometry::{AABB2, AABB3},
 	input::InputState,
 	quadtree::Quadtree,
 	resources_merger::ResourcesMergerHandlerSet,
-	time::FrameTime,
 	video::{AsBytes, DrawList, RenderContext, RenderTarget},
 };
 use anyhow::{bail, Context};
 use clap::{App, Arg, ArgMatches};
 use legion::{systems::ResourceSet, Entity, IntoQuery, Read, Resources, Schedule, World, Write};
 use nalgebra::Vector2;
-use rand::SeedableRng;
-use rand_pcg::Pcg64Mcg;
+use rand::{Rng, SeedableRng};
 use relative_path::RelativePath;
 use std::{
 	path::PathBuf,
@@ -129,14 +128,18 @@ fn main() -> anyhow::Result<()> {
 	let bindings = doom::data::get_bindings();
 	resources.insert(bindings);
 
-	resources.insert(Pcg64Mcg::from_entropy());
 	resources.insert(InputState::new());
 	resources.insert(Vec::<(AssetHandle<Sound>, Entity)>::new());
 	resources.insert(doom::client::Client::default());
-	resources.insert(FrameTime {
-		delta: doom::data::FRAME_TIME,
-		total: Duration::default(),
-	});
+
+	let mut frame_state = FrameState {
+		delta_time: doom::data::FRAME_TIME,
+		total_time: Duration::default(),
+		rng: FrameRng::from_entropy(),
+		seed: <FrameRng as SeedableRng>::Seed::default(),
+	};
+	frame_state.rng.fill(&mut frame_state.seed);
+	resources.insert(frame_state);
 
 	let mut loader = doom::wad::WadLoader::new();
 	load_wads(&mut loader, &arg_matches)?;
@@ -173,6 +176,7 @@ fn main() -> anyhow::Result<()> {
 
 	// Component types
 	let mut handler_set = ResourcesMergerHandlerSet::new();
+	handler_set.register_from_with_resources::<FrameRngDef, FrameRng>();
 	handler_set.register_clone::<doom::camera::Camera>();
 	handler_set.register_clone::<doom::client::UseAction>();
 	handler_set.register_clone::<doom::client::User>();
@@ -203,6 +207,7 @@ fn main() -> anyhow::Result<()> {
 	// Create systems
 	#[rustfmt::skip]
 	let mut update_dispatcher = Schedule::builder()
+		.add_thread_local(frame_rng_system()).flush()
 		.add_thread_local(doom::client::player_command_system()).flush()
 		.add_thread_local(doom::client::player_move_system()).flush()
 		.add_thread_local(doom::client::player_attack_system(&mut resources)).flush()
@@ -395,12 +400,14 @@ fn main() -> anyhow::Result<()> {
 			update_dispatcher.execute(&mut world, &mut resources);
 
 			{
-				let (mut frame_time, mut input_state) =
-					<(Write<FrameTime>, Write<InputState>)>::fetch_mut(&mut resources);
+				let (mut frame_state, mut input_state) =
+					<(Write<FrameState>, Write<InputState>)>::fetch_mut(&mut resources);
+				let frame_state = &mut *frame_state;
 
 				leftover_time -= doom::data::FRAME_TIME;
-				frame_time.delta = doom::data::FRAME_TIME;
-				frame_time.total += doom::data::FRAME_TIME;
+				frame_state.delta_time = doom::data::FRAME_TIME;
+				frame_state.total_time += doom::data::FRAME_TIME;
+				frame_state.rng.fill(&mut frame_state.seed);
 
 				input_state.reset();
 			}

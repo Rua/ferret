@@ -2,7 +2,8 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		audio::Sound,
-		time::{FrameTime, OldTimer},
+		frame::FrameState,
+		time::OldTimer,
 	},
 	doom::{
 		image::Image,
@@ -32,17 +33,17 @@ pub struct SwitchActive {
 pub fn switch_active_system() -> impl Runnable {
 	SystemBuilder::new("switch_active_system")
 		.read_resource::<AssetStorage>()
-		.read_resource::<FrameTime>()
+		.read_resource::<FrameState>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<(Entity, &LinedefRef, &mut SwitchActive)>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, frame_time, sound_queue) = resources;
+			let (asset_storage, frame_state, sound_queue) = resources;
 
 			let (mut world0, mut world) = world.split_for_query(&queries.0);
 
 			for (entity, linedef_ref, switch_active) in queries.0.iter_mut(&mut world0) {
-				switch_active.timer.tick(frame_time.delta);
+				switch_active.timer.tick(frame_state.delta_time);
 
 				if switch_active.timer.is_zero() {
 					let map_dynamic = queries

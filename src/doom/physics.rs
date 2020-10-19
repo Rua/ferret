@@ -1,9 +1,9 @@
 use crate::{
 	common::{
 		assets::AssetStorage,
+		frame::FrameState,
 		geometry::{Interval, Plane3, AABB2, AABB3},
 		quadtree::Quadtree,
-		time::FrameTime,
 	},
 	doom::{
 		components::{Transform, Velocity},
@@ -34,7 +34,7 @@ pub fn physics_system(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("physics_system")
 		.read_resource::<AssetStorage>()
-		.read_resource::<FrameTime>()
+		.read_resource::<FrameState>()
 		.write_resource::<Quadtree>()
 		.write_resource::<EventChannel<StepEvent>>()
 		.write_resource::<EventChannel<TouchEvent>>()
@@ -47,7 +47,7 @@ pub fn physics_system(resources: &mut Resources) -> impl Runnable {
 		.read_component::<BoxCollider>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
 		.build(move |_, world, resources, queries| {
-			let (asset_storage, frame_time, quadtree, step_event_channel, touch_event_channel) =
+			let (asset_storage, frame_state, quadtree, step_event_channel, touch_event_channel) =
 				resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 			let map_dynamic = queries.0.iter(&world0).next().unwrap();
@@ -90,7 +90,7 @@ pub fn physics_system(resources: &mut Resources) -> impl Runnable {
 				if let Some(collision) = trace.collision {
 					// Entity is on ground, apply friction
 					// TODO make this work with any ground normal
-					let factor = FRICTION.powf(frame_time.delta.as_secs_f32());
+					let factor = FRICTION.powf(frame_state.delta_time.as_secs_f32());
 					new_velocity[0] *= factor;
 					new_velocity[1] *= factor;
 
@@ -102,7 +102,7 @@ pub fn physics_system(resources: &mut Resources) -> impl Runnable {
 					});
 				} else {
 					// Entity isn't on ground, apply gravity
-					new_velocity[2] -= GRAVITY * frame_time.delta.as_secs_f32();
+					new_velocity[2] -= GRAVITY * frame_state.delta_time.as_secs_f32();
 				}
 
 				// Apply the move
@@ -115,7 +115,7 @@ pub fn physics_system(resources: &mut Resources) -> impl Runnable {
 					entity,
 					&entity_bbox,
 					SolidMask::NON_MONSTER, // TODO solid mask
-					frame_time.delta,
+					frame_state.delta_time,
 				);
 
 				// Set new position and velocity

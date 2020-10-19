@@ -2,8 +2,9 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		audio::Sound,
+		frame::FrameState,
 		quadtree::Quadtree,
-		time::{FrameTime, OldTimer},
+		time::OldTimer,
 	},
 	doom::{
 		components::Transform,
@@ -46,7 +47,7 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("sector_move_system")
 		.read_resource::<AssetStorage>()
-		.read_resource::<FrameTime>()
+		.read_resource::<FrameState>()
 		.read_resource::<Quadtree>()
 		.write_resource::<EventChannel<SectorMoveEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
@@ -57,7 +58,7 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 		.read_component::<BoxCollider>() // used by SectorTracer
 		.read_component::<Transform>() // used by SectorTracer
 		.build(move |_, world, resources, queries| {
-			let (asset_storage, frame_time, quadtree, sector_move_event_channel, sound_queue) =
+			let (asset_storage, frame_state, quadtree, sector_move_event_channel, sound_queue) =
 				resources;
 
 			// TODO check if this is still needed with new Rust versions
@@ -77,14 +78,14 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 				let sector = &map.sectors[sector_ref.index];
 				let mut event_type = None;
 
-				sector_move.sound_timer.tick(frame_time.delta);
+				sector_move.sound_timer.tick(frame_state.delta_time);
 
 				if sector_move.sound_timer.is_zero() && sector_move.sound.is_some() {
 					sector_move.sound_timer.reset();
 					sound_queue.push((sector_move.sound.as_ref().unwrap().clone(), entity));
 				}
 
-				let mut move_step = sector_move.velocity * frame_time.delta.as_secs_f32();
+				let mut move_step = sector_move.velocity * frame_state.delta_time.as_secs_f32();
 
 				let current_height = if normal == 1.0 {
 					map_dynamic.sectors[sector_ref.index].interval.min

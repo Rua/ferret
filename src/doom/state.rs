@@ -1,8 +1,5 @@
 use crate::{
-	common::{
-		assets::AssetStorage,
-		time::{FrameTime, OldTimer},
-	},
+	common::{assets::AssetStorage, frame::FrameState, time::OldTimer},
 	doom::{entitytemplate::EntityTemplateRef, sprite::SpriteRender},
 };
 use arrayvec::ArrayString;
@@ -26,15 +23,15 @@ pub struct State {
 pub fn state_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("state_system")
 		.read_resource::<AssetStorage>()
-		.read_resource::<FrameTime>()
+		.read_resource::<FrameState>()
 		.with_query(<(Entity, &EntityTemplateRef, &mut SpriteRender, &mut State)>::query())
 		.build(move |_command_buffer, world, resources, query| {
-			let (asset_storage, frame_time) = resources;
+			let (asset_storage, frame_state) = resources;
 
 			for (_entity, template_ref, sprite_render, state) in query.iter_mut(world) {
 				let states = &asset_storage.get(&template_ref.0).unwrap().states;
 				let State { current, timer } = state;
-				timer.as_mut().map(|t| t.tick(frame_time.delta));
+				timer.as_mut().map(|t| t.tick(frame_state.delta_time));
 
 				while timer.map_or(false, |t| t.is_zero()) {
 					let new = if let Some(new) = states[&current.0][current.1].next.unwrap().1 {

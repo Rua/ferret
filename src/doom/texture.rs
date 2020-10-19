@@ -1,5 +1,5 @@
 use crate::{
-	common::{assets::AssetStorage, time::FrameTime},
+	common::{assets::AssetStorage, frame::FrameState},
 	doom::map::{LinedefRef, MapDynamic},
 };
 use legion::{systems::Runnable, IntoQuery, SystemBuilder};
@@ -13,14 +13,14 @@ pub struct TextureScroll {
 pub fn texture_animation_system() -> impl Runnable {
 	SystemBuilder::new("texture_animation_system")
 		.read_resource::<AssetStorage>()
-		.read_resource::<FrameTime>()
+		.read_resource::<FrameState>()
 		.with_query(<&mut MapDynamic>::query())
 		.build(move |_, world, resources, query| {
-			let (asset_storage, frame_time) = resources;
+			let (asset_storage, frame_state) = resources;
 
 			for map_dynamic in query.iter_mut(world) {
 				for (handle, anim_state) in map_dynamic.anim_states.iter_mut() {
-					anim_state.timer.tick(frame_time.delta);
+					anim_state.timer.tick(frame_state.delta_time);
 
 					if anim_state.timer.is_zero() {
 						let map = asset_storage.get(&map_dynamic.map).unwrap();
@@ -35,10 +35,10 @@ pub fn texture_animation_system() -> impl Runnable {
 
 pub fn texture_scroll_system() -> impl Runnable {
 	SystemBuilder::new("texture_scroll_system")
-		.read_resource::<FrameTime>()
+		.read_resource::<FrameState>()
 		.with_query(<(&LinedefRef, &TextureScroll)>::query())
 		.with_query(<&mut MapDynamic>::query())
-		.build(move |_, world, frame_time, queries| {
+		.build(move |_, world, frame_state, queries| {
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
 			// Scroll textures
@@ -49,7 +49,7 @@ pub fn texture_scroll_system() -> impl Runnable {
 					.unwrap();
 				let linedef_dynamic = &mut map_dynamic.linedefs[linedef_ref.index];
 				linedef_dynamic.texture_offset +=
-					texture_scroll.speed * frame_time.delta.as_secs_f32();
+					texture_scroll.speed * frame_state.delta_time.as_secs_f32();
 			}
 		})
 }

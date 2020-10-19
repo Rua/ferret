@@ -1,5 +1,5 @@
 use crate::{
-	common::{assets::AssetHandle, audio::Sound, geometry::Angle, time::FrameTime},
+	common::{assets::AssetHandle, audio::Sound, frame::FrameState, geometry::Angle},
 	doom::{
 		components::Velocity,
 		data::FRAME_RATE,
@@ -35,14 +35,14 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 		.register_reader();
 
 	SystemBuilder::new("camera_system")
-		.read_resource::<FrameTime>()
+		.read_resource::<FrameState>()
 		.read_resource::<EventChannel<StepEvent>>()
 		.read_resource::<EventChannel<TouchEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<&mut Camera>::query())
 		.with_query(<(&Velocity, &mut Camera, &mut PlayerSpriteRender)>::query())
 		.build(move |_, world, resources, queries| {
-			let (frame_time, step_event_channel, touch_event_channel, sound_queue) = resources;
+			let (frame_state, step_event_channel, touch_event_channel, sound_queue) = resources;
 
 			// Entity hitting the ground
 			for touch_event in touch_event_channel.read(&mut touch_event_reader) {
@@ -72,8 +72,9 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 				if camera.deviation_position != 0.0 || camera.deviation_velocity != 0.0 {
 					const DEVIATION_ACCEL: f32 = 0.25 * FRAME_RATE * FRAME_RATE;
 					camera.deviation_position +=
-						camera.deviation_velocity * frame_time.delta.as_secs_f32();
-					camera.deviation_velocity += DEVIATION_ACCEL * frame_time.delta.as_secs_f32();
+						camera.deviation_velocity * frame_state.delta_time.as_secs_f32();
+					camera.deviation_velocity +=
+						DEVIATION_ACCEL * frame_state.delta_time.as_secs_f32();
 
 					if camera.deviation_position > 0.0 {
 						// Hit the top
@@ -96,14 +97,14 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 
 				// Set camera position
 				let angle = Angle::from_units(
-					frame_time.total.as_secs_f64() / camera.view_bob_period.as_secs_f64(),
+					frame_state.total_time.as_secs_f64() / camera.view_bob_period.as_secs_f64(),
 				); // TODO replace with div_duration_f64 once it's stable
 				let bob = bob_amplitude * 0.5 * angle.sin() as f32;
 				camera.offset[2] = camera.deviation_position + bob;
 
 				// Set weapon position
 				let mut angle = Angle::from_units(
-					frame_time.total.as_secs_f64() / camera.weapon_bob_period.as_secs_f64(),
+					frame_state.total_time.as_secs_f64() / camera.weapon_bob_period.as_secs_f64(),
 				);
 				player_sprite_render.position[0] = 1.0 + bob_amplitude * angle.cos() as f32;
 

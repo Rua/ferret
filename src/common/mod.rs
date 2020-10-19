@@ -2,6 +2,7 @@ pub mod assets;
 pub mod audio;
 pub mod commands;
 pub mod configvars;
+pub mod frame;
 pub mod geometry;
 pub mod input;
 pub mod logger;
