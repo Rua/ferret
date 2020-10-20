@@ -4,7 +4,7 @@ mod doom;
 use crate::common::{
 	assets::{AssetHandle, AssetStorage},
 	audio::Sound,
-	frame::{frame_rng_system, FrameRng, FrameRngDef, FrameState},
+	frame::{frame_state_system, FrameRng, FrameRngDef, FrameState},
 	geometry::{AABB2, AABB3},
 	input::InputState,
 	quadtree::Quadtree,
@@ -15,10 +15,11 @@ use anyhow::{bail, Context};
 use clap::{App, Arg, ArgMatches};
 use legion::{systems::ResourceSet, Entity, IntoQuery, Read, Resources, Schedule, World, Write};
 use nalgebra::Vector2;
-use rand::{Rng, SeedableRng};
+use rand::SeedableRng;
 use relative_path::RelativePath;
 use std::{
 	path::PathBuf,
+	sync::Mutex,
 	time::{Duration, Instant},
 };
 use vulkano::{
@@ -132,13 +133,11 @@ fn main() -> anyhow::Result<()> {
 	resources.insert(Vec::<(AssetHandle<Sound>, Entity)>::new());
 	resources.insert(doom::client::Client::default());
 
-	let mut frame_state = FrameState {
+	let frame_state = FrameState {
 		delta_time: doom::data::FRAME_TIME,
 		total_time: Duration::default(),
-		rng: FrameRng::from_entropy(),
-		seed: <FrameRng as SeedableRng>::Seed::default(),
+		rng: Mutex::new(FrameRng::from_entropy()),
 	};
-	frame_state.rng.fill(&mut frame_state.seed);
 	resources.insert(frame_state);
 
 	let mut loader = doom::wad::WadLoader::new();
@@ -207,7 +206,6 @@ fn main() -> anyhow::Result<()> {
 	// Create systems
 	#[rustfmt::skip]
 	let mut update_dispatcher = Schedule::builder()
-		.add_thread_local(frame_rng_system()).flush()
 		.add_thread_local(doom::client::player_command_system()).flush()
 		.add_thread_local(doom::client::player_move_system()).flush()
 		.add_thread_local(doom::client::player_attack_system(&mut resources)).flush()
@@ -231,6 +229,7 @@ fn main() -> anyhow::Result<()> {
 		.add_thread_local(doom::texture::texture_animation_system()).flush()
 		.add_thread_local(doom::texture::texture_scroll_system()).flush()
 		.add_thread_local(doom::state::state_system(&mut resources)).flush()
+		.add_thread_local(frame_state_system(doom::data::FRAME_TIME)).flush()
 		.build();
 
 	let mut output_dispatcher = Schedule::builder()
@@ -398,19 +397,10 @@ fn main() -> anyhow::Result<()> {
 
 		if leftover_time >= doom::data::FRAME_TIME {
 			update_dispatcher.execute(&mut world, &mut resources);
+			leftover_time -= doom::data::FRAME_TIME;
 
-			{
-				let (mut frame_state, mut input_state) =
-					<(Write<FrameState>, Write<InputState>)>::fetch_mut(&mut resources);
-				let frame_state = &mut *frame_state;
-
-				leftover_time -= doom::data::FRAME_TIME;
-				frame_state.delta_time = doom::data::FRAME_TIME;
-				frame_state.total_time += doom::data::FRAME_TIME;
-				frame_state.rng.fill(&mut frame_state.seed);
-
-				input_state.reset();
-			}
+			let mut input_state = <Write<InputState>>::fetch_mut(&mut resources);
+			input_state.reset();
 		}
 
 		// Update video and sound
