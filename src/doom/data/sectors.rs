@@ -3,7 +3,7 @@ use crate::{
 	doom::{
 		data::{FRAME_RATE, FRAME_TIME},
 		entitytemplate::{EntityTemplate, EntityTypeId},
-		light::{LightFlash, LightFlashType, LightGlow},
+		light::{LightFlashDef, LightFlashType, LightGlow},
 	},
 };
 use legion::{systems::ResourceSet, Resources, World, Write};
@@ -19,10 +19,10 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				FrameRngDef,
-				LightFlash {
+				LightFlashDef {
+					flash_type: LightFlashType::Broken,
 					off_time: 8 * FRAME_TIME,
 					on_time: 64 * FRAME_TIME,
-					..LightFlash::default()
 				},
 			));
 			world
@@ -38,11 +38,10 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				FrameRngDef,
-				LightFlash {
+				LightFlashDef {
 					flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
 					off_time: 15 * FRAME_TIME,
 					on_time: 5 * FRAME_TIME,
-					..LightFlash::default()
 				},
 			));
 			world
@@ -58,11 +57,10 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				FrameRngDef,
-				LightFlash {
+				LightFlashDef {
 					flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
 					off_time: 35 * FRAME_TIME,
 					on_time: 5 * FRAME_TIME,
-					..LightFlash::default()
 				},
 			));
 			world
@@ -78,11 +76,10 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				FrameRngDef,
-				LightFlash {
+				LightFlashDef {
 					flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
 					off_time: 15 * FRAME_TIME,
 					on_time: 5 * FRAME_TIME,
-					..LightFlash::default()
 				},
 			));
 			world
@@ -150,11 +147,10 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				FrameRngDef,
-				LightFlash {
+				LightFlashDef {
 					flash_type: LightFlashType::Strobe,
 					off_time: 35 * FRAME_TIME,
 					on_time: 5 * FRAME_TIME,
-					..LightFlash::default()
 				},
 			));
 			world
@@ -170,11 +166,10 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				FrameRngDef,
-				LightFlash {
+				LightFlashDef {
 					flash_type: LightFlashType::Strobe,
 					off_time: 15 * FRAME_TIME,
 					on_time: 5 * FRAME_TIME,
-					..LightFlash::default()
 				},
 			));
 			world

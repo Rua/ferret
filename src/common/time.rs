@@ -65,11 +65,6 @@ impl OldTimer {
 		self.time_left = self.time;
 	}
 
-	pub fn set(&mut self, time: Duration) {
-		self.time = time;
-		self.time_left = time;
-	}
-
 	pub fn set_zero(&mut self) {
 		self.time_left = Duration::default();
 	}

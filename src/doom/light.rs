@@ -2,14 +2,18 @@ use crate::{
 	common::{
 		assets::AssetStorage,
 		frame::{FrameRng, FrameState},
-		time::OldTimer,
+		resources_merger::FromWithResources,
+		time::Timer,
 	},
 	doom::{
 		data::FRAME_TIME,
 		map::{MapDynamic, SectorRef},
 	},
 };
-use legion::{systems::Runnable, IntoQuery, SystemBuilder};
+use legion::{
+	systems::{ResourceSet, Runnable},
+	IntoQuery, Read, Resources, SystemBuilder,
+};
 use rand::Rng;
 use std::time::Duration;
 
@@ -30,13 +34,12 @@ pub fn light_flash_system() -> impl Runnable {
 					.unwrap();
 				let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 
-				light_flash.timer.tick(frame_state.delta_time);
-
-				if light_flash.timer.is_zero() {
+				if light_flash.timer.is_elapsed(frame_state.total_time) {
 					light_flash.state = !light_flash.state;
 					let map = asset_storage.get(&map_dynamic.map).unwrap();
 					let sector = &map.sectors[sector_ref.index];
 
+					// TODO: calculate these once at spawn
 					let max_light = sector.light_level;
 					let min_light = sector
 						.neighbours
@@ -69,25 +72,29 @@ pub fn light_flash_system() -> impl Runnable {
 								light_flash.off_time
 							}
 						}
-						LightFlashType::StrobeUnSync(time) => {
-							light_flash.flash_type = LightFlashType::Strobe;
-							time.mul_f64(rng.gen::<f64>()) + FRAME_TIME
-						}
+						LightFlashType::StrobeUnSync(_) => unreachable!(),
 					};
 
-					light_flash.timer.set(new_time);
+					light_flash.timer.restart_with(new_time);
 				}
 			}
 		})
 }
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug)]
 pub struct LightFlash {
+	pub flash_type: LightFlashType,
 	pub on_time: Duration,
 	pub off_time: Duration,
-	pub timer: OldTimer,
+	pub timer: Timer,
 	pub state: bool,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct LightFlashDef {
 	pub flash_type: LightFlashType,
+	pub on_time: Duration,
+	pub off_time: Duration,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -100,6 +107,37 @@ pub enum LightFlashType {
 impl Default for LightFlashType {
 	fn default() -> LightFlashType {
 		LightFlashType::Broken
+	}
+}
+
+impl FromWithResources<LightFlashDef> for LightFlash {
+	fn from_with_resources(src_component: &LightFlashDef, resources: &Resources) -> LightFlash {
+		let frame_state = <Read<FrameState>>::fetch(resources);
+		let mut rng = frame_state.rng.lock().unwrap();
+
+		let LightFlashDef {
+			mut flash_type,
+			on_time,
+			off_time,
+		} = src_component.clone();
+
+		let time = match flash_type {
+			LightFlashType::Broken => on_time * (rng.gen::<bool>() as u32) + FRAME_TIME,
+			LightFlashType::Strobe => on_time,
+			LightFlashType::StrobeUnSync(time) => time.mul_f64(rng.gen::<f64>()) + FRAME_TIME,
+		};
+
+		if let LightFlashType::StrobeUnSync(_) = flash_type {
+			flash_type = LightFlashType::Strobe;
+		}
+
+		LightFlash {
+			flash_type,
+			on_time,
+			off_time,
+			timer: Timer::new(frame_state.total_time, time),
+			state: true,
+		}
 	}
 }
 

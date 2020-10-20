@@ -186,7 +186,8 @@ fn main() -> anyhow::Result<()> {
 	handler_set.register_clone::<doom::door::DoorActive>();
 	handler_set.register_clone::<doom::entitytemplate::EntityTemplateRef>();
 	handler_set.register_clone::<doom::floor::FloorActive>();
-	handler_set.register_clone::<doom::light::LightFlash>();
+	handler_set
+		.register_from_with_resources::<doom::light::LightFlashDef, doom::light::LightFlash>();
 	handler_set.register_clone::<doom::light::LightGlow>();
 	handler_set.register_clone::<doom::map::LinedefRef>();
 	handler_set.register_clone::<doom::map::MapDynamic>();
