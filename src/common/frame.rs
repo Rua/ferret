@@ -12,7 +12,7 @@ pub type FrameRng = Pcg64Mcg;
 #[derive(Debug)]
 pub struct FrameState {
 	pub delta_time: Duration,
-	pub total_time: Duration,
+	pub time: Duration,
 	pub rng: Mutex<FrameRng>,
 }
 
@@ -35,7 +35,7 @@ pub fn frame_state_system(frame_time: Duration) -> impl Runnable {
 		.with_query(<&mut FrameRng>::query())
 		.build(move |_, world, frame_state, query| {
 			frame_state.delta_time = frame_time;
-			frame_state.total_time += frame_time;
+			frame_state.time += frame_time;
 
 			// Make the RNG state time dependent
 			// Since we have write access to FrameState, this Mutex will never be contended

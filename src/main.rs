@@ -135,7 +135,7 @@ fn main() -> anyhow::Result<()> {
 
 	let frame_state = FrameState {
 		delta_time: doom::data::FRAME_TIME,
-		total_time: Duration::default(),
+		time: Duration::default(),
 		rng: Mutex::new(FrameRng::from_entropy()),
 	};
 	resources.insert(frame_state);

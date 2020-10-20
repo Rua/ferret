@@ -4,7 +4,7 @@ use crate::{
 		audio::Sound,
 		frame::FrameState,
 		geometry::Side,
-		time::OldTimer,
+		time::Timer,
 	},
 	doom::{
 		client::{UseAction, UseEvent},
@@ -27,7 +27,7 @@ pub struct DoorActive {
 	pub state: DoorState,
 	pub end_state: DoorState,
 	pub speed: f32,
-	pub wait_timer: OldTimer,
+	pub wait_timer: Timer,
 	pub can_reverse: bool,
 
 	pub open_sound: Option<AssetHandle<Sound>>,
@@ -78,9 +78,7 @@ pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
 					continue;
 				}
 
-				door_active.wait_timer.tick(frame_state.delta_time);
-
-				if door_active.wait_timer.is_zero() {
+				if door_active.wait_timer.is_elapsed(frame_state.time) {
 					let sound = if sector_move.target == door_active.close_height {
 						door_active.state = DoorState::Opening;
 						sector_move.velocity = door_active.speed;
@@ -147,7 +145,7 @@ pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
 							command_buffer.remove_component::<CeilingMove>(event.entity);
 							command_buffer.remove_component::<DoorActive>(event.entity);
 						} else {
-							door_active.wait_timer.reset();
+							door_active.wait_timer.restart();
 						}
 					}
 				}
@@ -170,11 +168,12 @@ pub fn door_use_system(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("door_use_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<EventChannel<UseEvent>>()
+		.read_resource::<FrameState>()
 		.with_query(<(&LinedefRef, &UseAction)>::query())
 		.with_query(<&MapDynamic>::query())
 		.with_query(<(&mut CeilingMove, &mut DoorActive)>::query())
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, use_event_channel) = resources;
+			let (asset_storage, use_event_channel, frame_state) = resources;
 			let (mut world2, world) = world.split_for_query(&queries.2);
 
 			for use_event in use_event_channel.read(&mut use_event_reader) {
@@ -205,7 +204,7 @@ pub fn door_use_system(resources: &mut Resources) -> impl Runnable {
 					let sector_move = &mut ceiling_move.0;
 
 					if door_use.params.can_reverse {
-						door_active.wait_timer.set_zero();
+						door_active.wait_timer.set_target(frame_state.time);
 						sector_move.velocity = 0.0;
 
 						if sector_move.velocity < 0.0
@@ -223,6 +222,7 @@ pub fn door_use_system(resources: &mut Resources) -> impl Runnable {
 					activate(
 						&door_use.params,
 						command_buffer,
+						frame_state,
 						sector_index,
 						&map,
 						&map_dynamic,
@@ -251,12 +251,13 @@ pub fn door_switch_system(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("door_switch_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<EventChannel<UseEvent>>()
+		.read_resource::<FrameState>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<(&LinedefRef, &UseAction)>::query().filter(!component::<SwitchActive>()))
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<DoorActive>() // used by activate_with_tag
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, use_event_channel, sound_queue) = resources;
+			let (asset_storage, use_event_channel, frame_state, sound_queue) = resources;
 			let (mut world1, world) = world.split_for_query(&queries.1);
 
 			for use_event in use_event_channel.read(&mut use_event_reader) {
@@ -278,6 +279,7 @@ pub fn door_switch_system(resources: &mut Resources) -> impl Runnable {
 				let activated = activate_with_tag(
 					&door_switch_use.params,
 					command_buffer,
+					frame_state,
 					linedef.sector_tag,
 					&world,
 					map,
@@ -289,6 +291,7 @@ pub fn door_switch_system(resources: &mut Resources) -> impl Runnable {
 						&door_switch_use.switch_params,
 						command_buffer,
 						sound_queue.as_mut(),
+						frame_state,
 						linedef_ref.index,
 						map,
 						map_dynamic,
@@ -317,11 +320,12 @@ pub fn door_touch_system(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("door_touch_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<EventChannel<TouchEvent>>()
+		.read_resource::<FrameState>()
 		.with_query(<(&LinedefRef, &TouchAction)>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<DoorActive>() // used by activate_with_tag
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, touch_event_channel) = resources;
+			let (asset_storage, touch_event_channel, frame_state) = resources;
 
 			let (mut world0, mut world) = world.split_for_query(&queries.0);
 			let (mut world1, world) = world.split_for_query(&queries.1);
@@ -349,6 +353,7 @@ pub fn door_touch_system(resources: &mut Resources) -> impl Runnable {
 				if activate_with_tag(
 					&door_touch.params,
 					command_buffer,
+					frame_state,
 					linedef.sector_tag,
 					&world,
 					map,
@@ -365,6 +370,7 @@ pub fn door_touch_system(resources: &mut Resources) -> impl Runnable {
 fn activate(
 	params: &DoorParams,
 	command_buffer: &mut CommandBuffer,
+	frame_state: &FrameState,
 	sector_index: usize,
 	map: &Map,
 	map_dynamic: &MapDynamic,
@@ -385,7 +391,7 @@ fn activate(
 			velocity: 0.0,
 			target: sector_dynamic.interval.max,
 			sound: None,
-			sound_timer: OldTimer::default(),
+			sound_timer: Timer::new_elapsed(frame_state.time, Duration::default()),
 		}),
 	);
 
@@ -395,7 +401,7 @@ fn activate(
 			state: params.start_state,
 			end_state: params.end_state,
 			speed: params.speed,
-			wait_timer: OldTimer::new_zero(params.wait_time),
+			wait_timer: Timer::new_elapsed(frame_state.time, params.wait_time),
 			can_reverse: params.can_reverse,
 
 			open_sound: params.open_sound.clone(),
@@ -410,6 +416,7 @@ fn activate(
 fn activate_with_tag<W: EntityStore>(
 	params: &DoorParams,
 	command_buffer: &mut CommandBuffer,
+	frame_state: &FrameState,
 	sector_tag: u16,
 	world: &W,
 	map: &Map,
@@ -436,7 +443,14 @@ fn activate_with_tag<W: EntityStore>(
 		}
 
 		activated = true;
-		activate(params, command_buffer, sector_index, map, map_dynamic);
+		activate(
+			params,
+			command_buffer,
+			frame_state,
+			sector_index,
+			map,
+			map_dynamic,
+		);
 	}
 
 	activated

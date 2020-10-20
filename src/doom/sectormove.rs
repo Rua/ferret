@@ -4,7 +4,7 @@ use crate::{
 		audio::Sound,
 		frame::FrameState,
 		quadtree::Quadtree,
-		time::OldTimer,
+		time::Timer,
 	},
 	doom::{
 		components::Transform,
@@ -26,7 +26,7 @@ pub struct SectorMove {
 	pub velocity: f32,
 	pub target: f32,
 	pub sound: Option<AssetHandle<Sound>>,
-	pub sound_timer: OldTimer,
+	pub sound_timer: Timer,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -78,10 +78,10 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 				let sector = &map.sectors[sector_ref.index];
 				let mut event_type = None;
 
-				sector_move.sound_timer.tick(frame_state.delta_time);
-
-				if sector_move.sound_timer.is_zero() && sector_move.sound.is_some() {
-					sector_move.sound_timer.reset();
+				if sector_move.sound_timer.is_elapsed(frame_state.time)
+					&& sector_move.sound.is_some()
+				{
+					sector_move.sound_timer.restart();
 					sound_queue.push((sector_move.sound.as_ref().unwrap().clone(), entity));
 				}
 

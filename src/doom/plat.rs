@@ -3,7 +3,7 @@ use crate::{
 		assets::{AssetHandle, AssetStorage},
 		audio::Sound,
 		frame::FrameState,
-		time::OldTimer,
+		time::Timer,
 	},
 	doom::{
 		client::{UseAction, UseEvent},
@@ -25,7 +25,7 @@ use std::time::Duration;
 #[derive(Clone, Debug)]
 pub struct PlatActive {
 	pub speed: f32,
-	pub wait_timer: OldTimer,
+	pub wait_timer: Timer,
 	pub can_reverse: bool,
 
 	pub start_sound: Option<AssetHandle<Sound>>,
@@ -81,9 +81,7 @@ pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
 					continue;
 				}
 
-				plat_active.wait_timer.tick(frame_state.delta_time);
-
-				if plat_active.wait_timer.is_zero() {
+				if plat_active.wait_timer.is_elapsed(frame_state.time) {
 					if let Some(sound) = &plat_active.start_sound {
 						sound_queue.push((sound.clone(), *entity));
 					}
@@ -140,7 +138,7 @@ pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
 							command_buffer.remove_component::<FloorMove>(event.entity);
 							command_buffer.remove_component::<PlatActive>(event.entity);
 						} else {
-							plat_active.wait_timer.reset();
+							plat_active.wait_timer.restart();
 						}
 					}
 				}
@@ -163,12 +161,13 @@ pub fn plat_switch_system(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("plat_switch_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<EventChannel<UseEvent>>()
+		.read_resource::<FrameState>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<(&LinedefRef, &UseAction)>::query().filter(!component::<SwitchActive>()))
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<PlatActive>() // used by activate_with_tag
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, use_event_channel, sound_queue) = resources;
+			let (asset_storage, use_event_channel, frame_state, sound_queue) = resources;
 			let (mut world1, world) = world.split_for_query(&queries.1);
 
 			for use_event in use_event_channel.read(&mut use_event_reader) {
@@ -190,6 +189,7 @@ pub fn plat_switch_system(resources: &mut Resources) -> impl Runnable {
 				let activated = activate_with_tag(
 					&plat_switch_use.params,
 					command_buffer,
+					frame_state,
 					linedef.sector_tag,
 					&world,
 					map,
@@ -201,6 +201,7 @@ pub fn plat_switch_system(resources: &mut Resources) -> impl Runnable {
 						&plat_switch_use.switch_params,
 						command_buffer,
 						sound_queue.as_mut(),
+						frame_state,
 						linedef_ref.index,
 						map,
 						map_dynamic,
@@ -229,11 +230,12 @@ pub fn plat_touch_system(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("plat_touch_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<EventChannel<TouchEvent>>()
+		.read_resource::<FrameState>()
 		.with_query(<(&LinedefRef, &TouchAction)>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<PlatActive>() // used by activate_with_tag
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, touch_event_channel) = resources;
+			let (asset_storage, touch_event_channel, frame_state) = resources;
 
 			let (mut world0, mut world) = world.split_for_query(&queries.0);
 			let (mut world1, world) = world.split_for_query(&queries.1);
@@ -261,6 +263,7 @@ pub fn plat_touch_system(resources: &mut Resources) -> impl Runnable {
 				if activate_with_tag(
 					&plat_touch.params,
 					command_buffer,
+					frame_state,
 					linedef.sector_tag,
 					&world,
 					map,
@@ -277,6 +280,7 @@ pub fn plat_touch_system(resources: &mut Resources) -> impl Runnable {
 fn activate(
 	params: &PlatParams,
 	command_buffer: &mut CommandBuffer,
+	frame_state: &FrameState,
 	sector_index: usize,
 	map: &Map,
 	map_dynamic: &MapDynamic,
@@ -303,7 +307,7 @@ fn activate(
 			velocity: 0.0,
 			target: sector_dynamic.interval.min,
 			sound: params.move_sound.clone(),
-			sound_timer: OldTimer::new(params.move_sound_time),
+			sound_timer: Timer::new(frame_state.time, params.move_sound_time),
 		}),
 	);
 
@@ -311,7 +315,7 @@ fn activate(
 		sector_dynamic.entity,
 		PlatActive {
 			speed: params.speed,
-			wait_timer: OldTimer::new_zero(params.wait_time),
+			wait_timer: Timer::new_elapsed(frame_state.time, params.wait_time),
 			can_reverse: params.can_reverse,
 
 			start_sound: params.start_sound.clone(),
@@ -326,6 +330,7 @@ fn activate(
 fn activate_with_tag<W: EntityStore>(
 	params: &PlatParams,
 	command_buffer: &mut CommandBuffer,
+	frame_state: &FrameState,
 	sector_tag: u16,
 	world: &W,
 	map: &Map,
@@ -352,7 +357,14 @@ fn activate_with_tag<W: EntityStore>(
 		}
 
 		activated = true;
-		activate(params, command_buffer, sector_index, map, map_dynamic);
+		activate(
+			params,
+			command_buffer,
+			frame_state,
+			sector_index,
+			map,
+			map_dynamic,
+		);
 	}
 
 	activated

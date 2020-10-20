@@ -1,9 +1,10 @@
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
+		frame::FrameState,
 		geometry::AABB2,
 		resources_merger::{ResourcesMerger, ResourcesMergerHandlerSet},
-		time::OldTimer,
+		time::Timer,
 	},
 	doom::{
 		components::{SpawnOnCeiling, SpawnPoint, Transform},
@@ -29,8 +30,11 @@ pub fn spawn_things(
 	resources: &mut Resources,
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
-	let (asset_storage, handler_set) =
-		<(Read<AssetStorage>, Read<ResourcesMergerHandlerSet>)>::fetch(resources);
+	let (asset_storage, frame_state, handler_set) = <(
+		Read<AssetStorage>,
+		Read<FrameState>,
+		Read<ResourcesMergerHandlerSet>,
+	)>::fetch(resources);
 	let mut merger = ResourcesMerger::new(&handler_set, &resources);
 
 	let mut command_buffer = CommandBuffer::new(world);
@@ -91,7 +95,9 @@ pub fn spawn_things(
 				entity,
 				State {
 					current: new,
-					timer: new_state.next.map(|(time, _)| OldTimer::new(time)),
+					timer: new_state
+						.next
+						.map(|(time, _)| Timer::new(frame_state.time, time)),
 				},
 			);
 		}
@@ -159,8 +165,11 @@ pub fn spawn_map_entities(
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
 	let mut command_buffer = CommandBuffer::new(world);
-	let (asset_storage, handler_set) =
-		<(Read<AssetStorage>, Read<ResourcesMergerHandlerSet>)>::fetch(resources);
+	let (asset_storage, frame_state, handler_set) = <(
+		Read<AssetStorage>,
+		Read<FrameState>,
+		Read<ResourcesMergerHandlerSet>,
+	)>::fetch(resources);
 	let mut merger = ResourcesMerger::new(&handler_set, &resources);
 
 	let map = asset_storage.get(&map_handle).unwrap();
@@ -175,7 +184,7 @@ pub fn spawn_map_entities(
 				k.clone(),
 				AnimState {
 					frame: 0,
-					timer: OldTimer::new(v.frame_time),
+					timer: Timer::new(frame_state.time, v.frame_time),
 				},
 			)
 		})

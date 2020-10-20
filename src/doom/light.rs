@@ -34,7 +34,7 @@ pub fn light_flash_system() -> impl Runnable {
 					.unwrap();
 				let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 
-				if light_flash.timer.is_elapsed(frame_state.total_time) {
+				if light_flash.timer.is_elapsed(frame_state.time) {
 					light_flash.state = !light_flash.state;
 					let map = asset_storage.get(&map_dynamic.map).unwrap();
 					let sector = &map.sectors[sector_ref.index];
@@ -135,7 +135,7 @@ impl FromWithResources<LightFlashDef> for LightFlash {
 			flash_type,
 			on_time,
 			off_time,
-			timer: Timer::new(frame_state.total_time, time),
+			timer: Timer::new(frame_state.time, time),
 			state: true,
 		}
 	}

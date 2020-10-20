@@ -3,7 +3,7 @@ use crate::{
 		assets::{AssetHandle, AssetStorage},
 		audio::Sound,
 		frame::FrameState,
-		time::OldTimer,
+		time::Timer,
 	},
 	doom::{
 		image::Image,
@@ -27,7 +27,7 @@ pub struct SwitchActive {
 	pub sound: Option<AssetHandle<Sound>>,
 	pub texture: AssetHandle<Image>,
 	pub texture_slot: SidedefSlot,
-	pub timer: OldTimer,
+	pub timer: Timer,
 }
 
 pub fn switch_active_system() -> impl Runnable {
@@ -43,9 +43,7 @@ pub fn switch_active_system() -> impl Runnable {
 			let (mut world0, mut world) = world.split_for_query(&queries.0);
 
 			for (entity, linedef_ref, switch_active) in queries.0.iter_mut(&mut world0) {
-				switch_active.timer.tick(frame_state.delta_time);
-
-				if switch_active.timer.is_zero() {
+				if switch_active.timer.is_elapsed(frame_state.time) {
 					let map_dynamic = queries
 						.1
 						.get_mut(&mut world, linedef_ref.map_entity)
@@ -74,6 +72,7 @@ pub fn activate(
 	params: &SwitchParams,
 	command_buffer: &mut CommandBuffer,
 	sound_queue: &mut Vec<(AssetHandle<Sound>, Entity)>,
+	frame_state: &FrameState,
 	linedef_index: usize,
 	map: &Map,
 	map_dynamic: &mut MapDynamic,
@@ -105,7 +104,7 @@ pub fn activate(
 							sound: params.sound.clone(),
 							texture: old,
 							texture_slot: slot,
-							timer: OldTimer::new(time_left),
+							timer: Timer::new(frame_state.time, time_left),
 						},
 					);
 				}

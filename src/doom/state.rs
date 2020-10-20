@@ -1,5 +1,5 @@
 use crate::{
-	common::{assets::AssetStorage, frame::FrameState, time::OldTimer},
+	common::{assets::AssetStorage, frame::FrameState, time::Timer},
 	doom::{entitytemplate::EntityTemplateRef, sprite::SpriteRender},
 };
 use arrayvec::ArrayString;
@@ -17,7 +17,7 @@ pub struct StateDef {
 #[derive(Clone, Debug)]
 pub struct State {
 	pub current: (StateName, usize),
-	pub timer: Option<OldTimer>,
+	pub timer: Option<Timer>,
 }
 
 pub fn state_system(_resources: &mut Resources) -> impl Runnable {
@@ -31,9 +31,8 @@ pub fn state_system(_resources: &mut Resources) -> impl Runnable {
 			for (_entity, template_ref, sprite_render, state) in query.iter_mut(world) {
 				let states = &asset_storage.get(&template_ref.0).unwrap().states;
 				let State { current, timer } = state;
-				timer.as_mut().map(|t| t.tick(frame_state.delta_time));
 
-				while timer.map_or(false, |t| t.is_zero()) {
+				while timer.map_or(false, |t| t.is_elapsed(frame_state.time)) {
 					let new = if let Some(new) = states[&current.0][current.1].next.unwrap().1 {
 						new
 					} else {
@@ -46,7 +45,12 @@ pub fn state_system(_resources: &mut Resources) -> impl Runnable {
 						.expect("Invalid next state name");
 					*current = new;
 					*sprite_render = new_state.sprite.clone();
-					*timer = new_state.next.map(|(time, _)| OldTimer::new(time));
+
+					if let Some((time, _)) = new_state.next {
+						timer.as_mut().unwrap().restart_with(time);
+					} else {
+						*timer = None;
+					}
 				}
 			}
 		})

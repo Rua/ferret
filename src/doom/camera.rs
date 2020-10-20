@@ -97,14 +97,14 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 
 				// Set camera position
 				let angle = Angle::from_units(
-					frame_state.total_time.as_secs_f64() / camera.view_bob_period.as_secs_f64(),
+					frame_state.time.as_secs_f64() / camera.view_bob_period.as_secs_f64(),
 				); // TODO replace with div_duration_f64 once it's stable
 				let bob = bob_amplitude * 0.5 * angle.sin() as f32;
 				camera.offset[2] = camera.deviation_position + bob;
 
 				// Set weapon position
 				let mut angle = Angle::from_units(
-					frame_state.total_time.as_secs_f64() / camera.weapon_bob_period.as_secs_f64(),
+					frame_state.time.as_secs_f64() / camera.weapon_bob_period.as_secs_f64(),
 				);
 				player_sprite_render.position[0] = 1.0 + bob_amplitude * angle.cos() as f32;
 

@@ -20,13 +20,11 @@ pub fn texture_animation_system() -> impl Runnable {
 
 			for map_dynamic in query.iter_mut(world) {
 				for (handle, anim_state) in map_dynamic.anim_states.iter_mut() {
-					anim_state.timer.tick(frame_state.delta_time);
-
-					if anim_state.timer.is_zero() {
+					if anim_state.timer.is_elapsed(frame_state.time) {
 						let map = asset_storage.get(&map_dynamic.map).unwrap();
 						let anim = &map.anims[handle];
 						anim_state.frame = (anim_state.frame + 1) % anim.frames.len();
-						anim_state.timer.reset();
+						anim_state.timer.restart();
 					}
 				}
 			}
