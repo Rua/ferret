@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::AssetStorage,
 		frame::{FrameRng, FrameState},
-		resources_merger::FromWithResources,
+		spawn::{ComponentAccessor, SpawnFrom},
 		time::Timer,
 	},
 	doom::{
@@ -110,8 +110,12 @@ impl Default for LightFlashType {
 	}
 }
 
-impl FromWithResources<LightFlashDef> for LightFlash {
-	fn from_with_resources(src_component: &LightFlashDef, resources: &Resources) -> LightFlash {
+impl SpawnFrom<LightFlashDef> for LightFlash {
+	fn from_with_resources(
+		component: &LightFlashDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> LightFlash {
 		let frame_state = <Read<FrameState>>::fetch(resources);
 		let mut rng = frame_state.rng.lock().unwrap();
 
@@ -119,7 +123,7 @@ impl FromWithResources<LightFlashDef> for LightFlash {
 			mut flash_type,
 			on_time,
 			off_time,
-		} = src_component.clone();
+		} = component.clone();
 
 		let time = match flash_type {
 			LightFlashType::Broken => on_time * (rng.gen::<bool>() as u32) + FRAME_TIME,

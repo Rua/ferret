@@ -1,5 +1,8 @@
 use crate::{
-	common::{geometry::Angle, resources_merger::FromWithResources},
+	common::{
+		geometry::Angle,
+		spawn::{ComponentAccessor, SpawnFrom},
+	},
 	doom::map::spawn::SpawnContext,
 };
 use legion::{systems::ResourceSet, Read, Resources};
@@ -24,8 +27,12 @@ pub struct Transform {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct TransformDef;
 
-impl FromWithResources<TransformDef> for Transform {
-	fn from_with_resources(_src_component: &TransformDef, resources: &Resources) -> Self {
+impl SpawnFrom<TransformDef> for Transform {
+	fn from_with_resources(
+		_component: &TransformDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> Self {
 		let spawn_context = <Read<SpawnContext>>::fetch(resources);
 		spawn_context.transform
 	}

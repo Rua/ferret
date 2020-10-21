@@ -8,7 +8,7 @@ use crate::common::{
 	geometry::{AABB2, AABB3},
 	input::InputState,
 	quadtree::Quadtree,
-	resources_merger::ResourcesMergerHandlerSet,
+	spawn::SpawnMergerHandlerSet,
 	video::{AsBytes, DrawList, RenderContext, RenderTarget},
 };
 use anyhow::{bail, Context};
@@ -174,21 +174,21 @@ fn main() -> anyhow::Result<()> {
 	resources.insert(asset_storage);
 
 	// Component types
-	let mut handler_set = ResourcesMergerHandlerSet::new();
-	handler_set.register_from_with_resources::<FrameRngDef, FrameRng>();
+	let mut handler_set = SpawnMergerHandlerSet::new();
+	handler_set.register_spawn_from::<FrameRngDef, FrameRng>();
 	handler_set.register_clone::<doom::camera::Camera>();
 	handler_set.register_clone::<doom::client::UseAction>();
 	handler_set.register_clone::<doom::client::User>();
 	handler_set.register_clone::<doom::components::SpawnPoint>();
 	handler_set
-		.register_from_with_resources::<doom::components::TransformDef, doom::components::Transform>(
+		.register_spawn_from::<doom::components::TransformDef, doom::components::Transform>(
 		);
 	handler_set.register_from::<doom::components::VelocityDef, doom::components::Velocity>();
 	handler_set.register_clone::<doom::door::DoorActive>();
-	handler_set.register_from_with_resources::<doom::entitytemplate::EntityTemplateRefDef, doom::entitytemplate::EntityTemplateRef>();
+	handler_set.register_spawn_from::<doom::entitytemplate::EntityTemplateRefDef, doom::entitytemplate::EntityTemplateRef>();
 	handler_set.register_clone::<doom::floor::FloorActive>();
 	handler_set
-		.register_from_with_resources::<doom::light::LightFlashDef, doom::light::LightFlash>();
+		.register_spawn_from::<doom::light::LightFlashDef, doom::light::LightFlash>();
 	handler_set.register_clone::<doom::light::LightGlow>();
 	handler_set.register_clone::<doom::map::LinedefRef>();
 	handler_set.register_clone::<doom::map::MapDynamic>();
@@ -201,7 +201,7 @@ fn main() -> anyhow::Result<()> {
 	handler_set.register_clone::<doom::sectormove::FloorMove>();
 	handler_set.register_clone::<doom::sound::SoundPlaying>();
 	handler_set.register_clone::<doom::sprite::SpriteRender>();
-	handler_set.register_from_with_resources::<doom::state::StateDef, doom::state::State>();
+	handler_set.register_spawn_from::<doom::state::StateDef, doom::state::State>();
 	handler_set.register_clone::<doom::switch::SwitchActive>();
 	handler_set.register_clone::<doom::texture::TextureScroll>();
 	resources.insert(handler_set);

@@ -1,5 +1,8 @@
 use crate::{
-	common::{assets::AssetHandle, resources_merger::FromWithResources},
+	common::{
+		assets::AssetHandle,
+		spawn::{ComponentAccessor, SpawnFrom},
+	},
 	doom::{
 		map::spawn::SpawnContext,
 		state::{StateInfo, StateName},
@@ -29,9 +32,10 @@ pub struct EntityTemplateRef(pub AssetHandle<EntityTemplate>);
 #[derive(Clone, Copy, Debug, Default)]
 pub struct EntityTemplateRefDef;
 
-impl FromWithResources<EntityTemplateRefDef> for EntityTemplateRef {
+impl SpawnFrom<EntityTemplateRefDef> for EntityTemplateRef {
 	fn from_with_resources(
-		_src_component: &EntityTemplateRefDef,
+		_component: &EntityTemplateRefDef,
+		_accessor: ComponentAccessor,
 		resources: &Resources,
 	) -> EntityTemplateRef {
 		let spawn_context = <Read<SpawnContext>>::fetch(resources);

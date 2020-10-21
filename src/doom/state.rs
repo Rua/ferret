@@ -1,6 +1,9 @@
 use crate::{
 	common::{
-		assets::AssetStorage, frame::FrameState, resources_merger::FromWithResources, time::Timer,
+		assets::AssetStorage,
+		frame::FrameState,
+		spawn::{ComponentAccessor, SpawnFrom},
+		time::Timer,
 	},
 	doom::{entitytemplate::EntityTemplateRef, map::spawn::SpawnContext, sprite::SpriteRender},
 };
@@ -28,8 +31,12 @@ pub struct State {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct StateDef;
 
-impl FromWithResources<StateDef> for State {
-	fn from_with_resources(_src_component: &StateDef, resources: &Resources) -> State {
+impl SpawnFrom<StateDef> for State {
+	fn from_with_resources(
+		_component: &StateDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> State {
 		let (asset_storage, frame_state, spawn_context) =
 			<(Read<AssetStorage>, Read<FrameState>, Read<SpawnContext>)>::fetch(resources);
 		let template = asset_storage.get(&spawn_context.template_handle).unwrap();

@@ -3,7 +3,7 @@ use crate::{
 		assets::{AssetHandle, AssetStorage},
 		frame::FrameState,
 		geometry::AABB2,
-		resources_merger::{ResourcesMerger, ResourcesMergerHandlerSet},
+		spawn::{SpawnMerger, SpawnMergerHandlerSet},
 		time::Timer,
 	},
 	doom::{
@@ -13,7 +13,6 @@ use crate::{
 			AnimState, LinedefDynamic, LinedefRef, Map, MapDynamic, SectorDynamic, SectorRef,
 			SidedefDynamic, Thing, ThingFlags,
 		},
-		state::{State, StateName},
 	},
 };
 use anyhow::bail;
@@ -84,7 +83,7 @@ pub fn spawn_things(
 
 		let (asset_storage, handler_set, spawn_context) = <(
 			Read<AssetStorage>,
-			Read<ResourcesMergerHandlerSet>,
+			Read<SpawnMergerHandlerSet>,
 			Read<SpawnContext>,
 		)>::fetch(resources);
 		let template = asset_storage.get(&spawn_context.template_handle).unwrap();
@@ -94,7 +93,7 @@ pub fn spawn_things(
 			command_buffer.push(());
 		} else {
 			// Create entity and add components
-			let mut merger = ResourcesMerger::new(&handler_set, &resources);
+			let mut merger = SpawnMerger::new(&handler_set, &resources);
 			world.clone_from(&template.world, &any(), &mut merger);
 		}
 	}
@@ -156,13 +155,13 @@ pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Res
 		// Fetch entity template
 		let (asset_storage, handler_set, spawn_context) = <(
 			Read<AssetStorage>,
-			Read<ResourcesMergerHandlerSet>,
+			Read<SpawnMergerHandlerSet>,
 			Read<SpawnContext>,
 		)>::fetch(resources);
 		let template = asset_storage.get(&spawn_context.template_handle).unwrap();
 
 		// Create entity and add components
-		let mut merger = ResourcesMerger::new(&handler_set, &resources);
+		let mut merger = SpawnMerger::new(&handler_set, &resources);
 		let entity_map = world.clone_from(&template.world, &any(), &mut merger);
 		entity_map.into_iter().map(|(_, to)| to).next().unwrap()
 	};
@@ -182,9 +181,9 @@ pub fn spawn_map_entities(
 	let (asset_storage, frame_state, handler_set) = <(
 		Read<AssetStorage>,
 		Read<FrameState>,
-		Read<ResourcesMergerHandlerSet>,
+		Read<SpawnMergerHandlerSet>,
 	)>::fetch(resources);
-	let mut merger = ResourcesMerger::new(&handler_set, &resources);
+	let mut merger = SpawnMerger::new(&handler_set, &resources);
 
 	let map = asset_storage.get(&map_handle).unwrap();
 

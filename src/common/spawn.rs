@@ -5,21 +5,25 @@ use legion::storage::{
 use legion::{world::Merger, Resources};
 use std::{collections::HashMap, ops::Range};
 
-pub trait FromWithResources<FromT: Sized>
+pub trait SpawnFrom<FromT: Sized>
 where
 	Self: Sized,
 {
-	fn from_with_resources(src_component: &FromT, resources: &Resources) -> Self;
+	fn from_with_resources(
+		component: &FromT,
+		accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> Self;
 }
 
-/// A Merger implementation that passes Resources to the closure
-pub struct ResourcesMerger<'a, 'b> {
-	pub handler_set: &'a ResourcesMergerHandlerSet,
+/// A Merger implementation that passes Resources and ComponentAccessor to the closure
+pub struct SpawnMerger<'a, 'b> {
+	pub handler_set: &'a SpawnMergerHandlerSet,
 	pub resources: &'b Resources,
 }
 
-impl<'a, 'b> ResourcesMerger<'a, 'b> {
-	pub fn new(handler_set: &'a ResourcesMergerHandlerSet, resources: &'b Resources) -> Self {
+impl<'a, 'b> SpawnMerger<'a, 'b> {
+	pub fn new(handler_set: &'a SpawnMergerHandlerSet, resources: &'b Resources) -> Self {
 		Self {
 			handler_set,
 			resources,
@@ -27,7 +31,7 @@ impl<'a, 'b> ResourcesMerger<'a, 'b> {
 	}
 }
 
-impl<'a, 'b> Merger for ResourcesMerger<'a, 'b> {
+impl<'a, 'b> Merger for SpawnMerger<'a, 'b> {
 	fn convert_layout(&mut self, source_layout: EntityLayout) -> EntityLayout {
 		let mut dest_layout = EntityLayout::default();
 		for component_type in source_layout.component_types() {
@@ -59,7 +63,7 @@ impl<'a, 'b> Merger for ResourcesMerger<'a, 'b> {
 }
 
 #[derive(Default)]
-pub struct ResourcesMergerHandlerSet {
+pub struct SpawnMergerHandlerSet {
 	handlers: HashMap<
 		ComponentTypeId,
 		(
@@ -77,7 +81,7 @@ pub struct ResourcesMergerHandlerSet {
 	>,
 }
 
-impl ResourcesMergerHandlerSet {
+impl SpawnMergerHandlerSet {
 	pub fn new() -> Self {
 		Self::default()
 	}
@@ -86,8 +90,8 @@ impl ResourcesMergerHandlerSet {
 	where
 		FromT: Component + Clone,
 	{
-		self.register_closure::<FromT, FromT, _>(|_, src_component| {
-			<FromT as Clone>::clone(src_component)
+		self.register_closure::<FromT, FromT, _>(|component, _, _| {
+			<FromT as Clone>::clone(component)
 		})
 	}
 
@@ -96,18 +100,16 @@ impl ResourcesMergerHandlerSet {
 		FromT: Component + Clone,
 		IntoT: Component + From<FromT>,
 	{
-		self.register_closure::<FromT, IntoT, _>(|_, src_component| {
-			FromT::clone(src_component).into()
-		})
+		self.register_closure::<FromT, IntoT, _>(|component, _, _| FromT::clone(component).into())
 	}
 
-	pub fn register_from_with_resources<FromT, IntoT>(&mut self)
+	pub fn register_spawn_from<FromT, IntoT>(&mut self)
 	where
 		FromT: Component,
-		IntoT: Component + FromWithResources<FromT>,
+		IntoT: Component + SpawnFrom<FromT>,
 	{
-		self.register_closure::<FromT, IntoT, _>(|resources, src_component| {
-			IntoT::from_with_resources(src_component, resources)
+		self.register_closure::<FromT, IntoT, _>(|component, accessor, resources| {
+			IntoT::from_with_resources(component, accessor, resources)
 		})
 	}
 
@@ -115,7 +117,7 @@ impl ResourcesMergerHandlerSet {
 	where
 		FromT: Component,
 		IntoT: Component,
-		F: Fn(&Resources, &FromT) -> IntoT + 'static,
+		F: Fn(&FromT, ComponentAccessor, &Resources) -> IntoT + 'static,
 	{
 		let merge_fn = move |resources: &Resources,
 		                     src_entity_range: Range<usize>,
@@ -123,14 +125,20 @@ impl ResourcesMergerHandlerSet {
 		                     src_components: &Components,
 		                     dst: &mut ArchetypeWriter| {
 			let src = src_components.get_downcast::<FromT>().unwrap();
+			let src_slice = &src.get(src_arch.index()).unwrap().into_slice();
+
 			let mut dst = dst.claim_components::<IntoT>();
+			dst.ensure_capacity(src_entity_range.len());
 
-			let src_slice =
-				&src.get(src_arch.index()).unwrap().into_slice()[src_entity_range.clone()];
-			dst.ensure_capacity(src_slice.len());
+			for i in src_entity_range {
+				let component = &src_slice[i];
+				let accessor = ComponentAccessor {
+					archetype: src_arch,
+					components: src_components,
+					index: i,
+				};
+				let dst_component = clone_fn(component, accessor, resources);
 
-			for src_component in src_slice {
-				let dst_component = clone_fn(resources, src_component);
 				unsafe {
 					dst.extend_memcopy(&dst_component as *const IntoT, 1);
 					std::mem::forget(dst_component);
@@ -144,5 +152,21 @@ impl ResourcesMergerHandlerSet {
 			ComponentTypeId::of::<FromT>(),
 			(Box::new(merge_fn), Box::new(register_fn)),
 		);
+	}
+}
+
+/// Gives SpawnFrom access to the components of the current source entity
+pub struct ComponentAccessor<'a> {
+	archetype: &'a Archetype,
+	components: &'a Components,
+	index: usize,
+}
+
+impl<'a> ComponentAccessor<'a> {
+	pub fn get<T: Component>(&self) -> Option<&T> {
+		self.components
+			.get_downcast::<T>()
+			.and_then(|storage| storage.get(self.archetype.index()))
+			.and_then(|slice| slice.into_slice().get(self.index))
 	}
 }

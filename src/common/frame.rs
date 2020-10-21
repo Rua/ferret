@@ -1,4 +1,4 @@
-use crate::common::resources_merger::FromWithResources;
+use crate::common::spawn::{ComponentAccessor, SpawnFrom};
 use legion::{
 	systems::{ResourceSet, Runnable},
 	IntoQuery, Read, Resources, SystemBuilder,
@@ -19,8 +19,12 @@ pub struct FrameState {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct FrameRngDef;
 
-impl FromWithResources<FrameRngDef> for FrameRng {
-	fn from_with_resources(_src_component: &FrameRngDef, resources: &Resources) -> Self {
+impl SpawnFrom<FrameRngDef> for FrameRng {
+	fn from_with_resources(
+		_component: &FrameRngDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> Self {
 		let frame_state = <Read<FrameState>>::fetch(resources);
 		let mut rng = frame_state.rng.lock().unwrap();
 		let mut seed = <FrameRng as SeedableRng>::Seed::default();

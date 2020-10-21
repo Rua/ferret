@@ -7,6 +7,6 @@ pub mod geometry;
 pub mod input;
 pub mod logger;
 pub mod quadtree;
-pub mod resources_merger;
+pub mod spawn;
 pub mod time;
 pub mod video;
