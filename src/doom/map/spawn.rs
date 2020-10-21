@@ -24,19 +24,17 @@ use legion::{
 };
 use nalgebra::{Vector2, Vector3};
 
+#[derive(Clone, Debug)]
+pub struct SpawnContext {
+	pub template_handle: AssetHandle<EntityTemplate>,
+	pub transform: Transform,
+}
+
 pub fn spawn_things(
 	things: Vec<Thing>,
 	world: &mut World,
 	resources: &mut Resources,
-	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
-	let (asset_storage, frame_state, handler_set) = <(
-		Read<AssetStorage>,
-		Read<FrameState>,
-		Read<ResourcesMergerHandlerSet>,
-	)>::fetch(resources);
-	let mut merger = ResourcesMerger::new(&handler_set, &resources);
-
 	let mut command_buffer = CommandBuffer::new(world);
 
 	for (i, thing) in things.into_iter().enumerate() {
@@ -48,74 +46,78 @@ pub fn spawn_things(
 			continue;
 		}
 
-		// Fetch entity template
-		let (handle, template) = match asset_storage
-			.iter::<EntityTemplate>()
-			.find(|(_, template)| template.type_id == Some(EntityTypeId::Thing(thing.r#type)))
-		{
-			Some(entry) => entry,
-			None => {
-				log::warn!("Thing {} has invalid thing type {}", i, thing.r#type);
-				continue;
+		let spawn_context = {
+			let asset_storage = <Read<AssetStorage>>::fetch(resources);
+
+			// Find entity template
+			let (template_handle, _) = match asset_storage
+				.iter::<EntityTemplate>()
+				.find(|(_, template)| template.type_id == Some(EntityTypeId::Thing(thing.r#type)))
+			{
+				Some(entry) => entry,
+				None => {
+					log::warn!("Thing {} has invalid thing type {}", i, thing.r#type);
+					continue;
+				}
+			};
+
+			// Set entity transform
+			let z = {
+				let map_dynamic = <&MapDynamic>::query().iter(world).next().unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
+				let ssect = map.find_subsector(thing.position);
+				map.sectors[ssect.sector_index].interval.min
+			};
+
+			let transform = Transform {
+				position: Vector3::new(thing.position[0], thing.position[1], z),
+				rotation: Vector3::new(0.into(), 0.into(), thing.angle),
+			};
+
+			SpawnContext {
+				template_handle: template_handle.clone(),
+				transform,
 			}
 		};
 
-		let entity = if template.world.is_empty() {
-			log::debug!("Thing {} has empty template world", i);
+		resources.insert(spawn_context);
 
-			command_buffer.push(())
+		let (asset_storage, handler_set, spawn_context) = <(
+			Read<AssetStorage>,
+			Read<ResourcesMergerHandlerSet>,
+			Read<SpawnContext>,
+		)>::fetch(resources);
+		let template = asset_storage.get(&spawn_context.template_handle).unwrap();
+
+		if template.world.is_empty() {
+			log::debug!("Thing {} has empty template world", i);
+			command_buffer.push(());
 		} else {
 			// Create entity and add components
-			let entity_map = world.clone_from(&template.world, &any(), &mut merger);
-			entity_map.into_iter().map(|(_, to)| to).next().unwrap()
-		};
-
-		// Set entity template reference
-		command_buffer.add_component(entity, EntityTemplateRef(handle.clone()));
-
-		// Set entity transform
-		let z = {
-			let map = asset_storage.get(&map_handle).unwrap();
-			let ssect = map.find_subsector(thing.position);
-			map.sectors[ssect.sector_index].interval.min
-		};
-
-		command_buffer.add_component(
-			entity,
-			Transform {
-				position: Vector3::new(thing.position[0], thing.position[1], z),
-				rotation: Vector3::new(0.into(), 0.into(), thing.angle),
-			},
-		);
-
-		// Set spawn state
-		let new = (StateName::from("spawn").unwrap(), 0);
-		if let Some(new_state) = template.states.get(&new.0).and_then(|x| x.get(new.1)) {
-			command_buffer.add_component(
-				entity,
-				State {
-					current: new,
-					timer: new_state
-						.next
-						.map(|(time, _)| Timer::new(frame_state.time, time)),
-				},
-			);
+			let mut merger = ResourcesMerger::new(&handler_set, &resources);
+			world.clone_from(&template.world, &any(), &mut merger);
 		}
 	}
 
+	resources.remove::<SpawnContext>();
 	command_buffer.flush(world);
 
 	// TODO very ugly way to do it
-	for (entity, spawn_on_ceiling, transform) in
-		<(Entity, &SpawnOnCeiling, &mut Transform)>::query().iter_mut(world)
 	{
-		command_buffer.remove_component::<SpawnOnCeiling>(*entity);
+		let asset_storage = <Read<AssetStorage>>::fetch(resources);
+		let map_dynamic = <&MapDynamic>::query().iter(world).next().unwrap();
+		let map = asset_storage.get(&map_dynamic.map).unwrap();
 
-		let map = asset_storage.get(&map_handle).unwrap();
-		let position = Vector2::new(transform.position[0], transform.position[1]);
-		let ssect = map.find_subsector(position);
-		let sector = &map.sectors[ssect.sector_index];
-		transform.position[2] = sector.interval.max - spawn_on_ceiling.offset;
+		for (entity, spawn_on_ceiling, transform) in
+			<(Entity, &SpawnOnCeiling, &mut Transform)>::query().iter_mut(world)
+		{
+			command_buffer.remove_component::<SpawnOnCeiling>(*entity);
+
+			let position = Vector2::new(transform.position[0], transform.position[1]);
+			let ssect = map.find_subsector(position);
+			let sector = &map.sectors[ssect.sector_index];
+			transform.position[2] = sector.interval.max - spawn_on_ceiling.offset;
+		}
 	}
 
 	command_buffer.flush(world);
@@ -125,35 +127,47 @@ pub fn spawn_things(
 pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Result<Entity> {
 	let mut command_buffer = CommandBuffer::new(world);
 
-	// Get spawn point transform
-	let transform = match <(&Transform, &SpawnPoint)>::query()
-		.iter(world)
-		.find_map(|(t, s)| if s.player_num == 1 { Some(*t) } else { None })
-	{
-		Some(x) => x,
-		None => bail!("Spawn point for player 1 not found"),
+	let spawn_context = {
+		// Get spawn point transform
+		let transform = match <(&Transform, &SpawnPoint)>::query()
+			.iter(world)
+			.find_map(|(t, s)| if s.player_num == 1 { Some(*t) } else { None })
+		{
+			Some(x) => x,
+			None => bail!("Spawn point for player 1 not found"),
+		};
+
+		let asset_storage = <Read<AssetStorage>>::fetch(resources);
+
+		let template_handle = match asset_storage.handle_for::<EntityTemplate>("player") {
+			Some(template) => template,
+			None => bail!("Entity type not found: {}", "player"),
+		};
+
+		SpawnContext {
+			template_handle: template_handle.clone(),
+			transform,
+		}
 	};
 
-	// Fetch entity template
-	let (asset_storage, handler_set) =
-		<(Read<AssetStorage>, Read<ResourcesMergerHandlerSet>)>::fetch(resources);
-	let mut merger = ResourcesMerger::new(&handler_set, &resources);
+	resources.insert(spawn_context);
 
-	let handle = match asset_storage.handle_for::<EntityTemplate>("player") {
-		Some(template) => template,
-		None => bail!("Entity type not found: {}", "player"),
+	let entity = {
+		// Fetch entity template
+		let (asset_storage, handler_set, spawn_context) = <(
+			Read<AssetStorage>,
+			Read<ResourcesMergerHandlerSet>,
+			Read<SpawnContext>,
+		)>::fetch(resources);
+		let template = asset_storage.get(&spawn_context.template_handle).unwrap();
+
+		// Create entity and add components
+		let mut merger = ResourcesMerger::new(&handler_set, &resources);
+		let entity_map = world.clone_from(&template.world, &any(), &mut merger);
+		entity_map.into_iter().map(|(_, to)| to).next().unwrap()
 	};
-	let template = asset_storage.get(&handle).unwrap();
 
-	// Create entity and add components
-	let entity_map = world.clone_from(&template.world, &any(), &mut merger);
-	let entity = entity_map.into_iter().map(|(_, to)| to).next().unwrap();
-
-	command_buffer.add_component(entity, transform);
-
-	// Set entity template reference
-	command_buffer.add_component(entity, EntityTemplateRef(handle.clone()));
-
+	resources.remove::<SpawnContext>();
 	command_buffer.flush(world);
 
 	Ok(entity)

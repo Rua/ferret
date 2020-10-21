@@ -179,12 +179,13 @@ fn main() -> anyhow::Result<()> {
 	handler_set.register_clone::<doom::camera::Camera>();
 	handler_set.register_clone::<doom::client::UseAction>();
 	handler_set.register_clone::<doom::client::User>();
-	handler_set.register_clone::<doom::components::SpawnOnCeiling>();
 	handler_set.register_clone::<doom::components::SpawnPoint>();
-	handler_set.register_clone::<doom::components::Transform>();
-	handler_set.register_clone::<doom::components::Velocity>();
+	handler_set
+		.register_from_with_resources::<doom::components::TransformDef, doom::components::Transform>(
+		);
+	handler_set.register_from::<doom::components::VelocityDef, doom::components::Velocity>();
 	handler_set.register_clone::<doom::door::DoorActive>();
-	handler_set.register_clone::<doom::entitytemplate::EntityTemplateRef>();
+	handler_set.register_from_with_resources::<doom::entitytemplate::EntityTemplateRefDef, doom::entitytemplate::EntityTemplateRef>();
 	handler_set.register_clone::<doom::floor::FloorActive>();
 	handler_set
 		.register_from_with_resources::<doom::light::LightFlashDef, doom::light::LightFlash>();
@@ -200,6 +201,7 @@ fn main() -> anyhow::Result<()> {
 	handler_set.register_clone::<doom::sectormove::FloorMove>();
 	handler_set.register_clone::<doom::sound::SoundPlaying>();
 	handler_set.register_clone::<doom::sprite::SpriteRender>();
+	handler_set.register_from_with_resources::<doom::state::StateDef, doom::state::State>();
 	handler_set.register_clone::<doom::switch::SwitchActive>();
 	handler_set.register_clone::<doom::texture::TextureScroll>();
 	resources.insert(handler_set);
@@ -524,7 +526,7 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 		)?
 	};
 	doom::map::spawn::spawn_map_entities(world, resources, &map_handle)?;
-	doom::map::spawn::spawn_things(things, world, resources, &map_handle)?;
+	doom::map::spawn::spawn_things(things, world, resources)?;
 
 	// Spawn player
 	let entity = doom::map::spawn::spawn_player(world, resources)?;

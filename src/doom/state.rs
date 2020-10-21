@@ -1,15 +1,20 @@
 use crate::{
-	common::{assets::AssetStorage, frame::FrameState, time::Timer},
-	doom::{entitytemplate::EntityTemplateRef, sprite::SpriteRender},
+	common::{
+		assets::AssetStorage, frame::FrameState, resources_merger::FromWithResources, time::Timer,
+	},
+	doom::{entitytemplate::EntityTemplateRef, map::spawn::SpawnContext, sprite::SpriteRender},
 };
 use arrayvec::ArrayString;
-use legion::{systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};
+use legion::{
+	systems::{ResourceSet, Runnable},
+	Entity, IntoQuery, Read, Resources, SystemBuilder,
+};
 use std::time::Duration;
 
 pub type StateName = ArrayString<[u8; 16]>;
 
 #[derive(Clone, Debug)]
-pub struct StateDef {
+pub struct StateInfo {
 	pub sprite: SpriteRender,
 	pub next: Option<(Duration, Option<(StateName, usize)>)>,
 }
@@ -18,6 +23,31 @@ pub struct StateDef {
 pub struct State {
 	pub current: (StateName, usize),
 	pub timer: Option<Timer>,
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct StateDef;
+
+impl FromWithResources<StateDef> for State {
+	fn from_with_resources(_src_component: &StateDef, resources: &Resources) -> State {
+		let (asset_storage, frame_state, spawn_context) =
+			<(Read<AssetStorage>, Read<FrameState>, Read<SpawnContext>)>::fetch(resources);
+		let template = asset_storage.get(&spawn_context.template_handle).unwrap();
+
+		let spawn_state_name = (StateName::from("spawn").unwrap(), 0);
+		let spawn_state = template
+			.states
+			.get(&spawn_state_name.0)
+			.and_then(|x| x.get(spawn_state_name.1))
+			.expect("Entity template has no spawn state");
+
+		State {
+			current: spawn_state_name,
+			timer: spawn_state
+				.next
+				.map(|(time, _)| Timer::new(frame_state.time, time)),
+		}
+	}
 }
 
 pub fn state_system(_resources: &mut Resources) -> impl Runnable {

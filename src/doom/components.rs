@@ -1,4 +1,8 @@
-use crate::common::geometry::Angle;
+use crate::{
+	common::{geometry::Angle, resources_merger::FromWithResources},
+	doom::map::spawn::SpawnContext,
+};
+use legion::{systems::ResourceSet, Read, Resources};
 use nalgebra::Vector3;
 
 #[derive(Clone, Copy, Debug)]
@@ -18,6 +22,25 @@ pub struct Transform {
 }
 
 #[derive(Clone, Copy, Debug, Default)]
+pub struct TransformDef;
+
+impl FromWithResources<TransformDef> for Transform {
+	fn from_with_resources(_src_component: &TransformDef, resources: &Resources) -> Self {
+		let spawn_context = <Read<SpawnContext>>::fetch(resources);
+		spawn_context.transform
+	}
+}
+
+#[derive(Clone, Copy, Debug, Default)]
 pub struct Velocity {
 	pub velocity: Vector3<f32>,
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct VelocityDef;
+
+impl From<VelocityDef> for Velocity {
+	fn from(_src_component: VelocityDef) -> Self {
+		Velocity::default()
+	}
 }

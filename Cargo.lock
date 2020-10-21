@@ -650,8 +650,7 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 [[package]]
 name = "legion"
 version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9aa40f1a5f64dfdc1830657e0e7dd2c28087c4e32a2a85fcf63a286c429edefc"
+source = "git+https://github.com/amethyst/legion#0733aa39b253b3404544afc3485d332429009799"
 dependencies = [
  "bit-set",
  "derivative",
