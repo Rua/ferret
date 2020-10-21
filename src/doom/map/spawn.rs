@@ -2,12 +2,12 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		frame::FrameState,
-		geometry::AABB2,
+		geometry::{Interval, AABB2},
 		spawn::{SpawnMerger, SpawnMergerHandlerSet},
 		time::Timer,
 	},
 	doom::{
-		components::{SpawnOnCeiling, SpawnPoint, Transform},
+		components::{SpawnPoint, Transform},
 		entitytemplate::{EntityTemplate, EntityTemplateRef, EntityTypeId},
 		map::{
 			AnimState, LinedefDynamic, LinedefRef, Map, MapDynamic, SectorDynamic, SectorRef,
@@ -27,6 +27,7 @@ use nalgebra::{Vector2, Vector3};
 pub struct SpawnContext {
 	pub template_handle: AssetHandle<EntityTemplate>,
 	pub transform: Transform,
+	pub sector_interval: Interval,
 }
 
 pub fn spawn_things(
@@ -60,22 +61,22 @@ pub fn spawn_things(
 				}
 			};
 
-			// Set entity transform
-			let z = {
+			let sector_interval = {
 				let map_dynamic = <&MapDynamic>::query().iter(world).next().unwrap();
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 				let ssect = map.find_subsector(thing.position);
-				map.sectors[ssect.sector_index].interval.min
+				map_dynamic.sectors[ssect.sector_index].interval
 			};
 
 			let transform = Transform {
-				position: Vector3::new(thing.position[0], thing.position[1], z),
+				position: Vector3::new(thing.position[0], thing.position[1], f32::NAN),
 				rotation: Vector3::new(0.into(), 0.into(), thing.angle),
 			};
 
 			SpawnContext {
 				template_handle: template_handle.clone(),
 				transform,
+				sector_interval,
 			}
 		};
 
@@ -100,26 +101,6 @@ pub fn spawn_things(
 
 	resources.remove::<SpawnContext>();
 	command_buffer.flush(world);
-
-	// TODO very ugly way to do it
-	{
-		let asset_storage = <Read<AssetStorage>>::fetch(resources);
-		let map_dynamic = <&MapDynamic>::query().iter(world).next().unwrap();
-		let map = asset_storage.get(&map_dynamic.map).unwrap();
-
-		for (entity, spawn_on_ceiling, transform) in
-			<(Entity, &SpawnOnCeiling, &mut Transform)>::query().iter_mut(world)
-		{
-			command_buffer.remove_component::<SpawnOnCeiling>(*entity);
-
-			let position = Vector2::new(transform.position[0], transform.position[1]);
-			let ssect = map.find_subsector(position);
-			let sector = &map.sectors[ssect.sector_index];
-			transform.position[2] = sector.interval.max - spawn_on_ceiling.offset;
-		}
-	}
-
-	command_buffer.flush(world);
 	Ok(())
 }
 
@@ -143,9 +124,17 @@ pub fn spawn_player(world: &mut World, resources: &mut Resources) -> anyhow::Res
 			None => bail!("Entity type not found: {}", "player"),
 		};
 
+		let sector_interval = {
+			let map_dynamic = <&MapDynamic>::query().iter(world).next().unwrap();
+			let map = asset_storage.get(&map_dynamic.map).unwrap();
+			let ssect = map.find_subsector(transform.position.fixed_resize(0.0));
+			map_dynamic.sectors[ssect.sector_index].interval
+		};
+
 		SpawnContext {
 			template_handle: template_handle.clone(),
 			transform,
+			sector_interval,
 		}
 	};
 

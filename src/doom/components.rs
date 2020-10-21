@@ -3,15 +3,13 @@ use crate::{
 		geometry::Angle,
 		spawn::{ComponentAccessor, SpawnFrom},
 	},
-	doom::map::spawn::SpawnContext,
+	doom::{
+		map::spawn::SpawnContext,
+		physics::{BoxCollider, DISTANCE_EPSILON},
+	},
 };
 use legion::{systems::ResourceSet, Read, Resources};
 use nalgebra::Vector3;
-
-#[derive(Clone, Copy, Debug)]
-pub struct SpawnOnCeiling {
-	pub offset: f32,
-}
 
 #[derive(Clone, Copy, Debug)]
 pub struct SpawnPoint {
@@ -25,16 +23,28 @@ pub struct Transform {
 }
 
 #[derive(Clone, Copy, Debug, Default)]
-pub struct TransformDef;
+pub struct TransformDef {
+	pub spawn_on_ceiling: bool,
+}
 
 impl SpawnFrom<TransformDef> for Transform {
-	fn spawn(
-		_component: &TransformDef,
-		_accessor: ComponentAccessor,
-		resources: &Resources,
-	) -> Self {
+	fn spawn(component: &TransformDef, accessor: ComponentAccessor, resources: &Resources) -> Self {
 		let spawn_context = <Read<SpawnContext>>::fetch(resources);
-		spawn_context.transform
+		let mut transform = spawn_context.transform;
+
+		if transform.position[2].is_nan() {
+			if component.spawn_on_ceiling {
+				transform.position[2] = spawn_context.sector_interval.max - DISTANCE_EPSILON;
+
+				if let Some(box_collider) = accessor.get::<BoxCollider>() {
+					transform.position[2] -= box_collider.height;
+				}
+			} else {
+				transform.position[2] = spawn_context.sector_interval.min + DISTANCE_EPSILON;
+			}
+		}
+
+		transform
 	}
 }
 

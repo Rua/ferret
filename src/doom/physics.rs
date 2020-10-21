@@ -300,7 +300,7 @@ pub struct EntityTraceCollision {
 	pub step_z: Option<f32>,
 }
 
-const DISTANCE_EPSILON: f32 = 0.03125;
+pub const DISTANCE_EPSILON: f32 = 0.03125;
 const EXTRA_HEADROOM: f32 = 0.1;
 
 impl<'a, W: EntityStore> EntityTracer<'a, W> {

@@ -4,7 +4,7 @@ use crate::{
 	doom::{
 		camera::Camera,
 		client::User,
-		components::{SpawnOnCeiling, SpawnPoint, TransformDef, VelocityDef},
+		components::{SpawnPoint, TransformDef, VelocityDef},
 		data::FRAME_TIME,
 		entitytemplate::{EntityTemplate, EntityTemplateRefDef, EntityTypeId},
 		physics::{BoxCollider, SolidMask},
@@ -28,7 +28,9 @@ pub fn load(resources: &mut Resources) {
 			world.push((
 				EntityTemplateRefDef,
 				SpawnPoint { player_num: 1 },
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -43,7 +45,9 @@ pub fn load(resources: &mut Resources) {
 			world.push((
 				EntityTemplateRefDef,
 				SpawnPoint { player_num: 2 },
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -58,7 +62,9 @@ pub fn load(resources: &mut Resources) {
 			world.push((
 				EntityTemplateRefDef,
 				SpawnPoint { player_num: 3 },
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -73,7 +79,9 @@ pub fn load(resources: &mut Resources) {
 			world.push((
 				EntityTemplateRefDef,
 				SpawnPoint { player_num: 4 },
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -87,7 +95,9 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -246,7 +256,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				User {
 					error_sound: asset_storage.load("dsnoway.sound"),
 				},
@@ -426,7 +438,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -607,7 +621,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -796,7 +812,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -944,7 +962,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -1132,7 +1152,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -1182,7 +1204,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -1230,7 +1254,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -1448,7 +1474,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -1498,7 +1526,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -1687,7 +1717,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -1878,7 +1910,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -2029,7 +2063,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -2180,7 +2216,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -2303,7 +2341,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -2476,7 +2516,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -2526,7 +2568,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -2699,7 +2743,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -2804,7 +2850,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -2969,7 +3017,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -3152,7 +3202,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -3301,7 +3353,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -3444,7 +3498,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -3637,7 +3693,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -3728,16 +3786,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 72.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("keen.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 				VelocityDef,
 			));
 			world
@@ -3798,7 +3855,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -3840,7 +3899,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -3855,7 +3916,9 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -3898,7 +3961,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -3958,7 +4023,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -4020,7 +4087,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -4070,7 +4139,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -4120,7 +4191,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -4166,7 +4239,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -4224,7 +4299,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -4286,7 +4363,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -4344,7 +4423,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 				VelocityDef,
 			));
 			world
@@ -4388,7 +4469,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -4427,7 +4510,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -4502,7 +4587,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -4557,7 +4644,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -4572,7 +4661,9 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -4615,7 +4706,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -4655,7 +4748,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -4695,7 +4790,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -4751,7 +4848,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -4807,7 +4906,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -4847,7 +4948,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -4887,7 +4990,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -4927,7 +5032,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -4967,7 +5074,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5007,7 +5116,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5047,7 +5158,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5083,7 +5196,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5119,7 +5234,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5175,7 +5292,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5223,7 +5342,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5259,7 +5380,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5307,7 +5430,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5343,7 +5468,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5399,7 +5526,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5439,7 +5568,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5487,7 +5618,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5523,7 +5656,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5559,7 +5694,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5595,7 +5732,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5631,7 +5770,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5667,7 +5808,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5703,7 +5846,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5739,7 +5884,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5775,7 +5922,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5811,7 +5960,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5847,7 +5998,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5883,7 +6036,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5919,7 +6074,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5955,7 +6112,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5991,7 +6150,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6027,7 +6188,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6063,7 +6226,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6111,7 +6276,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6159,7 +6326,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6195,7 +6364,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6231,7 +6402,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6267,7 +6440,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6303,7 +6478,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6339,7 +6516,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6375,7 +6554,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6415,7 +6596,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6463,7 +6646,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6507,7 +6692,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6543,7 +6730,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6591,7 +6780,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6639,7 +6830,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6687,7 +6880,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6735,7 +6930,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6783,7 +6980,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6831,7 +7030,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6867,7 +7068,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6903,7 +7106,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6939,7 +7144,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -6975,7 +7182,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -7017,16 +7226,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 68.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("gor1.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 			));
 			world
 		},
@@ -7056,16 +7264,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 84.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("gor2.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 			));
 			world
 		},
@@ -7095,16 +7302,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 84.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("gor3.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 			));
 			world
 		},
@@ -7134,16 +7340,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 68.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("gor4.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 			));
 			world
 		},
@@ -7173,16 +7378,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 52.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("gor5.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 			));
 			world
 		},
@@ -7212,16 +7416,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 84.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("gor2.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 			));
 			world
 		},
@@ -7251,16 +7454,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 68.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("gor4.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 			));
 			world
 		},
@@ -7290,16 +7492,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 52.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("gor3.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 			));
 			world
 		},
@@ -7329,16 +7530,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 52.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("gor5.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 			));
 			world
 		},
@@ -7380,16 +7580,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 68.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("gor1.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 			));
 			world
 		},
@@ -7425,7 +7624,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -7461,7 +7662,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -7497,7 +7700,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -7533,7 +7738,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -7569,7 +7776,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -7605,7 +7814,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -7641,7 +7852,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -7677,7 +7890,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -7713,7 +7928,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -7749,7 +7966,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -7785,7 +8004,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -7821,7 +8042,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -7861,7 +8084,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -7897,7 +8122,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -7937,7 +8164,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -7973,7 +8202,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -8017,7 +8248,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -8047,16 +8280,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 88.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb1.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 			));
 			world
 		},
@@ -8086,16 +8318,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 88.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb2.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 			));
 			world
 		},
@@ -8125,16 +8356,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 64.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb3.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 			));
 			world
 		},
@@ -8164,16 +8394,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 64.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb4.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 			));
 			world
 		},
@@ -8203,16 +8432,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 64.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb5.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 			));
 			world
 		},
@@ -8242,16 +8470,15 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
-				SpawnOnCeiling {
-					offset: 64.0,
-				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb6.sprite"),
 					frame: 0,
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
 			));
 			world
 		},
@@ -8282,7 +8509,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -8313,7 +8542,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -8344,7 +8575,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
