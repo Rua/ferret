@@ -5,7 +5,6 @@ use crate::common::{
 	assets::{AssetHandle, AssetStorage},
 	audio::Sound,
 	frame::{frame_state_system, FrameRng, FrameRngDef, FrameState},
-	geometry::{AABB2, AABB3},
 	input::InputState,
 	quadtree::Quadtree,
 	spawn::SpawnMergerHandlerSet,
@@ -13,7 +12,7 @@ use crate::common::{
 };
 use anyhow::{bail, Context};
 use clap::{App, Arg, ArgMatches};
-use legion::{systems::ResourceSet, Entity, IntoQuery, Read, Resources, Schedule, World, Write};
+use legion::{systems::ResourceSet, Entity, Read, Resources, Schedule, World, Write};
 use nalgebra::Vector2;
 use rand::SeedableRng;
 use relative_path::RelativePath;
@@ -465,10 +464,18 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 	doom::data::linedefs::load(resources);
 
 	log::info!("Loading map...");
-	let map_handle = {
+	let map_handle: AssetHandle<doom::map::Map> = {
 		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
 		asset_storage.load(&format!("{}.map", name_lower))
 	};
+
+	// Create quadtree
+	let bbox = {
+		let asset_storage = <Read<AssetStorage>>::fetch(resources);
+		let map = asset_storage.get(&map_handle).unwrap();
+		map.bbox.clone()
+	};
+	resources.insert(Quadtree::new(bbox));
 
 	log::info!("Processing assets...");
 	{
@@ -526,29 +533,8 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 	doom::map::spawn::spawn_things(things, world, resources)?;
 
 	// Spawn player
-	let entity = doom::map::spawn::spawn_player(world, resources)?;
+	let entity = doom::map::spawn::spawn_player(world, resources, 1)?;
 	<Write<doom::client::Client>>::fetch_mut(resources).entity = Some(entity);
-
-	// Create quadtree and add entities to it
-	let bbox = {
-		let asset_storage = <Read<AssetStorage>>::fetch(resources);
-		let map = asset_storage.get(&map_handle).unwrap();
-		map.bbox.clone()
-	};
-	let mut quadtree = Quadtree::new(bbox);
-
-	for (entity, box_collider, transform) in <(
-		Entity,
-		&doom::physics::BoxCollider,
-		&doom::components::Transform,
-	)>::query()
-	.iter(world)
-	{
-		let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
-		quadtree.insert(*entity, &AABB2::from(&bbox.offset(transform.position)));
-	}
-
-	resources.insert(quadtree);
 
 	log::debug!(
 		"Loading took {} s",
