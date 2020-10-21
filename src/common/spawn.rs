@@ -9,7 +9,7 @@ pub trait SpawnFrom<FromT: Sized>
 where
 	Self: Sized,
 {
-	fn from_with_resources(
+	fn spawn(
 		component: &FromT,
 		accessor: ComponentAccessor,
 		resources: &Resources,
@@ -103,13 +103,13 @@ impl SpawnMergerHandlerSet {
 		self.register_closure::<FromT, IntoT, _>(|component, _, _| FromT::clone(component).into())
 	}
 
-	pub fn register_spawn_from<FromT, IntoT>(&mut self)
+	pub fn register_spawn<FromT, IntoT>(&mut self)
 	where
 		FromT: Component,
 		IntoT: Component + SpawnFrom<FromT>,
 	{
 		self.register_closure::<FromT, IntoT, _>(|component, accessor, resources| {
-			IntoT::from_with_resources(component, accessor, resources)
+			IntoT::spawn(component, accessor, resources)
 		})
 	}
 

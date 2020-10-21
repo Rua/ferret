@@ -111,7 +111,7 @@ impl Default for LightFlashType {
 }
 
 impl SpawnFrom<LightFlashDef> for LightFlash {
-	fn from_with_resources(
+	fn spawn(
 		component: &LightFlashDef,
 		_accessor: ComponentAccessor,
 		resources: &Resources,

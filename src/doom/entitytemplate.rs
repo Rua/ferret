@@ -33,7 +33,7 @@ pub struct EntityTemplateRef(pub AssetHandle<EntityTemplate>);
 pub struct EntityTemplateRefDef;
 
 impl SpawnFrom<EntityTemplateRefDef> for EntityTemplateRef {
-	fn from_with_resources(
+	fn spawn(
 		_component: &EntityTemplateRefDef,
 		_accessor: ComponentAccessor,
 		resources: &Resources,

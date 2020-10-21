@@ -32,7 +32,7 @@ pub struct State {
 pub struct StateDef;
 
 impl SpawnFrom<StateDef> for State {
-	fn from_with_resources(
+	fn spawn(
 		_component: &StateDef,
 		_accessor: ComponentAccessor,
 		resources: &Resources,

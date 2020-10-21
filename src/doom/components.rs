@@ -28,7 +28,7 @@ pub struct Transform {
 pub struct TransformDef;
 
 impl SpawnFrom<TransformDef> for Transform {
-	fn from_with_resources(
+	fn spawn(
 		_component: &TransformDef,
 		_accessor: ComponentAccessor,
 		resources: &Resources,

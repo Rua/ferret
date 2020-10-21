@@ -20,7 +20,7 @@ pub struct FrameState {
 pub struct FrameRngDef;
 
 impl SpawnFrom<FrameRngDef> for FrameRng {
-	fn from_with_resources(
+	fn spawn(
 		_component: &FrameRngDef,
 		_accessor: ComponentAccessor,
 		resources: &Resources,
