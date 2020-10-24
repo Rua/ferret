@@ -5,21 +5,29 @@ use crate::{
 		spawn::{ComponentAccessor, SpawnFrom},
 		time::Timer,
 	},
-	doom::{entitytemplate::EntityTemplateRef, map::spawn::SpawnContext, sprite::SpriteRender},
+	doom::{
+		entitytemplate::EntityTemplateRef,
+		map::spawn::SpawnContext,
+		physics::{BoxCollider, SolidMask},
+		sprite::SpriteRender,
+	},
 };
 use arrayvec::ArrayString;
 use legion::{
 	systems::{ResourceSet, Runnable},
-	IntoQuery, Read, Resources, SystemBuilder,
+	Entity, IntoQuery, Read, Resources, SystemBuilder,
 };
 use std::time::Duration;
 
 pub type StateName = ArrayString<[u8; 16]>;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct StateInfo {
-	pub sprite: SpriteRender,
-	pub next: Option<(Duration, Option<(StateName, usize)>)>,
+	pub time: Option<Duration>,
+	pub next: Option<(StateName, usize)>,
+	pub remove: bool,
+	pub solid_mask: Option<SolidMask>,
+	pub sprite: Option<SpriteRender>,
 }
 
 #[derive(Clone, Debug)]
@@ -58,20 +66,32 @@ impl SpawnFrom<StateDef> for State {
 	}
 }
 
-pub fn state_timer_system(_resources: &mut Resources) -> impl Runnable {
+pub fn state_set_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("state_timer_system")
+		.read_resource::<AssetStorage>()
 		.read_resource::<FrameState>()
-		.with_query(<&mut State>::query())
-		.build(move |_command_buffer, world, resources, query| {
-			let frame_state = resources;
+		.with_query(<(Entity, &EntityTemplateRef, &mut State)>::query())
+		.build(move |command_buffer, world, resources, query| {
+			let (asset_storage, frame_state) = resources;
 
-			for state in query.iter_mut(world) {
-				if !state.timer.is_elapsed(frame_state.time) {
-					continue;
+			for (entity, template_ref, state) in query.iter_mut(world) {
+				if let StateAction::Wait(state_name) = state.action {
+					if state.timer.is_elapsed(frame_state.time) {
+						state.action = StateAction::Set(state_name);
+					}
 				}
 
-				if let StateAction::Wait(state_name) = state.action {
-					state.action = StateAction::Set(state_name);
+				if let StateAction::Set(state_name) = state.action {
+					let states = &asset_storage.get(&template_ref.0).unwrap().states;
+					let state_info = states
+						.get(&state_name.0)
+						.and_then(|x| x.get(state_name.1))
+						.unwrap_or_else(|| panic!("Invalid state {:?}", state_name));
+
+					if state_info.remove {
+						state.action = StateAction::None;
+						command_buffer.remove(*entity);
+					}
 				}
 			}
 		})
@@ -92,9 +112,9 @@ pub fn state_next_system(_resources: &mut Resources) -> impl Runnable {
 						.and_then(|x| x.get(state_name.1))
 						.unwrap_or_else(|| panic!("Invalid state {:?}", state_name));
 
-					if let Some((time, next)) = state_info.next {
+					if let Some(time) = state_info.time {
 						state.timer.restart_with(time);
-						state.action = StateAction::Wait(next.unwrap_or_else(|| {
+						state.action = StateAction::Wait(state_info.next.unwrap_or_else(|| {
 							(
 								state_name.0,
 								(state_name.1 + 1) % states[&state_name.0].len(),
@@ -121,4 +141,38 @@ pub fn state_trigger<F>(
 		let state_info = &states[&state_name.0][state_name.1];
 		func(state_info);
 	}
+}
+
+pub fn solid_mask_system(_resources: &mut Resources) -> impl Runnable {
+	SystemBuilder::new("solid_mask_system")
+		.read_resource::<AssetStorage>()
+		.with_query(<((&EntityTemplateRef, &State), &mut BoxCollider)>::query())
+		.build(move |_command_buffer, world, resources, query| {
+			let asset_storage = resources;
+
+			for (state_data, box_collider) in query.iter_mut(world) {
+				state_trigger(state_data, asset_storage, |state_info| {
+					if let Some(solid_mask) = &state_info.solid_mask {
+						box_collider.solid_mask = *solid_mask;
+					}
+				});
+			}
+		})
+}
+
+pub fn sprite_anim_system(_resources: &mut Resources) -> impl Runnable {
+	SystemBuilder::new("sprite_anim_system")
+		.read_resource::<AssetStorage>()
+		.with_query(<((&EntityTemplateRef, &State), &mut SpriteRender)>::query())
+		.build(move |_command_buffer, world, resources, query| {
+			let asset_storage = resources;
+
+			for (state_data, sprite_render) in query.iter_mut(world) {
+				state_trigger(state_data, asset_storage, |state_info| {
+					if let Some(sprite) = &state_info.sprite {
+						*sprite_render = sprite.clone();
+					}
+				});
+			}
+		})
 }

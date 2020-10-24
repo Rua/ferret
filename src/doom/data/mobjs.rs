@@ -112,110 +112,135 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(24);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 0, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 1, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 2, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 3, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 6, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 6, full_bright: false},
-					next: Some((4 * FRAME_TIME, Some((StateName::from("spawn").unwrap(), 0)))),
+					time: Some(4 * FRAME_TIME),
+					next: Some((StateName::from("spawn").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 4, full_bright: false},
-					next: Some((12 * FRAME_TIME, Some((StateName::from("spawn").unwrap(), 0)))),
+					time: Some(12 * FRAME_TIME),
+					next: Some((StateName::from("spawn").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 7, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 8, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 9, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 9, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 10, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 11, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 12, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 13, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("xdeath").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 14, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 14, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 15, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 15, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 16, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 16, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 17, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 17, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 18, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 18, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 19, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 19, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 20, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 20, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 21, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 21, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 22, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 22, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -277,148 +302,184 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(33);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 1, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 0, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 0, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 1, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 1, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 2, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 2, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 3, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 3, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 6, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 6, full_bright: false},
-					next: Some((3 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(3 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 4, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 5, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 4, full_bright: false},
-					next: Some((8 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(8 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 7, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 8, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 9, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 9, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 10, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 11, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("xdeath").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 12, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 13, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 14, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 14, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 15, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 15, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 16, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 16, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 17, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 17, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 18, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 18, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 19, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 19, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 20, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 20, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("raise").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 10, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 9, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 8, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 7, full_bright: false},
-					next: Some((5 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(5 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -456,152 +517,189 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(34);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 1, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 6, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 6, full_bright: false},
-					next: Some((3 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(3 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 4, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 5, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 5, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 4, full_bright: false},
-					next: Some((10 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(10 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 7, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 8, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 9, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 9, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 10, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 11, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("xdeath").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 12, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 13, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 14, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 14, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 15, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 15, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 16, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 16, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 17, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 17, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 18, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 18, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 19, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 19, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 20, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 20, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("raise").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 11, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 10, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 9, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 8, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 7, full_bright: false},
-					next: Some((5 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(5 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -639,160 +737,199 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(37);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 1, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 0, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 0, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 1, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 1, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 2, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 2, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 3, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 3, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 4, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 4, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 5, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 5, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 16, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 16, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 16, full_bright: false},
-					next: Some((5 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(5 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 16, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 6, full_bright: true},
-					next: Some((0 * FRAME_TIME, None)),
+					time: Some(0 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 6, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 6, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 6, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 7, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 7, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 8, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 8, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 9, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 9, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 10, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 10, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 11, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 11, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 12, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 12, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 13, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 13, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 14, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 14, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 15, full_bright: true},
-					next: Some((20 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(20 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 15, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 16, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 16, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 17, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 17, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 18, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 18, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 19, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 19, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 20, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 20, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 21, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 21, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 22, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 22, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 23, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 23, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 24, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 24, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 25, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 25, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -830,124 +967,158 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(30);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 0, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 0, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 5, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 5, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 5, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 5, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 5, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 5, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 6, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 6, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 7, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 7, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 6, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 6, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 7, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 7, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 6, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 6, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 7, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 7, full_bright: true}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -979,160 +1150,200 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(36);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 1, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 0, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 0, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 1, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 1, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 2, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 2, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 3, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 3, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 4, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 4, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 5, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 5, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false},
-					next: Some((5 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(5 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("melee").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 6, full_bright: false},
-					next: Some((0 * FRAME_TIME, None)),
+					time: Some(0 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 6, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 7, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 8, full_bright: false},
-					next: Some((6 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(6 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 9, full_bright: true},
-					next: Some((0 * FRAME_TIME, None)),
+					time: Some(0 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 9, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 9, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 9, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 10, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 10, full_bright: false},
-					next: Some((10 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(10 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 12, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 13, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 14, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 14, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 15, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 15, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 16, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 16, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("raise").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 16, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 16, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 15, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 15, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 14, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 14, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 13, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 12, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false},
-					next: Some((5 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(5 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -1170,26 +1381,35 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(5);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatb.sprite"), frame: 0, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatb.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatb.sprite"), frame: 1, full_bright: true},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatb.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fbxp.sprite"), frame: 0, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fbxp.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fbxp.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fbxp.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fbxp.sprite"), frame: 2, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fbxp.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -1222,24 +1442,33 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(5);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 1, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 2, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 1, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 2, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 3, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -1271,190 +1500,237 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(44);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 0, full_bright: false},
-					next: Some((15 * FRAME_TIME, None)),
+					time: Some(15 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 1, full_bright: false},
-					next: Some((15 * FRAME_TIME, None)),
+					time: Some(15 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 0, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 0, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 1, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 1, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 2, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 2, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 3, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 3, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 4, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 4, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 5, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 5, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 9, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 9, full_bright: false},
-					next: Some((3 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(3 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 6, full_bright: false},
-					next: Some((20 * FRAME_TIME, None)),
+					time: Some(20 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 7, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 7, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 8, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 6, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 7, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 7, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 8, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 6, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 7, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 7, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 8, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 6, full_bright: false},
-					next: Some((5 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(5 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 10, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 11, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 12, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 12, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 13, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 14, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 14, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 15, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 15, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 16, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 16, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 17, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 17, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 18, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 18, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 19, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 19, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("raise").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 17, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 17, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 16, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 16, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 15, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 15, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 14, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 14, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 13, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 12, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 11, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 10, full_bright: false},
-					next: Some((5 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(5 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -1492,26 +1768,35 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(5);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("manf.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("manf.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("manf.sprite"), frame: 1, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("manf.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 1, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 2, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 3, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -1544,160 +1829,199 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(36);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 1, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 6, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 6, full_bright: false},
-					next: Some((3 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(3 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 4, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 5, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 5, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 4, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 5, full_bright: false},
-					next: Some((1 * FRAME_TIME, Some((StateName::from("missile").unwrap(), 1)))),
+					time: Some(1 * FRAME_TIME),
+					next: Some((StateName::from("missile").unwrap(), 1)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 7, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 8, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 9, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 9, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 10, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 11, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 12, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 13, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("xdeath").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 14, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 14, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 15, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 15, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 16, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 16, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 17, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 17, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 18, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 18, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 19, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 19, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("raise").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 13, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 12, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 11, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 10, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 9, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 8, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 7, full_bright: false},
-					next: Some((5 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(5 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -1735,162 +2059,202 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(36);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 1, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 7, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 7, full_bright: false},
-					next: Some((2 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(2 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("melee").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 4, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 5, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 6, full_bright: false},
-					next: Some((6 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(6 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 4, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 5, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 6, full_bright: false},
-					next: Some((6 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(6 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 8, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 9, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 10, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 11, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 11, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 12, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("xdeath").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 13, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 14, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 14, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 15, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 15, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 16, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 16, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 17, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 17, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 18, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 18, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 19, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 19, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 20, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 20, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("raise").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 12, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 11, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 10, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 9, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 8, full_bright: false},
-					next: Some((6 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(6 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -1928,122 +2292,152 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(27);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 2, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 2, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 3, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 3, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false},
-					next: Some((2 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(2 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("melee").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 4, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 5, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 6, full_bright: false},
-					next: Some((8 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(8 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 8, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 10, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 12, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("raise").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 12, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 10, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 8, full_bright: false},
-					next: Some((5 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(5 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -2081,122 +2475,152 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(27);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 2, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 2, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 3, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 3, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false},
-					next: Some((2 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(2 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("melee").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 4, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 5, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 6, full_bright: false},
-					next: Some((8 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(8 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 8, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 10, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 12, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("raise").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 12, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 10, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 8, full_bright: false},
-					next: Some((5 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(5 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -2234,94 +2658,117 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(20);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 4, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 4, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 5, full_bright: false},
-					next: Some((6 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(6 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 1, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 2, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 3, full_bright: true},
-					next: Some((5 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(5 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 6, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 7, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 8, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 9, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 10, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 10, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 11, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("raise").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 11, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 10, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 9, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 8, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 7, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 6, full_bright: false},
-					next: Some((8 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(8 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -2359,144 +2806,180 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(32);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 1, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 7, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 7, full_bright: false},
-					next: Some((2 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(2 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("melee").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 4, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 5, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 6, full_bright: false},
-					next: Some((8 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(8 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 4, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 5, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 6, full_bright: false},
-					next: Some((8 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(8 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 8, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 9, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 10, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 11, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 11, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 12, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 13, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 14, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 14, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("raise").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 14, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 14, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 13, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 12, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 11, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 10, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 9, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 8, full_bright: false},
-					next: Some((8 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(8 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -2534,26 +3017,35 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(5);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 1, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 2, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 3, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 4, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -2586,144 +3078,180 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(32);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 1, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 7, full_bright: false},
-					next: Some((2 * FRAME_TIME, None)),
+					time: Some(2 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 7, full_bright: false},
-					next: Some((2 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(2 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("melee").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 4, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 5, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 6, full_bright: false},
-					next: Some((8 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(8 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 4, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 5, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 6, full_bright: false},
-					next: Some((8 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(8 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 8, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 9, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 10, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 11, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 11, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 12, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 13, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 14, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 14, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("raise").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 14, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 14, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 13, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 12, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 11, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 10, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 9, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 8, full_bright: false},
-					next: Some((8 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(8 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -2761,76 +3289,99 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(16);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 0, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 1, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 0, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 4, full_bright: true},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 4, full_bright: true},
-					next: Some((3 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(3 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 2, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 3, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 2, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 3, full_bright: true},
-					next: Some((4 * FRAME_TIME, Some((StateName::from("missile").unwrap(), 2)))),
+					time: Some(4 * FRAME_TIME),
+					next: Some((StateName::from("missile").unwrap(), 2)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 5, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 5, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 6, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 6, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 7, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 7, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 8, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 8, full_bright: true}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 9, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 10, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -2868,136 +3419,169 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(31);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 1, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 4, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 4, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 5, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 5, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 8, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 8, full_bright: false},
-					next: Some((3 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(3 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 0, full_bright: true},
-					next: Some((20 * FRAME_TIME, None)),
+					time: Some(20 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 6, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 6, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 7, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 7, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 7, full_bright: true},
-					next: Some((1 * FRAME_TIME, Some((StateName::from("missile").unwrap(), 1)))),
+					time: Some(1 * FRAME_TIME),
+					next: Some((StateName::from("missile").unwrap(), 1)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 7, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 9, full_bright: false},
-					next: Some((20 * FRAME_TIME, None)),
+					time: Some(20 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 10, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 10, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 11, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 12, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 13, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 14, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 14, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 15, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 15, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 16, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 16, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 17, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 17, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 18, full_bright: false},
-					next: Some((30 * FRAME_TIME, None)),
+					time: Some(30 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 18, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 18, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 18, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -3035,154 +3619,193 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(35);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 1, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: false},
-					next: Some((20 * FRAME_TIME, None)),
+					time: Some(20 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 4, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 4, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 5, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 5, full_bright: false},
-					next: Some((3 * FRAME_TIME, Some((StateName::from("see").unwrap(), 1)))),
+					time: Some(3 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 1)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 8, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 8, full_bright: false},
-					next: Some((3 * FRAME_TIME, Some((StateName::from("see").unwrap(), 1)))),
+					time: Some(3 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 1)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: true},
-					next: Some((20 * FRAME_TIME, None)),
+					time: Some(20 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 6, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 6, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 7, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 7, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 7, full_bright: true},
-					next: Some((1 * FRAME_TIME, Some((StateName::from("missile").unwrap(), 1)))),
+					time: Some(1 * FRAME_TIME),
+					next: Some((StateName::from("missile").unwrap(), 1)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 7, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 9, full_bright: false},
-					next: Some((20 * FRAME_TIME, None)),
+					time: Some(20 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 10, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 10, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 11, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 12, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 13, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 14, full_bright: false},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 14, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 15, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 15, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("raise").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 15, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 15, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 14, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 14, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 13, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 12, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 11, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 10, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 9, full_bright: false},
-					next: Some((5 * FRAME_TIME, Some((StateName::from("see").unwrap(), 1)))),
+					time: Some(5 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 1)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -3220,120 +3843,149 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(27);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 1, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 6, full_bright: false},
-					next: Some((10 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(10 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 4, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 5, full_bright: false},
-					next: Some((12 * FRAME_TIME, None)),
+					time: Some(12 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 4, full_bright: false},
-					next: Some((12 * FRAME_TIME, None)),
+					time: Some(12 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 5, full_bright: false},
-					next: Some((12 * FRAME_TIME, None)),
+					time: Some(12 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 4, full_bright: false},
-					next: Some((12 * FRAME_TIME, None)),
+					time: Some(12 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 5, full_bright: false},
-					next: Some((12 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(12 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 7, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 8, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 9, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 10, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 11, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 12, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 12, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 13, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 14, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 14, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 15, full_bright: false},
-					next: Some((30 * FRAME_TIME, None)),
+					time: Some(30 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 15, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 15, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 15, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -3371,114 +4023,146 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(25);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 6, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 6, full_bright: false},
-					next: Some((6 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(6 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 3, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 4, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 5, full_bright: true},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 5, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 5, full_bright: true},
-					next: Some((0 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(0 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 5, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 7, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 7, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 8, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 8, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 9, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 9, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 10, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 10, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 11, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 11, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 12, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 12, full_bright: true}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("raise").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 12, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 11, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 10, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 9, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 8, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 7, full_bright: false},
-					next: Some((8 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(8 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -3516,164 +4200,204 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(37);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 1, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 1, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 2, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 3, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 7, full_bright: false},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 7, full_bright: false},
-					next: Some((3 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(3 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("missile").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 4, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 5, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 6, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 6, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 5, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 6, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 6, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 5, full_bright: false},
-					next: Some((1 * FRAME_TIME, Some((StateName::from("missile").unwrap(), 1)))),
+					time: Some(1 * FRAME_TIME),
+					next: Some((StateName::from("missile").unwrap(), 1)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 8, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 9, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 10, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 10, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 11, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 12, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("xdeath").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 13, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 14, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 14, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 15, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 15, full_bright: false}),
+					solid_mask: Some(SolidMask::empty()),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 16, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 16, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 17, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 17, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 18, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 18, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 19, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 19, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 20, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 20, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 21, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 21, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("raise").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 12, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 11, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 10, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 9, full_bright: false},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 8, full_bright: false},
-					next: Some((5 * FRAME_TIME, Some((StateName::from("see").unwrap(), 0)))),
+					time: Some(5 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -3711,68 +4435,82 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(15);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 12, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 12, full_bright: false},
-					next: Some((8 * FRAME_TIME, Some((StateName::from("spawn").unwrap(), 0)))),
+					time: Some(8 * FRAME_TIME),
+					next: Some((StateName::from("spawn").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 0, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 1, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 2, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 3, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 4, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 4, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 5, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 5, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 6, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 6, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 7, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 7, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 8, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 8, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 9, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 9, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 10, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 11, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -3810,32 +4548,37 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(6);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("pain").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 1, full_bright: false},
-					next: Some((36 * FRAME_TIME, Some((StateName::from("spawn").unwrap(), 0)))),
+					time: Some(36 * FRAME_TIME),
+					next: Some((StateName::from("spawn").unwrap(), 0)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false},
-					next: Some((100 * FRAME_TIME, None)),
+					time: Some(100 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -3873,18 +4616,22 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(3);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("see").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false},
-					next: Some((181 * FRAME_TIME, None)),
+					time: Some(181 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false},
-					next: Some((150 * FRAME_TIME, Some((StateName::from("see").unwrap(), 1)))),
+					time: Some(150 * FRAME_TIME),
+					next: Some((StateName::from("see").unwrap(), 1)),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -3933,20 +4680,24 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bosf.sprite"), frame: 0, full_bright: true},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bosf.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bosf.sprite"), frame: 1, full_bright: true},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bosf.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bosf.sprite"), frame: 2, full_bright: true},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bosf.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bosf.sprite"), frame: 3, full_bright: true},
-					next: Some((3 * FRAME_TIME, None)),
+					time: Some(3 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bosf.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -3979,36 +4730,48 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(8);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 5, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 5, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 6, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 6, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 7, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 7, full_bright: true}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4040,34 +4803,45 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(7);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bar1.sprite"), frame: 0, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bar1.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bar1.sprite"), frame: 1, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bar1.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 0, full_bright: true},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 1, full_bright: true},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 2, full_bright: true},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 3, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 4, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4105,26 +4879,35 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(5);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 1, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 2, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 3, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 4, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4157,26 +4940,35 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(5);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 1, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 2, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 3, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 4, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4209,22 +5001,30 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 0, full_bright: true},
-					next: Some((1 * FRAME_TIME, None)),
+					time: Some(1 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 1, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 2, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 3, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4257,34 +5057,45 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(7);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("plss.sprite"), frame: 0, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("plss.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("plss.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("plss.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 1, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 2, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 3, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 4, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4317,38 +5128,50 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(8);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bfs1.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bfs1.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bfs1.sprite"), frame: 1, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bfs1.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 0, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 1, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 2, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 3, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 4, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 5, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 5, full_bright: true}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4381,34 +5204,45 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(7);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("apls.sprite"), frame: 0, full_bright: true},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("apls.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("apls.sprite"), frame: 1, full_bright: true},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("apls.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 0, full_bright: true},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 1, full_bright: true},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 2, full_bright: true},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 3, full_bright: true},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 4, full_bright: true},
-					next: Some((5 * FRAME_TIME, None)),
+					time: Some(5 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4441,20 +5275,28 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 1, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 2, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 3, full_bright: false},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4486,16 +5328,23 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(3);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("blud.sprite"), frame: 2, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("blud.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("blud.sprite"), frame: 1, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("blud.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("blud.sprite"), frame: 0, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("blud.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4527,52 +5376,68 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(12);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 0, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 0, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 2, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 3, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 4, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 5, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 5, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 6, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 6, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 7, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 7, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 8, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 8, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 9, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 9, full_bright: true}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4604,32 +5469,43 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(7);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 0, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 0, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 2, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 3, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 4, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 4, full_bright: true}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4678,20 +5554,28 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bfe2.sprite"), frame: 0, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bfe2.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bfe2.sprite"), frame: 1, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bfe2.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bfe2.sprite"), frame: 2, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bfe2.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bfe2.sprite"), frame: 3, full_bright: true},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bfe2.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4723,12 +5607,14 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(2);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("arm1.sprite"), frame: 0, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("arm1.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("arm1.sprite"), frame: 1, full_bright: true},
-					next: Some((7 * FRAME_TIME, None)),
+					time: Some(7 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("arm1.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4765,12 +5651,14 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(2);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("arm2.sprite"), frame: 0, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("arm2.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("arm2.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("arm2.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4807,28 +5695,34 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(6);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 0, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 1, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 2, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 3, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 2, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 1, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4865,28 +5759,34 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(6);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 0, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 1, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 2, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 3, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 3, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 2, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 1, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4923,12 +5823,14 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(2);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bkey.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bkey.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bkey.sprite"), frame: 1, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bkey.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -4965,12 +5867,14 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(2);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("rkey.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("rkey.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("rkey.sprite"), frame: 1, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("rkey.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5007,12 +5911,14 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(2);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("ykey.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("ykey.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("ykey.sprite"), frame: 1, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("ykey.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5049,12 +5955,14 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(2);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("ysku.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("ysku.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("ysku.sprite"), frame: 1, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("ysku.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5091,12 +5999,14 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(2);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("rsku.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("rsku.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("rsku.sprite"), frame: 1, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("rsku.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5133,12 +6043,14 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(2);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bsku.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bsku.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bsku.sprite"), frame: 1, full_bright: true},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bsku.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5175,8 +6087,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("stim.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("stim.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5213,8 +6125,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("medi.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("medi.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5251,28 +6163,34 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(6);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 0, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 2, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 3, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 2, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5309,20 +6227,24 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pinv.sprite"), frame: 0, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pinv.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pinv.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pinv.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pinv.sprite"), frame: 2, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pinv.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pinv.sprite"), frame: 3, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pinv.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5359,8 +6281,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pstr.sprite"), frame: 0, full_bright: true},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pstr.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5397,20 +6319,24 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pins.sprite"), frame: 0, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pins.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pins.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pins.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pins.sprite"), frame: 2, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pins.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pins.sprite"), frame: 3, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pins.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5447,8 +6373,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("suit.sprite"), frame: 0, full_bright: true},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("suit.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5485,28 +6411,34 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(6);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 0, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 2, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 3, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 2, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5543,12 +6475,14 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(2);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pvis.sprite"), frame: 0, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pvis.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pvis.sprite"), frame: 1, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pvis.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5585,20 +6519,24 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("mega.sprite"), frame: 0, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("mega.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("mega.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("mega.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("mega.sprite"), frame: 2, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("mega.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("mega.sprite"), frame: 3, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("mega.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5635,8 +6573,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("clip.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("clip.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5673,8 +6611,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("ammo.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("ammo.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5711,8 +6649,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("rock.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("rock.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5749,8 +6687,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("brok.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("brok.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5787,8 +6725,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cell.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cell.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5825,8 +6763,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("celp.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("celp.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5863,8 +6801,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("shel.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("shel.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5901,8 +6839,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sbox.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sbox.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5939,8 +6877,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bpak.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bpak.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -5977,8 +6915,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("bfug.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bfug.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6015,8 +6953,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("mgun.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("mgun.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6053,8 +6991,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("csaw.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("csaw.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6091,8 +7029,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("laun.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("laun.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6129,8 +7067,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("plas.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("plas.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6167,8 +7105,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("shot.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("shot.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6205,8 +7143,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sgn2.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sgn2.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6243,20 +7181,24 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tlmp.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tlmp.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tlmp.sprite"), frame: 1, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tlmp.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tlmp.sprite"), frame: 2, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tlmp.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tlmp.sprite"), frame: 3, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tlmp.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6293,20 +7235,24 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tlp2.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tlp2.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tlp2.sprite"), frame: 1, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tlp2.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tlp2.sprite"), frame: 2, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tlp2.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tlp2.sprite"), frame: 3, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tlp2.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6343,8 +7289,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("colu.sprite"), frame: 0, full_bright: true},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("colu.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6381,8 +7327,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("col1.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("col1.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6419,8 +7365,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("col2.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("col2.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6457,8 +7403,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("col3.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("col3.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6495,8 +7441,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("col4.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("col4.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6533,8 +7479,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("col6.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("col6.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6571,12 +7517,14 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(2);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("col5.sprite"), frame: 0, full_bright: false},
-					next: Some((14 * FRAME_TIME, None)),
+					time: Some(14 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("col5.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("col5.sprite"), frame: 1, full_bright: false},
-					next: Some((14 * FRAME_TIME, None)),
+					time: Some(14 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("col5.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6613,20 +7561,24 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("ceye.sprite"), frame: 0, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("ceye.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("ceye.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("ceye.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("ceye.sprite"), frame: 2, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("ceye.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("ceye.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("ceye.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6663,16 +7615,19 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(3);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fsku.sprite"), frame: 0, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fsku.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fsku.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fsku.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fsku.sprite"), frame: 2, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fsku.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6709,8 +7664,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tre1.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tre1.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6747,20 +7702,24 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tblu.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tblu.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tblu.sprite"), frame: 1, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tblu.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tblu.sprite"), frame: 2, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tblu.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tblu.sprite"), frame: 3, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tblu.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6797,20 +7756,24 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tgrn.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tgrn.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tgrn.sprite"), frame: 1, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tgrn.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tgrn.sprite"), frame: 2, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tgrn.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tgrn.sprite"), frame: 3, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tgrn.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6847,20 +7810,24 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tred.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tred.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tred.sprite"), frame: 1, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tred.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tred.sprite"), frame: 2, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tred.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tred.sprite"), frame: 3, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tred.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6897,20 +7864,24 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("smbt.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("smbt.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("smbt.sprite"), frame: 1, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("smbt.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("smbt.sprite"), frame: 2, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("smbt.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("smbt.sprite"), frame: 3, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("smbt.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6947,20 +7918,24 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("smgt.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("smgt.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("smgt.sprite"), frame: 1, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("smgt.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("smgt.sprite"), frame: 2, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("smgt.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("smgt.sprite"), frame: 3, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("smgt.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -6997,20 +7972,24 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("smrt.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("smrt.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("smrt.sprite"), frame: 1, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("smrt.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("smrt.sprite"), frame: 2, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("smrt.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("smrt.sprite"), frame: 3, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("smrt.sprite"), frame: 3, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7047,8 +8026,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("smit.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("smit.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7085,8 +8064,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("elec.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("elec.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7123,8 +8102,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cand.sprite"), frame: 0, full_bright: true},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cand.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7161,8 +8140,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("cbra.sprite"), frame: 0, full_bright: true},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cbra.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7199,20 +8178,24 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 1, full_bright: false},
-					next: Some((15 * FRAME_TIME, None)),
+					time: Some(15 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 2, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 1, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7249,8 +8232,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("gor2.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("gor2.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7287,8 +8270,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("gor3.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("gor3.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7325,8 +8308,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("gor4.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("gor4.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7363,8 +8346,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("gor5.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("gor5.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7401,8 +8384,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("gor2.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("gor2.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7439,8 +8422,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("gor4.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("gor4.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7477,8 +8460,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("gor3.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("gor3.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7515,8 +8498,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("gor5.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("gor5.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7553,20 +8536,24 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(4);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 0, full_bright: false},
-					next: Some((10 * FRAME_TIME, None)),
+					time: Some(10 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 1, full_bright: false},
-					next: Some((15 * FRAME_TIME, None)),
+					time: Some(15 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 2, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 2, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 1, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7603,8 +8590,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 11, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7641,8 +8628,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 13, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7679,8 +8666,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 11, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7717,8 +8704,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7755,8 +8742,13 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 10, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 10, full_bright: false}),
+					.. StateInfo::default()
+				},
+				StateInfo {
+					remove: true,
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7793,8 +8785,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 12, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 12, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7831,8 +8823,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 11, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 11, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7869,8 +8861,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 22, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 22, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7907,8 +8899,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 22, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 22, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7945,8 +8937,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pol2.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pol2.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -7983,8 +8975,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pol5.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pol5.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -8021,8 +9013,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pol4.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pol4.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -8059,12 +9051,14 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(2);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pol3.sprite"), frame: 0, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pol3.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pol3.sprite"), frame: 1, full_bright: true},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pol3.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -8101,8 +9095,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pol1.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pol1.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -8139,12 +9133,14 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(2);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pol6.sprite"), frame: 0, full_bright: false},
-					next: Some((6 * FRAME_TIME, None)),
+					time: Some(6 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pol6.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pol6.sprite"), frame: 1, full_bright: false},
-					next: Some((8 * FRAME_TIME, None)),
+					time: Some(8 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pol6.sprite"), frame: 1, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -8181,8 +9177,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("tre2.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("tre2.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -8219,16 +9215,19 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(3);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fcan.sprite"), frame: 0, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fcan.sprite"), frame: 0, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fcan.sprite"), frame: 1, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fcan.sprite"), frame: 1, full_bright: true}),
+					.. StateInfo::default()
 				},
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("fcan.sprite"), frame: 2, full_bright: true},
-					next: Some((4 * FRAME_TIME, None)),
+					time: Some(4 * FRAME_TIME),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fcan.sprite"), frame: 2, full_bright: true}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -8265,8 +9264,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("hdb1.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("hdb1.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -8303,8 +9302,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("hdb2.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("hdb2.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -8341,8 +9340,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("hdb3.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("hdb3.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -8379,8 +9378,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("hdb4.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("hdb4.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -8417,8 +9416,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("hdb5.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("hdb5.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -8455,8 +9454,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("hdb6.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("hdb6.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -8493,8 +9492,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pob1.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pob1.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -8526,8 +9525,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("pob2.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("pob2.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states
@@ -8559,8 +9558,8 @@ pub fn load(resources: &mut Resources) {
 			let mut states = HashMap::with_capacity(1);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				StateInfo {
-					sprite: SpriteRender {sprite: asset_storage.load("brs1.sprite"), frame: 0, full_bright: false},
-					next: None,
+					sprite: Some(SpriteRender {sprite: asset_storage.load("brs1.sprite"), frame: 0, full_bright: false}),
+					.. StateInfo::default()
 				},
 			]);
 			states

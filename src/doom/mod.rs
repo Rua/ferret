@@ -16,7 +16,6 @@ pub mod render;
 pub mod sectormove;
 pub mod sound;
 pub mod sprite;
-pub mod sprite_anim;
 pub mod state;
 pub mod switch;
 pub mod texture;

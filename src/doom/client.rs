@@ -17,9 +17,12 @@ use crate::{
 		map::MapDynamic,
 		physics::{BoxCollider, EntityTracer, SolidMask},
 		plat::PlatSwitchUse,
+		state::{State, StateAction, StateName},
 	},
 };
-use legion::{systems::Runnable, Entity, EntityStore, IntoQuery, Resources, SystemBuilder};
+use legion::{
+	component, systems::Runnable, Entity, EntityStore, IntoQuery, Resources, SystemBuilder,
+};
 use nalgebra::{Vector2, Vector3};
 use shrev::EventChannel;
 
@@ -228,9 +231,10 @@ pub fn player_attack_system(_resources: &mut Resources) -> impl Runnable {
 		.write_resource::<Quadtree>()
 		.with_query(<(&Transform, Option<&Camera>)>::query())
 		.with_query(<&MapDynamic>::query())
+		.with_query(<&mut State>::query().filter(component::<BoxCollider>()))
 		.read_component::<BoxCollider>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
-		.build(move |command_buffer, world, resources, queries| {
+		.build(move |_command_buffer, world, resources, queries| {
 			let (asset_storage, client, quadtree) = resources;
 
 			if let Some(client_entity) = client.entity {
@@ -261,14 +265,8 @@ pub fn player_attack_system(_resources: &mut Resources) -> impl Runnable {
 					);
 
 					if let Some(collision) = trace.collision {
-						if world
-							.entry_ref(collision.entity)
-							.unwrap()
-							.get_component::<BoxCollider>()
-							.is_ok()
-						{
-							command_buffer.remove(collision.entity);
-							quadtree.remove(collision.entity);
+						if let Ok(state) = queries.2.get_mut(world, collision.entity) {
+							state.action = StateAction::Set((StateName::from("death").unwrap(), 0))
 						}
 					}
 				}
