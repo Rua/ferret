@@ -30,7 +30,7 @@ use crate::{
 			load::import_map,
 			textures::{import_flat, import_pnames, import_textures, import_wall},
 		},
-		sound::import_sound,
+		sound::{import_raw_sound, import_sound},
 		sprite::import_sprite,
 	},
 };
@@ -47,6 +47,7 @@ pub fn import(
 		Some("palette") => import_palette,
 		Some("patch") => import_patch,
 		Some("sound") => import_sound,
+		Some("rawsound") => import_raw_sound,
 		Some("sprite") => import_sprite,
 		Some("texture") => import_wall,
 		Some(ext) => bail!("Unsupported file extension: {}", ext),

@@ -1,8 +1,8 @@
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage, ImportData},
-		audio::{SoundController, SoundSource},
 		geometry::Angle,
+		sound::{SoundController, SoundSource},
 	},
 	doom::{client::Client, components::Transform},
 };
@@ -14,13 +14,29 @@ use legion::{
 	Entity, IntoQuery, Read, Resources, World, Write,
 };
 use nalgebra::Vector2;
+use rand::{Rng, SeedableRng};
+use rand_pcg::Pcg64Mcg;
 use relative_path::RelativePath;
 use rodio::Source;
+use smallvec::SmallVec;
 use std::io::{Cursor, Read as IoRead};
 
-pub use crate::common::audio::Sound;
+pub use crate::common::sound::{RawSound, Sound};
 
 pub fn import_sound(
+	path: &RelativePath,
+	asset_storage: &mut AssetStorage,
+) -> anyhow::Result<Box<dyn ImportData>> {
+	let mut sounds = SmallVec::new();
+
+	let path = path.with_extension("rawsound");
+	let handle = asset_storage.load::<RawSound>(path.as_str());
+	sounds.push(handle);
+
+	Ok(Box::new(Sound { sounds }))
+}
+
+pub fn import_raw_sound(
 	path: &RelativePath,
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Box<dyn ImportData>> {
@@ -45,13 +61,15 @@ pub fn import_sound(
 		.map(|x| ((x ^ 0x80) as i16) << 8)
 		.collect::<Vec<i16>>();
 
-	Ok(Box::new(Sound {
+	Ok(Box::new(RawSound {
 		sample_rate,
 		data: data.into(),
 	}))
 }
 
 pub fn sound_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
+	let mut rng = Pcg64Mcg::from_entropy();
+
 	Box::new(move |world, resources| {
 		let (asset_storage, client, sound_sender, mut sound_queue) = <(
 			Read<AssetStorage>,
@@ -70,7 +88,14 @@ pub fn sound_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 			// Play new sounds
 			for (handle, entity) in sound_queue.drain(..) {
 				let sound = asset_storage.get(&handle).unwrap();
-				let (controller, source) = SoundController::new(SoundSource::new(&sound));
+				let index = match sound.sounds.len() {
+					0 => continue,
+					1 => 0,
+					len => rng.gen_range(0, len),
+				};
+				let raw_sound = asset_storage.get(&sound.sounds[index]).unwrap();
+
+				let (controller, source) = SoundController::new(SoundSource::new(&raw_sound));
 				let (transform, sound_playing) = <(&Transform, Option<&mut SoundPlaying>)>::query()
 					.get_mut(world, entity)
 					.unwrap();

@@ -3,7 +3,6 @@ mod doom;
 
 use crate::common::{
 	assets::{AssetHandle, AssetStorage},
-	audio::Sound,
 	frame::{frame_state_system, FrameRng, FrameRngDef, FrameState},
 	input::InputState,
 	quadtree::Quadtree,
@@ -122,14 +121,14 @@ fn main() -> anyhow::Result<()> {
 	resources.insert(render_target);
 	resources.insert(render_context);
 
-	let sound_sender = common::audio::init()?;
+	let sound_sender = common::sound::init()?;
 	resources.insert(sound_sender);
 
 	let bindings = doom::data::get_bindings();
 	resources.insert(bindings);
 
 	resources.insert(InputState::new());
-	resources.insert(Vec::<(AssetHandle<Sound>, Entity)>::new());
+	resources.insert(Vec::<(AssetHandle<doom::sound::Sound>, Entity)>::new());
 	resources.insert(doom::client::Client::default());
 
 	let frame_state = FrameState {
@@ -169,6 +168,7 @@ fn main() -> anyhow::Result<()> {
 	asset_storage.add_storage::<doom::map::textures::PNames>(false);
 	asset_storage.add_storage::<doom::map::textures::Textures>(false);
 	asset_storage.add_storage::<doom::sprite::Sprite>(false);
+	asset_storage.add_storage::<doom::sound::RawSound>(false);
 	asset_storage.add_storage::<doom::sound::Sound>(false);
 	resources.insert(asset_storage);
 

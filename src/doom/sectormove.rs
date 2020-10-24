@@ -1,7 +1,6 @@
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
-		audio::Sound,
 		frame::FrameState,
 		quadtree::Quadtree,
 		time::Timer,
@@ -10,6 +9,7 @@ use crate::{
 		components::Transform,
 		map::{MapDynamic, SectorRef},
 		physics::{BoxCollider, SectorTracer},
+		sound::Sound,
 	},
 };
 use legion::{systems::Runnable, world::SubWorld, Entity, IntoQuery, Resources, SystemBuilder};

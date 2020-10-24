@@ -1,13 +1,13 @@
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
-		audio::Sound,
 		frame::FrameState,
 		time::Timer,
 	},
 	doom::{
 		image::Image,
 		map::{textures::TextureType, LinedefRef, Map, MapDynamic, SidedefSlot},
+		sound::Sound,
 	},
 };
 use legion::{

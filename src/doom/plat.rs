@@ -1,7 +1,6 @@
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
-		audio::Sound,
 		frame::FrameState,
 		time::Timer,
 	},
@@ -11,6 +10,7 @@ use crate::{
 		map::{LinedefRef, Map, MapDynamic},
 		physics::{BoxCollider, TouchAction, TouchEvent},
 		sectormove::{FloorMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
+		sound::Sound,
 		switch::{SwitchActive, SwitchParams},
 	},
 };

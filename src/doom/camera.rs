@@ -1,10 +1,11 @@
 use crate::{
-	common::{assets::AssetHandle, audio::Sound, frame::FrameState, geometry::Angle},
+	common::{assets::AssetHandle, frame::FrameState, geometry::Angle},
 	doom::{
 		components::Velocity,
 		data::FRAME_RATE,
 		physics::{StepEvent, TouchEvent},
 		psprite::PlayerSpriteRender,
+		sound::Sound,
 	},
 };
 use legion::{systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};

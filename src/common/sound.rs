@@ -1,9 +1,11 @@
+use crate::common::assets::AssetHandle;
 use anyhow::Context;
 use crossbeam_channel::Sender;
 use rodio::{
 	source::{ChannelVolume, Done},
 	OutputStream, Sample, Source,
 };
+use smallvec::SmallVec;
 use std::{
 	sync::{
 		atomic::{AtomicBool, AtomicUsize, Ordering},
@@ -34,23 +36,18 @@ pub fn init() -> anyhow::Result<Sender<Box<dyn Source<Item = f32> + Send>>> {
 	Ok(sender)
 }
 
-/*pub struct Audio {}
-
-impl Audio {
-	pub fn new() -> anyhow::Result<Audio> {
-		Ok(Audio {})
-	}
+#[derive(Clone, Debug)]
+pub struct Sound {
+	pub sounds: SmallVec<[AssetHandle<RawSound>; 4]>,
 }
 
-impl Drop for Audio {
-	fn drop(&mut self) {}
-}*/
-
-pub struct Sound {
+#[derive(Clone, Debug)]
+pub struct RawSound {
 	pub data: Arc<[i16]>,
 	pub sample_rate: u32,
 }
 
+#[derive(Clone, Debug)]
 pub struct SoundSource {
 	current: usize,
 	data: Arc<[i16]>,
@@ -59,7 +56,7 @@ pub struct SoundSource {
 }
 
 impl SoundSource {
-	pub fn new(sound: &Sound) -> Self {
+	pub fn new(sound: &RawSound) -> Self {
 		let duration_ns = 1_000_000_000u64
 			.checked_mul(sound.data.len() as u64)
 			.unwrap() / sound.sample_rate as u64;

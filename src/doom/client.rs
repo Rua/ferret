@@ -1,7 +1,6 @@
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
-		audio::Sound,
 		frame::FrameState,
 		geometry::{Line2, AABB3},
 		input::{Bindings, InputState},
@@ -17,6 +16,7 @@ use crate::{
 		map::MapDynamic,
 		physics::{BoxCollider, EntityTracer, SolidMask},
 		plat::PlatSwitchUse,
+		sound::Sound,
 		state::{State, StateAction, StateName},
 	},
 };
