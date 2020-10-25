@@ -174,8 +174,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(10 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 9, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -206,13 +206,14 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsslop.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 15, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 16, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 16, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -401,8 +402,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 9, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -423,13 +424,14 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsslop.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 13, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 14, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 14, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -617,8 +619,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 9, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -639,13 +641,14 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsslop.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 13, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 14, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 14, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -919,8 +922,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(6 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 11, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 11, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -936,6 +939,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsslop.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 14, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -946,8 +950,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 16, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 16, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -1135,8 +1139,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(4 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -1319,8 +1323,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(4 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -1521,8 +1525,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(8 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 11, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 11, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -3971,8 +3975,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(8 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 10, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 10, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -4125,8 +4129,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(6 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 8, full_bright: true}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 8, full_bright: true}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -4296,8 +4300,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(10 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 10, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 10, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -4502,8 +4506,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(10 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 12, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 12, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -6763,8 +6767,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(7 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 18, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 18, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -7170,8 +7174,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(7 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 14, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 14, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -7465,8 +7469,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(6 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 12, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 12, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -7745,8 +7749,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 9, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -7777,13 +7781,14 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsslop.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 15, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 16, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 16, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -7994,8 +7999,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(8 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 11, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 11, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -8209,8 +8214,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(7 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 10, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 10, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -8601,8 +8606,8 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 10, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 10, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -8623,13 +8628,14 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsslop.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 14, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 15, full_bright: false}),
 					solid_mask: Some(SolidMask::empty()),
+					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 15, full_bright: false}),
 					.. StateInfo::default()
 				},
 				StateInfo {
@@ -8854,6 +8860,7 @@ pub fn load(resources: &mut Resources) {
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
 					time: Some(100 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsbosdth.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false}),
 					.. StateInfo::default()
 				},

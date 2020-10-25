@@ -28,20 +28,26 @@ pub fn import_sound(
 ) -> anyhow::Result<Box<dyn ImportData>> {
 	let path = path.with_extension("rawsound");
 
-	let sounds = if let Some(sound_data) = SOUNDS
+	let sound = if let Some(sound_data) = SOUNDS
 		.iter()
 		.find(|sound_data| sound_data.sounds.contains(&path.as_str()))
 	{
-		sound_data
-			.sounds
-			.iter()
-			.map(|sound| asset_storage.load::<RawSound>(sound))
-			.collect()
+		Sound {
+			sounds: sound_data
+				.sounds
+				.iter()
+				.map(|sound| asset_storage.load::<RawSound>(sound))
+				.collect(),
+			global: sound_data.global,
+		}
 	} else {
-		std::iter::once(asset_storage.load::<RawSound>(path.as_str())).collect()
+		Sound {
+			sounds: std::iter::once(asset_storage.load::<RawSound>(path.as_str())).collect(),
+			global: false,
+		}
 	};
 
-	Ok(Box::new(Sound { sounds }))
+	Ok(Box::new(sound))
 }
 
 pub fn import_raw_sound(

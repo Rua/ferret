@@ -39,6 +39,7 @@ pub fn init() -> anyhow::Result<Sender<Box<dyn Source<Item = f32> + Send>>> {
 #[derive(Clone, Debug)]
 pub struct Sound {
 	pub sounds: SmallVec<[AssetHandle<RawSound>; 4]>,
+	pub global: bool, // TODO implement in sound system
 }
 
 #[derive(Clone, Debug)]
