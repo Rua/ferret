@@ -141,21 +141,39 @@ fn main() -> anyhow::Result<()> {
 	let mut loader = doom::wad::WadLoader::new();
 	load_wads(&mut loader, &arg_matches)?;
 
-	// Select map
-	let map =
-		if let Some(map) = arg_matches.value_of("map") {
-			map
-		} else {
-			let wad = loader.wads().next().unwrap().file_name().unwrap();
+	let wad_mode = match loader
+		.wads()
+		.next()
+		.unwrap()
+		.file_name()
+		.unwrap()
+		.to_str()
+		.unwrap()
+	{
+		"doom1.wad" => WadMode::Doom1SW,
+		"doom.wad" | "doomu.wad" => WadMode::Doom1,
+		"doom2.wad" | "tnt.wad" | "plutonia.wad" => WadMode::Doom2,
+		x => bail!("The IWAD \"{}\" is not recognised", x),
+	};
+	resources.insert(wad_mode);
 
-			if wad == "doom.wad" || wad == "doom1.wad" || wad == "doomu.wad" {
-				"E1M1"
-			} else if wad == "doom2.wad" || wad == "tnt.wad" || wad == "plutonia.wad" {
-				"MAP01"
-			} else {
-				bail!("No default map is known for this IWAD. Try specifying one with the \"-m\" option.")
-			}
-		};
+	// Select map
+	let map = if let Some(map) = arg_matches.value_of("map") {
+		map
+	} else {
+		match wad_mode {
+			WadMode::Doom1SW | WadMode::Doom1 => "E1M1",
+			WadMode::Doom2 => "MAP01",
+		}
+
+		/*if wad == "doom.wad" || wad == "doom1.wad" || wad == "doomu.wad" {
+			"E1M1"
+		} else if wad == "doom2.wad" || wad == "tnt.wad" || wad == "plutonia.wad" {
+			"MAP01"
+		} else {
+			bail!("No default map is known for this IWAD. Try specifying one with the \"-m\" option.")
+		}*/
+	};
 	command_sender.send(format!("map {}", map)).ok();
 
 	// Asset types
@@ -411,6 +429,13 @@ fn main() -> anyhow::Result<()> {
 	}
 
 	Ok(())
+}
+
+#[derive(Clone, Copy, Debug, PartialOrd, Ord, PartialEq, Eq)]
+pub enum WadMode {
+	Doom1SW,
+	Doom1,
+	Doom2,
 }
 
 fn load_wads(loader: &mut doom::wad::WadLoader, arg_matches: &ArgMatches) -> anyhow::Result<()> {
