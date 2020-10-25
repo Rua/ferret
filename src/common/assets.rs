@@ -130,12 +130,12 @@ impl AssetStorage {
 				} else {
 					match import_result {
 						Ok(data) => {
-							log::trace!("Loaded '{}'", name);
+							log::trace!("Loaded \"{}\"", name);
 							let asset = *data.downcast().ok().unwrap();
 							storage.assets.insert(handle.id(), asset);
 						}
 						Err(e) => {
-							panic!("'{}' could not be loaded: {}", name, e);
+							panic!("\"{}\" could not be loaded: {}", name, e);
 						}
 					};
 				}
@@ -164,11 +164,11 @@ impl AssetStorage {
 			// Build the asset
 			let asset = match data.and_then(|d| process_func(d, self)) {
 				Ok(asset) => {
-					log::trace!("Loaded '{}'", name);
+					log::trace!("Loaded \"{}\"", name);
 					asset
 				}
 				Err(e) => {
-					panic!("'{}' could not be loaded: {}", name, e);
+					panic!("\"{}\" could not be loaded: {}", name, e);
 				}
 			};
 

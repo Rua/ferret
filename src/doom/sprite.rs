@@ -30,58 +30,10 @@ impl Sprite {
 	}
 }
 
-pub struct SpriteBuilder {
-	frames: Vec<Vec<SpriteImageInfoIntermediate>>,
-	image_names: Vec<String>,
-}
-
 #[derive(Clone, Copy)]
 pub struct SpriteImageInfoIntermediate {
 	pub flip: f32,
 	pub image_index: usize,
-}
-
-impl SpriteBuilder {
-	pub fn new() -> SpriteBuilder {
-		SpriteBuilder {
-			frames: Vec::new(),
-			image_names: Vec::new(),
-		}
-	}
-
-	pub fn with_frames(mut self, frames: Vec<Vec<SpriteImageInfoIntermediate>>) -> Self {
-		self.frames = frames;
-		self
-	}
-
-	pub fn with_image_names(mut self, image_names: Vec<String>) -> Self {
-		self.image_names = image_names;
-		self
-	}
-
-	pub fn build(self, storage: &mut AssetStorage) -> anyhow::Result<Sprite> {
-		let handles: Vec<_> = self
-			.image_names
-			.into_iter()
-			.map(|name| storage.load(&name))
-			.collect();
-
-		let frames = self
-			.frames
-			.into_iter()
-			.map(|rotations| {
-				rotations
-					.into_iter()
-					.map(|info| SpriteImageInfo {
-						flip: info.flip,
-						handle: handles[info.image_index].clone(),
-					})
-					.collect()
-			})
-			.collect();
-
-		Ok(Sprite { frames })
-	}
 }
 
 pub fn import_sprite(
@@ -139,6 +91,16 @@ pub fn import_sprite(
 		image_names.push(format!("{}.patch", lump_name));
 	}
 
+	if image_names.is_empty() {
+		bail!("No sprite patches beginning with \"{}\" found", stem);
+	}
+
+	// Load all the images
+	let handles: Vec<_> = image_names
+		.into_iter()
+		.map(|name| asset_storage.load(&name))
+		.collect();
+
 	info.sort_unstable_by(|a, b| Ord::cmp(&a.0, &b.0).then(Ord::cmp(&a.1, &b.1)));
 	let mut slice = info.as_slice();
 	let mut frames: Vec<Vec<SpriteImageInfoIntermediate>> = vec![Vec::new(); max_frame + 1];
@@ -170,10 +132,18 @@ pub fn import_sprite(
 		}
 	}
 
-	Ok(Box::new(
-		SpriteBuilder::new()
-			.with_frames(frames)
-			.with_image_names(image_names)
-			.build(asset_storage)?,
-	))
+	let frames = frames
+		.into_iter()
+		.map(|rotations| {
+			rotations
+				.into_iter()
+				.map(|info| SpriteImageInfo {
+					flip: info.flip,
+					handle: handles[info.image_index].clone(),
+				})
+				.collect()
+		})
+		.collect();
+
+	Ok(Box::new(Sprite { frames }))
 }
