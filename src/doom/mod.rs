@@ -5,6 +5,7 @@ pub mod data;
 pub mod door;
 pub mod entitytemplate;
 pub mod floor;
+pub mod health;
 pub mod image;
 pub mod input;
 pub mod light;

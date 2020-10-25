@@ -202,6 +202,7 @@ fn main() -> anyhow::Result<()> {
 	handler_set.register_clone::<doom::door::DoorActive>();
 	handler_set.register_spawn::<doom::entitytemplate::EntityTemplateRefDef, doom::entitytemplate::EntityTemplateRef>();
 	handler_set.register_clone::<doom::floor::FloorActive>();
+	handler_set.register_spawn::<doom::health::HealthDef, doom::health::Health>();
 	handler_set.register_spawn::<doom::light::LightFlashDef, doom::light::LightFlash>();
 	handler_set.register_clone::<doom::light::LightGlow>();
 	handler_set.register_clone::<doom::map::LinedefRef>();
@@ -245,6 +246,7 @@ fn main() -> anyhow::Result<()> {
 		.add_thread_local(doom::switch::switch_active_system()).flush()
 		.add_thread_local(doom::texture::texture_animation_system()).flush()
 		.add_thread_local(doom::texture::texture_scroll_system()).flush()
+		.add_thread_local(doom::health::damage_system(&mut resources)).flush()
 		.add_thread_local(doom::state::state_set_system(&mut resources)).flush()
 		.add_thread_local(doom::state::solid_mask_system(&mut resources)).flush()
 		.add_thread_local(doom::state::sound_play_system(&mut resources)).flush()

@@ -1,12 +1,13 @@
 #![allow(unused_variables)]
 use crate::{
-	common::assets::AssetStorage,
+	common::{assets::AssetStorage, frame::FrameRngDef},
 	doom::{
 		camera::Camera,
 		client::User,
 		components::{SpawnPoint, TransformDef, VelocityDef},
 		data::FRAME_TIME,
 		entitytemplate::{EntityTemplate, EntityTemplateRefDef, EntityTypeId},
+		health::HealthDef,
 		physics::{BoxCollider, SolidMask},
 		psprite::PlayerSpriteRender,
 		sprite::SpriteRender,
@@ -149,6 +150,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(4 * FRAME_TIME),
 					next: Some((StateName::from("spawn").unwrap(), 0)),
+					sound: Some(asset_storage.load("dsplpain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 6, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -267,6 +269,11 @@ pub fn load(resources: &mut Resources) {
 					impact_sound: asset_storage.load("dsoof.sound"),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 100.0,
+					pain_chance: 0.99609375,
+				},
 				PlayerSpriteRender {
 					position: Vector2::new(0.0, 0.0),
 					slots: [
@@ -366,6 +373,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(3 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 0)),
+					sound: Some(asset_storage.load("dspopain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 6, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -498,6 +506,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 20.0,
+					pain_chance: 0.78125,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("poss.sprite"),
 					frame: 0,
@@ -583,6 +596,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(3 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 0)),
+					sound: Some(asset_storage.load("dspopain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 6, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -720,6 +734,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 30.0,
+					pain_chance: 0.6640625,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("spos.sprite"),
 					frame: 0,
@@ -779,6 +798,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("puff.sprite"),
 					frame: 1,
@@ -863,6 +883,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(2 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 0)),
+					sound: Some(asset_storage.load("dspopain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 7, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -1013,6 +1034,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 60.0,
+					pain_chance: 0.78125,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("troo.sprite"),
 					frame: 0,
@@ -1098,6 +1124,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(2 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 0)),
+					sound: Some(asset_storage.load("dsdmpain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -1197,6 +1224,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 150.0,
+					pain_chance: 0.703125,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("sarg.sprite"),
 					frame: 0,
@@ -1282,6 +1314,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(2 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 0)),
+					sound: Some(asset_storage.load("dsdmpain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -1381,6 +1414,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 150.0,
+					pain_chance: 0.703125,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("sarg.sprite"),
 					frame: 0,
@@ -1466,6 +1504,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(2 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 0)),
+					sound: Some(asset_storage.load("dsdmpain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 7, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -1593,6 +1632,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 1000.0,
+					pain_chance: 0.1953125,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("boss.sprite"),
 					frame: 0,
@@ -1654,6 +1698,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("bal7.sprite"),
 					frame: 0,
@@ -1731,6 +1776,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 20.0,
+					pain_chance: 0.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bar1.sprite"),
 					frame: 0,
@@ -1792,6 +1842,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("bal1.sprite"),
 					frame: 0,
@@ -1853,6 +1904,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("bal2.sprite"),
 					frame: 0,
@@ -1909,6 +1961,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("misl.sprite"),
 					frame: 0,
@@ -1980,6 +2033,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("apls.sprite"),
 					frame: 0,
@@ -2034,6 +2088,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("puff.sprite"),
 					frame: 0,
@@ -2082,6 +2137,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("blud.sprite"),
 					frame: 2,
@@ -2175,6 +2231,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("tfog.sprite"),
 					frame: 0,
@@ -2243,6 +2300,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("ifog.sprite"),
 					frame: 0,
@@ -2266,6 +2324,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
@@ -2304,6 +2363,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("arm1.sprite"),
 					frame: 0,
@@ -2348,6 +2408,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("arm2.sprite"),
 					frame: 0,
@@ -2412,6 +2473,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("bon1.sprite"),
 					frame: 0,
@@ -2476,6 +2538,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("bon2.sprite"),
 					frame: 0,
@@ -2520,6 +2583,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("bkey.sprite"),
 					frame: 0,
@@ -2564,6 +2628,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("rkey.sprite"),
 					frame: 0,
@@ -2608,6 +2673,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("ykey.sprite"),
 					frame: 0,
@@ -2646,6 +2712,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("stim.sprite"),
 					frame: 0,
@@ -2684,6 +2751,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("medi.sprite"),
 					frame: 0,
@@ -2748,6 +2816,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("soul.sprite"),
 					frame: 0,
@@ -2802,6 +2871,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("pins.sprite"),
 					frame: 0,
@@ -2840,6 +2910,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("suit.sprite"),
 					frame: 0,
@@ -2904,6 +2975,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("pmap.sprite"),
 					frame: 0,
@@ -2948,6 +3020,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("pvis.sprite"),
 					frame: 0,
@@ -2986,6 +3059,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("clip.sprite"),
 					frame: 0,
@@ -3024,6 +3098,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("ammo.sprite"),
 					frame: 0,
@@ -3062,6 +3137,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("rock.sprite"),
 					frame: 0,
@@ -3100,6 +3176,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("brok.sprite"),
 					frame: 0,
@@ -3138,6 +3215,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("shel.sprite"),
 					frame: 0,
@@ -3176,6 +3254,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("sbox.sprite"),
 					frame: 0,
@@ -3214,6 +3293,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("bpak.sprite"),
 					frame: 0,
@@ -3252,6 +3332,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("mgun.sprite"),
 					frame: 0,
@@ -3290,6 +3371,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("csaw.sprite"),
 					frame: 0,
@@ -3328,6 +3410,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("laun.sprite"),
 					frame: 0,
@@ -3366,6 +3449,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("shot.sprite"),
 					frame: 0,
@@ -3404,6 +3488,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("colu.sprite"),
 					frame: 0,
@@ -3458,6 +3543,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("tred.sprite"),
 					frame: 0,
@@ -3496,6 +3582,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("elec.sprite"),
 					frame: 0,
@@ -3534,6 +3621,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("cand.sprite"),
 					frame: 0,
@@ -3572,6 +3660,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("cbra.sprite"),
 					frame: 0,
@@ -3610,6 +3699,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("play.sprite"),
 					frame: 13,
@@ -3648,6 +3738,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("poss.sprite"),
 					frame: 11,
@@ -3686,6 +3777,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("sarg.sprite"),
 					frame: 13,
@@ -3724,6 +3816,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("troo.sprite"),
 					frame: 12,
@@ -3762,6 +3855,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("spos.sprite"),
 					frame: 11,
@@ -3800,6 +3894,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("play.sprite"),
 					frame: 22,
@@ -3838,6 +3933,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("play.sprite"),
 					frame: 22,
@@ -3876,6 +3972,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("pol5.sprite"),
 					frame: 0,
@@ -3923,6 +4020,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(3 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsdmpain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 4, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -4028,6 +4126,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 400.0,
+					pain_chance: 0.5,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("head.sprite"),
 					frame: 0,
@@ -4083,6 +4186,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(3 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 0)),
+					sound: Some(asset_storage.load("dsdmpain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 4, full_bright: true}),
 					.. StateInfo::default()
 				},
@@ -4159,6 +4263,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 100.0,
+					pain_chance: 1.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("skul.sprite"),
 					frame: 0,
@@ -4264,6 +4373,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(3 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 0)),
+					sound: Some(asset_storage.load("dsdmpain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 8, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -4360,6 +4470,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 3000.0,
+					pain_chance: 0.15625,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("spid.sprite"),
 					frame: 0,
@@ -4440,6 +4555,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(10 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 0)),
+					sound: Some(asset_storage.load("dsdmpain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 6, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -4541,6 +4657,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 4000.0,
+					pain_chance: 0.078125,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("cybr.sprite"),
 					frame: 0,
@@ -4612,6 +4733,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("plss.sprite"),
 					frame: 0,
@@ -4688,6 +4810,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("bfs1.sprite"),
 					frame: 0,
@@ -4742,6 +4865,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("bfe2.sprite"),
 					frame: 0,
@@ -4786,6 +4910,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("ysku.sprite"),
 					frame: 0,
@@ -4830,6 +4955,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("rsku.sprite"),
 					frame: 0,
@@ -4874,6 +5000,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("bsku.sprite"),
 					frame: 0,
@@ -4928,6 +5055,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("pinv.sprite"),
 					frame: 0,
@@ -4966,6 +5094,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("pstr.sprite"),
 					frame: 0,
@@ -5004,6 +5133,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("cell.sprite"),
 					frame: 0,
@@ -5042,6 +5172,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("celp.sprite"),
 					frame: 0,
@@ -5080,6 +5211,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("bfug.sprite"),
 					frame: 0,
@@ -5118,6 +5250,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("plas.sprite"),
 					frame: 0,
@@ -5156,6 +5289,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("col1.sprite"),
 					frame: 0,
@@ -5194,6 +5328,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("col2.sprite"),
 					frame: 0,
@@ -5232,6 +5367,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("col3.sprite"),
 					frame: 0,
@@ -5270,6 +5406,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("col4.sprite"),
 					frame: 0,
@@ -5308,6 +5445,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("col6.sprite"),
 					frame: 0,
@@ -5352,6 +5490,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("col5.sprite"),
 					frame: 0,
@@ -5406,6 +5545,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("ceye.sprite"),
 					frame: 0,
@@ -5455,6 +5595,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("fsku.sprite"),
 					frame: 0,
@@ -5493,6 +5634,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("tre1.sprite"),
 					frame: 0,
@@ -5547,6 +5689,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("tblu.sprite"),
 					frame: 0,
@@ -5601,6 +5744,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("tgrn.sprite"),
 					frame: 0,
@@ -5655,6 +5799,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("smbt.sprite"),
 					frame: 0,
@@ -5709,6 +5854,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("smgt.sprite"),
 					frame: 0,
@@ -5763,6 +5909,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("smrt.sprite"),
 					frame: 0,
@@ -5801,6 +5948,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("smit.sprite"),
 					frame: 0,
@@ -5855,6 +6003,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("gor1.sprite"),
 					frame: 0,
@@ -5893,6 +6042,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("gor2.sprite"),
 					frame: 0,
@@ -5931,6 +6081,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("gor3.sprite"),
 					frame: 0,
@@ -5969,6 +6120,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("gor4.sprite"),
 					frame: 0,
@@ -6007,6 +6159,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("gor5.sprite"),
 					frame: 0,
@@ -6045,6 +6198,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("gor2.sprite"),
 					frame: 0,
@@ -6083,6 +6237,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("gor4.sprite"),
 					frame: 0,
@@ -6121,6 +6276,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("gor3.sprite"),
 					frame: 0,
@@ -6159,6 +6315,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("gor5.sprite"),
 					frame: 0,
@@ -6213,6 +6370,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("gor1.sprite"),
 					frame: 0,
@@ -6251,6 +6409,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("head.sprite"),
 					frame: 11,
@@ -6294,6 +6453,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("skul.sprite"),
 					frame: 10,
@@ -6332,6 +6492,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("pol2.sprite"),
 					frame: 0,
@@ -6370,6 +6531,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("pol4.sprite"),
 					frame: 0,
@@ -6414,6 +6576,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("pol3.sprite"),
 					frame: 0,
@@ -6452,6 +6615,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("pol1.sprite"),
 					frame: 0,
@@ -6496,6 +6660,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("pol6.sprite"),
 					frame: 0,
@@ -6534,6 +6699,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("tre2.sprite"),
 					frame: 0,
@@ -6583,6 +6749,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("fcan.sprite"),
 					frame: 0,
@@ -6691,6 +6858,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 0)),
+					sound: Some(asset_storage.load("dsvipain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 16, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -6817,6 +6985,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 700.0,
+					pain_chance: 0.0390625,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("vile.sprite"),
 					frame: 0,
@@ -7001,6 +7174,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("fire.sprite"),
 					frame: 0,
@@ -7105,6 +7279,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 0)),
+					sound: Some(asset_storage.load("dspopain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -7232,6 +7407,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 300.0,
+					pain_chance: 0.390625,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("skel.sprite"),
 					frame: 0,
@@ -7293,6 +7473,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("fatb.sprite"),
 					frame: 0,
@@ -7398,6 +7579,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(3 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 0)),
+					sound: Some(asset_storage.load("dsmnpain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -7562,6 +7744,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 600.0,
+					pain_chance: 0.3125,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("fatt.sprite"),
 					frame: 0,
@@ -7623,6 +7810,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("manf.sprite"),
 					frame: 0,
@@ -7708,6 +7896,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(3 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 0)),
+					sound: Some(asset_storage.load("dspopain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 6, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -7855,6 +8044,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 70.0,
+					pain_chance: 0.6640625,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("cpos.sprite"),
 					frame: 0,
@@ -7940,6 +8134,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(2 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 0)),
+					sound: Some(asset_storage.load("dsdmpain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 7, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -8067,6 +8262,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 500.0,
+					pain_chance: 0.1953125,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bos2.sprite"),
 					frame: 0,
@@ -8178,6 +8378,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(3 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 1)),
+					sound: Some(asset_storage.load("dsdmpain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 8, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -8292,6 +8493,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 500.0,
+					pain_chance: 0.5,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bspi.sprite"),
 					frame: 0,
@@ -8362,6 +8568,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(6 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 0)),
+					sound: Some(asset_storage.load("dspepain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 6, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -8470,6 +8677,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 400.0,
+					pain_chance: 0.5,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("pain.sprite"),
 					frame: 0,
@@ -8555,6 +8767,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(3 * FRAME_TIME),
 					next: Some((StateName::from("see").unwrap(), 0)),
+					sound: Some(asset_storage.load("dspopain.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 7, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -8707,6 +8920,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 50.0,
+					pain_chance: 0.6640625,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("sswv.sprite"),
 					frame: 0,
@@ -8744,6 +8962,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(8 * FRAME_TIME),
 					next: Some((StateName::from("spawn").unwrap(), 0)),
+					sound: Some(asset_storage.load("dskeenpn.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 12, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -8821,6 +9040,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 100.0,
+					pain_chance: 1.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("keen.sprite"),
 					frame: 0,
@@ -8890,6 +9114,11 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
+				HealthDef {
+					max: 250.0,
+					pain_chance: 0.99609375,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bbrn.sprite"),
 					frame: 0,
@@ -8938,6 +9167,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("sswv.sprite"),
 					frame: 0,
@@ -8961,6 +9191,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
@@ -9004,6 +9235,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("bosf.sprite"),
 					frame: 0,
@@ -9078,6 +9310,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("fire.sprite"),
 					frame: 0,
@@ -9132,6 +9365,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("mega.sprite"),
 					frame: 0,
@@ -9170,6 +9404,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::empty(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("sgn2.sprite"),
 					frame: 0,
@@ -9224,6 +9459,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("tlmp.sprite"),
 					frame: 0,
@@ -9278,6 +9514,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("tlp2.sprite"),
 					frame: 0,
@@ -9316,6 +9553,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("hdb1.sprite"),
 					frame: 0,
@@ -9354,6 +9592,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("hdb2.sprite"),
 					frame: 0,
@@ -9392,6 +9631,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("hdb3.sprite"),
 					frame: 0,
@@ -9430,6 +9670,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("hdb4.sprite"),
 					frame: 0,
@@ -9468,6 +9709,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("hdb5.sprite"),
 					frame: 0,
@@ -9506,6 +9748,7 @@ pub fn load(resources: &mut Resources) {
 					solid_mask: SolidMask::all(),
 				},
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("hdb6.sprite"),
 					frame: 0,
@@ -9539,6 +9782,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("pob1.sprite"),
 					frame: 0,
@@ -9572,6 +9816,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("pob2.sprite"),
 					frame: 0,
@@ -9605,6 +9850,7 @@ pub fn load(resources: &mut Resources) {
 			let mut world = World::default();
 			world.push((
 				EntityTemplateRefDef,
+				FrameRngDef,
 				SpriteRender {
 					sprite: asset_storage.load("brs1.sprite"),
 					frame: 0,

@@ -69,7 +69,7 @@ impl SpawnFrom<StateDef> for State {
 }
 
 pub fn state_set_system(_resources: &mut Resources) -> impl Runnable {
-	SystemBuilder::new("state_timer_system")
+	SystemBuilder::new("state_set_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<FrameState>()
 		.with_query(<(Entity, &EntityTemplateRef, &mut State)>::query())
