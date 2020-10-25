@@ -393,6 +393,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
+					sound: Some(asset_storage.load("dspodth1.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 8, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -608,6 +609,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
+					sound: Some(asset_storage.load("dspodth2.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 8, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -888,6 +890,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(7 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsvildth.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 17, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -1294,6 +1297,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(7 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsskedth.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 13, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -1646,6 +1650,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(6 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsmandth.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 11, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -1925,6 +1930,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
+					sound: Some(asset_storage.load("dspodth2.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 8, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -2168,6 +2174,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(8 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsbgdth1.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -2383,6 +2390,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(8 * FRAME_TIME),
+					sound: Some(asset_storage.load("dssgtdth.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -2566,6 +2574,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(8 * FRAME_TIME),
+					sound: Some(asset_storage.load("dssgtdth.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -2714,6 +2723,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(8 * FRAME_TIME),
+					sound: Some(asset_storage.load("dscacdth.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 7, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -2915,6 +2925,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(8 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsbrsdth.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -3187,6 +3198,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(8 * FRAME_TIME),
+					sound: Some(asset_storage.load("dskntdth.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -3355,6 +3367,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(6 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsfirxpl.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 6, full_bright: true}),
 					.. StateInfo::default()
 				},
@@ -3530,6 +3543,7 @@ pub fn load(resources: &mut Resources) {
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
 					time: Some(20 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsspidth.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -3736,6 +3750,7 @@ pub fn load(resources: &mut Resources) {
 			states.insert(StateName::from("death").unwrap(), vec![
 				StateInfo {
 					time: Some(20 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsbspdth.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -3944,6 +3959,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(10 * FRAME_TIME),
+					sound: Some(asset_storage.load("dscybdth.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 8, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -4104,6 +4120,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(8 * FRAME_TIME),
+					sound: Some(asset_storage.load("dspedth.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 8, full_bright: true}),
 					.. StateInfo::default()
 				},
@@ -4306,6 +4323,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsssdth.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -4465,6 +4483,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(6 * FRAME_TIME),
+					sound: Some(asset_storage.load("dskeendt.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 2, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -4821,6 +4840,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
+					sound: Some(asset_storage.load("dsbarexp.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 1, full_bright: true}),
 					.. StateInfo::default()
 				},

@@ -229,6 +229,7 @@ fn main() -> anyhow::Result<()> {
 		.add_thread_local(doom::texture::texture_scroll_system()).flush()
 		.add_thread_local(doom::state::state_set_system(&mut resources)).flush()
 		.add_thread_local(doom::state::solid_mask_system(&mut resources)).flush()
+		.add_thread_local(doom::state::sound_play_system(&mut resources)).flush()
 		.add_thread_local(doom::state::sprite_anim_system(&mut resources)).flush()
 		.add_thread_local(doom::state::state_next_system(&mut resources)).flush()
 		.add_thread_local(frame_state_system(doom::data::FRAME_TIME)).flush()

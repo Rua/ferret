@@ -4,7 +4,7 @@ use std::time::Duration;
 
 #[derive(Clone, Debug)]
 pub struct AnimData {
-	pub frames: Vec<&'static str>,
+	pub frames: &'static [&'static str],
 	pub frame_time: Duration,
 }
 
@@ -13,85 +13,85 @@ lazy_static! {
 		// Doom 1
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["nukage1.flat", "nukage2.flat", "nukage3.flat"]
+			frames: &["nukage1.flat", "nukage2.flat", "nukage3.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["fwater1.flat", "fwater2.flat", "fwater3.flat", "fwater4.flat"]
+			frames: &["fwater1.flat", "fwater2.flat", "fwater3.flat", "fwater4.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["lava1.flat", "lava2.flat", "lava3.flat", "lava4.flat"]
+			frames: &["lava1.flat", "lava2.flat", "lava3.flat", "lava4.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["blood1.flat", "blood2.flat", "blood3.flat"]
+			frames: &["blood1.flat", "blood2.flat", "blood3.flat"]
 		},
 
 		// Doom 2
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["rrock5.flat", "rrock6.flat", "rrock7.flat", "rrock8.flat"]
+			frames: &["rrock5.flat", "rrock6.flat", "rrock7.flat", "rrock8.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["slime1.flat", "slime2.flat", "slime3.flat", "slime4.flat"]
+			frames: &["slime1.flat", "slime2.flat", "slime3.flat", "slime4.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["slime5.flat", "slime6.flat", "slime7.flat", "slime8.flat"]
+			frames: &["slime5.flat", "slime6.flat", "slime7.flat", "slime8.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["slime9.flat", "slime10.flat", "slime11.flat", "slime12.flat"]
+			frames: &["slime9.flat", "slime10.flat", "slime11.flat", "slime12.flat"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["blodgr1.texture", "blodgr2.texture", "blodgr3.texture", "blodgr4.texture"]
+			frames: &["blodgr1.texture", "blodgr2.texture", "blodgr3.texture", "blodgr4.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["sladrip1.texture", "sladrip2.texture", "sladrip3.texture"]
+			frames: &["sladrip1.texture", "sladrip2.texture", "sladrip3.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["blodrip1.texture", "blodrip2.texture", "blodrip3.texture", "blodrip4.texture"]
+			frames: &["blodrip1.texture", "blodrip2.texture", "blodrip3.texture", "blodrip4.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["firewala.texture", "firewalb.texture", "firewall.texture"]
+			frames: &["firewala.texture", "firewalb.texture", "firewall.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["gstfont1.texture", "gstfont2.texture", "gstfont3.texture"]
+			frames: &["gstfont1.texture", "gstfont2.texture", "gstfont3.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["firelav3.texture", "firelava.texture"]
+			frames: &["firelav3.texture", "firelava.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["firemag1.texture", "firemag2.texture", "firemag3.texture"]
+			frames: &["firemag1.texture", "firemag2.texture", "firemag3.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["fireblu1.texture", "fireblu2.texture"]
+			frames: &["fireblu1.texture", "fireblu2.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["rockred1.texture", "rockred2.texture", "rockred3.texture"]
+			frames: &["rockred1.texture", "rockred2.texture", "rockred3.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["bfall1.texture", "bfall2.texture", "bfall3.texture", "bfall4.texture"]
+			frames: &["bfall1.texture", "bfall2.texture", "bfall3.texture", "bfall4.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["sfall1.texture", "sfall2.texture", "sfall3.texture", "sfall4.texture"]
+			frames: &["sfall1.texture", "sfall2.texture", "sfall3.texture", "sfall4.texture"]
 		},
 		AnimData {
 			frame_time: 8 * FRAME_TIME,
-			frames: vec!["dbrain1.texture", "dbrain2.texture", "dbrain3.texture", "dbrain4.texture"]
+			frames: &["dbrain1.texture", "dbrain2.texture", "dbrain3.texture", "dbrain4.texture"]
 		},
 	];
 	pub static ref SWITCHES: Vec<[&'static str; 2]> = vec![

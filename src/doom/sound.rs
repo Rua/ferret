@@ -4,7 +4,7 @@ use crate::{
 		geometry::Angle,
 		sound::{SoundController, SoundSource},
 	},
-	doom::{client::Client, components::Transform},
+	doom::{client::Client, components::Transform, data::sounds::SOUNDS},
 };
 use anyhow::ensure;
 use byteorder::{ReadBytesExt, LE};
@@ -18,7 +18,6 @@ use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64Mcg;
 use relative_path::RelativePath;
 use rodio::Source;
-use smallvec::SmallVec;
 use std::io::{Cursor, Read as IoRead};
 
 pub use crate::common::sound::{RawSound, Sound};
@@ -27,11 +26,20 @@ pub fn import_sound(
 	path: &RelativePath,
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Box<dyn ImportData>> {
-	let mut sounds = SmallVec::new();
-
 	let path = path.with_extension("rawsound");
-	let handle = asset_storage.load::<RawSound>(path.as_str());
-	sounds.push(handle);
+
+	let sounds = if let Some(sound_data) = SOUNDS
+		.iter()
+		.find(|sound_data| sound_data.sounds.contains(&path.as_str()))
+	{
+		sound_data
+			.sounds
+			.iter()
+			.map(|sound| asset_storage.load::<RawSound>(sound))
+			.collect()
+	} else {
+		std::iter::once(asset_storage.load::<RawSound>(path.as_str())).collect()
+	};
 
 	Ok(Box::new(Sound { sounds }))
 }

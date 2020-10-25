@@ -1,6 +1,6 @@
 use crate::{
 	common::{
-		assets::AssetStorage,
+		assets::{AssetHandle, AssetStorage},
 		frame::FrameState,
 		spawn::{ComponentAccessor, SpawnFrom},
 		time::Timer,
@@ -9,6 +9,7 @@ use crate::{
 		entitytemplate::EntityTemplateRef,
 		map::spawn::SpawnContext,
 		physics::{BoxCollider, SolidMask},
+		sound::Sound,
 		sprite::SpriteRender,
 	},
 };
@@ -27,6 +28,7 @@ pub struct StateInfo {
 	pub next: Option<(StateName, usize)>,
 	pub remove: bool,
 	pub solid_mask: Option<SolidMask>,
+	pub sound: Option<AssetHandle<Sound>>,
 	pub sprite: Option<SpriteRender>,
 }
 
@@ -154,6 +156,24 @@ pub fn solid_mask_system(_resources: &mut Resources) -> impl Runnable {
 				state_trigger(state_data, asset_storage, |state_info| {
 					if let Some(solid_mask) = &state_info.solid_mask {
 						box_collider.solid_mask = *solid_mask;
+					}
+				});
+			}
+		})
+}
+
+pub fn sound_play_system(_resources: &mut Resources) -> impl Runnable {
+	SystemBuilder::new("sound_play_system")
+		.read_resource::<AssetStorage>()
+		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
+		.with_query(<((&EntityTemplateRef, &State), Entity)>::query())
+		.build(move |_command_buffer, world, resources, query| {
+			let (asset_storage, sound_queue) = resources;
+
+			for (state_data, entity) in query.iter_mut(world) {
+				state_trigger(state_data, asset_storage, |state_info| {
+					if let Some(sound) = &state_info.sound {
+						sound_queue.push((sound.clone(), *entity));
 					}
 				});
 			}

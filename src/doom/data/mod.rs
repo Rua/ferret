@@ -3,6 +3,7 @@ mod bindings;
 pub mod linedefs;
 pub mod mobjs;
 pub mod sectors;
+pub mod sounds;
 
 pub use bindings::get_bindings;
 
