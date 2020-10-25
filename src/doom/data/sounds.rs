@@ -32,5 +32,9 @@ lazy_static! {
 			sounds: &["dsbosdth.rawsound"],
 			global: true,
 		},
+		SoundData {
+			sounds: &["dsbospn.rawsound"],
+			global: true,
+		},
 	];
 }

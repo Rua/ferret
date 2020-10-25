@@ -9077,6 +9077,7 @@ pub fn load(resources: &mut Resources) {
 				StateInfo {
 					time: Some(36 * FRAME_TIME),
 					next: Some((StateName::from("spawn").unwrap(), 0)),
+					sound: Some(asset_storage.load("dsbospn.sound")),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 1, full_bright: false}),
 					.. StateInfo::default()
 				},
