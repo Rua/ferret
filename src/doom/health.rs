@@ -5,8 +5,8 @@ use crate::{
 		spawn::{ComponentAccessor, SpawnFrom},
 	},
 	doom::{
-		entitytemplate::EntityTemplateRef,
 		state::{State, StateAction, StateName},
+		template::EntityTemplateRef,
 	},
 };
 use legion::{systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};

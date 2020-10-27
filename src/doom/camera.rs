@@ -4,7 +4,7 @@ use crate::{
 		components::Velocity,
 		data::FRAME_RATE,
 		physics::{StepEvent, TouchEvent},
-		psprite::PlayerSpriteRender,
+		psprite::WeaponSpriteRender,
 		sound::Sound,
 	},
 };
@@ -41,7 +41,7 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<EventChannel<TouchEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<&mut Camera>::query())
-		.with_query(<(&Velocity, &mut Camera, &mut PlayerSpriteRender)>::query())
+		.with_query(<(&Velocity, &mut Camera, &mut WeaponSpriteRender)>::query())
 		.build(move |_, world, resources, queries| {
 			let (frame_state, step_event_channel, touch_event_channel, sound_queue) = resources;
 
@@ -68,7 +68,7 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 				}
 			}
 
-			for (velocity, mut camera, player_sprite_render) in queries.1.iter_mut(world) {
+			for (velocity, mut camera, weapon_sprite_render) in queries.1.iter_mut(world) {
 				// Calculate deviation
 				if camera.deviation_position != 0.0 || camera.deviation_velocity != 0.0 {
 					const DEVIATION_ACCEL: f32 = 0.25 * FRAME_RATE * FRAME_RATE;
@@ -107,10 +107,10 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 				let mut angle = Angle::from_units(
 					frame_state.time.as_secs_f64() / camera.weapon_bob_period.as_secs_f64(),
 				);
-				player_sprite_render.position[0] = 1.0 + bob_amplitude * angle.cos() as f32;
+				weapon_sprite_render.position[0] = 1.0 + bob_amplitude * angle.cos() as f32;
 
 				angle.0 &= 0x7FFF_FFFF;
-				player_sprite_render.position[1] = bob_amplitude * angle.sin() as f32;
+				weapon_sprite_render.position[1] = bob_amplitude * angle.sin() as f32;
 			}
 		})
 }

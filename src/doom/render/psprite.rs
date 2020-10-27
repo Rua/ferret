@@ -9,7 +9,7 @@ use crate::{
 	doom::{
 		client::Client,
 		image::Image,
-		psprite::PlayerSpriteRender,
+		psprite::WeaponSpriteRender,
 		render::ui::{ui_frag, ui_vert, InstanceData, Matrices, UiParams},
 		ui::UiAlignment,
 	},
@@ -115,14 +115,14 @@ impl DrawStep for DrawPlayerSprites {
 			None => return Ok(()),
 		};
 
-		let player_sprite_render = match <&PlayerSpriteRender>::query().get(world, client_entity) {
+		let weapon_sprite_render = match <&WeaponSpriteRender>::query().get(world, client_entity) {
 			Ok(x) => x,
 			Err(_) => return Ok(()),
 		};
 
 		let mut batches: Vec<(AssetHandle<Image>, InstanceData)> = Vec::new();
 
-		for sprite_render in player_sprite_render.slots.iter().flatten() {
+		for sprite_render in weapon_sprite_render.slots.iter().flatten() {
 			// Set up instance data
 			let sprite = asset_storage.get(&sprite_render.sprite).unwrap();
 			let frame = &sprite.frames()[sprite_render.frame];
@@ -136,7 +136,7 @@ impl DrawStep for DrawPlayerSprites {
 
 			let image_handle = &frame[0].handle;
 			let image = asset_storage.get(image_handle).unwrap();
-			let position = player_sprite_render.position
+			let position = weapon_sprite_render.position
 				+ ui_params.align([UiAlignment::Middle, UiAlignment::Far])
 				- image.offset + Vector2::new(0.0, 16.0);
 

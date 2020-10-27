@@ -6,11 +6,12 @@ use crate::{
 		time::Timer,
 	},
 	doom::{
-		entitytemplate::EntityTemplateRef,
 		map::spawn::SpawnContext,
 		physics::{BoxCollider, SolidBits},
+		psprite::WeaponSpriteRender,
 		sound::Sound,
 		sprite::SpriteRender,
+		template::{EntityTemplateRef, WeaponTemplate},
 	},
 };
 use arrayvec::ArrayString;
@@ -27,6 +28,7 @@ pub struct StateInfo {
 	pub time: Option<Duration>,
 	pub next: Option<(StateName, usize)>,
 	pub remove: bool,
+
 	pub blocks_types: Option<SolidBits>,
 	pub sound: Option<AssetHandle<Sound>>,
 	pub sprite: Option<SpriteRender>,
@@ -191,6 +193,139 @@ pub fn sprite_anim_system(_resources: &mut Resources) -> impl Runnable {
 				state_trigger(state_data, asset_storage, |state_info| {
 					if let Some(sprite) = &state_info.sprite {
 						*sprite_render = sprite.clone();
+					}
+				});
+			}
+		})
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct WeaponStateInfo {
+	pub time: Option<Duration>,
+	pub next: Option<(StateName, usize)>,
+	pub remove: bool,
+
+	pub sound: Option<AssetHandle<Sound>>,
+	pub sprite: Option<SpriteRender>,
+}
+
+#[derive(Clone, Debug)]
+pub struct WeaponState {
+	pub template: AssetHandle<WeaponTemplate>,
+	pub state: State,
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct WeaponStateDef;
+
+impl SpawnFrom<WeaponStateDef> for WeaponState {
+	fn spawn(
+		_component: &WeaponStateDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> WeaponState {
+		let (asset_storage, frame_state) =
+			<(Read<AssetStorage>, Read<FrameState>)>::fetch(resources);
+
+		let template = asset_storage
+			.handle_for::<WeaponTemplate>("shotgun")
+			.unwrap();
+
+		WeaponState {
+			state: State {
+				timer: Timer::new_elapsed(frame_state.time, Duration::default()),
+				action: StateAction::Set((StateName::from("up").unwrap(), 0)),
+			},
+			template,
+		}
+	}
+}
+
+pub fn weapon_state_set_system(_resources: &mut Resources) -> impl Runnable {
+	SystemBuilder::new("weapon_state_set_system")
+		.read_resource::<AssetStorage>()
+		.read_resource::<FrameState>()
+		.with_query(<(Entity, &mut WeaponState)>::query())
+		.build(move |command_buffer, world, resources, query| {
+			let (asset_storage, frame_state) = resources;
+
+			for (entity, weapon_state) in query.iter_mut(world) {
+				if let StateAction::Wait(state_name) = weapon_state.state.action {
+					if weapon_state.state.timer.is_elapsed(frame_state.time) {
+						weapon_state.state.action = StateAction::Set(state_name);
+					}
+				}
+
+				if let StateAction::Set(state_name) = weapon_state.state.action {
+					let states = &asset_storage.get(&weapon_state.template).unwrap().states;
+					let state_info = states
+						.get(&state_name.0)
+						.and_then(|x| x.get(state_name.1))
+						.unwrap_or_else(|| panic!("Invalid state {:?}", state_name));
+
+					if state_info.remove {
+						weapon_state.state.action = StateAction::None;
+						command_buffer.remove(*entity);
+					}
+				}
+			}
+		})
+}
+
+pub fn weapon_state_next_system(_resources: &mut Resources) -> impl Runnable {
+	SystemBuilder::new("weapon_state_next_system")
+		.read_resource::<AssetStorage>()
+		.with_query(<&mut WeaponState>::query())
+		.build(move |_command_buffer, world, resources, query| {
+			let asset_storage = resources;
+
+			for weapon_state in query.iter_mut(world) {
+				if let StateAction::Set(state_name) = weapon_state.state.action {
+					let states = &asset_storage.get(&weapon_state.template).unwrap().states;
+					let state_info = states
+						.get(&state_name.0)
+						.and_then(|x| x.get(state_name.1))
+						.unwrap_or_else(|| panic!("Invalid state {:?}", state_name));
+
+					if let Some(time) = state_info.time {
+						weapon_state.state.timer.restart_with(time);
+						weapon_state.state.action =
+							StateAction::Wait(state_info.next.unwrap_or_else(|| {
+								(
+									state_name.0,
+									(state_name.1 + 1) % states[&state_name.0].len(),
+								)
+							}));
+					} else {
+						weapon_state.state.action = StateAction::None;
+					}
+				}
+			}
+		})
+}
+
+pub fn weapon_state_trigger<F>(weapon_state: &WeaponState, asset_storage: &AssetStorage, func: F)
+where
+	F: FnOnce(&WeaponStateInfo),
+{
+	if let StateAction::Set(state_name) = weapon_state.state.action {
+		let states = &asset_storage.get(&weapon_state.template).unwrap().states;
+		let state_info = &states[&state_name.0][state_name.1];
+		func(state_info);
+	}
+}
+
+pub fn weapon_sprite_anim_system(_resources: &mut Resources) -> impl Runnable {
+	SystemBuilder::new("weapon_sprite_anim_system")
+		.read_resource::<AssetStorage>()
+		.with_query(<(&WeaponState, &mut WeaponSpriteRender)>::query())
+		.build(move |_command_buffer, world, resources, query| {
+			let asset_storage = resources;
+
+			for (weapon_state, weapon_sprite_render) in query.iter_mut(world) {
+				weapon_state_trigger(weapon_state, asset_storage, |state_info| {
+					if let Some(sprite) = &state_info.sprite {
+						weapon_sprite_render.slots[0] = Some(sprite.clone());
 					}
 				});
 			}

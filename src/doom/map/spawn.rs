@@ -9,12 +9,12 @@ use crate::{
 	},
 	doom::{
 		components::{SpawnPoint, Transform},
-		entitytemplate::{EntityTemplate, EntityTemplateRef, EntityTypeId},
 		map::{
 			AnimState, LinedefDynamic, LinedefRef, Map, MapDynamic, SectorDynamic, SectorRef,
 			SidedefDynamic, Thing, ThingFlags,
 		},
 		physics::BoxCollider,
+		template::{EntityTemplate, EntityTemplateRef, EntityTypeId},
 	},
 };
 use anyhow::bail;

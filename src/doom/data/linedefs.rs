@@ -4,11 +4,11 @@ use crate::{
 		client::UseAction,
 		data::{FRAME_RATE, FRAME_TIME},
 		door::{DoorParams, DoorState, DoorSwitchUse, DoorTouch, DoorUse},
-		entitytemplate::{EntityTemplate, EntityTypeId},
 		floor::{FloorParams, FloorSwitchUse, FloorTargetHeight, FloorTouch},
 		physics::TouchAction,
 		plat::{PlatParams, PlatSwitchUse, PlatTargetHeight, PlatTouch},
 		switch::SwitchParams,
+		template::{EntityTemplate, EntityTypeId},
 		texture::TextureScroll,
 	},
 };

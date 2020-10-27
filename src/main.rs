@@ -178,7 +178,8 @@ fn main() -> anyhow::Result<()> {
 
 	// Asset types
 	let mut asset_storage = AssetStorage::new(doom::import, loader);
-	asset_storage.add_storage::<doom::entitytemplate::EntityTemplate>(false);
+	asset_storage.add_storage::<doom::template::EntityTemplate>(false);
+	asset_storage.add_storage::<doom::template::WeaponTemplate>(false);
 	asset_storage.add_storage::<doom::image::Image>(true);
 	asset_storage.add_storage::<doom::image::ImageData>(false);
 	asset_storage.add_storage::<doom::image::Palette>(false);
@@ -200,7 +201,9 @@ fn main() -> anyhow::Result<()> {
 	handler_set.register_spawn::<doom::components::TransformDef, doom::components::Transform>();
 	handler_set.register_from::<doom::components::VelocityDef, doom::components::Velocity>();
 	handler_set.register_clone::<doom::door::DoorActive>();
-	handler_set.register_spawn::<doom::entitytemplate::EntityTemplateRefDef, doom::entitytemplate::EntityTemplateRef>();
+	handler_set
+		.register_spawn::<doom::template::EntityTemplateRefDef, doom::template::EntityTemplateRef>(
+		);
 	handler_set.register_clone::<doom::floor::FloorActive>();
 	handler_set.register_spawn::<doom::health::HealthDef, doom::health::Health>();
 	handler_set.register_spawn::<doom::light::LightFlashDef, doom::light::LightFlash>();
@@ -211,12 +214,13 @@ fn main() -> anyhow::Result<()> {
 	handler_set.register_clone::<doom::physics::BoxCollider>();
 	handler_set.register_clone::<doom::physics::TouchAction>();
 	handler_set.register_clone::<doom::plat::PlatActive>();
-	handler_set.register_clone::<doom::psprite::PlayerSpriteRender>();
+	handler_set.register_clone::<doom::psprite::WeaponSpriteRender>();
 	handler_set.register_clone::<doom::sectormove::CeilingMove>();
 	handler_set.register_clone::<doom::sectormove::FloorMove>();
 	handler_set.register_clone::<doom::sound::SoundPlaying>();
 	handler_set.register_clone::<doom::sprite::SpriteRender>();
 	handler_set.register_spawn::<doom::state::StateDef, doom::state::State>();
+	handler_set.register_spawn::<doom::state::WeaponStateDef, doom::state::WeaponState>();
 	handler_set.register_clone::<doom::switch::SwitchActive>();
 	handler_set.register_clone::<doom::texture::TextureScroll>();
 	resources.insert(handler_set);
@@ -252,6 +256,9 @@ fn main() -> anyhow::Result<()> {
 		.add_thread_local(doom::state::sound_play_system(&mut resources)).flush()
 		.add_thread_local(doom::state::sprite_anim_system(&mut resources)).flush()
 		.add_thread_local(doom::state::state_next_system(&mut resources)).flush()
+		.add_thread_local(doom::state::weapon_state_set_system(&mut resources)).flush()
+		.add_thread_local(doom::state::weapon_sprite_anim_system(&mut resources)).flush()
+		.add_thread_local(doom::state::weapon_state_next_system(&mut resources)).flush()
 		.add_thread_local(frame_state_system(doom::data::FRAME_TIME)).flush()
 		.build();
 
@@ -491,6 +498,7 @@ fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow:
 
 	log::info!("Loading entity data...");
 	doom::data::mobjs::load(resources);
+	doom::data::weapons::load(resources);
 	doom::data::sectors::load(resources);
 	doom::data::linedefs::load(resources);
 

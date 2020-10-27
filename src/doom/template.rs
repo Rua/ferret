@@ -5,7 +5,7 @@ use crate::{
 	},
 	doom::{
 		map::spawn::SpawnContext,
-		state::{StateInfo, StateName},
+		state::{StateInfo, StateName, WeaponStateInfo},
 	},
 };
 use legion::{systems::ResourceSet, Read, Resources, World};
@@ -41,4 +41,10 @@ impl SpawnFrom<EntityTemplateRefDef> for EntityTemplateRef {
 		let spawn_context = <Read<SpawnContext>>::fetch(resources);
 		EntityTemplateRef(spawn_context.template_handle.clone())
 	}
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct WeaponTemplate {
+	pub name: Option<&'static str>,
+	pub states: HashMap<StateName, Vec<WeaponStateInfo>>,
 }

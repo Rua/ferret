@@ -168,6 +168,7 @@ pub fn player_use_system(resources: &mut Resources) -> impl Runnable {
 					);
 
 					// Find the closest linedef hit
+					// TODO use a trace here
 					let mut pmax = 1.0;
 					let mut closest_linedef = None;
 

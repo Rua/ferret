@@ -2,8 +2,8 @@ use crate::{
 	common::{assets::AssetStorage, frame::FrameRngDef},
 	doom::{
 		data::{FRAME_RATE, FRAME_TIME},
-		entitytemplate::{EntityTemplate, EntityTypeId},
 		light::{LightFlashDef, LightFlashType, LightGlow},
+		template::{EntityTemplate, EntityTypeId},
 	},
 };
 use legion::{systems::ResourceSet, Resources, World, Write};

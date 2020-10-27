@@ -6,12 +6,12 @@ use crate::{
 		client::User,
 		components::{SpawnPoint, TransformDef, VelocityDef},
 		data::FRAME_TIME,
-		entitytemplate::{EntityTemplate, EntityTemplateRefDef, EntityTypeId},
 		health::HealthDef,
 		physics::{BoxCollider, SolidBits, SolidType},
-		psprite::PlayerSpriteRender,
+		psprite::WeaponSpriteRender,
 		sprite::SpriteRender,
-		state::{StateDef, StateInfo, StateName},
+		state::{StateDef, StateInfo, StateName, WeaponStateDef},
+		template::{EntityTemplate, EntityTemplateRefDef, EntityTypeId},
 	},
 	WadMode,
 };
@@ -275,17 +275,6 @@ pub fn load(resources: &mut Resources) {
 					max: 100.0,
 					pain_chance: 0.99609375,
 				},
-				PlayerSpriteRender {
-					position: Vector2::new(0.0, 0.0),
-					slots: [
-						Some(SpriteRender {
-							sprite: asset_storage.load("pisg.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-						None,
-					],
-				},
 				SpriteRender {
 					sprite: asset_storage.load("play.sprite"),
 					frame: 0,
@@ -299,6 +288,18 @@ pub fn load(resources: &mut Resources) {
 					error_sound: asset_storage.load("dsnoway.sound"),
 				},
 				VelocityDef,
+				WeaponSpriteRender {
+					position: Vector2::new(0.0, 0.0),
+					slots: [
+						Some(SpriteRender {
+							sprite: asset_storage.load("pisg.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+						None,
+					],
+				},
+				WeaponStateDef,
 			));
 			world
 		},
