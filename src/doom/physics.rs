@@ -84,7 +84,7 @@ pub fn physics_system(resources: &mut Resources) -> impl Runnable {
 				let trace = tracer.trace(
 					&entity_bbox.offset(new_position),
 					Vector3::new(0.0, 0.0, -0.25),
-					SolidMask::NON_MONSTER, // TODO solid mask
+					SolidMask::PLAYER, // TODO solid mask
 				);
 
 				if let Some(collision) = trace.collision {
@@ -114,7 +114,7 @@ pub fn physics_system(resources: &mut Resources) -> impl Runnable {
 					&mut touch_events,
 					entity,
 					&entity_bbox,
-					SolidMask::NON_MONSTER, // TODO solid mask
+					SolidMask::PLAYER, // TODO solid mask
 					frame_state.delta_time,
 				);
 
@@ -238,6 +238,14 @@ fn step_slide_move<W: EntityStore>(
 	}
 }
 
+bitflags! {
+	pub struct SolidMask: u16 {
+		const PLAYER = 0b1;
+		const MONSTER = 0b10;
+		const PROJECTILE = 0b100;
+	}
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct BoxCollider {
 	pub height: f32,
@@ -269,13 +277,6 @@ pub enum TouchAction {
 pub struct StepEvent {
 	pub entity: Entity,
 	pub height: f32,
-}
-
-bitflags! {
-	pub struct SolidMask: u16 {
-		const NON_MONSTER = 0b01;
-		const MONSTER = 0b10;
-	}
 }
 
 pub struct EntityTracer<'a, W: EntityStore> {
@@ -626,11 +627,8 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 						let entity_move_step = remainder * move_step3;
 
 						// TODO solid mask
-						let trace = entity_tracer.trace(
-							&entity_bbox,
-							entity_move_step,
-							SolidMask::NON_MONSTER,
-						);
+						let trace =
+							entity_tracer.trace(&entity_bbox, entity_move_step, SolidMask::PLAYER);
 						let total_fraction = hit_fraction + remainder * trace.fraction;
 
 						if total_fraction < trace_fraction {

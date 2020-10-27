@@ -116,7 +116,7 @@ pub fn player_move_system() -> impl Runnable {
 				let trace = tracer.trace(
 					&entity_bbox,
 					Vector3::new(0.0, 0.0, -0.25),
-					SolidMask::NON_MONSTER, // TODO solid mask
+					SolidMask::PLAYER, // TODO solid mask
 				);
 
 				if trace.collision.is_none() {
@@ -261,7 +261,7 @@ pub fn player_attack_system(_resources: &mut Resources) -> impl Runnable {
 					let trace = tracer.trace(
 						&AABB3::from_point(position),
 						axes[0] * ATTACKRANGE,
-						SolidMask::all(),
+						SolidMask::PROJECTILE,
 					);
 
 					if let Some(collision) = trace.collision {

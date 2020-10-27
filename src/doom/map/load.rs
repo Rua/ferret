@@ -446,7 +446,7 @@ fn build_linedefs(
 			bbox,
 			flags,
 			solid_mask: if flags.intersects(LinedefFlags::BLOCKING) {
-				SolidMask::all()
+				SolidMask::PLAYER | SolidMask::MONSTER
 			} else if flags.intersects(LinedefFlags::BLOCKMONSTERS) {
 				SolidMask::MONSTER
 			} else {
