@@ -12,7 +12,7 @@ use crate::{
 	doom::{
 		image::Image,
 		map::{load::LinedefFlags, textures::TextureType},
-		physics::{CollisionPlane, SolidMask},
+		physics::{CollisionPlane, SolidBits},
 	},
 };
 use bitflags::bitflags;
@@ -79,7 +79,7 @@ pub struct Linedef {
 	pub collision_planes: Vec<CollisionPlane>,
 	pub bbox: AABB2,
 	pub flags: LinedefFlags,
-	pub solid_mask: SolidMask,
+	pub blocks_types: SolidBits,
 	pub special_type: Option<u16>,
 	pub sector_tag: u16,
 	pub sidedefs: [Option<Sidedef>; 2],

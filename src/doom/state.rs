@@ -8,7 +8,7 @@ use crate::{
 	doom::{
 		entitytemplate::EntityTemplateRef,
 		map::spawn::SpawnContext,
-		physics::{BoxCollider, SolidMask},
+		physics::{BoxCollider, SolidBits},
 		sound::Sound,
 		sprite::SpriteRender,
 	},
@@ -27,7 +27,7 @@ pub struct StateInfo {
 	pub time: Option<Duration>,
 	pub next: Option<(StateName, usize)>,
 	pub remove: bool,
-	pub solid_mask: Option<SolidMask>,
+	pub blocks_types: Option<SolidBits>,
 	pub sound: Option<AssetHandle<Sound>>,
 	pub sprite: Option<SpriteRender>,
 }
@@ -154,8 +154,8 @@ pub fn solid_mask_system(_resources: &mut Resources) -> impl Runnable {
 
 			for (state_data, box_collider) in query.iter_mut(world) {
 				state_trigger(state_data, asset_storage, |state_info| {
-					if let Some(solid_mask) = &state_info.solid_mask {
-						box_collider.solid_mask = *solid_mask;
+					if let Some(blocks_types) = &state_info.blocks_types {
+						box_collider.blocks_types = *blocks_types;
 					}
 				});
 			}

@@ -8,7 +8,7 @@ use crate::{
 		data::FRAME_TIME,
 		entitytemplate::{EntityTemplate, EntityTemplateRefDef, EntityTypeId},
 		health::HealthDef,
-		physics::{BoxCollider, SolidMask},
+		physics::{BoxCollider, SolidBits, SolidType},
 		psprite::PlayerSpriteRender,
 		sprite::SpriteRender,
 		state::{StateDef, StateInfo, StateName},
@@ -176,7 +176,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(10 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -214,7 +214,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 16, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -256,7 +256,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 56.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::PLAYER,
+					blocks_types: SolidBits::all(),
 				},
 				Camera {
 					base: Vector3::new(0.0, 0.0, 41.0),
@@ -410,7 +411,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -438,7 +439,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 14, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -503,7 +504,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 56.0,
 					radius: 20.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -633,7 +635,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -661,7 +663,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 14, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -731,7 +733,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 56.0,
 					radius: 20.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -943,7 +946,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(6 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 11, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -971,7 +974,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 16, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -1031,7 +1034,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 56.0,
 					radius: 20.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -1166,7 +1170,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(4 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -1221,7 +1225,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 56.0,
 					radius: 30.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -1356,7 +1361,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(4 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -1411,7 +1416,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 56.0,
 					radius: 30.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -1564,7 +1570,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(8 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 11, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -1629,7 +1635,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 64.0,
 					radius: 24.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -1697,6 +1704,12 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 8.0,
+					radius: 6.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
 				SpriteRender {
@@ -1773,7 +1786,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 42.0,
 					radius: 10.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -1841,6 +1855,12 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 8.0,
+					radius: 6.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
 				SpriteRender {
@@ -1903,6 +1923,12 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 8.0,
+					radius: 6.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
 				SpriteRender {
@@ -1960,6 +1986,12 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 8.0,
+					radius: 11.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
 				SpriteRender {
@@ -2032,6 +2064,12 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 8.0,
+					radius: 13.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
 				SpriteRender {
@@ -2360,7 +2398,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -2405,7 +2444,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -2470,7 +2510,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -2535,7 +2576,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -2580,7 +2622,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -2625,7 +2668,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -2670,7 +2714,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -2709,7 +2754,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -2748,7 +2794,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -2813,7 +2860,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -2868,7 +2916,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -2907,7 +2956,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -2972,7 +3022,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3017,7 +3068,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3056,7 +3108,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3095,7 +3148,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3134,7 +3188,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3173,7 +3228,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3212,7 +3268,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3251,7 +3308,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3290,7 +3348,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3329,7 +3388,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3368,7 +3428,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3407,7 +3468,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3446,7 +3508,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3485,7 +3548,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3540,7 +3604,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3579,7 +3644,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3618,7 +3684,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3657,7 +3724,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3696,7 +3764,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3735,7 +3804,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3774,7 +3844,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3813,7 +3884,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3852,7 +3924,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3891,7 +3964,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3930,7 +4004,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -3969,7 +4044,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -4073,7 +4149,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(8 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 10, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -4123,7 +4199,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 56.0,
 					radius: 31.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -4233,7 +4310,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(6 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 8, full_bright: true}),
 					.. StateInfo::default()
 				},
@@ -4260,7 +4337,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 56.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -4410,7 +4488,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(10 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 10, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -4467,7 +4545,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 100.0,
 					radius: 128.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -4622,7 +4701,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(10 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 12, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -4654,7 +4733,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 110.0,
 					radius: 40.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -4732,6 +4812,12 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 8.0,
+					radius: 13.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
 				SpriteRender {
@@ -4809,6 +4895,12 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 8.0,
+					radius: 13.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
 				SpriteRender {
@@ -4907,7 +4999,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -4952,7 +5045,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -4997,7 +5091,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5052,7 +5147,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5091,7 +5187,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5130,7 +5227,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5169,7 +5267,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5208,7 +5307,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5247,7 +5347,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5286,7 +5387,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5325,7 +5427,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5364,7 +5467,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5403,7 +5507,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5442,7 +5547,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5487,7 +5593,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5542,7 +5649,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5592,7 +5700,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5631,7 +5740,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5686,7 +5796,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5741,7 +5852,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5796,7 +5908,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5851,7 +5964,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5906,7 +6020,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -5945,7 +6060,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6000,7 +6116,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 68.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6039,7 +6156,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 84.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6078,7 +6196,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 84.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6117,7 +6236,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 68.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6156,7 +6276,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 52.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6195,7 +6316,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 84.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6234,7 +6356,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 68.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6273,7 +6396,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 52.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6312,7 +6436,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 52.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6367,7 +6492,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 68.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6406,7 +6532,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6450,7 +6577,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6489,7 +6617,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6528,7 +6657,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6573,7 +6703,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6612,7 +6743,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6657,7 +6789,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6696,7 +6829,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 32.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6746,7 +6880,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -6935,7 +7070,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(7 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 18, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -6982,7 +7117,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 56.0,
 					radius: 20.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -7349,7 +7485,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(7 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 14, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -7404,7 +7540,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 56.0,
 					radius: 20.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -7472,6 +7609,12 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 8.0,
+					radius: 11.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
 				SpriteRender {
@@ -7651,7 +7794,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(6 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 12, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -7741,7 +7884,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 64.0,
 					radius: 48.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -7809,6 +7953,12 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 8.0,
+					radius: 6.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
 				SpriteRender {
@@ -7938,7 +8088,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 9, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -7976,7 +8126,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 16, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -8041,7 +8191,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 56.0,
 					radius: 20.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -8194,7 +8345,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(8 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 11, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -8259,7 +8410,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 64.0,
 					radius: 24.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -8415,7 +8567,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(7 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 10, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -8490,7 +8642,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 64.0,
 					radius: 64.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -8674,7 +8827,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 56.0,
 					radius: 31.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -8819,7 +8973,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 10, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -8847,7 +9001,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateInfo {
 					time: Some(5 * FRAME_TIME),
-					solid_mask: Some(SolidMask::empty()),
+					blocks_types: Some(SolidBits::empty()),
 					sprite: Some(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 15, full_bright: false}),
 					.. StateInfo::default()
 				},
@@ -8917,7 +9071,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 56.0,
 					radius: 20.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -9037,7 +9192,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 72.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -9112,7 +9268,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -9235,6 +9392,12 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 32.0,
+					radius: 6.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
 				SpriteRender {
@@ -9363,7 +9526,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -9402,7 +9566,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 20.0,
-					solid_mask: SolidMask::empty(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -9457,7 +9622,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -9512,7 +9678,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 16.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -9551,7 +9718,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 88.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -9590,7 +9758,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 88.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -9629,7 +9798,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 64.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -9668,7 +9838,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 64.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -9707,7 +9878,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 64.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
@@ -9746,7 +9918,8 @@ pub fn load(resources: &mut Resources) {
 				BoxCollider {
 					height: 64.0,
 					radius: 16.0,
-					solid_mask: SolidMask::all(),
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,

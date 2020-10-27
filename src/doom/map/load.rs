@@ -10,7 +10,7 @@ use crate::{
 			textures::TextureType, Anim, Linedef, Map, Node, NodeChild, Sector, SectorSlot, Seg,
 			Sidedef, SidedefSlot, Subsector, Thing, ThingFlags,
 		},
-		physics::{CollisionPlane, SolidMask},
+		physics::{CollisionPlane, SolidBits},
 		wad::read_string,
 	},
 };
@@ -445,12 +445,12 @@ fn build_linedefs(
 			collision_planes,
 			bbox,
 			flags,
-			solid_mask: if flags.intersects(LinedefFlags::BLOCKING) {
-				SolidMask::PLAYER | SolidMask::MONSTER
+			blocks_types: if flags.intersects(LinedefFlags::BLOCKING) {
+				SolidBits::PLAYER | SolidBits::MONSTER
 			} else if flags.intersects(LinedefFlags::BLOCKMONSTERS) {
-				SolidMask::MONSTER
+				SolidBits::MONSTER
 			} else {
-				SolidMask::empty()
+				SolidBits::empty()
 			},
 			special_type: if special_type == 0 {
 				None

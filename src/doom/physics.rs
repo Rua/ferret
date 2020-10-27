@@ -63,6 +63,7 @@ pub fn physics_system(resources: &mut Resources) -> impl Runnable {
 				let mut new_velocity = velocity.velocity;
 				let entity_bbox =
 					{ AABB3::from_radius_height(box_collider.radius, box_collider.height) };
+				let solid_type = box_collider.solid_type;
 
 				let mut step_events: SmallVec<[StepEvent; 8]> = SmallVec::new();
 				let mut touch_events: SmallVec<[TouchEvent; 8]> = SmallVec::new();
@@ -84,7 +85,7 @@ pub fn physics_system(resources: &mut Resources) -> impl Runnable {
 				let trace = tracer.trace(
 					&entity_bbox.offset(new_position),
 					Vector3::new(0.0, 0.0, -0.25),
-					SolidMask::PLAYER, // TODO solid mask
+					solid_type,
 				);
 
 				if let Some(collision) = trace.collision {
@@ -114,7 +115,7 @@ pub fn physics_system(resources: &mut Resources) -> impl Runnable {
 					&mut touch_events,
 					entity,
 					&entity_bbox,
-					SolidMask::PLAYER, // TODO solid mask
+					solid_type,
 					frame_state.delta_time,
 				);
 
@@ -139,7 +140,7 @@ fn step_slide_move<W: EntityStore>(
 	touch_events: &mut SmallVec<[TouchEvent; 8]>,
 	entity: Entity,
 	entity_bbox: &AABB3,
-	solid_mask: SolidMask,
+	solid_type: SolidType,
 	mut time_left: Duration,
 ) {
 	let original_velocity = *velocity;
@@ -151,7 +152,7 @@ fn step_slide_move<W: EntityStore>(
 		let trace = tracer.trace(
 			&entity_bbox.offset(*position),
 			*velocity * time_left.as_secs_f32(),
-			solid_mask,
+			solid_type,
 		);
 
 		// Commit to the move
@@ -185,7 +186,7 @@ fn step_slide_move<W: EntityStore>(
 				let trace = tracer.trace(
 					&entity_bbox.offset(*position),
 					Vector3::new(0.0, 0.0, height),
-					solid_mask,
+					solid_type,
 				);
 
 				if trace.collision.is_none() {
@@ -239,7 +240,7 @@ fn step_slide_move<W: EntityStore>(
 }
 
 bitflags! {
-	pub struct SolidMask: u16 {
+	pub struct SolidBits: u8 {
 		const PLAYER = 0b1;
 		const MONSTER = 0b10;
 		const PROJECTILE = 0b100;
@@ -247,10 +248,28 @@ bitflags! {
 }
 
 #[derive(Clone, Copy, Debug)]
+#[repr(u8)]
+pub enum SolidType {
+	PLAYER = SolidBits::PLAYER.bits(),
+	MONSTER = SolidBits::MONSTER.bits(),
+	PROJECTILE = SolidBits::PROJECTILE.bits(),
+}
+
+impl SolidBits {
+	#[inline]
+	pub fn blocks(&self, solid_type: SolidType) -> bool {
+		self.intersects(SolidBits::from_bits_truncate(solid_type as u8))
+	}
+}
+
+#[derive(Clone, Copy, Debug)]
 pub struct BoxCollider {
 	pub height: f32,
 	pub radius: f32,
-	pub solid_mask: SolidMask,
+	/// What type of solid this entity is.
+	pub solid_type: SolidType,
+	/// What solid types this entity will block movement for.
+	pub blocks_types: SolidBits,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -309,7 +328,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 		&self,
 		entity_bbox: &AABB3,
 		move_step: Vector3<f32>,
-		entity_solid_mask: SolidMask,
+		solid_type: SolidType,
 	) -> EntityTrace {
 		let mut trace_fraction = 1.0;
 		let mut trace_collision = None;
@@ -346,22 +365,22 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						let intervals = ArrayVec::from([
 							(
 								Interval::new(union.min, intersection.min),
-								SolidMask::all(),
+								SolidBits::all(),
 								true,
 							),
 							(
 								Interval::new(intersection.min, intersection.max + EXTRA_HEADROOM),
-								linedef.solid_mask,
+								linedef.blocks_types,
 								false,
 							),
 							(
 								Interval::new(intersection.max + EXTRA_HEADROOM, union.max),
-								SolidMask::all(),
+								SolidBits::all(),
 								false,
 							),
 						]);
 
-						for (interval, solid_mask, step) in intervals.into_iter() {
+						for (interval, blocks_types, step) in intervals.into_iter() {
 							if interval.is_empty() {
 								continue;
 							}
@@ -380,14 +399,14 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 
 							// Non-solid linedefs are only touched
 							// if the midpoint of the entity touches
-							let bbox = if entity_solid_mask.intersects(solid_mask) {
+							let bbox = if blocks_types.blocks(solid_type) {
 								entity_bbox
 							} else {
 								&zero_bbox
 							};
 
 							if let Some((fraction, normal)) = trace_planes(bbox, move_step, iter) {
-								if entity_solid_mask.intersects(solid_mask) {
+								if blocks_types.blocks(solid_type) {
 									if fraction < trace_fraction
 										// Wall takes priority over other vertical surfaces
 										|| fraction == trace_fraction && normal[2] == 0.0
@@ -397,7 +416,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 											entity: linedef_dynamic.entity,
 											normal,
 											step_z: if step
-												&& !entity_solid_mask.intersects(linedef.solid_mask)
+												&& !linedef.blocks_types.blocks(solid_type)
 											{
 												Some(interval.max + DISTANCE_EPSILON)
 											} else {
@@ -432,7 +451,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						if let Some((fraction, normal)) =
 							trace_planes(&entity_bbox, move_step, iter)
 						{
-							if entity_solid_mask.intersects(SolidMask::all()) {
+							if SolidBits::all().blocks(solid_type) {
 								if fraction < trace_fraction
 									// Wall takes priority over other vertical surfaces
 									|| fraction == trace_fraction && normal[2] == 0.0
@@ -479,7 +498,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						if let Some((fraction, normal)) =
 							trace_planes(&entity_bbox, move_step, iter)
 						{
-							if entity_solid_mask.intersects(SolidMask::all()) {
+							if SolidBits::all().blocks(solid_type) {
 								if fraction < trace_fraction
 									// Flat takes priority over other horizontal surfaces
 									|| fraction == trace_fraction
@@ -532,7 +551,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 					if let Some((fraction, normal)) =
 						trace_planes(&entity_bbox, move_step, other_planes.iter())
 					{
-						if entity_solid_mask.intersects(box_collider.solid_mask) {
+						if box_collider.blocks_types.blocks(solid_type) {
 							if fraction < trace_fraction {
 								trace_fraction = fraction;
 								trace_collision = Some(EntityTraceCollision {
@@ -627,8 +646,11 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 						let entity_move_step = remainder * move_step3;
 
 						// TODO solid mask
-						let trace =
-							entity_tracer.trace(&entity_bbox, entity_move_step, SolidMask::PLAYER);
+						let trace = entity_tracer.trace(
+							&entity_bbox,
+							entity_move_step,
+							box_collider.solid_type,
+						);
 						let total_fraction = hit_fraction + remainder * trace.fraction;
 
 						if total_fraction < trace_fraction {

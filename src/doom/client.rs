@@ -15,7 +15,7 @@ use crate::{
 		health::Health,
 		input::{BoolInput, FloatInput, UserCommand},
 		map::MapDynamic,
-		physics::{BoxCollider, EntityTracer, SolidMask},
+		physics::{BoxCollider, EntityTracer, SolidType},
 		plat::PlatSwitchUse,
 		sound::Sound,
 	},
@@ -100,10 +100,13 @@ pub fn player_move_system() -> impl Runnable {
 				let map_dynamic = queries.1.iter(world).next().unwrap();
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 
-				let entity_bbox = {
+				let (entity_bbox, solid_type) = {
 					let (transform, box_collider) = queries.2.get(world, client_entity).unwrap();
-					AABB3::from_radius_height(box_collider.radius, box_collider.height)
-						.offset(transform.position)
+					(
+						AABB3::from_radius_height(box_collider.radius, box_collider.height)
+							.offset(transform.position),
+						box_collider.solid_type,
+					)
 				};
 
 				let tracer = EntityTracer {
@@ -113,11 +116,7 @@ pub fn player_move_system() -> impl Runnable {
 					world,
 				};
 
-				let trace = tracer.trace(
-					&entity_bbox,
-					Vector3::new(0.0, 0.0, -0.25),
-					SolidMask::PLAYER, // TODO solid mask
-				);
+				let trace = tracer.trace(&entity_bbox, Vector3::new(0.0, 0.0, -0.25), solid_type);
 
 				if trace.collision.is_none() {
 					// Player is not on ground
@@ -261,7 +260,7 @@ pub fn player_attack_system(_resources: &mut Resources) -> impl Runnable {
 					let trace = tracer.trace(
 						&AABB3::from_point(position),
 						axes[0] * ATTACKRANGE,
-						SolidMask::PROJECTILE,
+						SolidType::PROJECTILE,
 					);
 
 					if let Some(collision) = trace.collision {
