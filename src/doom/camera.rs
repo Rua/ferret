@@ -17,12 +17,17 @@ use std::time::Duration;
 pub struct Camera {
 	pub base: Vector3<f32>,
 	pub offset: Vector3<f32>,
-	pub bob_max: f32,
-	pub view_bob_period: Duration,
+	pub bob_period: Duration,
 	pub weapon_bob_period: Duration,
 	pub deviation_position: f32,
 	pub deviation_velocity: f32,
 	pub impact_sound: AssetHandle<Sound>,
+}
+
+#[derive(Clone, Debug)]
+pub struct MovementBob {
+	pub amplitude: f32,
+	pub max: f32,
 }
 
 pub fn camera_system(resources: &mut Resources) -> impl Runnable {
@@ -41,7 +46,7 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<EventChannel<TouchEvent>>()
 		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<&mut Camera>::query())
-		.with_query(<(&Velocity, &mut Camera, &mut WeaponSpriteRender)>::query())
+		.with_query(<(&MovementBob, &mut Camera, &mut WeaponSpriteRender)>::query())
 		.build(move |_, world, resources, queries| {
 			let (frame_state, step_event_channel, touch_event_channel, sound_queue) = resources;
 
@@ -68,7 +73,7 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 				}
 			}
 
-			for (velocity, mut camera, weapon_sprite_render) in queries.1.iter_mut(world) {
+			for (movement_bob, mut camera, weapon_sprite_render) in queries.1.iter_mut(world) {
 				// Calculate deviation
 				if camera.deviation_position != 0.0 || camera.deviation_velocity != 0.0 {
 					const DEVIATION_ACCEL: f32 = 0.25 * FRAME_RATE * FRAME_RATE;
@@ -91,26 +96,35 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 					}
 				}
 
-				// Calculate movement bobbing
-				let velocity2 =
-					Vector2::new(velocity.velocity[0], velocity.velocity[1]) / FRAME_RATE;
-				let bob_amplitude = (velocity2.norm_squared() * 0.25).min(camera.bob_max);
-
 				// Set camera position
 				let angle = Angle::from_units(
-					frame_state.time.as_secs_f64() / camera.view_bob_period.as_secs_f64(),
+					frame_state.time.as_secs_f64() / camera.bob_period.as_secs_f64(),
 				); // TODO replace with div_duration_f64 once it's stable
-				let bob = bob_amplitude * 0.5 * angle.sin() as f32;
+				let bob = movement_bob.amplitude * 0.5 * angle.sin() as f32;
 				camera.offset[2] = camera.deviation_position + bob;
 
 				// Set weapon position
 				let mut angle = Angle::from_units(
 					frame_state.time.as_secs_f64() / camera.weapon_bob_period.as_secs_f64(),
 				);
-				weapon_sprite_render.position[0] = 1.0 + bob_amplitude * angle.cos() as f32;
+				weapon_sprite_render.position[0] =
+					1.0 + movement_bob.amplitude * angle.cos() as f32;
 
 				angle.0 &= 0x7FFF_FFFF;
-				weapon_sprite_render.position[1] = bob_amplitude * angle.sin() as f32;
+				weapon_sprite_render.position[1] = movement_bob.amplitude * angle.sin() as f32;
+			}
+		})
+}
+
+pub fn movement_bob_system(_resources: &mut Resources) -> impl Runnable {
+	SystemBuilder::new("movement_bob_system")
+		.read_resource::<FrameState>()
+		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
+		.with_query(<(&Velocity, &mut MovementBob)>::query())
+		.build(move |_command_buffer, world, _resources, query| {
+			for (velocity, movement_bob) in query.iter_mut(world) {
+				let velocity2: Vector2<f32> = velocity.velocity.fixed_resize(0.0) / FRAME_RATE;
+				movement_bob.amplitude = (velocity2.norm_squared() * 0.25).min(movement_bob.max);
 			}
 		})
 }

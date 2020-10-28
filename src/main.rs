@@ -195,6 +195,7 @@ fn main() -> anyhow::Result<()> {
 	let mut handler_set = SpawnMergerHandlerSet::new();
 	handler_set.register_spawn::<FrameRngDef, FrameRng>();
 	handler_set.register_clone::<doom::camera::Camera>();
+	handler_set.register_clone::<doom::camera::MovementBob>();
 	handler_set.register_clone::<doom::client::UseAction>();
 	handler_set.register_clone::<doom::client::User>();
 	handler_set.register_clone::<doom::components::SpawnPoint>();
@@ -233,6 +234,7 @@ fn main() -> anyhow::Result<()> {
 		.add_thread_local(doom::client::player_attack_system(&mut resources)).flush()
 		.add_thread_local(doom::client::player_use_system(&mut resources)).flush()
 		.add_thread_local(doom::physics::physics_system(&mut resources)).flush()
+		.add_thread_local(doom::camera::movement_bob_system(&mut resources)).flush()
 		.add_thread_local(doom::camera::camera_system(&mut resources)).flush()
 		.add_thread_local(doom::door::door_use_system(&mut resources)).flush()
 		.add_thread_local(doom::door::door_switch_system(&mut resources)).flush()

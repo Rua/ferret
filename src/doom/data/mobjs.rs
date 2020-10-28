@@ -2,7 +2,7 @@
 use crate::{
 	common::{assets::AssetStorage, frame::FrameRngDef},
 	doom::{
-		camera::Camera,
+		camera::{Camera, MovementBob},
 		client::User,
 		components::{SpawnPoint, TransformDef, VelocityDef},
 		data::FRAME_TIME,
@@ -262,8 +262,7 @@ pub fn load(resources: &mut Resources) {
 				Camera {
 					base: Vector3::new(0.0, 0.0, 41.0),
 					offset: Vector3::zeros(),
-					bob_max: 16.0,
-					view_bob_period: 20 * FRAME_TIME,
+					bob_period: 20 * FRAME_TIME,
 					weapon_bob_period: 64 * FRAME_TIME,
 					deviation_position: 0.0,
 					deviation_velocity: 0.0,
@@ -274,6 +273,10 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 100.0,
 					pain_chance: 0.99609375,
+				},
+				MovementBob {
+					max: 16.0,
+					amplitude: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("play.sprite"),
