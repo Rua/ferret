@@ -81,7 +81,7 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 				if sector_move.sound_timer.is_elapsed(frame_state.time)
 					&& sector_move.sound.is_some()
 				{
-					sector_move.sound_timer.restart();
+					sector_move.sound_timer.restart(frame_state.time);
 					sound_queue.push((sector_move.sound.as_ref().unwrap().clone(), entity));
 				}
 

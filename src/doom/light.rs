@@ -75,7 +75,7 @@ pub fn light_flash_system() -> impl Runnable {
 						LightFlashType::StrobeUnSync(_) => unreachable!(),
 					};
 
-					light_flash.timer.restart_with(new_time);
+					light_flash.timer.restart_with(frame_state.time, new_time);
 				}
 			}
 		})

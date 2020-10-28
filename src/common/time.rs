@@ -29,13 +29,13 @@ impl Timer {
 		current_time >= self.target_time
 	}
 
-	pub fn restart(&mut self) {
-		self.target_time += self.wait_time;
+	pub fn restart(&mut self, current_time: Duration) {
+		self.target_time = current_time + self.wait_time;
 	}
 
-	pub fn restart_with(&mut self, wait_time: Duration) {
+	pub fn restart_with(&mut self, current_time: Duration, wait_time: Duration) {
 		self.wait_time = wait_time;
-		self.target_time += self.wait_time;
+		self.target_time = current_time + self.wait_time;
 	}
 
 	pub fn set_target(&mut self, target_time: Duration) {

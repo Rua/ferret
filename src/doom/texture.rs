@@ -24,7 +24,7 @@ pub fn texture_animation_system() -> impl Runnable {
 						let map = asset_storage.get(&map_dynamic.map).unwrap();
 						let anim = &map.anims[handle];
 						anim_state.frame = (anim_state.frame + 1) % anim.frames.len();
-						anim_state.timer.restart();
+						anim_state.timer.restart(frame_state.time);
 					}
 				}
 			}

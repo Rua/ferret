@@ -104,9 +104,10 @@ pub fn state_set_system(_resources: &mut Resources) -> impl Runnable {
 pub fn state_next_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("state_next_system")
 		.read_resource::<AssetStorage>()
+		.read_resource::<FrameState>()
 		.with_query(<(&EntityTemplateRef, &mut State)>::query())
 		.build(move |_command_buffer, world, resources, query| {
-			let asset_storage = resources;
+			let (asset_storage, frame_state) = resources;
 
 			for (template_ref, state) in query.iter_mut(world) {
 				if let StateAction::Set(state_name) = state.action {
@@ -117,7 +118,7 @@ pub fn state_next_system(_resources: &mut Resources) -> impl Runnable {
 						.unwrap_or_else(|| panic!("Invalid state {:?}", state_name));
 
 					if let Some(time) = state_info.time {
-						state.timer.restart_with(time);
+						state.timer.restart_with(frame_state.time, time);
 						state.action = StateAction::Wait(state_info.next.unwrap_or_else(|| {
 							(
 								state_name.0,
@@ -275,9 +276,10 @@ pub fn weapon_state_set_system(_resources: &mut Resources) -> impl Runnable {
 pub fn weapon_state_next_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("weapon_state_next_system")
 		.read_resource::<AssetStorage>()
+		.read_resource::<FrameState>()
 		.with_query(<&mut WeaponState>::query())
 		.build(move |_command_buffer, world, resources, query| {
-			let asset_storage = resources;
+			let (asset_storage, frame_state) = resources;
 
 			for weapon_state in query.iter_mut(world) {
 				if let StateAction::Set(state_name) = weapon_state.state.action {
@@ -288,7 +290,10 @@ pub fn weapon_state_next_system(_resources: &mut Resources) -> impl Runnable {
 						.unwrap_or_else(|| panic!("Invalid state {:?}", state_name));
 
 					if let Some(time) = state_info.time {
-						weapon_state.state.timer.restart_with(time);
+						weapon_state
+							.state
+							.timer
+							.restart_with(frame_state.time, time);
 						weapon_state.state.action =
 							StateAction::Wait(state_info.next.unwrap_or_else(|| {
 								(

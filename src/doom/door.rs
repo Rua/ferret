@@ -145,7 +145,7 @@ pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
 							command_buffer.remove_component::<CeilingMove>(event.entity);
 							command_buffer.remove_component::<DoorActive>(event.entity);
 						} else {
-							door_active.wait_timer.restart();
+							door_active.wait_timer.restart(frame_state.time);
 						}
 					}
 				}

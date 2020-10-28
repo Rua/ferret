@@ -138,7 +138,7 @@ pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
 							command_buffer.remove_component::<FloorMove>(event.entity);
 							command_buffer.remove_component::<PlatActive>(event.entity);
 						} else {
-							plat_active.wait_timer.restart();
+							plat_active.wait_timer.restart(frame_state.time);
 						}
 					}
 				}
