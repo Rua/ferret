@@ -17,7 +17,7 @@ use crate::{
 		map::MapDynamic,
 		physics::{BoxCollider, EntityTracer, SolidType},
 		plat::PlatSwitchUse,
-		sound::Sound,
+		sound::{Sound, StartSound},
 	},
 };
 use legion::{
@@ -147,12 +147,11 @@ pub fn player_use_system(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
 		.write_resource::<EventChannel<UseEvent>>()
-		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<(&Transform, &User)>::query())
 		.with_query(<&MapDynamic>::query())
 		.read_component::<UseAction>()
-		.build(move |_, world, resources, queries| {
-			let (asset_storage, client, use_event_channel, sound_queue) = resources;
+		.build(move |command_buffer, world, resources, queries| {
+			let (asset_storage, client, use_event_channel) = resources;
 
 			if let Some(entity) = client.entity {
 				if client.command.r#use && !client.previous_command.r#use {
@@ -216,7 +215,10 @@ pub fn player_use_system(resources: &mut Resources) -> impl Runnable {
 						{
 							use_event_channel.single_write(UseEvent { linedef_entity });
 						} else {
-							sound_queue.push((user.error_sound.clone(), entity));
+							command_buffer.push((StartSound {
+								entity,
+								sound: user.error_sound.clone(),
+							},));
 						}
 					}
 				}

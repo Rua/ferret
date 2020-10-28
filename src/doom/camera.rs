@@ -5,10 +5,10 @@ use crate::{
 		data::FRAME_RATE,
 		physics::{StepEvent, TouchEvent},
 		psprite::WeaponSpriteRender,
-		sound::Sound,
+		sound::{Sound, StartSound},
 	},
 };
-use legion::{systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};
+use legion::{systems::Runnable, IntoQuery, Resources, SystemBuilder};
 use nalgebra::{Vector2, Vector3};
 use shrev::EventChannel;
 use std::time::Duration;
@@ -44,11 +44,10 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<FrameState>()
 		.read_resource::<EventChannel<StepEvent>>()
 		.read_resource::<EventChannel<TouchEvent>>()
-		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<&mut Camera>::query())
 		.with_query(<(&MovementBob, &mut Camera, &mut WeaponSpriteRender)>::query())
-		.build(move |_, world, resources, queries| {
-			let (frame_state, step_event_channel, touch_event_channel, sound_queue) = resources;
+		.build(move |command_buffer, world, resources, queries| {
+			let (frame_state, step_event_channel, touch_event_channel) = resources;
 
 			// Entity hitting the ground
 			for touch_event in touch_event_channel.read(&mut touch_event_reader) {
@@ -60,7 +59,10 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 
 					if down_speed >= 8.0 * FRAME_RATE {
 						camera.deviation_velocity = -down_speed / 8.0;
-						sound_queue.push((camera.impact_sound.clone(), touch_event.toucher));
+						command_buffer.push((StartSound {
+							entity: touch_event.toucher,
+							sound: camera.impact_sound.clone(),
+						},));
 					}
 				}
 			}
@@ -118,8 +120,6 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 
 pub fn movement_bob_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("movement_bob_system")
-		.read_resource::<FrameState>()
-		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<(&Velocity, &mut MovementBob)>::query())
 		.build(move |_command_buffer, world, _resources, query| {
 			for (velocity, movement_bob) in query.iter_mut(world) {

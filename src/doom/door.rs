@@ -10,7 +10,7 @@ use crate::{
 		map::{LinedefRef, Map, MapDynamic},
 		physics::{TouchAction, TouchEvent},
 		sectormove::{CeilingMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
-		sound::Sound,
+		sound::{Sound, StartSound},
 		switch::{SwitchActive, SwitchParams},
 	},
 };
@@ -66,10 +66,9 @@ pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("door_active_system")
 		.read_resource::<FrameState>()
 		.read_resource::<EventChannel<SectorMoveEvent>>()
-		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<(Entity, &mut CeilingMove, &mut DoorActive)>::query())
 		.build(move |command_buffer, world, resources, query| {
-			let (frame_state, sector_move_event_channel, sound_queue) = resources;
+			let (frame_state, sector_move_event_channel) = resources;
 
 			for (entity, ceiling_move, mut door_active) in query.iter_mut(world) {
 				let sector_move = &mut ceiling_move.0;
@@ -92,7 +91,10 @@ pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
 					};
 
 					if let Some(sound) = sound {
-						sound_queue.push((sound.clone(), *entity));
+						command_buffer.push((StartSound {
+							entity: *entity,
+							sound: sound.clone(),
+						},));
 					}
 				}
 			}
@@ -128,7 +130,10 @@ pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
 							};
 
 							if let Some(sound) = sound {
-								sound_queue.push((sound.clone(), event.entity));
+								command_buffer.push((StartSound {
+									entity: event.entity,
+									sound: sound.clone(),
+								},));
 							}
 						}
 					}
@@ -252,12 +257,11 @@ pub fn door_switch_system(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<AssetStorage>()
 		.read_resource::<EventChannel<UseEvent>>()
 		.read_resource::<FrameState>()
-		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<(&LinedefRef, &UseAction)>::query().filter(!component::<SwitchActive>()))
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<DoorActive>() // used by activate_with_tag
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, use_event_channel, frame_state, sound_queue) = resources;
+			let (asset_storage, use_event_channel, frame_state) = resources;
 			let (mut world1, world) = world.split_for_query(&queries.1);
 
 			for use_event in use_event_channel.read(&mut use_event_reader) {
@@ -290,7 +294,6 @@ pub fn door_switch_system(resources: &mut Resources) -> impl Runnable {
 					crate::doom::switch::activate(
 						&door_switch_use.switch_params,
 						command_buffer,
-						sound_queue.as_mut(),
 						frame_state,
 						linedef_ref.index,
 						map,

@@ -9,7 +9,7 @@ use crate::{
 		map::spawn::SpawnContext,
 		physics::{BoxCollider, SolidBits},
 		psprite::WeaponSpriteRender,
-		sound::Sound,
+		sound::{Sound, StartSound},
 		sprite::SpriteRender,
 		template::{EntityTemplateRef, WeaponTemplate},
 	},
@@ -168,15 +168,17 @@ pub fn solid_mask_system(_resources: &mut Resources) -> impl Runnable {
 pub fn sound_play_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("sound_play_system")
 		.read_resource::<AssetStorage>()
-		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<((&EntityTemplateRef, &State), Entity)>::query())
-		.build(move |_command_buffer, world, resources, query| {
-			let (asset_storage, sound_queue) = resources;
+		.build(move |command_buffer, world, resources, query| {
+			let asset_storage = resources;
 
 			for (state_data, entity) in query.iter_mut(world) {
 				state_trigger(state_data, asset_storage, |state_info| {
 					if let Some(sound) = &state_info.sound {
-						sound_queue.push((sound.clone(), *entity));
+						command_buffer.push((StartSound {
+							entity: *entity,
+							sound: sound.clone(),
+						},));
 					}
 				});
 			}

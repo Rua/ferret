@@ -11,7 +11,7 @@ use crate::common::{
 };
 use anyhow::{bail, Context};
 use clap::{App, Arg, ArgMatches};
-use legion::{systems::ResourceSet, Entity, Read, Resources, Schedule, World, Write};
+use legion::{systems::ResourceSet, Read, Resources, Schedule, World, Write};
 use nalgebra::Vector2;
 use rand::SeedableRng;
 use relative_path::RelativePath;
@@ -128,7 +128,6 @@ fn main() -> anyhow::Result<()> {
 	resources.insert(bindings);
 
 	resources.insert(InputState::new());
-	resources.insert(Vec::<(AssetHandle<doom::sound::Sound>, Entity)>::new());
 	resources.insert(doom::client::Client::default());
 
 	let frame_state = FrameState {
@@ -264,9 +263,11 @@ fn main() -> anyhow::Result<()> {
 		.add_thread_local(frame_state_system(doom::data::FRAME_TIME)).flush()
 		.build();
 
+	#[rustfmt::skip]
 	let mut output_dispatcher = Schedule::builder()
 		.add_thread_local_fn(doom::render::render_system(draw_list))
-		.add_thread_local_fn(doom::sound::sound_system())
+		.add_thread_local(doom::sound::start_sound_system(&mut resources)).flush()
+		.add_thread_local(doom::sound::sound_playing_system(&mut resources)).flush()
 		.build();
 
 	// Create world

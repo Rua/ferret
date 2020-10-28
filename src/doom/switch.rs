@@ -7,7 +7,7 @@ use crate::{
 	doom::{
 		image::Image,
 		map::{textures::TextureType, LinedefRef, Map, MapDynamic, SidedefSlot},
-		sound::Sound,
+		sound::{Sound, StartSound},
 	},
 };
 use legion::{
@@ -34,11 +34,10 @@ pub fn switch_active_system() -> impl Runnable {
 	SystemBuilder::new("switch_active_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<FrameState>()
-		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<(Entity, &LinedefRef, &mut SwitchActive)>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, frame_state, sound_queue) = resources;
+			let (asset_storage, frame_state) = resources;
 
 			let (mut world0, mut world) = world.split_for_query(&queries.0);
 
@@ -59,7 +58,10 @@ pub fn switch_active_system() -> impl Runnable {
 						TextureType::Normal(switch_active.texture.clone());
 
 					if let Some(sound) = &switch_active.sound {
-						sound_queue.push((sound.clone(), sector_entity));
+						command_buffer.push((StartSound {
+							entity: sector_entity,
+							sound: sound.clone(),
+						},));
 					}
 
 					command_buffer.remove_component::<SwitchActive>(*entity);
@@ -71,7 +73,6 @@ pub fn switch_active_system() -> impl Runnable {
 pub fn activate(
 	params: &SwitchParams,
 	command_buffer: &mut CommandBuffer,
-	sound_queue: &mut Vec<(AssetHandle<Sound>, Entity)>,
 	frame_state: &FrameState,
 	linedef_index: usize,
 	map: &Map,
@@ -94,7 +95,10 @@ pub fn activate(
 				// Play sound
 				if let Some(sound) = &params.sound {
 					let sector_entity = map_dynamic.sectors[sidedef.sector_index].entity;
-					sound_queue.push((sound.clone(), sector_entity));
+					command_buffer.push((StartSound {
+						entity: sector_entity,
+						sound: sound.clone(),
+					},));
 				}
 
 				if let Some(time_left) = params.retrigger_time {

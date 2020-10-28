@@ -9,14 +9,14 @@ use crate::{
 		map::{LinedefRef, Map, MapDynamic},
 		physics::{TouchAction, TouchEvent},
 		sectormove::{FloorMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
-		sound::Sound,
+		sound::{Sound, StartSound},
 		switch::{SwitchActive, SwitchParams},
 	},
 };
 use legion::{
 	component,
 	systems::{CommandBuffer, Runnable},
-	Entity, EntityStore, IntoQuery, Resources, SystemBuilder,
+	EntityStore, IntoQuery, Resources, SystemBuilder,
 };
 use shrev::EventChannel;
 use std::time::Duration;
@@ -53,10 +53,9 @@ pub fn floor_active_system(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("floor_active_system")
 		.read_resource::<EventChannel<SectorMoveEvent>>()
-		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<(&mut FloorMove, &mut FloorActive)>::query())
 		.build(move |command_buffer, world, resources, query| {
-			let (sector_move_event_channel, sound_queue) = resources;
+			let sector_move_event_channel = resources;
 
 			for event in sector_move_event_channel
 				.read(&mut sector_move_event_reader)
@@ -79,7 +78,10 @@ pub fn floor_active_system(resources: &mut Resources) -> impl Runnable {
 					}
 					SectorMoveEventType::TargetReached => {
 						if let Some(sound) = &floor_active.finish_sound {
-							sound_queue.push((sound.clone(), event.entity));
+							command_buffer.push((StartSound {
+								entity: event.entity,
+								sound: sound.clone(),
+							},));
 						}
 
 						command_buffer.remove_component::<FloorMove>(event.entity);
@@ -106,12 +108,11 @@ pub fn floor_switch_system(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<AssetStorage>()
 		.read_resource::<EventChannel<UseEvent>>()
 		.read_resource::<FrameState>()
-		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<(&LinedefRef, &UseAction)>::query().filter(!component::<SwitchActive>()))
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<FloorActive>() // used by activate_with_tag
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, use_event_channel, frame_state, sound_queue) = resources;
+			let (asset_storage, use_event_channel, frame_state) = resources;
 			let (mut world1, world) = world.split_for_query(&queries.1);
 
 			for use_event in use_event_channel.read(&mut use_event_reader) {
@@ -144,7 +145,6 @@ pub fn floor_switch_system(resources: &mut Resources) -> impl Runnable {
 					crate::doom::switch::activate(
 						&floor_switch_use.switch_params,
 						command_buffer,
-						sound_queue.as_mut(),
 						frame_state,
 						linedef_ref.index,
 						map,

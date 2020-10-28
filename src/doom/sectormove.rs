@@ -9,7 +9,7 @@ use crate::{
 		components::Transform,
 		map::{MapDynamic, SectorRef},
 		physics::{BoxCollider, SectorTracer},
-		sound::Sound,
+		sound::{Sound, StartSound},
 	},
 };
 use legion::{systems::Runnable, world::SubWorld, Entity, IntoQuery, Resources, SystemBuilder};
@@ -50,16 +50,14 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<FrameState>()
 		.read_resource::<Quadtree>()
 		.write_resource::<EventChannel<SectorMoveEvent>>()
-		.write_resource::<Vec<(AssetHandle<Sound>, Entity)>>()
 		.with_query(<&mut MapDynamic>::query())
 		.with_query(<&mut Transform>::query())
 		.with_query(<(Entity, &SectorRef, &mut FloorMove)>::query())
 		.with_query(<(Entity, &SectorRef, &mut CeilingMove)>::query())
 		.read_component::<BoxCollider>() // used by SectorTracer
 		.read_component::<Transform>() // used by SectorTracer
-		.build(move |_, world, resources, queries| {
-			let (asset_storage, frame_state, quadtree, sector_move_event_channel, sound_queue) =
-				resources;
+		.build(move |command_buffer, world, resources, queries| {
+			let (asset_storage, frame_state, quadtree, sector_move_event_channel) = resources;
 
 			// TODO check if this is still needed with new Rust versions
 			let query0 = &mut queries.0;
@@ -82,7 +80,10 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 					&& sector_move.sound.is_some()
 				{
 					sector_move.sound_timer.restart(frame_state.time);
-					sound_queue.push((sector_move.sound.as_ref().unwrap().clone(), entity));
+					command_buffer.push((StartSound {
+						entity,
+						sound: sector_move.sound.as_ref().unwrap().clone(),
+					},));
 				}
 
 				let mut move_step = sector_move.velocity * frame_state.delta_time.as_secs_f32();

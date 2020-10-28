@@ -9,10 +9,7 @@ use crate::{
 use anyhow::ensure;
 use byteorder::{ReadBytesExt, LE};
 use crossbeam_channel::Sender;
-use legion::{
-	systems::{CommandBuffer, ResourceSet},
-	Entity, IntoQuery, Read, Resources, World, Write,
-};
+use legion::{systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};
 use nalgebra::Vector2;
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64Mcg;
@@ -81,27 +78,38 @@ pub fn import_raw_sound(
 	}))
 }
 
-pub fn sound_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
+#[derive(Clone, Debug)]
+pub struct StartSound {
+	pub entity: Entity,
+	pub sound: AssetHandle<Sound>,
+}
+
+#[derive(Clone, Debug)]
+pub struct SoundPlaying {
+	pub controller: SoundController,
+}
+
+type SoundSender = Sender<Box<dyn Source<Item = f32> + Send>>;
+
+pub fn start_sound_system(_resources: &mut Resources) -> impl Runnable {
 	let mut rng = Pcg64Mcg::from_entropy();
 
-	Box::new(move |world, resources| {
-		let (asset_storage, client, sound_sender, mut sound_queue) = <(
-			Read<AssetStorage>,
-			Read<Client>,
-			Read<Sender<Box<dyn Source<Item = f32> + Send>>>,
-			Write<Vec<(AssetHandle<Sound>, Entity)>>,
-		)>::fetch_mut(resources);
+	SystemBuilder::new("start_sound_system")
+		.read_resource::<AssetStorage>()
+		.read_resource::<Client>()
+		.read_resource::<SoundSender>()
+		.with_query(<&Transform>::query())
+		.with_query(<(Entity, &StartSound)>::query())
+		.with_query(<(&Transform, Option<&mut SoundPlaying>)>::query())
+		.build(move |command_buffer, world, resources, queries| {
+			let (asset_storage, client, sound_sender) = resources;
+			let client_transform = *queries.0.get(world, client.entity.unwrap()).unwrap();
+			let (world1, mut world) = world.split_for_query(&queries.1);
 
-		let mut command_buffer = CommandBuffer::new(world);
+			for (entity, start_sound) in queries.1.iter(&world1) {
+				command_buffer.remove(*entity);
 
-		{
-			let client_transform = *<&Transform>::query()
-				.get(world, client.entity.unwrap())
-				.unwrap();
-
-			// Play new sounds
-			for (handle, entity) in sound_queue.drain(..) {
-				let sound = asset_storage.get(&handle).unwrap();
+				let sound = asset_storage.get(&start_sound.sound).unwrap();
 				let index = match sound.sounds.len() {
 					0 => continue,
 					1 => 0,
@@ -110,9 +118,8 @@ pub fn sound_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 				let raw_sound = asset_storage.get(&sound.sounds[index]).unwrap();
 
 				let (controller, source) = SoundController::new(SoundSource::new(&raw_sound));
-				let (transform, sound_playing) = <(&Transform, Option<&mut SoundPlaying>)>::query()
-					.get_mut(world, entity)
-					.unwrap();
+				let (transform, sound_playing) =
+					queries.2.get_mut(&mut world, start_sound.entity).unwrap();
 
 				// Set distance falloff and stereo panning
 				let volumes = calculate_volumes(&client_transform, transform);
@@ -123,16 +130,24 @@ pub fn sound_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 					sound_playing.controller.stop();
 					sound_playing.controller = controller;
 				} else {
-					command_buffer.add_component(entity, SoundPlaying { controller });
+					command_buffer.add_component(start_sound.entity, SoundPlaying { controller });
 				}
 
 				sound_sender.send(Box::from(source.convert_samples())).ok();
 			}
+		})
+}
 
-			// Update currently playing sounds
-			for (entity, transform, sound_playing) in
-				<(Entity, &Transform, &mut SoundPlaying)>::query().iter_mut(world)
-			{
+pub fn sound_playing_system(_resources: &mut Resources) -> impl Runnable {
+	SystemBuilder::new("sound_playing_system")
+		.read_resource::<Client>()
+		.with_query(<&Transform>::query())
+		.with_query(<(Entity, &Transform, &mut SoundPlaying)>::query())
+		.build(move |command_buffer, world, resources, queries| {
+			let client = resources;
+			let client_transform = *queries.0.get(world, client.entity.unwrap()).unwrap();
+
+			for (entity, transform, sound_playing) in queries.1.iter_mut(world) {
 				if sound_playing.controller.is_done() {
 					command_buffer.remove_component::<SoundPlaying>(*entity);
 					continue;
@@ -142,10 +157,7 @@ pub fn sound_system() -> Box<dyn FnMut(&mut World, &mut Resources)> {
 				let volumes = calculate_volumes(&client_transform, transform);
 				sound_playing.controller.set_volumes(volumes.into());
 			}
-		}
-
-		command_buffer.flush(world);
-	})
+		})
 }
 
 fn calculate_volumes(client_transform: &Transform, entity_transform: &Transform) -> Vector2<f32> {
@@ -177,9 +189,4 @@ fn calculate_volumes(client_transform: &Transform, entity_transform: &Transform)
 
 	// Final result
 	volumes * distance_factor
-}
-
-#[derive(Clone, Debug)]
-pub struct SoundPlaying {
-	pub controller: SoundController,
 }
