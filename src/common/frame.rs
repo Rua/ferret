@@ -37,7 +37,9 @@ pub fn frame_state_system(frame_time: Duration) -> impl Runnable {
 	SystemBuilder::new("frame_rng_system")
 		.write_resource::<FrameState>()
 		.with_query(<&mut FrameRng>::query())
-		.build(move |_, world, frame_state, query| {
+		.build(move |_command_buffer, world, resources, query| {
+			let frame_state = resources;
+
 			frame_state.delta_time = frame_time;
 			frame_state.time += frame_time;
 

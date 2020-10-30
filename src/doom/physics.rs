@@ -46,7 +46,7 @@ pub fn physics_system(resources: &mut Resources) -> impl Runnable {
 		.with_query(<(&mut Transform, &mut Velocity, &BoxCollider)>::query())
 		.read_component::<BoxCollider>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
-		.build(move |_, world, resources, queries| {
+		.build(move |_command_buffer, world, resources, queries| {
 			let (asset_storage, frame_state, quadtree, step_event_channel, touch_event_channel) =
 				resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);

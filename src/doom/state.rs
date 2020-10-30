@@ -16,6 +16,7 @@ use crate::{
 };
 use arrayvec::ArrayString;
 use legion::{
+	component,
 	systems::{ResourceSet, Runnable},
 	Entity, IntoQuery, Read, Resources, SystemBuilder,
 };
@@ -45,6 +46,12 @@ pub enum StateAction {
 	Set((StateName, usize)),
 	Wait((StateName, usize)),
 	None,
+}
+
+#[derive(Clone, Debug)]
+pub struct NewState {
+	pub entity: Entity,
+	pub state_name: (StateName, usize),
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -92,9 +99,15 @@ pub fn state_set_system(_resources: &mut Resources) -> impl Runnable {
 						.and_then(|x| x.get(state_name.1))
 						.unwrap_or_else(|| panic!("Invalid state {:?}", state_name));
 
+					state.action = StateAction::None;
+
 					if state_info.remove {
-						state.action = StateAction::None;
 						command_buffer.remove(*entity);
+					} else {
+						command_buffer.push((NewState {
+							entity: *entity,
+							state_name,
+						},));
 					}
 				}
 			}
@@ -105,12 +118,16 @@ pub fn state_next_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("state_next_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<FrameState>()
+		.with_query(<(Entity, &NewState)>::query())
 		.with_query(<(&EntityTemplateRef, &mut State)>::query())
-		.build(move |_command_buffer, world, resources, query| {
+		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, frame_state) = resources;
+			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (template_ref, state) in query.iter_mut(world) {
-				if let StateAction::Set(state_name) = state.action {
+			for (command_entity, NewState { entity, state_name }) in queries.0.iter(&world0) {
+				command_buffer.remove(*command_entity);
+
+				if let Ok((template_ref, state)) = queries.1.get_mut(&mut world, *entity) {
 					let states = &asset_storage.get(&template_ref.0).unwrap().states;
 					let state_info = states
 						.get(&state_name.0)
@@ -133,34 +150,24 @@ pub fn state_next_system(_resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-pub fn state_trigger<F>(
-	state_data: (&EntityTemplateRef, &State),
-	asset_storage: &AssetStorage,
-	func: F,
-) where
-	F: FnOnce(&StateInfo),
-{
-	let (template_ref, state) = state_data;
-	if let StateAction::Set(state_name) = state.action {
-		let states = &asset_storage.get(&template_ref.0).unwrap().states;
-		let state_info = &states[&state_name.0][state_name.1];
-		func(state_info);
-	}
-}
-
 pub fn solid_mask_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("solid_mask_system")
 		.read_resource::<AssetStorage>()
-		.with_query(<((&EntityTemplateRef, &State), &mut BoxCollider)>::query())
-		.build(move |_command_buffer, world, resources, query| {
+		.with_query(<&NewState>::query())
+		.with_query(<(&EntityTemplateRef, &mut BoxCollider)>::query().filter(component::<State>()))
+		.build(move |_command_buffer, world, resources, queries| {
 			let asset_storage = resources;
+			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (state_data, box_collider) in query.iter_mut(world) {
-				state_trigger(state_data, asset_storage, |state_info| {
+			for NewState { entity, state_name } in queries.0.iter(&world0) {
+				if let Ok((template_ref, box_collider)) = queries.1.get_mut(&mut world, *entity) {
+					let states = &asset_storage.get(&template_ref.0).unwrap().states;
+					let state_info = &states[&state_name.0][state_name.1];
+
 					if let Some(blocks_types) = &state_info.blocks_types {
 						box_collider.blocks_types = *blocks_types;
 					}
-				});
+				}
 			}
 		})
 }
@@ -168,19 +175,23 @@ pub fn solid_mask_system(_resources: &mut Resources) -> impl Runnable {
 pub fn sound_play_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("sound_play_system")
 		.read_resource::<AssetStorage>()
-		.with_query(<((&EntityTemplateRef, &State), Entity)>::query())
-		.build(move |command_buffer, world, resources, query| {
+		.with_query(<&NewState>::query())
+		.with_query(<&EntityTemplateRef>::query().filter(component::<State>()))
+		.build(move |command_buffer, world, resources, queries| {
 			let asset_storage = resources;
 
-			for (state_data, entity) in query.iter_mut(world) {
-				state_trigger(state_data, asset_storage, |state_info| {
+			for NewState { entity, state_name } in queries.0.iter(world) {
+				if let Ok(template_ref) = queries.1.get(world, *entity) {
+					let states = &asset_storage.get(&template_ref.0).unwrap().states;
+					let state_info = &states[&state_name.0][state_name.1];
+
 					if let Some(sound) = &state_info.sound {
 						command_buffer.push((StartSound {
 							entity: *entity,
 							sound: sound.clone(),
 						},));
 					}
-				});
+				}
 			}
 		})
 }
@@ -188,16 +199,21 @@ pub fn sound_play_system(_resources: &mut Resources) -> impl Runnable {
 pub fn sprite_anim_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("sprite_anim_system")
 		.read_resource::<AssetStorage>()
-		.with_query(<((&EntityTemplateRef, &State), &mut SpriteRender)>::query())
-		.build(move |_command_buffer, world, resources, query| {
+		.with_query(<&NewState>::query())
+		.with_query(<(&EntityTemplateRef, &mut SpriteRender)>::query().filter(component::<State>()))
+		.build(move |_command_buffer, world, resources, queries| {
 			let asset_storage = resources;
+			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (state_data, sprite_render) in query.iter_mut(world) {
-				state_trigger(state_data, asset_storage, |state_info| {
+			for NewState { entity, state_name } in queries.0.iter(&world0) {
+				if let Ok((template_ref, sprite_render)) = queries.1.get_mut(&mut world, *entity) {
+					let states = &asset_storage.get(&template_ref.0).unwrap().states;
+					let state_info = &states[&state_name.0][state_name.1];
+
 					if let Some(sprite) = &state_info.sprite {
 						*sprite_render = sprite.clone();
 					}
-				});
+				}
 			}
 		})
 }

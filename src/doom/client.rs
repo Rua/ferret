@@ -38,7 +38,7 @@ pub fn player_command_system() -> impl Runnable {
 		.read_resource::<Bindings<BoolInput, FloatInput>>()
 		.read_resource::<InputState>()
 		.write_resource::<Client>()
-		.build(move |_, _, resources, _| {
+		.build(move |_command_buffer, _world, resources, _queries| {
 			let (bindings, input_state, client) = resources;
 
 			let mut command = UserCommand {
@@ -72,7 +72,7 @@ pub fn player_move_system() -> impl Runnable {
 		.with_query(<(&Transform, &mut Velocity)>::query())
 		.read_component::<BoxCollider>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
-		.build(move |_, world, resources, queries| {
+		.build(move |_command_buffer, world, resources, queries| {
 			let (asset_storage, client, frame_state, quadtree) = resources;
 
 			let client_entity = match client.entity {

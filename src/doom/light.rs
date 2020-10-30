@@ -23,7 +23,7 @@ pub fn light_flash_system() -> impl Runnable {
 		.read_resource::<FrameState>()
 		.with_query(<(&SectorRef, &mut FrameRng, &mut LightFlash)>::query())
 		.with_query(<&mut MapDynamic>::query())
-		.build(move |_, world, resources, queries| {
+		.build(move |_command_buffer, world, resources, queries| {
 			let (asset_storage, frame_state) = resources;
 			let (mut world0, mut world) = world.split_for_query(&queries.0);
 
@@ -151,7 +151,7 @@ pub fn light_glow_system() -> impl Runnable {
 		.read_resource::<FrameState>()
 		.with_query(<(&SectorRef, &mut LightGlow)>::query())
 		.with_query(<&mut MapDynamic>::query())
-		.build(move |_, world, resources, queries| {
+		.build(move |_command_buffer, world, resources, queries| {
 			let (asset_storage, frame_state) = resources;
 			let (mut world0, mut world) = world.split_for_query(&queries.0);
 

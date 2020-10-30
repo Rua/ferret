@@ -15,7 +15,7 @@ pub fn texture_animation_system() -> impl Runnable {
 		.read_resource::<AssetStorage>()
 		.read_resource::<FrameState>()
 		.with_query(<&mut MapDynamic>::query())
-		.build(move |_, world, resources, query| {
+		.build(move |_command_buffer, world, resources, query| {
 			let (asset_storage, frame_state) = resources;
 
 			for map_dynamic in query.iter_mut(world) {
@@ -36,7 +36,7 @@ pub fn texture_scroll_system() -> impl Runnable {
 		.read_resource::<FrameState>()
 		.with_query(<(&LinedefRef, &TextureScroll)>::query())
 		.with_query(<&mut MapDynamic>::query())
-		.build(move |_, world, frame_state, queries| {
+		.build(move |_command_buffer, world, frame_state, queries| {
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
 			// Scroll textures
