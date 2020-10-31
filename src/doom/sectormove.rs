@@ -80,10 +80,10 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 					&& sector_move.sound.is_some()
 				{
 					sector_move.sound_timer.restart(frame_state.time);
-					command_buffer.push((StartSound {
+					command_buffer.push((
 						entity,
-						sound: sector_move.sound.as_ref().unwrap().clone(),
-					},));
+						StartSound(sector_move.sound.as_ref().unwrap().clone()),
+					));
 				}
 
 				let mut move_step = sector_move.velocity * frame_state.delta_time.as_secs_f32();
@@ -156,28 +156,28 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 			{
 				let (mut world2, mut world) = world.split_for_query(&queries.2);
 
-				for (entity, sector_ref, floor_move) in queries.2.iter_mut(&mut world2) {
+				for (&entity, sector_ref, floor_move) in queries.2.iter_mut(&mut world2) {
 					let sector_move = &mut floor_move.0;
 
 					if sector_move.velocity == 0.0 {
 						continue;
 					}
 
-					do_move(*entity, &sector_ref, sector_move, 1.0, &mut world);
+					do_move(entity, &sector_ref, sector_move, 1.0, &mut world);
 				}
 			}
 
 			{
 				let (mut world3, mut world) = world.split_for_query(&queries.3);
 
-				for (entity, sector_ref, ceiling_move) in queries.3.iter_mut(&mut world3) {
+				for (&entity, sector_ref, ceiling_move) in queries.3.iter_mut(&mut world3) {
 					let sector_move = &mut ceiling_move.0;
 
 					if sector_move.velocity == 0.0 {
 						continue;
 					}
 
-					do_move(*entity, &sector_ref, sector_move, -1.0, &mut world);
+					do_move(entity, &sector_ref, sector_move, -1.0, &mut world);
 				}
 			}
 		})

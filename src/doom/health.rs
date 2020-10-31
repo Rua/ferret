@@ -51,7 +51,7 @@ pub fn damage_system(_resources: &mut Resources) -> impl Runnable {
 		.build(move |command_buffer, world, resources, query| {
 			let asset_storage = resources;
 
-			for (entity, template_ref, frame_rng, health, state) in query.iter_mut(world) {
+			for (&entity, template_ref, frame_rng, health, state) in query.iter_mut(world) {
 				for (_source, damage) in health.damage.drain(..) {
 					if health.current <= 0.0 {
 						break;
@@ -70,7 +70,7 @@ pub fn damage_system(_resources: &mut Resources) -> impl Runnable {
 							state.action = StateAction::Set(new);
 						} else {
 							state.action = StateAction::None;
-							command_buffer.remove(*entity);
+							command_buffer.remove(entity);
 						}
 					} else {
 						if template.states.contains_key("pain")

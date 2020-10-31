@@ -627,7 +627,7 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 			world: self.world,
 		};
 
-		for (entity, transform, box_collider) in
+		for (&entity, transform, box_collider) in
 			<(Entity, &Transform, &BoxCollider)>::query().iter(self.world)
 		{
 			let entity_bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height)
@@ -659,7 +659,7 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 						}
 
 						if hit_fraction <= total_fraction {
-							trace_touched.push((hit_fraction, *entity));
+							trace_touched.push((hit_fraction, entity));
 						}
 
 						break;

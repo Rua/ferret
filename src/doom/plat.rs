@@ -73,7 +73,7 @@ pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
 		.build(move |command_buffer, world, resources, query| {
 			let (frame_state, sector_move_event_channel) = resources;
 
-			for (entity, floor_move, plat_active) in query.iter_mut(world) {
+			for (&entity, floor_move, plat_active) in query.iter_mut(world) {
 				let sector_move = &mut floor_move.0;
 
 				if sector_move.velocity != 0.0 {
@@ -82,10 +82,7 @@ pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
 
 				if plat_active.wait_timer.is_elapsed(frame_state.time) {
 					if let Some(sound) = &plat_active.start_sound {
-						command_buffer.push((StartSound {
-							entity: *entity,
-							sound: sound.clone(),
-						},));
+						command_buffer.push((entity, StartSound(sound.clone())));
 					}
 
 					if sector_move.target == plat_active.low_height {
@@ -125,10 +122,7 @@ pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
 							}
 
 							if let Some(sound) = &plat_active.start_sound {
-								command_buffer.push((StartSound {
-									entity: event.entity,
-									sound: sound.clone(),
-								},));
+								command_buffer.push((event.entity, StartSound(sound.clone())));
 							}
 						}
 					}
@@ -136,10 +130,7 @@ pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
 						sector_move.velocity = 0.0;
 
 						if let Some(sound) = &plat_active.finish_sound {
-							command_buffer.push((StartSound {
-								entity: event.entity,
-								sound: sound.clone(),
-							},));
+							command_buffer.push((event.entity, StartSound(sound.clone())));
 						}
 
 						if sector_move.target == plat_active.high_height {

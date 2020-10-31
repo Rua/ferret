@@ -78,10 +78,7 @@ pub fn floor_active_system(resources: &mut Resources) -> impl Runnable {
 					}
 					SectorMoveEventType::TargetReached => {
 						if let Some(sound) = &floor_active.finish_sound {
-							command_buffer.push((StartSound {
-								entity: event.entity,
-								sound: sound.clone(),
-							},));
+							command_buffer.push((event.entity, StartSound(sound.clone())));
 						}
 
 						command_buffer.remove_component::<FloorMove>(event.entity);

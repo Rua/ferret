@@ -18,7 +18,7 @@ derivative = "2.1"
 downcast-rs = "1.2"
 fnv = "1.0"
 lazy_static = "1.4"
-legion = {git = "https://github.com/amethyst/legion", default-features = false, features = ["extended-tuple-impls"]}
+legion = {git = "https://github.com/rua/legion", default-features = false, features = ["extended-tuple-impls"], branch = "cbuf-resources"}
 log = {version = "0.4.8", features = ["std"]}
 nalgebra = "0.23.0"
 num-traits = "0.2.11"

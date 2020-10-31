@@ -89,12 +89,12 @@ impl DrawStep for DrawSprites {
 		// Group draws into batches by texture
 		let mut batches: FnvHashMap<&AssetHandle<Image>, Vec<InstanceData>> = FnvHashMap::default();
 
-		for (entity, sprite_render, transform) in
+		for (&entity, sprite_render, transform) in
 			<(Entity, &SpriteRender, &Transform)>::query().iter(world)
 		{
 			// Don't draw the player's own sprite
 			if let Some(view_entity) = client.entity {
-				if *entity == view_entity {
+				if entity == view_entity {
 					continue;
 				}
 			}

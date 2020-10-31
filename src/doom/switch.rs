@@ -41,7 +41,7 @@ pub fn switch_active_system() -> impl Runnable {
 
 			let (mut world0, mut world) = world.split_for_query(&queries.0);
 
-			for (entity, linedef_ref, switch_active) in queries.0.iter_mut(&mut world0) {
+			for (&entity, linedef_ref, switch_active) in queries.0.iter_mut(&mut world0) {
 				if switch_active.timer.is_elapsed(frame_state.time) {
 					let map_dynamic = queries
 						.1
@@ -58,13 +58,10 @@ pub fn switch_active_system() -> impl Runnable {
 						TextureType::Normal(switch_active.texture.clone());
 
 					if let Some(sound) = &switch_active.sound {
-						command_buffer.push((StartSound {
-							entity: sector_entity,
-							sound: sound.clone(),
-						},));
+						command_buffer.push((sector_entity, StartSound(sound.clone())));
 					}
 
-					command_buffer.remove_component::<SwitchActive>(*entity);
+					command_buffer.remove_component::<SwitchActive>(entity);
 				}
 			}
 		})
@@ -95,10 +92,7 @@ pub fn activate(
 				// Play sound
 				if let Some(sound) = &params.sound {
 					let sector_entity = map_dynamic.sectors[sidedef.sector_index].entity;
-					command_buffer.push((StartSound {
-						entity: sector_entity,
-						sound: sound.clone(),
-					},));
+					command_buffer.push((sector_entity, StartSound(sound.clone())));
 				}
 
 				if let Some(time_left) = params.retrigger_time {

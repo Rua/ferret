@@ -59,10 +59,8 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 
 					if down_speed >= 8.0 * FRAME_RATE {
 						camera.deviation_velocity = -down_speed / 8.0;
-						command_buffer.push((StartSound {
-							entity: touch_event.toucher,
-							sound: camera.impact_sound.clone(),
-						},));
+						command_buffer
+							.push((touch_event.toucher, StartSound(camera.impact_sound.clone())));
 					}
 				}
 			}

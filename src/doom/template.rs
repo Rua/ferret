@@ -5,7 +5,7 @@ use crate::{
 	},
 	doom::{
 		map::spawn::SpawnContext,
-		state::{StateInfo, StateName, WeaponStateInfo},
+		state::{StateName, WeaponStateInfo},
 	},
 };
 use legion::{systems::ResourceSet, Read, Resources, World};
@@ -15,7 +15,7 @@ use std::collections::HashMap;
 pub struct EntityTemplate {
 	pub name: Option<&'static str>,
 	pub type_id: Option<EntityTypeId>,
-	pub states: HashMap<StateName, Vec<StateInfo>>,
+	pub states: HashMap<StateName, Vec<World>>,
 	pub world: World,
 }
 

@@ -79,10 +79,7 @@ pub fn import_raw_sound(
 }
 
 #[derive(Clone, Debug)]
-pub struct StartSound {
-	pub entity: Entity,
-	pub sound: AssetHandle<Sound>,
-}
+pub struct StartSound(pub AssetHandle<Sound>);
 
 #[derive(Clone, Debug)]
 pub struct SoundPlaying {
@@ -99,17 +96,17 @@ pub fn start_sound_system(_resources: &mut Resources) -> impl Runnable {
 		.read_resource::<Client>()
 		.read_resource::<SoundSender>()
 		.with_query(<&Transform>::query())
-		.with_query(<(Entity, &StartSound)>::query())
+		.with_query(<(Entity, &Entity, &StartSound)>::query())
 		.with_query(<(&Transform, Option<&mut SoundPlaying>)>::query())
 		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, client, sound_sender) = resources;
 			let client_transform = *queries.0.get(world, client.entity.unwrap()).unwrap();
 			let (world1, mut world) = world.split_for_query(&queries.1);
 
-			for (entity, start_sound) in queries.1.iter(&world1) {
-				command_buffer.remove(*entity);
+			for (&entity, &target, start_sound) in queries.1.iter(&world1) {
+				command_buffer.remove(entity);
 
-				let sound = asset_storage.get(&start_sound.sound).unwrap();
+				let sound = asset_storage.get(&start_sound.0).unwrap();
 				let index = match sound.sounds.len() {
 					0 => continue,
 					1 => 0,
@@ -118,8 +115,7 @@ pub fn start_sound_system(_resources: &mut Resources) -> impl Runnable {
 				let raw_sound = asset_storage.get(&sound.sounds[index]).unwrap();
 
 				let (controller, source) = SoundController::new(SoundSource::new(&raw_sound));
-				let (transform, sound_playing) =
-					queries.2.get_mut(&mut world, start_sound.entity).unwrap();
+				let (transform, sound_playing) = queries.2.get_mut(&mut world, target).unwrap();
 
 				// Set distance falloff and stereo panning
 				let volumes = calculate_volumes(&client_transform, transform);
@@ -130,7 +126,7 @@ pub fn start_sound_system(_resources: &mut Resources) -> impl Runnable {
 					sound_playing.controller.stop();
 					sound_playing.controller = controller;
 				} else {
-					command_buffer.add_component(start_sound.entity, SoundPlaying { controller });
+					command_buffer.add_component(target, SoundPlaying { controller });
 				}
 
 				sound_sender.send(Box::from(source.convert_samples())).ok();
@@ -147,9 +143,9 @@ pub fn sound_playing_system(_resources: &mut Resources) -> impl Runnable {
 			let client = resources;
 			let client_transform = *queries.0.get(world, client.entity.unwrap()).unwrap();
 
-			for (entity, transform, sound_playing) in queries.1.iter_mut(world) {
+			for (&entity, transform, sound_playing) in queries.1.iter_mut(world) {
 				if sound_playing.controller.is_done() {
-					command_buffer.remove_component::<SoundPlaying>(*entity);
+					command_buffer.remove_component::<SoundPlaying>(entity);
 					continue;
 				}
 

@@ -215,10 +215,7 @@ pub fn player_use_system(resources: &mut Resources) -> impl Runnable {
 						{
 							use_event_channel.single_write(UseEvent { linedef_entity });
 						} else {
-							command_buffer.push((StartSound {
-								entity,
-								sound: user.error_sound.clone(),
-							},));
+							command_buffer.push((entity, StartSound(user.error_sound.clone())));
 						}
 					}
 				}

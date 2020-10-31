@@ -70,7 +70,7 @@ pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
 		.build(move |command_buffer, world, resources, query| {
 			let (frame_state, sector_move_event_channel) = resources;
 
-			for (entity, ceiling_move, mut door_active) in query.iter_mut(world) {
+			for (&entity, ceiling_move, mut door_active) in query.iter_mut(world) {
 				let sector_move = &mut ceiling_move.0;
 
 				if sector_move.velocity != 0.0 {
@@ -91,10 +91,7 @@ pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
 					};
 
 					if let Some(sound) = sound {
-						command_buffer.push((StartSound {
-							entity: *entity,
-							sound: sound.clone(),
-						},));
+						command_buffer.push((entity, StartSound(sound.clone())));
 					}
 				}
 			}
@@ -130,10 +127,7 @@ pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
 							};
 
 							if let Some(sound) = sound {
-								command_buffer.push((StartSound {
-									entity: event.entity,
-									sound: sound.clone(),
-								},));
+								command_buffer.push((event.entity, StartSound(sound.clone())));
 							}
 						}
 					}

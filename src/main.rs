@@ -11,7 +11,7 @@ use crate::common::{
 };
 use anyhow::{bail, Context};
 use clap::{App, Arg, ArgMatches};
-use legion::{systems::ResourceSet, Read, Resources, Schedule, World, Write};
+use legion::{systems::ResourceSet, Entity, Read, Resources, Schedule, World, Write};
 use nalgebra::Vector2;
 use rand::SeedableRng;
 use relative_path::RelativePath;
@@ -223,6 +223,13 @@ fn main() -> anyhow::Result<()> {
 	handler_set.register_spawn::<doom::state::WeaponStateDef, doom::state::WeaponState>();
 	handler_set.register_clone::<doom::switch::SwitchActive>();
 	handler_set.register_clone::<doom::texture::TextureScroll>();
+
+	handler_set.register_spawn::<doom::state::EntityDef, Entity>();
+	handler_set.register_clone::<doom::sound::StartSound>();
+	handler_set.register_clone::<doom::state::BlocksTypes>();
+	handler_set.register_clone::<doom::state::NextState>();
+	handler_set.register_clone::<doom::state::RemoveEntity>();
+	handler_set.register_clone::<doom::state::SetSprite>();
 	resources.insert(handler_set);
 
 	// Create systems
@@ -252,11 +259,12 @@ fn main() -> anyhow::Result<()> {
 		.add_thread_local(doom::texture::texture_animation_system()).flush()
 		.add_thread_local(doom::texture::texture_scroll_system()).flush()
 		.add_thread_local(doom::health::damage_system(&mut resources)).flush()
+
 		.add_thread_local(doom::state::state_set_system(&mut resources)).flush()
-		.add_thread_local(doom::state::solid_mask_system(&mut resources)).flush()
-		.add_thread_local(doom::state::sound_play_system(&mut resources)).flush()
-		.add_thread_local(doom::state::sprite_anim_system(&mut resources)).flush()
-		.add_thread_local(doom::state::state_next_system(&mut resources)).flush()
+		.add_thread_local(doom::state::blocks_types_system(&mut resources)).flush()
+		.add_thread_local(doom::state::next_state_system(&mut resources)).flush()
+		.add_thread_local(doom::state::remove_entity_system(&mut resources)).flush()
+		.add_thread_local(doom::state::set_sprite_system(&mut resources)).flush()
 		.add_thread_local(doom::state::weapon_state_set_system(&mut resources)).flush()
 		.add_thread_local(doom::state::weapon_sprite_anim_system(&mut resources)).flush()
 		.add_thread_local(doom::state::weapon_state_next_system(&mut resources)).flush()
