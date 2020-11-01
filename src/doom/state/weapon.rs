@@ -2,6 +2,7 @@ use crate::{
 	common::{frame::FrameState, geometry::Angle},
 	doom::{
 		camera::{Camera, MovementBob},
+		client::Client,
 		render::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
 		state::{StateAction, StateName, WeaponState},
 	},
@@ -124,6 +125,56 @@ pub fn weapon_position_system(_resources: &mut Resources) -> impl Runnable {
 								weapon_state.state.action = StateAction::Set(state_name);
 							}
 						}
+					}
+				}
+			}
+		})
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct WeaponReady;
+
+pub fn weapon_ready_system(_resources: &mut Resources) -> impl Runnable {
+	SystemBuilder::new("weapon_ready_system")
+		.read_resource::<Client>()
+		.with_query(<(Entity, &Entity, &WeaponReady)>::query())
+		.with_query(<&mut WeaponState>::query().filter(component::<WeaponState>()))
+		.build(move |command_buffer, world, resources, queries| {
+			let client = resources;
+			let (world0, mut world) = world.split_for_query(&queries.0);
+
+			for (&entity, &target, WeaponReady) in queries.0.iter(&world0) {
+				command_buffer.remove(entity);
+
+				if let Ok(weapon_state) = queries.1.get_mut(&mut world, target) {
+					if client.command.attack && !client.previous_command.attack {
+						let state_name = (StateName::from("attack").unwrap(), 0);
+						weapon_state.state.action = StateAction::Set(state_name);
+					}
+				}
+			}
+		})
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct WeaponReFire;
+
+pub fn weapon_refire_system(_resources: &mut Resources) -> impl Runnable {
+	SystemBuilder::new("weapon_refire_system")
+		.read_resource::<Client>()
+		.with_query(<(Entity, &Entity, &WeaponReFire)>::query())
+		.with_query(<&mut WeaponState>::query().filter(component::<WeaponState>()))
+		.build(move |command_buffer, world, resources, queries| {
+			let client = resources;
+			let (world0, mut world) = world.split_for_query(&queries.0);
+
+			for (&entity, &target, WeaponReFire) in queries.0.iter(&world0) {
+				command_buffer.remove(entity);
+
+				if let Ok(weapon_state) = queries.1.get_mut(&mut world, target) {
+					if client.command.attack {
+						let state_name = (StateName::from("attack").unwrap(), 0);
+						weapon_state.state.action = StateAction::Set(state_name);
 					}
 				}
 			}

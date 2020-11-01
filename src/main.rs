@@ -233,6 +233,8 @@ fn main() -> anyhow::Result<()> {
 	handler_set.register_clone::<doom::state::weapon::NextWeaponState>();
 	handler_set.register_clone::<doom::state::weapon::SetWeaponSprite>();
 	handler_set.register_clone::<doom::state::weapon::WeaponPosition>();
+	handler_set.register_clone::<doom::state::weapon::WeaponReady>();
+	handler_set.register_clone::<doom::state::weapon::WeaponReFire>();
 	resources.insert(handler_set);
 
 	// Create systems
@@ -272,6 +274,9 @@ fn main() -> anyhow::Result<()> {
 		.add_thread_local(doom::state::weapon::next_weapon_state_system(&mut resources)).flush()
 		.add_thread_local(doom::state::weapon::set_weapon_sprite_system(&mut resources)).flush()
 		.add_thread_local(doom::state::weapon::weapon_position_system(&mut resources)).flush()
+		.add_thread_local(doom::state::weapon::weapon_ready_system(&mut resources)).flush()
+		.add_thread_local(doom::state::weapon::weapon_refire_system(&mut resources)).flush()
+
 		.add_thread_local(frame_state_system(doom::data::FRAME_TIME)).flush()
 		.build();
 
