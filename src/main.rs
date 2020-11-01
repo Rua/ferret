@@ -242,6 +242,7 @@ fn main() -> anyhow::Result<()> {
 	let mut update_dispatcher = Schedule::builder()
 		.add_thread_local(doom::client::player_command_system()).flush()
 		.add_thread_local(doom::client::player_move_system()).flush()
+		.add_thread_local(doom::client::player_weapon_system(&mut resources)).flush()
 		.add_thread_local(doom::client::player_attack_system(&mut resources)).flush()
 		.add_thread_local(doom::client::player_use_system(&mut resources)).flush()
 		.add_thread_local(doom::physics::physics_system(&mut resources)).flush()

@@ -1,9 +1,15 @@
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum BoolInput {
 	Attack,
-	//SwitchWeapon(u8),
 	Use,
 	Walk,
+	Weapon1,
+	Weapon2,
+	Weapon3,
+	Weapon4,
+	Weapon5,
+	Weapon6,
+	Weapon7,
 }
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
@@ -14,10 +20,10 @@ pub enum FloatInput {
 	Yaw,
 }
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct UserCommand {
 	pub attack: bool,
-	//pub action_switch_weapon: Option<u8>,
+	pub weapon: Option<String>,
 	pub r#use: bool,
 	pub forward: f32,
 	pub pitch: f32,

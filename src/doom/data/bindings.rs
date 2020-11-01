@@ -11,6 +11,34 @@ pub fn get_bindings() -> Bindings<BoolInput, FloatInput> {
 		ButtonBinding::Bool(BoolInput::Attack),
 	);
 	bindings.bind_button(
+		Button::Key(VirtualKeyCode::Key1),
+		ButtonBinding::Bool(BoolInput::Weapon1),
+	);
+	bindings.bind_button(
+		Button::Key(VirtualKeyCode::Key2),
+		ButtonBinding::Bool(BoolInput::Weapon2),
+	);
+	bindings.bind_button(
+		Button::Key(VirtualKeyCode::Key3),
+		ButtonBinding::Bool(BoolInput::Weapon3),
+	);
+	bindings.bind_button(
+		Button::Key(VirtualKeyCode::Key4),
+		ButtonBinding::Bool(BoolInput::Weapon4),
+	);
+	bindings.bind_button(
+		Button::Key(VirtualKeyCode::Key5),
+		ButtonBinding::Bool(BoolInput::Weapon5),
+	);
+	bindings.bind_button(
+		Button::Key(VirtualKeyCode::Key6),
+		ButtonBinding::Bool(BoolInput::Weapon6),
+	);
+	bindings.bind_button(
+		Button::Key(VirtualKeyCode::Key7),
+		ButtonBinding::Bool(BoolInput::Weapon7),
+	);
+	bindings.bind_button(
 		Button::Key(VirtualKeyCode::Space),
 		ButtonBinding::Bool(BoolInput::Use),
 	);

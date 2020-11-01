@@ -18,6 +18,8 @@ use crate::{
 		physics::{BoxCollider, EntityTracer, SolidType},
 		plat::PlatSwitchUse,
 		sound::{Sound, StartSound},
+		state::WeaponState,
+		template::WeaponTemplate,
 	},
 };
 use legion::{
@@ -41,8 +43,40 @@ pub fn player_command_system() -> impl Runnable {
 		.build(move |_command_buffer, _world, resources, _queries| {
 			let (bindings, input_state, client) = resources;
 
+			let weapon_keys = [
+				bindings.bool_value(&BoolInput::Weapon1, &input_state),
+				bindings.bool_value(&BoolInput::Weapon2, &input_state),
+				bindings.bool_value(&BoolInput::Weapon3, &input_state),
+				bindings.bool_value(&BoolInput::Weapon4, &input_state),
+				bindings.bool_value(&BoolInput::Weapon5, &input_state),
+				bindings.bool_value(&BoolInput::Weapon6, &input_state),
+				bindings.bool_value(&BoolInput::Weapon7, &input_state),
+			];
+			let mut iter =
+				weapon_keys
+					.iter()
+					.enumerate()
+					.filter_map(|(i, x)| if *x { Some(i + 1) } else { None });
+
+			let weapon_index: Option<usize> = match (iter.next(), iter.next()) {
+				(Some(i), None) => Some(i),
+				_ => None,
+			};
+
+			let weapon: Option<String> = weapon_index.map(|i| match i {
+				1 => "fist".into(),
+				2 => "pistol".into(),
+				3 => "shotgun".into(),
+				4 => "chaingun".into(),
+				5 => "missile".into(),
+				6 => "plasma".into(),
+				7 => "bfg".into(),
+				_ => unreachable!(),
+			});
+
 			let mut command = UserCommand {
 				attack: bindings.bool_value(&BoolInput::Attack, &input_state),
+				weapon,
 				r#use: bindings.bool_value(&BoolInput::Use, &input_state),
 				forward: bindings.float_value(&FloatInput::Forward, &input_state) as f32,
 				pitch: bindings.float_value(&FloatInput::Pitch, &input_state) as f32,
@@ -55,7 +89,8 @@ pub fn player_command_system() -> impl Runnable {
 				command.strafe *= 0.6;
 			}
 
-			client.previous_command = client.command;
+			let client: &mut Client = &mut *client; // This prevents borrow errors
+			std::mem::swap(&mut client.previous_command, &mut client.command);
 			client.command = command;
 		})
 }
@@ -218,6 +253,33 @@ pub fn player_use_system(resources: &mut Resources) -> impl Runnable {
 							command_buffer.push((entity, StartSound(user.error_sound.clone())));
 						}
 					}
+				}
+			}
+		})
+}
+
+pub fn player_weapon_system(_resources: &mut Resources) -> impl Runnable {
+	SystemBuilder::new("player_weapon_system")
+		.read_resource::<AssetStorage>()
+		.read_resource::<Client>()
+		.with_query(<&mut WeaponState>::query())
+		.read_component::<UseAction>()
+		.build(move |_command_buffer, world, resources, query| {
+			let (asset_storage, client) = resources;
+
+			if let Some(weapon_state) = client
+				.entity
+				.and_then(|entity| query.get_mut(world, entity).ok())
+			{
+				if let Some(switch_to) = client
+					.command
+					.weapon
+					.as_ref()
+					.and_then(|name| asset_storage.handle_for::<WeaponTemplate>(name))
+					.as_ref()
+					.map(Clone::clone)
+				{
+					weapon_state.switch_to = Some(switch_to);
 				}
 			}
 		})

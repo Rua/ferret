@@ -37,8 +37,9 @@ pub enum StateAction {
 
 #[derive(Clone, Debug)]
 pub struct WeaponState {
-	pub template: AssetHandle<WeaponTemplate>,
 	pub state: State,
+	pub current: AssetHandle<WeaponTemplate>,
+	pub switch_to: Option<AssetHandle<WeaponTemplate>>,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -130,8 +131,8 @@ impl SpawnFrom<WeaponStateDef> for WeaponState {
 		let (asset_storage, frame_state) =
 			<(Read<AssetStorage>, Read<FrameState>)>::fetch(resources);
 
-		let template = asset_storage
-			.handle_for::<WeaponTemplate>("shotgun")
+		let current = asset_storage
+			.handle_for::<WeaponTemplate>("pistol")
 			.unwrap();
 
 		WeaponState {
@@ -139,7 +140,8 @@ impl SpawnFrom<WeaponStateDef> for WeaponState {
 				timer: Timer::new_elapsed(frame_state.time, Duration::default()),
 				action: StateAction::Set((StateName::from("up").unwrap(), 0)),
 			},
-			template,
+			current,
+			switch_to: None,
 		}
 	}
 }
@@ -160,7 +162,7 @@ pub fn weapon_state_set_system(_resources: &mut Resources) -> impl Runnable {
 
 				if let StateAction::Set(state_name) = weapon_state.state.action {
 					weapon_state.state.action = StateAction::None;
-					let handle = weapon_state.template.clone();
+					let handle = weapon_state.current.clone();
 
 					command_buffer.exec_mut(move |world, resources| {
 						resources.insert(StateSpawnContext { entity });

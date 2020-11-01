@@ -112,8 +112,12 @@ pub fn weapon_position_system(_resources: &mut Resources) -> impl Runnable {
 
 							if weapon_sprite_render.position[1] >= 96.0 {
 								weapon_sprite_render.position[1] = 96.0;
-								/*let state_name = (StateName::from("ready").unwrap(), 0);
-								weapon_state.state.action = StateAction::Set(state_name);*/
+
+								if let Some(switch_to) = weapon_state.switch_to.take() {
+									let state_name = (StateName::from("up").unwrap(), 0);
+									weapon_state.state.action = StateAction::Set(state_name);
+									weapon_state.current = switch_to;
+								}
 							}
 						}
 						WeaponPosition::Up => {
@@ -147,7 +151,10 @@ pub fn weapon_ready_system(_resources: &mut Resources) -> impl Runnable {
 				command_buffer.remove(entity);
 
 				if let Ok(weapon_state) = queries.1.get_mut(&mut world, target) {
-					if client.command.attack && !client.previous_command.attack {
+					if weapon_state.switch_to.is_some() {
+						let state_name = (StateName::from("down").unwrap(), 0);
+						weapon_state.state.action = StateAction::Set(state_name);
+					} else if client.command.attack && !client.previous_command.attack {
 						let state_name = (StateName::from("attack").unwrap(), 0);
 						weapon_state.state.action = StateAction::Set(state_name);
 					}
