@@ -118,8 +118,8 @@ pub fn weapon_position_system(_resources: &mut Resources) -> impl Runnable {
 						WeaponPosition::Up => {
 							weapon_sprite_render.position[1] += UP_SPEED;
 
-							if weapon_sprite_render.position[1] <= 96.0 {
-								weapon_sprite_render.position[1] = 96.0;
+							if weapon_sprite_render.position[1] <= 0.0 {
+								weapon_sprite_render.position[1] = 0.0;
 								let state_name = (StateName::from("ready").unwrap(), 0);
 								weapon_state.state.action = StateAction::Set(state_name);
 							}
