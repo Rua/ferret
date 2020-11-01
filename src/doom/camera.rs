@@ -4,7 +4,7 @@ use crate::{
 		components::Velocity,
 		data::FRAME_RATE,
 		physics::{StepEvent, TouchEvent},
-		psprite::WeaponSpriteRender,
+		render::wsprite::WeaponSpriteRender,
 		sound::{Sound, StartSound},
 	},
 };

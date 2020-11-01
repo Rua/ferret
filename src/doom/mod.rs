@@ -11,7 +11,6 @@ pub mod light;
 pub mod map;
 pub mod physics;
 pub mod plat;
-pub mod psprite;
 pub mod render;
 pub mod sectormove;
 pub mod sound;

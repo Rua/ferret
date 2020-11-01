@@ -9,8 +9,10 @@ use crate::{
 	doom::{
 		client::Client,
 		image::Image,
-		psprite::WeaponSpriteRender,
-		render::ui::{ui_frag, ui_vert, InstanceData, Matrices, UiParams},
+		render::{
+			sprite::SpriteRender,
+			ui::{ui_frag, ui_vert, InstanceData, Matrices, UiParams},
+		},
 		ui::UiAlignment,
 	},
 };
@@ -26,7 +28,19 @@ use vulkano::{
 	sampler::Sampler,
 };
 
-pub struct DrawPlayerSprites {
+#[derive(Clone, Debug)]
+pub struct WeaponSpriteRender {
+	pub position: Vector2<f32>,
+	pub slots: [Option<SpriteRender>; 2],
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum WeaponSpriteSlot {
+	Weapon = 0,
+	Flash = 1,
+}
+
+pub struct DrawWeaponSprites {
 	instance_buffer_pool: CpuBufferPool<InstanceData>,
 	matrix_uniform_pool: CpuBufferPool<Matrices>,
 	matrix_set_pool: FixedSizeDescriptorSetsPool,
@@ -34,11 +48,11 @@ pub struct DrawPlayerSprites {
 	texture_set_pool: FixedSizeDescriptorSetsPool,
 }
 
-impl DrawPlayerSprites {
+impl DrawWeaponSprites {
 	pub fn new(
 		render_context: &RenderContext,
 		render_pass: &Arc<dyn RenderPassAbstract + Send + Sync>,
-	) -> anyhow::Result<DrawPlayerSprites> {
+	) -> anyhow::Result<DrawWeaponSprites> {
 		let device = render_pass.device();
 
 		// Create pipeline
@@ -62,7 +76,7 @@ impl DrawPlayerSprites {
 		let layout = pipeline.descriptor_set_layout(0).unwrap();
 		let matrix_set_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
 
-		Ok(DrawPlayerSprites {
+		Ok(DrawWeaponSprites {
 			instance_buffer_pool: CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer()),
 			matrix_uniform_pool: CpuBufferPool::new(
 				render_context.device().clone(),
@@ -77,7 +91,7 @@ impl DrawPlayerSprites {
 	}
 }
 
-impl DrawStep for DrawPlayerSprites {
+impl DrawStep for DrawWeaponSprites {
 	fn draw(
 		&mut self,
 		draw_context: &mut DrawContext,

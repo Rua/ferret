@@ -3,15 +3,12 @@ use crate::{
 		assets::AssetHandle,
 		spawn::{ComponentAccessor, SpawnFrom},
 	},
-	doom::{
-		map::spawn::SpawnContext,
-		state::{StateName, WeaponStateInfo},
-	},
+	doom::{map::spawn::SpawnContext, state::StateName},
 };
 use legion::{systems::ResourceSet, Read, Resources, World};
 use std::collections::HashMap;
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct EntityTemplate {
 	pub name: Option<&'static str>,
 	pub type_id: Option<EntityTypeId>,
@@ -43,8 +40,8 @@ impl SpawnFrom<EntityTemplateRefDef> for EntityTemplateRef {
 	}
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Default)]
 pub struct WeaponTemplate {
 	pub name: Option<&'static str>,
-	pub states: HashMap<StateName, Vec<WeaponStateInfo>>,
+	pub states: HashMap<StateName, Vec<World>>,
 }

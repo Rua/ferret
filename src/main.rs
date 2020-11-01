@@ -94,8 +94,8 @@ fn main() -> anyhow::Result<()> {
 			.context("Couldn't create DrawSprites")?,
 	);
 	draw_list.add_step(
-		doom::render::psprite::DrawPlayerSprites::new(&render_context, draw_list.render_pass())
-			.context("Couldn't create DrawPlayerSprites")?,
+		doom::render::wsprite::DrawWeaponSprites::new(&render_context, draw_list.render_pass())
+			.context("Couldn't create DrawWeaponSprites")?,
 	);
 	draw_list.add_step(
 		doom::render::ui::DrawUi::new(&render_context, draw_list.render_pass())
@@ -214,22 +214,24 @@ fn main() -> anyhow::Result<()> {
 	handler_set.register_clone::<doom::physics::BoxCollider>();
 	handler_set.register_clone::<doom::physics::TouchAction>();
 	handler_set.register_clone::<doom::plat::PlatActive>();
-	handler_set.register_clone::<doom::psprite::WeaponSpriteRender>();
+	handler_set.register_clone::<doom::render::sprite::SpriteRender>();
+	handler_set.register_clone::<doom::render::wsprite::WeaponSpriteRender>();
 	handler_set.register_clone::<doom::sectormove::CeilingMove>();
 	handler_set.register_clone::<doom::sectormove::FloorMove>();
 	handler_set.register_clone::<doom::sound::SoundPlaying>();
-	handler_set.register_clone::<doom::sprite::SpriteRender>();
+	handler_set.register_clone::<doom::sound::StartSound>();
 	handler_set.register_spawn::<doom::state::StateDef, doom::state::State>();
 	handler_set.register_spawn::<doom::state::WeaponStateDef, doom::state::WeaponState>();
 	handler_set.register_clone::<doom::switch::SwitchActive>();
 	handler_set.register_clone::<doom::texture::TextureScroll>();
 
 	handler_set.register_spawn::<doom::state::EntityDef, Entity>();
-	handler_set.register_clone::<doom::sound::StartSound>();
-	handler_set.register_clone::<doom::state::BlocksTypes>();
-	handler_set.register_clone::<doom::state::NextState>();
-	handler_set.register_clone::<doom::state::RemoveEntity>();
-	handler_set.register_clone::<doom::state::SetSprite>();
+	handler_set.register_clone::<doom::state::entity::BlocksTypes>();
+	handler_set.register_clone::<doom::state::entity::NextState>();
+	handler_set.register_clone::<doom::state::entity::RemoveEntity>();
+	handler_set.register_clone::<doom::state::entity::SetSprite>();
+	handler_set.register_clone::<doom::state::weapon::NextWeaponState>();
+	handler_set.register_clone::<doom::state::weapon::SetWeaponSprite>();
 	resources.insert(handler_set);
 
 	// Create systems
@@ -261,13 +263,13 @@ fn main() -> anyhow::Result<()> {
 		.add_thread_local(doom::health::damage_system(&mut resources)).flush()
 
 		.add_thread_local(doom::state::state_set_system(&mut resources)).flush()
-		.add_thread_local(doom::state::blocks_types_system(&mut resources)).flush()
-		.add_thread_local(doom::state::next_state_system(&mut resources)).flush()
-		.add_thread_local(doom::state::remove_entity_system(&mut resources)).flush()
-		.add_thread_local(doom::state::set_sprite_system(&mut resources)).flush()
 		.add_thread_local(doom::state::weapon_state_set_system(&mut resources)).flush()
-		.add_thread_local(doom::state::weapon_sprite_anim_system(&mut resources)).flush()
-		.add_thread_local(doom::state::weapon_state_next_system(&mut resources)).flush()
+		.add_thread_local(doom::state::entity::blocks_types_system(&mut resources)).flush()
+		.add_thread_local(doom::state::entity::next_state_system(&mut resources)).flush()
+		.add_thread_local(doom::state::entity::remove_entity_system(&mut resources)).flush()
+		.add_thread_local(doom::state::entity::set_sprite_system(&mut resources)).flush()
+		.add_thread_local(doom::state::weapon::next_weapon_state_system(&mut resources)).flush()
+		.add_thread_local(doom::state::weapon::set_weapon_sprite_system(&mut resources)).flush()
 		.add_thread_local(frame_state_system(doom::data::FRAME_TIME)).flush()
 		.build();
 

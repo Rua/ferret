@@ -8,7 +8,7 @@ use crate::{
 	},
 	doom::{
 		client::Client, components::Transform, image::Image, map::MapDynamic,
-		render::world::normal_frag, sprite::SpriteRender,
+		render::world::normal_frag, sprite::Sprite,
 	},
 };
 use anyhow::Context;
@@ -25,6 +25,13 @@ use vulkano::{
 	pipeline::{GraphicsPipeline, GraphicsPipelineAbstract},
 	sampler::Sampler,
 };
+
+#[derive(Clone, Debug)]
+pub struct SpriteRender {
+	pub sprite: AssetHandle<Sprite>,
+	pub frame: usize,
+	pub full_bright: bool,
+}
 
 pub struct DrawSprites {
 	instance_buffer_pool: CpuBufferPool<InstanceData>,

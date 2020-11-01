@@ -1,8 +1,8 @@
 pub mod map;
-pub mod psprite;
 pub mod sprite;
 pub mod ui;
 pub mod world;
+pub mod wsprite;
 
 use crate::common::video::{DrawList, RenderContext, RenderTarget};
 use legion::{systems::ResourceSet, Read, Resources, World, Write};
