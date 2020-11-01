@@ -4,7 +4,6 @@ use crate::{
 		components::Velocity,
 		data::FRAME_RATE,
 		physics::{StepEvent, TouchEvent},
-		render::wsprite::WeaponSpriteRender,
 		sound::{Sound, StartSound},
 	},
 };
@@ -24,12 +23,6 @@ pub struct Camera {
 	pub impact_sound: AssetHandle<Sound>,
 }
 
-#[derive(Clone, Debug)]
-pub struct MovementBob {
-	pub amplitude: f32,
-	pub max: f32,
-}
-
 pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 	let mut step_event_reader = resources
 		.get_mut::<EventChannel<StepEvent>>()
@@ -45,7 +38,7 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<EventChannel<StepEvent>>()
 		.read_resource::<EventChannel<TouchEvent>>()
 		.with_query(<&mut Camera>::query())
-		.with_query(<(&MovementBob, &mut Camera, &mut WeaponSpriteRender)>::query())
+		.with_query(<(&MovementBob, &mut Camera)>::query())
 		.build(move |command_buffer, world, resources, queries| {
 			let (frame_state, step_event_channel, touch_event_channel) = resources;
 
@@ -73,7 +66,7 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 				}
 			}
 
-			for (movement_bob, mut camera, weapon_sprite_render) in queries.1.iter_mut(world) {
+			for (movement_bob, mut camera) in queries.1.iter_mut(world) {
 				// Calculate deviation
 				if camera.deviation_position != 0.0 || camera.deviation_velocity != 0.0 {
 					const DEVIATION_ACCEL: f32 = 0.25 * FRAME_RATE * FRAME_RATE;
@@ -102,18 +95,14 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 				); // TODO replace with div_duration_f64 once it's stable
 				let bob = movement_bob.amplitude * 0.5 * angle.sin() as f32;
 				camera.offset[2] = camera.deviation_position + bob;
-
-				// Set weapon position
-				let mut angle = Angle::from_units(
-					frame_state.time.as_secs_f64() / camera.weapon_bob_period.as_secs_f64(),
-				);
-				weapon_sprite_render.position[0] =
-					1.0 + movement_bob.amplitude * angle.cos() as f32;
-
-				angle.0 &= 0x7FFF_FFFF;
-				weapon_sprite_render.position[1] = movement_bob.amplitude * angle.sin() as f32;
 			}
 		})
+}
+
+#[derive(Clone, Debug)]
+pub struct MovementBob {
+	pub amplitude: f32,
+	pub max: f32,
 }
 
 pub fn movement_bob_system(_resources: &mut Resources) -> impl Runnable {

@@ -48,8 +48,10 @@ pub fn next_state_system(_resources: &mut Resources) -> impl Runnable {
 				command_buffer.remove(entity);
 
 				if let Ok(state) = queries.1.get_mut(&mut world, target) {
-					state.timer.restart_with(frame_state.time, next_state.time);
-					state.action = StateAction::Wait(next_state.state);
+					if let StateAction::None = state.action {
+						state.timer.restart_with(frame_state.time, next_state.time);
+						state.action = StateAction::Wait(next_state.state);
+					}
 				}
 			}
 		})

@@ -4,7 +4,7 @@ use crate::{
 		data::FRAME_TIME,
 		render::sprite::SpriteRender,
 		state::{
-			weapon::{NextWeaponState, SetWeaponSprite},
+			weapon::{NextWeaponState, SetWeaponSprite, WeaponPosition},
 			EntityDef, StateName,
 		},
 		template::WeaponTemplate,
@@ -37,6 +37,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pung.sprite"), frame: 0, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Up,
+					));
 					world
 				},
 			]);
@@ -54,6 +58,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pung.sprite"), frame: 0, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Down,
+					));
 					world
 				},
 			]);
@@ -70,6 +78,10 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pung.sprite"), frame: 0, full_bright: false}),
+					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Bob,
 					));
 					world
 				},
@@ -175,6 +187,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pisg.sprite"), frame: 0, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Up,
+					));
 					world
 				},
 			]);
@@ -192,6 +208,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pisg.sprite"), frame: 0, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Down,
+					));
 					world
 				},
 			]);
@@ -208,6 +228,10 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pisg.sprite"), frame: 0, full_bright: false}),
+					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Bob,
 					));
 					world
 				},
@@ -330,6 +354,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 0, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Up,
+					));
 					world
 				},
 			]);
@@ -347,6 +375,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 0, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Down,
+					));
 					world
 				},
 			]);
@@ -363,6 +395,10 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 0, full_bright: false}),
+					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Bob,
 					));
 					world
 				},
@@ -575,6 +611,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("chgg.sprite"), frame: 0, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Up,
+					));
 					world
 				},
 			]);
@@ -592,6 +632,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("chgg.sprite"), frame: 0, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Down,
+					));
 					world
 				},
 			]);
@@ -608,6 +652,10 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("chgg.sprite"), frame: 0, full_bright: false}),
+					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Bob,
 					));
 					world
 				},
@@ -715,6 +763,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("misg.sprite"), frame: 0, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Up,
+					));
 					world
 				},
 			]);
@@ -732,6 +784,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("misg.sprite"), frame: 0, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Down,
+					));
 					world
 				},
 			]);
@@ -748,6 +804,10 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("misg.sprite"), frame: 0, full_bright: false}),
+					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Bob,
 					));
 					world
 				},
@@ -900,6 +960,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 2, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Up,
+					));
 					world
 				},
 			]);
@@ -916,6 +980,10 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 2, full_bright: false}),
+					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Down,
 					));
 					world
 				},
@@ -934,6 +1002,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 2, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Bob,
+					));
 					world
 				},
 				{
@@ -948,6 +1020,10 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 3, full_bright: false}),
+					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Bob,
 					));
 					world
 				},
@@ -1027,6 +1103,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("plsg.sprite"), frame: 0, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Up,
+					));
 					world
 				},
 			]);
@@ -1044,6 +1124,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("plsg.sprite"), frame: 0, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Down,
+					));
 					world
 				},
 			]);
@@ -1060,6 +1144,10 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("plsg.sprite"), frame: 0, full_bright: false}),
+					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Bob,
 					));
 					world
 				},
@@ -1152,6 +1240,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("bfgg.sprite"), frame: 0, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Up,
+					));
 					world
 				},
 			]);
@@ -1169,6 +1261,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("bfgg.sprite"), frame: 0, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Down,
+					));
 					world
 				},
 			]);
@@ -1185,6 +1281,10 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("bfgg.sprite"), frame: 0, full_bright: false}),
+					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Bob,
 					));
 					world
 				},
@@ -1326,6 +1426,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 0, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Up,
+					));
 					world
 				},
 			]);
@@ -1343,6 +1447,10 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 0, full_bright: false}),
 					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Down,
+					));
 					world
 				},
 			]);
@@ -1359,6 +1467,10 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 0, full_bright: false}),
+					));
+					world.push((
+						EntityDef,
+						WeaponPosition::Bob,
 					));
 					world
 				},

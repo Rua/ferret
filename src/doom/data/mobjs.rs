@@ -527,7 +527,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				VelocityDef,
 				WeaponSpriteRender {
-					position: Vector2::new(0.0, 0.0),
+					position: Vector2::new(0.0, 96.0),
 					slots: [
 						Some(SpriteRender {
 							sprite: asset_storage.load("pisg.sprite"),
