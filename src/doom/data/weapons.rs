@@ -883,6 +883,133 @@ pub fn load(resources: &mut Resources) {
 	asset_storage.insert_with_name("missile", template);
 
 	let template = WeaponTemplate {
+		name: Some("chainsaw"),
+		states: {
+			let mut states = HashMap::with_capacity(7);
+			states.insert(StateName::from("up").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextWeaponState {
+							time: 1 * FRAME_TIME,
+							state: (StateName::from("up").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 2, full_bright: false}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("down").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextWeaponState {
+							time: 1 * FRAME_TIME,
+							state: (StateName::from("down").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 2, full_bright: false}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("ready").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextWeaponState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("ready").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 2, full_bright: false}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextWeaponState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("ready").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 3, full_bright: false}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("attack").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextWeaponState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("attack").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 0, full_bright: false}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextWeaponState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("attack").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 1, full_bright: false}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextWeaponState {
+							time: 0 * FRAME_TIME,
+							state: (StateName::from("ready").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 1, full_bright: false}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. WeaponTemplate::default()
+	};
+	asset_storage.insert_with_name("chainsaw", template);
+
+	if wad_mode < WadMode::Doom1 {
+		return;
+	}
+
+	let template = WeaponTemplate {
 		name: Some("plasma"),
 		states: {
 			let mut states = HashMap::with_capacity(7);
@@ -1176,133 +1303,6 @@ pub fn load(resources: &mut Resources) {
 		.. WeaponTemplate::default()
 	};
 	asset_storage.insert_with_name("bfg", template);
-
-	let template = WeaponTemplate {
-		name: Some("chainsaw"),
-		states: {
-			let mut states = HashMap::with_capacity(7);
-			states.insert(StateName::from("up").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextWeaponState {
-							time: 1 * FRAME_TIME,
-							state: (StateName::from("up").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 2, full_bright: false}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("down").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextWeaponState {
-							time: 1 * FRAME_TIME,
-							state: (StateName::from("down").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 2, full_bright: false}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("ready").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextWeaponState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("ready").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 2, full_bright: false}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextWeaponState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("ready").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 3, full_bright: false}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("attack").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextWeaponState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("attack").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 0, full_bright: false}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextWeaponState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("attack").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 1, full_bright: false}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextWeaponState {
-							time: 0 * FRAME_TIME,
-							state: (StateName::from("ready").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 1, full_bright: false}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. WeaponTemplate::default()
-	};
-	asset_storage.insert_with_name("chainsaw", template);
-
-	if wad_mode < WadMode::Doom1 {
-		return;
-	}
 
 	if wad_mode < WadMode::Doom2 {
 		return;
