@@ -158,12 +158,12 @@ pub fn sound_playing_system(_resources: &mut Resources) -> impl Runnable {
 
 fn calculate_volumes(client_transform: &Transform, entity_transform: &Transform) -> Vector2<f32> {
 	let to_entity_vec = entity_transform.position - client_transform.position;
+	let distance = to_entity_vec.norm();
 
 	// Calculate distance falloff
 	const MIN_DIST: f32 = 160.0;
 	const MAX_DIST: f32 = 1200.0;
 
-	let distance = to_entity_vec.norm();
 	let distance_factor = if distance < MIN_DIST {
 		1.0
 	} else if distance > MAX_DIST {
@@ -175,9 +175,14 @@ fn calculate_volumes(client_transform: &Transform, entity_transform: &Transform)
 	// Calculate stereo panning
 	const MAX_PAN: f32 = 0.75;
 
-	let angle = client_transform.rotation[2]
-		- Angle::from_radians(f64::atan2(to_entity_vec[1] as f64, to_entity_vec[0] as f64));
-	let pan = MAX_PAN * angle.sin() as f32;
+	let pan = if distance < 1.0 {
+		0.0
+	} else {
+		let angle = client_transform.rotation[2]
+			- Angle::from_radians(f64::atan2(to_entity_vec[1] as f64, to_entity_vec[0] as f64));
+		MAX_PAN * angle.sin() as f32
+	};
+
 	let volumes = Vector2::new(
 		1.0 - 0.25 * (pan + 1.0).powi(2),
 		1.0 - 0.25 * (pan - 1.0).powi(2),
