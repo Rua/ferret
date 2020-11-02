@@ -2,6 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		frame::FrameState,
+		spawn::SpawnMergerHandlerSet,
 		time::Timer,
 	},
 	doom::{
@@ -15,8 +16,8 @@ use crate::{
 };
 use legion::{
 	component,
-	systems::{CommandBuffer, Runnable},
-	EntityStore, IntoQuery, Resources, SystemBuilder,
+	systems::{CommandBuffer, ResourceSet, Runnable},
+	EntityStore, IntoQuery, Resources, SystemBuilder, Write,
 };
 use shrev::EventChannel;
 use std::time::Duration;
@@ -46,10 +47,13 @@ pub enum FloorTargetHeight {
 }
 
 pub fn floor_active_system(resources: &mut Resources) -> impl Runnable {
-	let mut sector_move_event_reader = resources
-		.get_mut::<EventChannel<SectorMoveEvent>>()
-		.unwrap()
-		.register_reader();
+	let (mut handler_set, mut sector_move_event_channel) = <(
+		Write<SpawnMergerHandlerSet>,
+		Write<EventChannel<SectorMoveEvent>>,
+	)>::fetch_mut(resources);
+
+	handler_set.register_clone::<FloorActive>();
+	let mut sector_move_event_reader = sector_move_event_channel.register_reader();
 
 	SystemBuilder::new("floor_active_system")
 		.read_resource::<EventChannel<SectorMoveEvent>>()

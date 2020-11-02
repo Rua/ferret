@@ -1,18 +1,25 @@
 use crate::{
-	common::frame::FrameState,
+	common::{frame::FrameState, spawn::SpawnMergerHandlerSet},
 	doom::{
 		physics::{BoxCollider, SolidBits},
 		render::sprite::SpriteRender,
 		state::{State, StateAction, StateName},
 	},
 };
-use legion::{component, systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};
+use legion::{
+	component,
+	systems::{ResourceSet, Runnable},
+	Entity, IntoQuery, Resources, SystemBuilder, Write,
+};
 use std::time::Duration;
 
 #[derive(Clone, Debug)]
 pub struct BlocksTypes(pub SolidBits);
 
-pub fn blocks_types_system(_resources: &mut Resources) -> impl Runnable {
+pub fn blocks_types_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<BlocksTypes>();
+
 	SystemBuilder::new("blocks_types_system")
 		.with_query(<(Entity, &Entity, &BlocksTypes)>::query())
 		.with_query(<&mut BoxCollider>::query().filter(component::<State>()))
@@ -35,7 +42,10 @@ pub struct NextState {
 	pub state: (StateName, usize),
 }
 
-pub fn next_state_system(_resources: &mut Resources) -> impl Runnable {
+pub fn next_state_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<NextState>();
+
 	SystemBuilder::new("next_state_system")
 		.read_resource::<FrameState>()
 		.with_query(<(Entity, &Entity, &NextState)>::query())
@@ -60,7 +70,10 @@ pub fn next_state_system(_resources: &mut Resources) -> impl Runnable {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct RemoveEntity;
 
-pub fn remove_entity_system(_resources: &mut Resources) -> impl Runnable {
+pub fn remove_entity_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<RemoveEntity>();
+
 	SystemBuilder::new("remove_entity_system")
 		.with_query(<(Entity, &Entity, &RemoveEntity)>::query())
 		.with_query(<&State>::query())
@@ -78,7 +91,10 @@ pub fn remove_entity_system(_resources: &mut Resources) -> impl Runnable {
 #[derive(Clone, Debug)]
 pub struct SetSprite(pub SpriteRender);
 
-pub fn set_sprite_system(_resources: &mut Resources) -> impl Runnable {
+pub fn set_sprite_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<SetSprite>();
+
 	SystemBuilder::new("set_sprite_system")
 		.with_query(<(Entity, &Entity, &SetSprite)>::query())
 		.with_query(<&mut SpriteRender>::query().filter(component::<State>()))

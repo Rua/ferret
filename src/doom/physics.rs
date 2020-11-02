@@ -4,6 +4,7 @@ use crate::{
 		frame::FrameState,
 		geometry::{Interval, Plane3, AABB2, AABB3},
 		quadtree::Quadtree,
+		spawn::SpawnMergerHandlerSet,
 	},
 	doom::{
 		components::{Transform, Velocity},
@@ -18,7 +19,9 @@ use arrayvec::ArrayVec;
 use bitflags::bitflags;
 use lazy_static::lazy_static;
 use legion::{
-	component, systems::Runnable, Entity, EntityStore, IntoQuery, Resources, SystemBuilder,
+	component,
+	systems::{ResourceSet, Runnable},
+	Entity, EntityStore, IntoQuery, Resources, SystemBuilder, Write,
 };
 use nalgebra::Vector3;
 use shrev::EventChannel;
@@ -31,6 +34,10 @@ pub struct PhysicsSystem;
 pub fn physics_system(resources: &mut Resources) -> impl Runnable {
 	resources.insert(EventChannel::<StepEvent>::new());
 	resources.insert(EventChannel::<TouchEvent>::new());
+
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<BoxCollider>();
+	handler_set.register_clone::<TouchAction>();
 
 	SystemBuilder::new("physics_system")
 		.read_resource::<AssetStorage>()

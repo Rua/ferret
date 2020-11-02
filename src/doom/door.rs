@@ -3,6 +3,7 @@ use crate::{
 		assets::{AssetHandle, AssetStorage},
 		frame::FrameState,
 		geometry::Side,
+		spawn::SpawnMergerHandlerSet,
 		time::Timer,
 	},
 	doom::{
@@ -16,8 +17,8 @@ use crate::{
 };
 use legion::{
 	component,
-	systems::{CommandBuffer, Runnable},
-	Entity, EntityStore, IntoQuery, Resources, SystemBuilder,
+	systems::{CommandBuffer, ResourceSet, Runnable},
+	Entity, EntityStore, IntoQuery, Resources, SystemBuilder, Write,
 };
 use shrev::EventChannel;
 use std::time::Duration;
@@ -58,10 +59,13 @@ pub struct DoorParams {
 }
 
 pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
-	let mut sector_move_event_reader = resources
-		.get_mut::<EventChannel<SectorMoveEvent>>()
-		.unwrap()
-		.register_reader();
+	let (mut handler_set, mut sector_move_event_channel) = <(
+		Write<SpawnMergerHandlerSet>,
+		Write<EventChannel<SectorMoveEvent>>,
+	)>::fetch_mut(resources);
+
+	handler_set.register_clone::<DoorActive>();
+	let mut sector_move_event_reader = sector_move_event_channel.register_reader();
 
 	SystemBuilder::new("door_active_system")
 		.read_resource::<FrameState>()

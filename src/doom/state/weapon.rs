@@ -1,5 +1,5 @@
 use crate::{
-	common::{frame::FrameState, geometry::Angle},
+	common::{frame::FrameState, geometry::Angle, spawn::SpawnMergerHandlerSet},
 	doom::{
 		camera::{Camera, MovementBob},
 		client::Client,
@@ -7,7 +7,11 @@ use crate::{
 		state::{StateAction, StateName, WeaponState},
 	},
 };
-use legion::{component, systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};
+use legion::{
+	component,
+	systems::{ResourceSet, Runnable},
+	Entity, IntoQuery, Resources, SystemBuilder, Write,
+};
 use std::time::Duration;
 
 #[derive(Clone, Copy, Debug)]
@@ -16,7 +20,10 @@ pub struct NextWeaponState {
 	pub state: (StateName, usize),
 }
 
-pub fn next_weapon_state_system(_resources: &mut Resources) -> impl Runnable {
+pub fn next_weapon_state_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<NextWeaponState>();
+
 	SystemBuilder::new("next_weapon_state_system")
 		.read_resource::<FrameState>()
 		.with_query(<(Entity, &Entity, &NextWeaponState)>::query())
@@ -44,7 +51,10 @@ pub fn next_weapon_state_system(_resources: &mut Resources) -> impl Runnable {
 #[derive(Clone, Debug)]
 pub struct SetWeaponSprite(pub SpriteRender);
 
-pub fn set_weapon_sprite_system(_resources: &mut Resources) -> impl Runnable {
+pub fn set_weapon_sprite_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<SetWeaponSprite>();
+
 	SystemBuilder::new("set_weapon_sprite_system")
 		.with_query(<(Entity, &Entity, &SetWeaponSprite)>::query())
 		.with_query(<&mut WeaponSpriteRender>::query().filter(component::<WeaponState>()))
@@ -68,9 +78,12 @@ pub enum WeaponPosition {
 	Up,
 }
 
-pub fn weapon_position_system(_resources: &mut Resources) -> impl Runnable {
+pub fn weapon_position_system(resources: &mut Resources) -> impl Runnable {
 	const DOWN_SPEED: f32 = 6.0;
 	const UP_SPEED: f32 = -6.0;
+
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<WeaponPosition>();
 
 	SystemBuilder::new("weapon_position_system")
 		.read_resource::<FrameState>()
@@ -138,7 +151,10 @@ pub fn weapon_position_system(_resources: &mut Resources) -> impl Runnable {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct WeaponReady;
 
-pub fn weapon_ready_system(_resources: &mut Resources) -> impl Runnable {
+pub fn weapon_ready_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<WeaponReady>();
+
 	SystemBuilder::new("weapon_ready_system")
 		.read_resource::<Client>()
 		.with_query(<(Entity, &Entity, &WeaponReady)>::query())
@@ -166,7 +182,10 @@ pub fn weapon_ready_system(_resources: &mut Resources) -> impl Runnable {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct WeaponReFire;
 
-pub fn weapon_refire_system(_resources: &mut Resources) -> impl Runnable {
+pub fn weapon_refire_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<WeaponReFire>();
+
 	SystemBuilder::new("weapon_refire_system")
 		.read_resource::<Client>()
 		.with_query(<(Entity, &Entity, &WeaponReFire)>::query())

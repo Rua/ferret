@@ -2,28 +2,21 @@ mod common;
 mod doom;
 
 use crate::common::{
-	assets::{AssetHandle, AssetStorage},
-	frame::{frame_state_system, FrameRng, FrameRngDef, FrameState},
+	assets::AssetStorage,
+	frame::{FrameRng, FrameRngDef, FrameState},
 	input::InputState,
-	quadtree::Quadtree,
 	spawn::SpawnMergerHandlerSet,
-	video::{AsBytes, DrawList, RenderContext, RenderTarget},
+	video::{DrawList, RenderContext, RenderTarget},
 };
-use anyhow::{bail, Context};
-use clap::{App, Arg, ArgMatches};
-use legion::{systems::ResourceSet, Entity, Read, Resources, Schedule, World, Write};
+use anyhow::Context;
+use clap::{App, Arg};
+use crossbeam_channel::Sender;
+use legion::{systems::ResourceSet, Read, Resources, Schedule, World, Write};
 use nalgebra::Vector2;
 use rand::SeedableRng;
-use relative_path::RelativePath;
 use std::{
-	path::PathBuf,
 	sync::Mutex,
 	time::{Duration, Instant},
-};
-use vulkano::{
-	format::Format,
-	image::{Dimensions, ImmutableImage},
-	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
 };
 use winit::{
 	event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent},
@@ -69,8 +62,9 @@ fn main() -> anyhow::Result<()> {
 	let mut resources = Resources::default();
 
 	let (command_sender, command_receiver) = common::commands::init()?;
-	let mut event_loop = EventLoop::new();
+	resources.insert(command_sender);
 
+	let mut event_loop = EventLoop::new();
 	let (render_context, _debug_callback) =
 		RenderContext::new(&event_loop).context("Could not create RenderContext")?;
 	let render_target = RenderTarget::new(
@@ -81,54 +75,13 @@ fn main() -> anyhow::Result<()> {
 
 	let mut draw_list = DrawList::new(&render_context, render_target.dimensions())
 		.context("Couldn't create DrawList")?;
-	draw_list.add_step(
-		doom::render::world::DrawWorld::new(&render_context)
-			.context("Couldn't create DrawWorld")?,
-	);
-	draw_list.add_step(
-		doom::render::map::DrawMap::new(draw_list.render_pass())
-			.context("Couldn't create DrawMap")?,
-	);
-	draw_list.add_step(
-		doom::render::sprite::DrawSprites::new(&render_context, draw_list.render_pass())
-			.context("Couldn't create DrawSprites")?,
-	);
-	draw_list.add_step(
-		doom::render::wsprite::DrawWeaponSprites::new(&render_context, draw_list.render_pass())
-			.context("Couldn't create DrawWeaponSprites")?,
-	);
-	draw_list.add_step(
-		doom::render::ui::DrawUi::new(&render_context, draw_list.render_pass())
-			.context("Couldn't create DrawUi")?,
-	);
 
-	resources.insert(
-		Sampler::new(
-			render_context.device().clone(),
-			Filter::Nearest,
-			Filter::Nearest,
-			MipmapMode::Nearest,
-			SamplerAddressMode::Repeat,
-			SamplerAddressMode::Repeat,
-			SamplerAddressMode::Repeat,
-			0.0,
-			1.0,
-			0.0,
-			0.0,
-		)
-		.context("Couldn't create texture sampler")?,
-	);
 	resources.insert(render_target);
 	resources.insert(render_context);
+	doom::init_draw_list(&mut draw_list, &resources)?;
 
-	let sound_sender = common::sound::init()?;
-	resources.insert(sound_sender);
-
-	let bindings = doom::data::get_bindings();
-	resources.insert(bindings);
-
+	resources.insert(common::sound::init()?);
 	resources.insert(InputState::new());
-	resources.insert(doom::client::Client::default());
 
 	let frame_state = FrameState {
 		delta_time: doom::data::FRAME_TIME,
@@ -137,149 +90,13 @@ fn main() -> anyhow::Result<()> {
 	};
 	resources.insert(frame_state);
 
-	let mut loader = doom::wad::WadLoader::new();
-	load_wads(&mut loader, &arg_matches)?;
-
-	let wad_mode = match loader
-		.wads()
-		.next()
-		.unwrap()
-		.file_name()
-		.unwrap()
-		.to_str()
-		.unwrap()
-	{
-		"doom1.wad" => WadMode::Doom1SW,
-		"doom.wad" | "doomu.wad" => WadMode::Doom1,
-		"doom2.wad" | "tnt.wad" | "plutonia.wad" => WadMode::Doom2,
-		x => bail!("The IWAD \"{}\" is not recognised", x),
-	};
-	resources.insert(wad_mode);
-
-	// Select map
-	let map = if let Some(map) = arg_matches.value_of("map") {
-		map
-	} else {
-		match wad_mode {
-			WadMode::Doom1SW | WadMode::Doom1 => "E1M1",
-			WadMode::Doom2 => "MAP01",
-		}
-
-		/*if wad == "doom.wad" || wad == "doom1.wad" || wad == "doomu.wad" {
-			"E1M1"
-		} else if wad == "doom2.wad" || wad == "tnt.wad" || wad == "plutonia.wad" {
-			"MAP01"
-		} else {
-			bail!("No default map is known for this IWAD. Try specifying one with the \"-m\" option.")
-		}*/
-	};
-	command_sender.send(format!("map {}", map)).ok();
-
-	// Asset types
-	let mut asset_storage = AssetStorage::new(doom::import, loader);
-	asset_storage.add_storage::<doom::template::EntityTemplate>(false);
-	asset_storage.add_storage::<doom::template::WeaponTemplate>(false);
-	asset_storage.add_storage::<doom::image::Image>(true);
-	asset_storage.add_storage::<doom::image::ImageData>(false);
-	asset_storage.add_storage::<doom::image::Palette>(false);
-	asset_storage.add_storage::<doom::map::Map>(false);
-	asset_storage.add_storage::<doom::map::textures::PNames>(false);
-	asset_storage.add_storage::<doom::map::textures::Textures>(false);
-	asset_storage.add_storage::<doom::sprite::Sprite>(false);
-	asset_storage.add_storage::<doom::sound::RawSound>(false);
-	asset_storage.add_storage::<doom::sound::Sound>(false);
-	resources.insert(asset_storage);
-
-	// Component types
 	let mut handler_set = SpawnMergerHandlerSet::new();
 	handler_set.register_spawn::<FrameRngDef, FrameRng>();
-	handler_set.register_clone::<doom::camera::Camera>();
-	handler_set.register_clone::<doom::camera::MovementBob>();
-	handler_set.register_clone::<doom::client::UseAction>();
-	handler_set.register_clone::<doom::client::User>();
-	handler_set.register_clone::<doom::components::SpawnPoint>();
-	handler_set.register_spawn::<doom::components::TransformDef, doom::components::Transform>();
-	handler_set.register_from::<doom::components::VelocityDef, doom::components::Velocity>();
-	handler_set.register_clone::<doom::door::DoorActive>();
-	handler_set
-		.register_spawn::<doom::template::EntityTemplateRefDef, doom::template::EntityTemplateRef>(
-		);
-	handler_set.register_clone::<doom::floor::FloorActive>();
-	handler_set.register_spawn::<doom::health::HealthDef, doom::health::Health>();
-	handler_set.register_spawn::<doom::light::LightFlashDef, doom::light::LightFlash>();
-	handler_set.register_clone::<doom::light::LightGlow>();
-	handler_set.register_clone::<doom::map::LinedefRef>();
-	handler_set.register_clone::<doom::map::MapDynamic>();
-	handler_set.register_clone::<doom::map::SectorRef>();
-	handler_set.register_clone::<doom::physics::BoxCollider>();
-	handler_set.register_clone::<doom::physics::TouchAction>();
-	handler_set.register_clone::<doom::plat::PlatActive>();
-	handler_set.register_clone::<doom::render::sprite::SpriteRender>();
-	handler_set.register_clone::<doom::render::wsprite::WeaponSpriteRender>();
-	handler_set.register_clone::<doom::sectormove::CeilingMove>();
-	handler_set.register_clone::<doom::sectormove::FloorMove>();
-	handler_set.register_clone::<doom::sound::SoundPlaying>();
-	handler_set.register_clone::<doom::sound::StartSound>();
-	handler_set.register_spawn::<doom::state::StateDef, doom::state::State>();
-	handler_set.register_spawn::<doom::state::WeaponStateDef, doom::state::WeaponState>();
-	handler_set.register_clone::<doom::switch::SwitchActive>();
-	handler_set.register_clone::<doom::texture::TextureScroll>();
-
-	handler_set.register_spawn::<doom::state::EntityDef, Entity>();
-	handler_set.register_clone::<doom::state::entity::BlocksTypes>();
-	handler_set.register_clone::<doom::state::entity::NextState>();
-	handler_set.register_clone::<doom::state::entity::RemoveEntity>();
-	handler_set.register_clone::<doom::state::entity::SetSprite>();
-	handler_set.register_clone::<doom::state::weapon::NextWeaponState>();
-	handler_set.register_clone::<doom::state::weapon::SetWeaponSprite>();
-	handler_set.register_clone::<doom::state::weapon::WeaponPosition>();
-	handler_set.register_clone::<doom::state::weapon::WeaponReady>();
-	handler_set.register_clone::<doom::state::weapon::WeaponReFire>();
 	resources.insert(handler_set);
 
-	// Create systems
-	#[rustfmt::skip]
-	let mut update_dispatcher = Schedule::builder()
-		.add_thread_local(doom::client::player_command_system()).flush()
-		.add_thread_local(doom::client::player_move_system()).flush()
-		.add_thread_local(doom::client::player_weapon_system(&mut resources)).flush()
-		.add_thread_local(doom::client::player_attack_system(&mut resources)).flush()
-		.add_thread_local(doom::client::player_use_system(&mut resources)).flush()
-		.add_thread_local(doom::physics::physics_system(&mut resources)).flush()
-		.add_thread_local(doom::camera::movement_bob_system(&mut resources)).flush()
-		.add_thread_local(doom::camera::camera_system(&mut resources)).flush()
-		.add_thread_local(doom::door::door_use_system(&mut resources)).flush()
-		.add_thread_local(doom::door::door_switch_system(&mut resources)).flush()
-		.add_thread_local(doom::door::door_touch_system(&mut resources)).flush()
-		.add_thread_local(doom::floor::floor_switch_system(&mut resources)).flush()
-		.add_thread_local(doom::floor::floor_touch_system(&mut resources)).flush()
-		.add_thread_local(doom::plat::plat_switch_system(&mut resources)).flush()
-		.add_thread_local(doom::plat::plat_touch_system(&mut resources)).flush()
-		.add_thread_local(doom::sectormove::sector_move_system(&mut resources)).flush()
-		.add_thread_local(doom::door::door_active_system(&mut resources)).flush()
-		.add_thread_local(doom::floor::floor_active_system(&mut resources)).flush()
-		.add_thread_local(doom::plat::plat_active_system(&mut resources)).flush()
-		.add_thread_local(doom::light::light_flash_system()).flush()
-		.add_thread_local(doom::light::light_glow_system()).flush()
-		.add_thread_local(doom::switch::switch_active_system()).flush()
-		.add_thread_local(doom::texture::texture_animation_system()).flush()
-		.add_thread_local(doom::texture::texture_scroll_system()).flush()
-		.add_thread_local(doom::health::damage_system(&mut resources)).flush()
+	doom::init_resources(&mut resources, &arg_matches)?;
 
-		.add_thread_local(doom::state::state_set_system(&mut resources)).flush()
-		.add_thread_local(doom::state::weapon_state_set_system(&mut resources)).flush()
-		.add_thread_local(doom::state::entity::blocks_types_system(&mut resources)).flush()
-		.add_thread_local(doom::state::entity::next_state_system(&mut resources)).flush()
-		.add_thread_local(doom::state::entity::remove_entity_system(&mut resources)).flush()
-		.add_thread_local(doom::state::entity::set_sprite_system(&mut resources)).flush()
-		.add_thread_local(doom::state::weapon::next_weapon_state_system(&mut resources)).flush()
-		.add_thread_local(doom::state::weapon::set_weapon_sprite_system(&mut resources)).flush()
-		.add_thread_local(doom::state::weapon::weapon_position_system(&mut resources)).flush()
-		.add_thread_local(doom::state::weapon::weapon_ready_system(&mut resources)).flush()
-		.add_thread_local(doom::state::weapon::weapon_refire_system(&mut resources)).flush()
-
-		.add_thread_local(frame_state_system(doom::data::FRAME_TIME)).flush()
-		.build();
+	let mut update_systems = doom::init_update_systems(&mut resources);
 
 	#[rustfmt::skip]
 	let mut output_dispatcher = Schedule::builder()
@@ -366,10 +183,14 @@ fn main() -> anyhow::Result<()> {
 
 		// Process events from the system
 		event_loop.run_return(|event, _, control_flow| {
-			let (mut input_state, render_context, mut render_target) =
-				<(Write<InputState>, Read<RenderContext>, Write<RenderTarget>)>::fetch_mut(
-					&mut resources,
-				);
+			let (command_sender, render_context, mut input_state, mut render_target) =
+				<(
+					Read<Sender<String>>,
+					Read<RenderContext>,
+					Write<InputState>,
+					Write<RenderTarget>,
+				)>::fetch_mut(&mut resources);
+
 			input_state.process_event(&event);
 
 			match event {
@@ -432,7 +253,7 @@ fn main() -> anyhow::Result<()> {
 			// Split further into subcommands
 			for args in tokens.split(|tok| tok == ";") {
 				match args[0].as_str() {
-					"map" => load_map(&format!("{}", args[1]), &mut world, &mut resources)?,
+					"map" => doom::load_map(&format!("{}", args[1]), &mut world, &mut resources)?,
 					"quit" => should_quit = true,
 					_ => log::error!("Unknown command: {}", args[0]),
 				}
@@ -447,7 +268,7 @@ fn main() -> anyhow::Result<()> {
 		leftover_time += delta;
 
 		if leftover_time >= doom::data::FRAME_TIME {
-			update_dispatcher.execute(&mut world, &mut resources);
+			update_systems.execute(&mut world, &mut resources);
 			leftover_time -= doom::data::FRAME_TIME;
 
 			let mut input_state = <Write<InputState>>::fetch_mut(&mut resources);
@@ -457,149 +278,6 @@ fn main() -> anyhow::Result<()> {
 		// Update video and sound
 		output_dispatcher.execute(&mut world, &mut resources);
 	}
-
-	Ok(())
-}
-
-#[derive(Clone, Copy, Debug, PartialOrd, Ord, PartialEq, Eq)]
-pub enum WadMode {
-	Doom1SW,
-	Doom1,
-	Doom2,
-}
-
-fn load_wads(loader: &mut doom::wad::WadLoader, arg_matches: &ArgMatches) -> anyhow::Result<()> {
-	let mut wads = Vec::new();
-	const IWADS: [&str; 6] = ["doom2", "plutonia", "tnt", "doomu", "doom", "doom1"];
-
-	let iwad = if let Some(iwad) = arg_matches.value_of("iwad") {
-		PathBuf::from(iwad)
-	} else if let Some(iwad) = IWADS
-		.iter()
-		.map(|p| PathBuf::from(format!("{}.wad", p)))
-		.find(|p| p.is_file())
-	{
-		iwad
-	} else {
-		bail!("No iwad file found. Try specifying one with the \"-i\" command line option.")
-	};
-
-	wads.push(iwad);
-
-	if let Some(iter) = arg_matches.values_of("PWADS") {
-		wads.extend(iter.map(PathBuf::from));
-	}
-
-	for path in wads {
-		loader
-			.add(&path)
-			.context(format!("Couldn't load {}", path.display()))?;
-
-		// Try to load the .gwa file as well if present
-		if let Some(extension) = path.extension() {
-			if extension == "wad" {
-				let path = path.with_extension("gwa");
-
-				if path.is_file() {
-					loader
-						.add(&path)
-						.context(format!("Couldn't load {}", path.display()))?;
-				}
-			}
-		}
-	}
-
-	Ok(())
-}
-
-fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow::Result<()> {
-	log::info!("Starting map {}...", name);
-	let name_lower = name.to_ascii_lowercase();
-	let start_time = Instant::now();
-
-	log::info!("Loading entity data...");
-	doom::data::mobjs::load(resources);
-	doom::data::weapons::load(resources);
-	doom::data::sectors::load(resources);
-	doom::data::linedefs::load(resources);
-
-	log::info!("Loading map...");
-	let map_handle: AssetHandle<doom::map::Map> = {
-		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-		asset_storage.load(&format!("{}.map", name_lower))
-	};
-
-	// Create quadtree
-	let bbox = {
-		let asset_storage = <Read<AssetStorage>>::fetch(resources);
-		let map = asset_storage.get(&map_handle).unwrap();
-		map.bbox.clone()
-	};
-	resources.insert(Quadtree::new(bbox));
-
-	log::info!("Processing assets...");
-	{
-		let (render_context, mut asset_storage) =
-			<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(resources);
-
-		// Palette
-		let palette_handle: AssetHandle<doom::image::Palette> =
-			asset_storage.load("playpal.palette");
-
-		// Images
-		asset_storage.process::<doom::image::Image, _>(|data, asset_storage| {
-			let image_data: doom::image::ImageData = *data.downcast().ok().unwrap();
-			let palette = asset_storage.get(&palette_handle).unwrap();
-			let data: Vec<_> = image_data
-				.data
-				.into_iter()
-				.map(|pixel| {
-					if pixel.a == 0xFF {
-						palette[pixel.i as usize]
-					} else {
-						crate::doom::image::RGBAColor::default()
-					}
-				})
-				.collect();
-
-			// Create the image
-			let (image, _future) = ImmutableImage::from_iter(
-				data.as_bytes().iter().copied(),
-				Dimensions::Dim2d {
-					width: image_data.size[0] as u32,
-					height: image_data.size[1] as u32,
-				},
-				Format::R8G8B8A8Unorm,
-				render_context.queues().graphics.clone(),
-			)?;
-
-			Ok(crate::doom::image::Image {
-				image,
-				offset: Vector2::new(image_data.offset[0] as f32, image_data.offset[1] as f32),
-			})
-		});
-	}
-
-	log::info!("Spawning entities...");
-	let things = {
-		let asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-		doom::map::load::build_things(
-			&asset_storage
-				.source()
-				.load(&RelativePath::new(&name_lower).with_extension("things"))?,
-		)?
-	};
-	doom::map::spawn::spawn_map_entities(world, resources, &map_handle)?;
-	doom::map::spawn::spawn_things(things, world, resources)?;
-
-	// Spawn player
-	let entity = doom::map::spawn::spawn_player(world, resources, 1)?;
-	<Write<doom::client::Client>>::fetch_mut(resources).entity = Some(entity);
-
-	log::debug!(
-		"Loading took {} s",
-		(Instant::now() - start_time).as_secs_f32()
-	);
 
 	Ok(())
 }

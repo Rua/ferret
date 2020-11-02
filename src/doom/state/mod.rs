@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		frame::FrameState,
-		spawn::{ComponentAccessor, SpawnFrom},
+		spawn::{ComponentAccessor, SpawnFrom, SpawnMergerHandlerSet},
 		time::Timer,
 	},
 	doom::{
@@ -13,7 +13,7 @@ use crate::{
 use arrayvec::ArrayString;
 use legion::{
 	systems::{ResourceSet, Runnable},
-	Entity, IntoQuery, Read, Resources, SystemBuilder,
+	Entity, IntoQuery, Read, Resources, SystemBuilder, Write,
 };
 use std::time::Duration;
 
@@ -79,7 +79,11 @@ impl SpawnFrom<StateDef> for State {
 	}
 }
 
-pub fn state_set_system(_resources: &mut Resources) -> impl Runnable {
+pub fn state_set_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_spawn::<StateDef, State>();
+	handler_set.register_spawn::<EntityDef, Entity>();
+
 	SystemBuilder::new("state_set_system")
 		.read_resource::<FrameState>()
 		.with_query(<(Entity, &EntityTemplateRef, &mut State)>::query())
@@ -146,7 +150,10 @@ impl SpawnFrom<WeaponStateDef> for WeaponState {
 	}
 }
 
-pub fn weapon_state_set_system(_resources: &mut Resources) -> impl Runnable {
+pub fn weapon_state_set_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_spawn::<WeaponStateDef, WeaponState>();
+
 	SystemBuilder::new("weapon_state_set_system")
 		.read_resource::<FrameState>()
 		.with_query(<(Entity, &mut WeaponState)>::query())

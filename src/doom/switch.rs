@@ -2,6 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		frame::FrameState,
+		spawn::SpawnMergerHandlerSet,
 		time::Timer,
 	},
 	doom::{
@@ -11,8 +12,8 @@ use crate::{
 	},
 };
 use legion::{
-	systems::{CommandBuffer, Runnable},
-	Entity, IntoQuery, SystemBuilder,
+	systems::{CommandBuffer, ResourceSet, Runnable},
+	Entity, IntoQuery, Resources, SystemBuilder, Write,
 };
 use std::time::Duration;
 
@@ -30,7 +31,10 @@ pub struct SwitchActive {
 	pub timer: Timer,
 }
 
-pub fn switch_active_system() -> impl Runnable {
+pub fn switch_active_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<SwitchActive>();
+
 	SystemBuilder::new("switch_active_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<FrameState>()

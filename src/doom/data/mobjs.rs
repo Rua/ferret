@@ -15,8 +15,8 @@ use crate::{
 			EntityDef, StateDef, StateName, WeaponStateDef,
 		},
 		template::{EntityTemplate, EntityTemplateRefDef, EntityTypeId},
+		WadMode,
 	},
-	WadMode,
 };
 use legion::{systems::ResourceSet, Read, Resources, World, Write};
 use nalgebra::{Vector2, Vector3};

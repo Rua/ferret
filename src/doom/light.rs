@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::AssetStorage,
 		frame::{FrameRng, FrameState},
-		spawn::{ComponentAccessor, SpawnFrom},
+		spawn::{ComponentAccessor, SpawnFrom, SpawnMergerHandlerSet},
 		time::Timer,
 	},
 	doom::{
@@ -12,12 +12,15 @@ use crate::{
 };
 use legion::{
 	systems::{ResourceSet, Runnable},
-	IntoQuery, Read, Resources, SystemBuilder,
+	IntoQuery, Read, Resources, SystemBuilder, Write,
 };
 use rand::Rng;
 use std::time::Duration;
 
-pub fn light_flash_system() -> impl Runnable {
+pub fn light_flash_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_spawn::<LightFlashDef, LightFlash>();
+
 	SystemBuilder::new("light_flash_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<FrameState>()
@@ -145,7 +148,10 @@ impl SpawnFrom<LightFlashDef> for LightFlash {
 	}
 }
 
-pub fn light_glow_system() -> impl Runnable {
+pub fn light_glow_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<LightGlow>();
+
 	SystemBuilder::new("light_glow_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<FrameState>()

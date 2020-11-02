@@ -3,6 +3,7 @@ use crate::{
 		assets::{AssetHandle, AssetStorage},
 		frame::FrameState,
 		quadtree::Quadtree,
+		spawn::SpawnMergerHandlerSet,
 		time::Timer,
 	},
 	doom::{
@@ -12,7 +13,11 @@ use crate::{
 		sound::{Sound, StartSound},
 	},
 };
-use legion::{systems::Runnable, world::SubWorld, Entity, IntoQuery, Resources, SystemBuilder};
+use legion::{
+	systems::{ResourceSet, Runnable},
+	world::SubWorld,
+	Entity, IntoQuery, Resources, SystemBuilder, Write,
+};
 use shrev::EventChannel;
 
 #[derive(Clone, Debug)]
@@ -44,6 +49,10 @@ pub enum SectorMoveEventType {
 
 pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 	resources.insert(EventChannel::<SectorMoveEvent>::new());
+
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<CeilingMove>();
+	handler_set.register_clone::<FloorMove>();
 
 	SystemBuilder::new("sector_move_system")
 		.read_resource::<AssetStorage>()

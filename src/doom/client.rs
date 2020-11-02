@@ -5,6 +5,7 @@ use crate::{
 		geometry::{Line2, AABB3},
 		input::{Bindings, InputState},
 		quadtree::Quadtree,
+		spawn::SpawnMergerHandlerSet,
 	},
 	doom::{
 		camera::Camera,
@@ -23,7 +24,9 @@ use crate::{
 	},
 };
 use legion::{
-	component, systems::Runnable, Entity, EntityStore, IntoQuery, Resources, SystemBuilder,
+	component,
+	systems::{ResourceSet, Runnable},
+	Entity, EntityStore, IntoQuery, Resources, SystemBuilder, Write,
 };
 use nalgebra::{Vector2, Vector3};
 use shrev::EventChannel;
@@ -35,7 +38,7 @@ pub struct Client {
 	pub previous_command: UserCommand,
 }
 
-pub fn player_command_system() -> impl Runnable {
+pub fn player_command_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("player_command_system")
 		.read_resource::<Bindings<BoolInput, FloatInput>>()
 		.read_resource::<InputState>()
@@ -95,7 +98,7 @@ pub fn player_command_system() -> impl Runnable {
 		})
 }
 
-pub fn player_move_system() -> impl Runnable {
+pub fn player_move_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("player_move_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
@@ -177,6 +180,10 @@ pub fn player_move_system() -> impl Runnable {
 
 pub fn player_use_system(resources: &mut Resources) -> impl Runnable {
 	resources.insert(EventChannel::<UseEvent>::new());
+
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<UseAction>();
+	handler_set.register_clone::<User>();
 
 	SystemBuilder::new("player_use_system")
 		.read_resource::<AssetStorage>()

@@ -2,14 +2,17 @@ use crate::{
 	common::{
 		assets::AssetStorage,
 		frame::FrameRng,
-		spawn::{ComponentAccessor, SpawnFrom},
+		spawn::{ComponentAccessor, SpawnFrom, SpawnMergerHandlerSet},
 	},
 	doom::{
 		state::{State, StateAction, StateName},
 		template::EntityTemplateRef,
 	},
 };
-use legion::{systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};
+use legion::{
+	systems::{ResourceSet, Runnable},
+	Entity, IntoQuery, Resources, SystemBuilder, Write,
+};
 use rand::Rng;
 use smallvec::SmallVec;
 
@@ -38,7 +41,10 @@ impl SpawnFrom<HealthDef> for Health {
 	}
 }
 
-pub fn damage_system(_resources: &mut Resources) -> impl Runnable {
+pub fn damage_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_spawn::<HealthDef, Health>();
+
 	SystemBuilder::new("damage_system")
 		.read_resource::<AssetStorage>()
 		.with_query(<(

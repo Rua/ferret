@@ -3,13 +3,17 @@ use crate::{
 		assets::{AssetHandle, AssetStorage, ImportData},
 		geometry::Angle,
 		sound::{SoundController, SoundSource},
+		spawn::SpawnMergerHandlerSet,
 	},
 	doom::{client::Client, components::Transform, data::sounds::SOUNDS},
 };
 use anyhow::ensure;
 use byteorder::{ReadBytesExt, LE};
 use crossbeam_channel::Sender;
-use legion::{systems::Runnable, Entity, IntoQuery, Resources, SystemBuilder};
+use legion::{
+	systems::{ResourceSet, Runnable},
+	Entity, IntoQuery, Resources, SystemBuilder, Write,
+};
 use nalgebra::Vector2;
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64Mcg;
@@ -88,7 +92,9 @@ pub struct SoundPlaying {
 
 type SoundSender = Sender<Box<dyn Source<Item = f32> + Send>>;
 
-pub fn start_sound_system(_resources: &mut Resources) -> impl Runnable {
+pub fn start_sound_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<StartSound>();
 	let mut rng = Pcg64Mcg::from_entropy();
 
 	SystemBuilder::new("start_sound_system")
@@ -134,7 +140,10 @@ pub fn start_sound_system(_resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-pub fn sound_playing_system(_resources: &mut Resources) -> impl Runnable {
+pub fn sound_playing_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<SoundPlaying>();
+
 	SystemBuilder::new("sound_playing_system")
 		.read_resource::<Client>()
 		.with_query(<&Transform>::query())

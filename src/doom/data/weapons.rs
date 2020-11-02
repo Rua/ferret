@@ -9,8 +9,8 @@ use crate::{
 			EntityDef, StateName,
 		},
 		template::WeaponTemplate,
+		WadMode,
 	},
-	WadMode,
 };
 use legion::{systems::ResourceSet, Read, Resources, World, Write};
 use std::{collections::HashMap, default::Default};

@@ -1,16 +1,14 @@
 use crate::{
-	common::{assets::AssetStorage, frame::FrameState},
+	common::{assets::AssetStorage, frame::FrameState, spawn::SpawnMergerHandlerSet},
 	doom::map::{LinedefRef, MapDynamic},
 };
-use legion::{systems::Runnable, IntoQuery, SystemBuilder};
+use legion::{
+	systems::{ResourceSet, Runnable},
+	IntoQuery, Resources, SystemBuilder, Write,
+};
 use nalgebra::Vector2;
 
-#[derive(Clone, Copy, Debug)]
-pub struct TextureScroll {
-	pub speed: Vector2<f32>,
-}
-
-pub fn texture_animation_system() -> impl Runnable {
+pub fn texture_animation_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("texture_animation_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<FrameState>()
@@ -31,7 +29,15 @@ pub fn texture_animation_system() -> impl Runnable {
 		})
 }
 
-pub fn texture_scroll_system() -> impl Runnable {
+#[derive(Clone, Copy, Debug)]
+pub struct TextureScroll {
+	pub speed: Vector2<f32>,
+}
+
+pub fn texture_scroll_system(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<TextureScroll>();
+
 	SystemBuilder::new("texture_scroll_system")
 		.read_resource::<FrameState>()
 		.with_query(<(&LinedefRef, &TextureScroll)>::query())

@@ -1,5 +1,7 @@
 use crate::{
-	common::{assets::AssetHandle, frame::FrameState, geometry::Angle},
+	common::{
+		assets::AssetHandle, frame::FrameState, geometry::Angle, spawn::SpawnMergerHandlerSet,
+	},
 	doom::{
 		components::Velocity,
 		data::FRAME_RATE,
@@ -7,7 +9,10 @@ use crate::{
 		sound::{Sound, StartSound},
 	},
 };
-use legion::{systems::Runnable, IntoQuery, Resources, SystemBuilder};
+use legion::{
+	systems::{ResourceSet, Runnable},
+	IntoQuery, Resources, SystemBuilder, Write,
+};
 use nalgebra::{Vector2, Vector3};
 use shrev::EventChannel;
 use std::time::Duration;
@@ -24,14 +29,16 @@ pub struct Camera {
 }
 
 pub fn camera_system(resources: &mut Resources) -> impl Runnable {
-	let mut step_event_reader = resources
-		.get_mut::<EventChannel<StepEvent>>()
-		.unwrap()
-		.register_reader();
-	let mut touch_event_reader = resources
-		.get_mut::<EventChannel<TouchEvent>>()
-		.unwrap()
-		.register_reader();
+	let (mut handler_set, mut step_event_channel, mut touch_event_channel) =
+		<(
+			Write<SpawnMergerHandlerSet>,
+			Write<EventChannel<StepEvent>>,
+			Write<EventChannel<TouchEvent>>,
+		)>::fetch_mut(resources);
+
+	handler_set.register_clone::<Camera>();
+	let mut step_event_reader = step_event_channel.register_reader();
+	let mut touch_event_reader = touch_event_channel.register_reader();
 
 	SystemBuilder::new("camera_system")
 		.read_resource::<FrameState>()
@@ -105,7 +112,12 @@ pub struct MovementBob {
 	pub max: f32,
 }
 
-pub fn movement_bob_system(_resources: &mut Resources) -> impl Runnable {
+pub fn movement_bob_system(resources: &mut Resources) -> impl Runnable {
+	resources
+		.get_mut::<SpawnMergerHandlerSet>()
+		.expect("Required resource not present")
+		.register_clone::<MovementBob>();
+
 	SystemBuilder::new("movement_bob_system")
 		.with_query(<(&Velocity, &mut MovementBob)>::query())
 		.build(move |_command_buffer, world, _resources, query| {
