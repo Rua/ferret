@@ -13,14 +13,14 @@ use vulkano::{
 };
 use winit::window::Window;
 
-pub struct RenderTarget {
+pub struct PresentTarget {
 	images: Vec<Arc<SwapchainImage<Window>>>,
 	swapchain: Arc<Swapchain<Window>>,
 	needs_recreate: bool,
 }
 
-impl RenderTarget {
-	pub fn new(surface: Arc<Surface<Window>>, device: Arc<Device>) -> anyhow::Result<RenderTarget> {
+impl PresentTarget {
+	pub fn new(surface: Arc<Surface<Window>>, device: Arc<Device>) -> anyhow::Result<PresentTarget> {
 		let params =
 			choose_swapchain_params(&device, &surface, surface.window().inner_size().into())?;
 		log::debug!("Creating swapchain: {:?}", params);
@@ -47,7 +47,7 @@ impl RenderTarget {
 		)
 		.context("Couldn't create swapchain")?;
 
-		Ok(RenderTarget {
+		Ok(PresentTarget {
 			images,
 			swapchain,
 			needs_recreate: false,
@@ -90,7 +90,7 @@ impl RenderTarget {
 			Err(err) => Err(err).context("Couldn't recreate swapchain")?,
 		};
 
-		*self = RenderTarget {
+		*self = PresentTarget {
 			images,
 			swapchain,
 			needs_recreate: false,

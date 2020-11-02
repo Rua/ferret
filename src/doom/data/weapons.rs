@@ -2,7 +2,7 @@ use crate::{
 	common::assets::AssetStorage,
 	doom::{
 		data::FRAME_TIME,
-		render::sprite::SpriteRender,
+		draw::sprite::SpriteRender,
 		sound::StartSound,
 		state::{
 			weapon::{NextWeaponState, SetWeaponSprite, WeaponPosition, WeaponReFire, WeaponReady},

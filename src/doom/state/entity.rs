@@ -1,8 +1,8 @@
 use crate::{
 	common::{frame::FrameState, spawn::SpawnMergerHandlerSet},
 	doom::{
+		draw::sprite::SpriteRender,
 		physics::{BoxCollider, SolidBits},
-		render::sprite::SpriteRender,
 		state::{State, StateAction, StateName},
 	},
 };

@@ -3,6 +3,7 @@ pub mod client;
 pub mod components;
 pub mod data;
 pub mod door;
+pub mod draw;
 pub mod floor;
 pub mod health;
 pub mod image;
@@ -11,7 +12,6 @@ pub mod light;
 pub mod map;
 pub mod physics;
 pub mod plat;
-pub mod render;
 pub mod sectormove;
 pub mod sound;
 pub mod sprite;
@@ -28,7 +28,7 @@ use crate::{
 		frame::frame_state_system,
 		quadtree::Quadtree,
 		spawn::SpawnMergerHandlerSet,
-		video::{AsBytes, DrawList, RenderContext},
+		video::{AsBytes, RenderContext},
 	},
 	doom::{
 		camera::{camera_system, movement_bob_system},
@@ -39,6 +39,15 @@ use crate::{
 		components::{SpawnPoint, Transform, TransformDef, Velocity, VelocityDef},
 		data::FRAME_TIME,
 		door::{door_active_system, door_switch_system, door_touch_system, door_use_system},
+		draw::{
+			finish_draw,
+			map::draw_map,
+			sprite::{draw_sprites, SpriteRender},
+			start_draw,
+			ui::draw_ui,
+			world::draw_world,
+			wsprite::{draw_weapon_sprites, WeaponSpriteRender},
+		},
 		floor::{floor_active_system, floor_switch_system, floor_touch_system},
 		health::damage_system,
 		image::{import_palette, import_patch, Image, ImageData, Palette},
@@ -52,15 +61,11 @@ use crate::{
 		},
 		physics::physics_system,
 		plat::{plat_active_system, plat_switch_system, plat_touch_system},
-		render::{
-			map::DrawMap,
-			sprite::{DrawSprites, SpriteRender},
-			ui::DrawUi,
-			world::DrawWorld,
-			wsprite::{DrawWeaponSprites, WeaponSpriteRender},
-		},
 		sectormove::sector_move_system,
-		sound::{import_raw_sound, import_sound, RawSound, Sound},
+		sound::{
+			import_raw_sound, import_sound, sound_playing_system, start_sound_system, RawSound,
+			Sound,
+		},
 		sprite::{import_sprite, Sprite},
 		state::{
 			entity::{
@@ -115,26 +120,6 @@ pub fn import(
 	};
 
 	function(path, asset_storage)
-}
-
-pub fn init_draw_list(draw_list: &mut DrawList, resources: &Resources) -> anyhow::Result<()> {
-	let render_context = <Read<RenderContext>>::fetch(resources);
-
-	draw_list.add_step(DrawWorld::new(&render_context).context("Couldn't create DrawWorld")?);
-	draw_list.add_step(DrawMap::new(draw_list.render_pass()).context("Couldn't create DrawMap")?);
-	draw_list.add_step(
-		DrawSprites::new(&render_context, draw_list.render_pass())
-			.context("Couldn't create DrawSprites")?,
-	);
-	draw_list.add_step(
-		DrawWeaponSprites::new(&render_context, draw_list.render_pass())
-			.context("Couldn't create DrawWeaponSprites")?,
-	);
-	draw_list.add_step(
-		DrawUi::new(&render_context, draw_list.render_pass()).context("Couldn't create DrawUi")?,
-	);
-
-	Ok(())
 }
 
 pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> anyhow::Result<()> {
@@ -237,8 +222,8 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 }
 
 #[rustfmt::skip]
-pub fn init_update_systems(resources: &mut Resources) -> Schedule {
-	Schedule::builder()
+pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule> {
+	Ok(Schedule::builder()
 		.add_thread_local(player_command_system(resources)).flush()
 		.add_thread_local(player_move_system(resources)).flush()
 		.add_thread_local(player_weapon_system(resources)).flush()
@@ -278,7 +263,27 @@ pub fn init_update_systems(resources: &mut Resources) -> Schedule {
 		.add_thread_local(weapon_refire_system(resources)).flush()
 
 		.add_thread_local(frame_state_system(FRAME_TIME)).flush()
-		.build()
+		.build())
+}
+
+pub fn init_draw_systems(resources: &mut Resources) -> anyhow::Result<Schedule> {
+	Ok(Schedule::builder()
+		.add_thread_local(start_draw(resources)?)
+		.add_thread_local(draw_world(resources)?)
+		.add_thread_local(draw_map(resources)?)
+		.add_thread_local(draw_sprites(resources)?)
+		.add_thread_local(draw_weapon_sprites(resources)?)
+		.add_thread_local(draw_ui(resources)?)
+		.add_thread_local(finish_draw(resources)?)
+		.build())
+}
+
+#[rustfmt::skip]
+pub fn init_sound_systems(resources: &mut Resources) -> anyhow::Result<Schedule> {
+	Ok(Schedule::builder()
+		.add_thread_local(start_sound_system(resources)).flush()
+		.add_thread_local(sound_playing_system(resources)).flush()
+		.build())
 }
 
 #[derive(Clone, Copy, Debug, PartialOrd, Ord, PartialEq, Eq)]

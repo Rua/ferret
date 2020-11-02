@@ -6,12 +6,12 @@ use crate::common::{
 	frame::{FrameRng, FrameRngDef, FrameState},
 	input::InputState,
 	spawn::SpawnMergerHandlerSet,
-	video::{DrawList, RenderContext, RenderTarget},
+	video::{DrawTarget, PresentTarget, RenderContext},
 };
 use anyhow::Context;
 use clap::{App, Arg};
 use crossbeam_channel::Sender;
-use legion::{systems::ResourceSet, Read, Resources, Schedule, World, Write};
+use legion::{systems::ResourceSet, Read, Resources, World, Write};
 use nalgebra::Vector2;
 use rand::SeedableRng;
 use std::{
@@ -67,18 +67,17 @@ fn main() -> anyhow::Result<()> {
 	let mut event_loop = EventLoop::new();
 	let (render_context, _debug_callback) =
 		RenderContext::new(&event_loop).context("Could not create RenderContext")?;
-	let render_target = RenderTarget::new(
+	let present_target = PresentTarget::new(
 		render_context.surface().clone(),
 		render_context.device().clone(),
 	)
-	.context("Couldn't create RenderTarget")?;
+	.context("Couldn't create PresentTarget")?;
+	let draw_target = DrawTarget::new(&render_context, present_target.dimensions())
+		.context("Couldn't create DrawTarget")?;
 
-	let mut draw_list = DrawList::new(&render_context, render_target.dimensions())
-		.context("Couldn't create DrawList")?;
-
-	resources.insert(render_target);
+	resources.insert(draw_target);
+	resources.insert(present_target);
 	resources.insert(render_context);
-	doom::init_draw_list(&mut draw_list, &resources)?;
 
 	resources.insert(common::sound::init()?);
 	resources.insert(InputState::new());
@@ -96,14 +95,12 @@ fn main() -> anyhow::Result<()> {
 
 	doom::init_resources(&mut resources, &arg_matches)?;
 
-	let mut update_systems = doom::init_update_systems(&mut resources);
-
-	#[rustfmt::skip]
-	let mut output_dispatcher = Schedule::builder()
-		.add_thread_local_fn(doom::render::render_system(draw_list))
-		.add_thread_local(doom::sound::start_sound_system(&mut resources)).flush()
-		.add_thread_local(doom::sound::sound_playing_system(&mut resources)).flush()
-		.build();
+	let mut update_systems =
+		doom::init_update_systems(&mut resources).context("Couldn't initialise update systems")?;
+	let mut draw_systems =
+		doom::init_draw_systems(&mut resources).context("Couldn't initialise draw systems")?;
+	let mut sound_systems =
+		doom::init_sound_systems(&mut resources).context("Couldn't initialise sound systems")?;
 
 	// Create world
 	let mut world = World::default();
@@ -183,12 +180,12 @@ fn main() -> anyhow::Result<()> {
 
 		// Process events from the system
 		event_loop.run_return(|event, _, control_flow| {
-			let (command_sender, render_context, mut input_state, mut render_target) =
+			let (command_sender, render_context, mut input_state, mut present_target) =
 				<(
 					Read<Sender<String>>,
 					Read<RenderContext>,
 					Write<InputState>,
-					Write<RenderTarget>,
+					Write<PresentTarget>,
 				)>::fetch_mut(&mut resources);
 
 			input_state.process_event(&event);
@@ -200,7 +197,7 @@ fn main() -> anyhow::Result<()> {
 						*control_flow = ControlFlow::Exit;
 					}
 					WindowEvent::Resized(new_size) => {
-						render_target.window_resized(new_size.into());
+						present_target.window_resized(new_size.into());
 					}
 					WindowEvent::MouseInput {
 						state: ElementState::Pressed,
@@ -276,7 +273,8 @@ fn main() -> anyhow::Result<()> {
 		}
 
 		// Update video and sound
-		output_dispatcher.execute(&mut world, &mut resources);
+		draw_systems.execute(&mut world, &mut resources);
+		sound_systems.execute(&mut world, &mut resources);
 	}
 
 	Ok(())

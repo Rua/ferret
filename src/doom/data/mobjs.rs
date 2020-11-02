@@ -8,7 +8,7 @@ use crate::{
 		data::FRAME_TIME,
 		health::HealthDef,
 		physics::{BoxCollider, SolidBits, SolidType},
-		render::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
+		draw::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
 		sound::StartSound,
 		state::{
 			entity::{BlocksTypes, NextState, RemoveEntity, SetSprite},

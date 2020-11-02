@@ -3,7 +3,7 @@ use crate::{
 	doom::{
 		camera::{Camera, MovementBob},
 		client::Client,
-		render::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
+		draw::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
 		state::{StateAction, StateName, WeaponState},
 	},
 };
