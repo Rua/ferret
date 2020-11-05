@@ -8,7 +8,7 @@ use crate::{
 	},
 	doom::{
 		client::Client, components::Transform, draw::world::normal_frag, image::Image,
-		map::MapDynamic, sprite::Sprite,
+		map::MapDynamic, sprite::Sprite, ui::UiParams,
 	},
 };
 use anyhow::Context;
@@ -21,10 +21,11 @@ use nalgebra::{Matrix4, Vector2};
 use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
+	command_buffer::DynamicState,
 	descriptor::{descriptor_set::FixedSizeDescriptorSetsPool, PipelineLayoutAbstract},
 	framebuffer::Subpass,
 	impl_vertex,
-	pipeline::{GraphicsPipeline, GraphicsPipelineAbstract},
+	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
 	sampler::Sampler,
 };
 
@@ -69,18 +70,27 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
 		.read_resource::<Arc<Sampler>>()
+		.read_resource::<UiParams>()
 		.write_resource::<Option<DrawContext>>()
 		.with_query(<&Transform>::query())
 		.with_query(<&MapDynamic>::query())
 		.with_query(<(Entity, &SpriteRender, &Transform)>::query())
 		.build(move |_command_buffer, world, resources, queries| {
 			(|| -> anyhow::Result<()> {
-				let (asset_storage, client, sampler, draw_context) = resources;
+				let (asset_storage, client, sampler, ui_params, draw_context) = resources;
 				let draw_context = draw_context.as_mut().unwrap();
 
 				let camera_transform = queries.0.get(world, client.entity.unwrap()).unwrap();
 				let map_dynamic = queries.1.iter(world).next().unwrap();
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
+				let dynamic_state = DynamicState {
+					viewports: Some(vec![Viewport {
+						origin: [0.0; 2],
+						dimensions: ui_params.viewport_dimensions().into(),
+						depth_range: 0.0..1.0,
+					}]),
+					..DynamicState::none()
+				};
 
 				// Group draws into batches by texture
 				let mut batches: FnvHashMap<&AssetHandle<Image>, Vec<InstanceData>> =
@@ -180,7 +190,7 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 						.commands
 						.draw(
 							pipeline.clone(),
-							&draw_context.dynamic_state,
+							&dynamic_state,
 							vec![Arc::new(instance_buffer)],
 							draw_context.descriptor_sets.clone(),
 							(),

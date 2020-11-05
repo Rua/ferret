@@ -10,10 +10,10 @@ use crate::{
 		client::Client,
 		draw::{
 			sprite::SpriteRender,
-			ui::{ui_frag, ui_vert, InstanceData, Matrices, UiParams},
+			ui::{ui_frag, ui_vert, InstanceData, Matrices},
 		},
 		image::Image,
-		ui::UiAlignment,
+		ui::{UiAlignment, UiParams},
 	},
 };
 use anyhow::{bail, Context};
@@ -25,9 +25,10 @@ use nalgebra::{Vector2, Vector3};
 use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
+	command_buffer::DynamicState,
 	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
 	framebuffer::Subpass,
-	pipeline::{GraphicsPipeline, GraphicsPipelineAbstract},
+	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
 	sampler::Sampler,
 };
 
@@ -80,21 +81,26 @@ pub fn draw_weapon_sprites(resources: &mut Resources) -> anyhow::Result<impl Run
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
 		.read_resource::<Arc<Sampler>>()
+		.read_resource::<UiParams>()
 		.write_resource::<Option<DrawContext>>()
 		.with_query(<&WeaponSpriteRender>::query())
 		.build(move |_command_buffer, world, resources, query| {
 			(|| -> anyhow::Result<()> {
-				let (asset_storage, client, sampler, draw_context) = resources;
+				let (asset_storage, client, sampler, ui_params, draw_context) = resources;
 				let draw_context = draw_context.as_mut().unwrap();
 
-				let ui_params = UiParams::new(&draw_context.framebuffer);
-				let viewport = &mut draw_context.dynamic_state.viewports.as_mut().unwrap()[0];
-				viewport.origin = [0.0, 0.0];
-				viewport.dimensions = ui_params.framebuffer_dimensions.into();
+				let dynamic_state = DynamicState {
+					viewports: Some(vec![Viewport {
+						origin: [0.0; 2],
+						dimensions: ui_params.framebuffer_dimensions().into(),
+						depth_range: 0.0..1.0,
+					}]),
+					..DynamicState::none()
+				};
 
 				let proj = ortho_matrix(AABB3::from_intervals(Vector3::new(
-					Interval::new(0.0, ui_params.dimensions[0]),
-					Interval::new(0.0, ui_params.dimensions[1]),
+					Interval::new(0.0, ui_params.dimensions()[0]),
+					Interval::new(0.0, ui_params.dimensions()[1]),
 					Interval::new(1000.0, 0.0),
 				)));
 
@@ -171,7 +177,7 @@ pub fn draw_weapon_sprites(resources: &mut Resources) -> anyhow::Result<impl Run
 						.commands
 						.draw(
 							pipeline.clone(),
-							&draw_context.dynamic_state,
+							&dynamic_state,
 							vec![Arc::new(instance_buffer)],
 							draw_context.descriptor_sets.clone(),
 							(),

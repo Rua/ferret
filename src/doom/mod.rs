@@ -28,7 +28,7 @@ use crate::{
 		frame::frame_state_system,
 		quadtree::Quadtree,
 		spawn::SpawnMergerHandlerSet,
-		video::{AsBytes, RenderContext},
+		video::{AsBytes, DrawTarget, RenderContext},
 	},
 	doom::{
 		camera::{camera_system, movement_bob_system},
@@ -81,6 +81,7 @@ use crate::{
 		switch::switch_active_system,
 		template::{EntityTemplate, EntityTemplateRef, EntityTemplateRefDef, WeaponTemplate},
 		texture::{texture_animation_system, texture_scroll_system},
+		ui::UiParams,
 		wad::WadLoader,
 	},
 };
@@ -123,12 +124,10 @@ pub fn import(
 }
 
 pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> anyhow::Result<()> {
-	let device = resources
-		.get::<RenderContext>()
-		.expect("Required resource not present")
-		.device()
-		.clone();
+	let dimensions = <Read<DrawTarget>>::fetch(resources).dimensions();
+	resources.insert(UiParams::new(dimensions));
 
+	let device = <Read<RenderContext>>::fetch(resources).device().clone();
 	resources.insert(
 		Sampler::new(
 			device,

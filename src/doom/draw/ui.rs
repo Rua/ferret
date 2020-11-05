@@ -8,7 +8,7 @@ use crate::{
 	},
 	doom::{
 		image::Image,
-		ui::{UiAlignment, UiImage, UiTransform},
+		ui::{UiImage, UiParams, UiTransform},
 	},
 };
 use anyhow::Context;
@@ -16,14 +16,15 @@ use legion::{
 	systems::{ResourceSet, Runnable},
 	Entity, IntoQuery, Read, Resources, SystemBuilder,
 };
-use nalgebra::{Vector2, Vector3};
+use nalgebra::Vector3;
 use std::{cmp::Ordering, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
+	command_buffer::DynamicState,
 	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
-	framebuffer::{FramebufferAbstract, Subpass},
+	framebuffer::Subpass,
 	impl_vertex,
-	pipeline::{GraphicsPipeline, GraphicsPipelineAbstract},
+	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
 	sampler::Sampler,
 };
 
@@ -63,22 +64,27 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 	Ok(SystemBuilder::new("draw_ui")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Arc<Sampler>>()
+		.read_resource::<UiParams>()
 		.write_resource::<Option<DrawContext>>()
 		.with_query(<(Entity, &UiTransform)>::query())
 		.with_query(<(&UiImage, &UiTransform)>::query())
 		.build(move |_command_buffer, world, resources, queries| {
 			(|| -> anyhow::Result<()> {
-				let (asset_storage, sampler, draw_context) = resources;
+				let (asset_storage, sampler, ui_params, draw_context) = resources;
 				let draw_context = draw_context.as_mut().unwrap();
 
-				let ui_params = UiParams::new(&draw_context.framebuffer);
-				let viewport = &mut draw_context.dynamic_state.viewports.as_mut().unwrap()[0];
-				viewport.origin = [0.0, 0.0];
-				viewport.dimensions = ui_params.framebuffer_dimensions.into();
+				let dynamic_state = DynamicState {
+					viewports: Some(vec![Viewport {
+						origin: [0.0; 2],
+						dimensions: ui_params.framebuffer_dimensions().into(),
+						depth_range: 0.0..1.0,
+					}]),
+					..DynamicState::none()
+				};
 
 				let proj = ortho_matrix(AABB3::from_intervals(Vector3::new(
-					Interval::new(0.0, ui_params.dimensions[0]),
-					Interval::new(0.0, ui_params.dimensions[1]),
+					Interval::new(0.0, ui_params.dimensions()[0]),
+					Interval::new(0.0, ui_params.dimensions()[1]),
 					Interval::new(1000.0, 0.0),
 				)));
 
@@ -151,7 +157,7 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 						.commands
 						.draw(
 							pipeline.clone(),
-							&draw_context.dynamic_state,
+							&dynamic_state,
 							vec![Arc::new(instance_buffer)],
 							draw_context.descriptor_sets.clone(),
 							(),
@@ -187,55 +193,3 @@ pub struct InstanceData {
 	pub in_size: [f32; 2],
 }
 impl_vertex!(InstanceData, in_position, in_size);
-
-#[derive(Clone, Copy, Debug)]
-pub struct UiParams {
-	pub dimensions: Vector2<f32>,
-	pub framebuffer_dimensions: Vector2<f32>,
-	pub alignment_offsets: [Vector2<f32>; 3],
-	pub stretch_offsets: [Vector2<f32>; 2],
-}
-
-impl UiParams {
-	pub fn new<T: FramebufferAbstract + Send + Sync>(framebuffer: &T) -> UiParams {
-		let framebuffer_dimensions =
-			Vector2::new(framebuffer.width() as f32, framebuffer.height() as f32);
-		let ratio = (framebuffer_dimensions[0] / framebuffer_dimensions[1]) / (4.0 / 3.0);
-
-		// If the current aspect ratio is wider than 4:3, stretch horizontally.
-		// If narrower, stretch vertically.
-		let base_dimensions = Vector2::new(320.0, 200.0);
-		let dimensions = if ratio >= 1.0 {
-			Vector2::new(base_dimensions[0] * ratio, base_dimensions[1])
-		} else {
-			Vector2::new(base_dimensions[0], base_dimensions[1] / ratio)
-		};
-		let alignment_offsets = [
-			Vector2::zeros(),
-			(dimensions - base_dimensions) * 0.5,
-			dimensions - base_dimensions,
-		];
-		let stretch_offsets = [Vector2::zeros(), dimensions - base_dimensions];
-
-		UiParams {
-			dimensions,
-			framebuffer_dimensions,
-			alignment_offsets,
-			stretch_offsets,
-		}
-	}
-
-	pub fn align(&self, alignment: [UiAlignment; 2]) -> Vector2<f32> {
-		Vector2::new(
-			self.alignment_offsets[alignment[0] as usize][0],
-			self.alignment_offsets[alignment[1] as usize][1],
-		)
-	}
-
-	pub fn stretch(&self, stretch: [bool; 2]) -> Vector2<f32> {
-		Vector2::new(
-			self.stretch_offsets[stretch[0] as usize][0],
-			self.stretch_offsets[stretch[1] as usize][1],
-		)
-	}
-}

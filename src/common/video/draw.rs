@@ -1,9 +1,8 @@
 use crate::common::video::RenderContext;
 use anyhow::Context;
-use legion::{Resources, World};
 use std::sync::Arc;
 use vulkano::{
-	command_buffer::{AutoCommandBufferBuilder, DynamicState},
+	command_buffer::AutoCommandBufferBuilder,
 	descriptor::descriptor_set::DescriptorSet,
 	device::Device,
 	format::Format,
@@ -178,18 +177,7 @@ impl DrawTarget {
 	}
 }
 
-pub trait DrawStep: Send + Sync {
-	fn draw(
-		&mut self,
-		draw_context: &mut DrawContext,
-		world: &World,
-		resources: &Resources,
-	) -> anyhow::Result<()>;
-}
-
 pub struct DrawContext {
 	pub commands: AutoCommandBufferBuilder,
 	pub descriptor_sets: Vec<Arc<dyn DescriptorSet + Send + Sync>>,
-	pub dynamic_state: DynamicState,
-	pub framebuffer: Arc<dyn FramebufferAbstract + Send + Sync>,
 }

@@ -11,6 +11,7 @@ use crate::{
 			meshes::{SkyVertexData, VertexData},
 			MapDynamic,
 		},
+		ui::UiParams,
 	},
 };
 use anyhow::{anyhow, Context};
@@ -21,9 +22,10 @@ use legion::{
 use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
+	command_buffer::DynamicState,
 	descriptor::{descriptor_set::FixedSizeDescriptorSetsPool, PipelineLayoutAbstract},
 	framebuffer::Subpass,
-	pipeline::{GraphicsPipeline, GraphicsPipelineAbstract},
+	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
 	sampler::Sampler,
 };
 
@@ -89,15 +91,24 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
 		.read_resource::<Arc<Sampler>>()
+		.read_resource::<UiParams>()
 		.write_resource::<Option<DrawContext>>()
 		.with_query(<&Transform>::query())
 		.with_query(<&MapDynamic>::query())
 		.build(move |_command_buffer, world, resources, queries| {
 			(|| -> anyhow::Result<()> {
-				let (asset_storage, client, sampler, draw_context) = resources;
+				let (asset_storage, client, sampler, ui_params, draw_context) = resources;
 				let draw_context = draw_context.as_mut().unwrap();
 
 				let camera_transform = queries.0.get(world, client.entity.unwrap()).unwrap();
+				let dynamic_state = DynamicState {
+					viewports: Some(vec![Viewport {
+						origin: [0.0; 2],
+						dimensions: ui_params.viewport_dimensions().into(),
+						depth_range: 0.0..1.0,
+					}]),
+					..DynamicState::none()
+				};
 
 				for map_dynamic in queries.1.iter(world) {
 					let map = asset_storage.get(&map_dynamic.map).unwrap();
@@ -138,7 +149,7 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 							.commands
 							.draw_indexed(
 								normal_pipeline.clone(),
-								&draw_context.dynamic_state,
+								&dynamic_state,
 								vec![Arc::new(vertex_buffer)],
 								index_buffer,
 								draw_context.descriptor_sets.clone(),
@@ -180,7 +191,7 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 							.commands
 							.draw_indexed(
 								normal_pipeline.clone(),
-								&draw_context.dynamic_state,
+								&dynamic_state,
 								vec![Arc::new(vertex_buffer)],
 								index_buffer,
 								draw_context.descriptor_sets.clone(),
@@ -220,7 +231,7 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 						.commands
 						.draw_indexed(
 							sky_pipeline.clone(),
-							&draw_context.dynamic_state,
+							&dynamic_state,
 							vec![Arc::new(vertex_buffer)],
 							index_buffer,
 							draw_context.descriptor_sets.clone(),

@@ -4,13 +4,13 @@ pub mod ui;
 pub mod world;
 pub mod wsprite;
 
-use crate::common::video::{DrawContext, DrawTarget, RenderContext, PresentTarget};
+use crate::{
+	common::video::{DrawContext, DrawTarget, PresentTarget, RenderContext},
+	doom::ui::UiParams,
+};
 use anyhow::Context;
 use legion::{systems::Runnable, Resources, SystemBuilder};
-use vulkano::{
-	command_buffer::{AutoCommandBufferBuilder, CommandBuffer, DynamicState},
-	pipeline::viewport::Viewport,
-};
+use vulkano::command_buffer::{AutoCommandBufferBuilder, CommandBuffer};
 
 pub fn start_draw(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 	resources.insert::<Option<DrawContext>>(None);
@@ -20,9 +20,11 @@ pub fn start_draw(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 		.write_resource::<Option<DrawContext>>()
 		.write_resource::<DrawTarget>()
 		.write_resource::<PresentTarget>()
+		.write_resource::<UiParams>()
 		.build(move |_command_buffer, _world, resources, _queries| {
 			(|| -> anyhow::Result<()> {
-				let (render_context, draw_context, draw_target, present_target) = resources;
+				let (render_context, draw_context, draw_target, present_target, ui_params) =
+					resources;
 
 				if present_target.needs_recreate() {
 					present_target
@@ -33,19 +35,14 @@ pub fn start_draw(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 						draw_target
 							.resize(&render_context, present_target.dimensions())
 							.expect("Couldn't resize DrawTarget");
+
+						**ui_params = UiParams::new(present_target.dimensions());
 					}
 				}
 
 				let graphics_queue = &render_context.queues().graphics;
 
 				let clear_value = vec![[0.0, 0.0, 1.0, 1.0].into(), 1.0.into()];
-				let dimensions = draw_target.dimensions();
-
-				let viewport = Viewport {
-					origin: [0.0; 2],
-					dimensions: [dimensions[0] as f32, dimensions[1] as f32],
-					depth_range: 0.0..1.0,
-				};
 
 				let draw_context: &mut Option<DrawContext> = &mut *draw_context;
 				*draw_context = Some(DrawContext {
@@ -55,11 +52,6 @@ pub fn start_draw(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 					)
 					.context("Couldn't create command buffer builder")?,
 					descriptor_sets: Vec::with_capacity(12),
-					dynamic_state: DynamicState {
-						viewports: Some(vec![viewport]),
-						..DynamicState::none()
-					},
-					framebuffer: draw_target.framebuffer().clone(),
 				});
 
 				draw_context
@@ -94,7 +86,8 @@ pub fn finish_draw(_resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 					.context("Couldn't end render pass")?;
 				let future = draw_context
 					.commands
-					.build()?
+					.build()
+					.context("Couldn't build command buffer")?
 					.execute(graphics_queue.clone())
 					.context("Couldn't execute command buffer")?;
 
