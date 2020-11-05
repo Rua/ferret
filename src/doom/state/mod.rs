@@ -12,8 +12,8 @@ use crate::{
 };
 use arrayvec::ArrayString;
 use legion::{
-	systems::{ResourceSet, Runnable},
-	Entity, IntoQuery, Read, Resources, SystemBuilder, Write,
+	systems::{CommandBuffer, ResourceSet},
+	Entity, IntoQuery, Read, Resources, Schedule, World, Write,
 };
 use std::time::Duration;
 
@@ -79,48 +79,62 @@ impl SpawnFrom<StateDef> for State {
 	}
 }
 
-pub fn state_set_system(resources: &mut Resources) -> impl Runnable {
+pub fn state_system(
+	resources: &mut Resources,
+	mut schedule: Schedule,
+) -> impl FnMut(&mut World, &mut Resources) {
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_spawn::<StateDef, State>();
 	handler_set.register_spawn::<EntityDef, Entity>();
+	let mut query = <(Entity, &EntityTemplateRef, &mut State)>::query();
 
-	SystemBuilder::new("state_set_system")
-		.read_resource::<FrameState>()
-		.with_query(<(Entity, &EntityTemplateRef, &mut State)>::query())
-		.build(move |command_buffer, world, resources, query| {
-			let frame_state = resources;
+	move |world, resources| {
+		let mut command_buffer = CommandBuffer::new(world);
 
-			for (&entity, template_ref, state) in query.iter_mut(world) {
-				if let StateAction::Wait(state_name) = state.action {
-					if state.timer.is_elapsed(frame_state.time) {
-						state.action = StateAction::Set(state_name);
+		loop {
+			{
+				let frame_state = <Read<FrameState>>::fetch(resources);
+
+				for (&entity, template_ref, state) in query.iter_mut(world) {
+					if let StateAction::Wait(state_name) = state.action {
+						if state.timer.is_elapsed(frame_state.time) {
+							state.action = StateAction::Set(state_name);
+						}
+					}
+
+					if let StateAction::Set(state_name) = state.action {
+						state.action = StateAction::None;
+						let handle = template_ref.0.clone();
+
+						command_buffer.exec_mut(move |world, resources| {
+							resources.insert(StateSpawnContext { entity });
+							let asset_storage = <Read<AssetStorage>>::fetch(resources);
+							let state_world = &asset_storage
+								.get(&handle)
+								.unwrap()
+								.states
+								.get(&state_name.0)
+								.and_then(|x| x.get(state_name.1))
+								.unwrap_or_else(|| panic!("Invalid state {:?}", state_name));
+
+							spawn_helper(&state_world, world, resources);
+						});
 					}
 				}
+			}
 
-				if let StateAction::Set(state_name) = state.action {
-					state.action = StateAction::None;
-					let handle = template_ref.0.clone();
-
-					command_buffer.exec_mut(move |world, resources| {
-						resources.insert(StateSpawnContext { entity });
-						let asset_storage = <Read<AssetStorage>>::fetch(resources);
-						let state_world = &asset_storage
-							.get(&handle)
-							.unwrap()
-							.states
-							.get(&state_name.0)
-							.and_then(|x| x.get(state_name.1))
-							.unwrap_or_else(|| panic!("Invalid state {:?}", state_name));
-
-						spawn_helper(&state_world, world, resources);
-					});
-				}
+			if command_buffer.is_empty() {
+				break;
 			}
 
 			command_buffer.exec_mut(move |_world, resources| {
 				resources.remove::<StateSpawnContext>();
 			});
-		})
+
+			command_buffer.flush(world, resources);
+			schedule.execute(world, resources);
+		}
+	}
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -150,41 +164,59 @@ impl SpawnFrom<WeaponStateDef> for WeaponState {
 	}
 }
 
-pub fn weapon_state_set_system(resources: &mut Resources) -> impl Runnable {
+pub fn weapon_state_system(
+	resources: &mut Resources,
+	mut schedule: Schedule,
+) -> impl FnMut(&mut World, &mut Resources) {
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_spawn::<WeaponStateDef, WeaponState>();
+	let mut query = <(Entity, &mut WeaponState)>::query();
 
-	SystemBuilder::new("weapon_state_set_system")
-		.read_resource::<FrameState>()
-		.with_query(<(Entity, &mut WeaponState)>::query())
-		.build(move |command_buffer, world, resources, query| {
-			let frame_state = resources;
+	move |world, resources| {
+		let mut command_buffer = CommandBuffer::new(world);
 
-			for (&entity, weapon_state) in query.iter_mut(world) {
-				if let StateAction::Wait(state_name) = weapon_state.state.action {
-					if weapon_state.state.timer.is_elapsed(frame_state.time) {
-						weapon_state.state.action = StateAction::Set(state_name);
+		loop {
+			{
+				let frame_state = <Read<FrameState>>::fetch(resources);
+
+				for (&entity, weapon_state) in query.iter_mut(world) {
+					if let StateAction::Wait(state_name) = weapon_state.state.action {
+						if weapon_state.state.timer.is_elapsed(frame_state.time) {
+							weapon_state.state.action = StateAction::Set(state_name);
+						}
+					}
+
+					if let StateAction::Set(state_name) = weapon_state.state.action {
+						weapon_state.state.action = StateAction::None;
+						let handle = weapon_state.current.clone();
+
+						command_buffer.exec_mut(move |world, resources| {
+							resources.insert(StateSpawnContext { entity });
+							let asset_storage = <Read<AssetStorage>>::fetch(resources);
+							let state_world = &asset_storage
+								.get(&handle)
+								.unwrap()
+								.states
+								.get(&state_name.0)
+								.and_then(|x| x.get(state_name.1))
+								.unwrap_or_else(|| panic!("Invalid state {:?}", state_name));
+
+							spawn_helper(&state_world, world, resources);
+						});
 					}
 				}
-
-				if let StateAction::Set(state_name) = weapon_state.state.action {
-					weapon_state.state.action = StateAction::None;
-					let handle = weapon_state.current.clone();
-
-					command_buffer.exec_mut(move |world, resources| {
-						resources.insert(StateSpawnContext { entity });
-						let asset_storage = <Read<AssetStorage>>::fetch(resources);
-						let state_world = &asset_storage
-							.get(&handle)
-							.unwrap()
-							.states
-							.get(&state_name.0)
-							.and_then(|x| x.get(state_name.1))
-							.unwrap_or_else(|| panic!("Invalid state {:?}", state_name));
-
-						spawn_helper(&state_world, world, resources);
-					});
-				}
 			}
-		})
+
+			if command_buffer.is_empty() {
+				break;
+			}
+
+			command_buffer.exec_mut(move |_world, resources| {
+				resources.remove::<StateSpawnContext>();
+			});
+
+			command_buffer.flush(world, resources);
+			schedule.execute(world, resources);
+		}
+	}
 }
