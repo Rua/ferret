@@ -13,7 +13,7 @@ use crate::{
 		data::{FORWARD_ACCEL, STRAFE_ACCEL},
 		door::{DoorSwitchUse, DoorUse},
 		floor::FloorSwitchUse,
-		health::Health,
+		health::Damage,
 		input::{BoolInput, FloatInput, UserCommand},
 		map::MapDynamic,
 		physics::{BoxCollider, EntityTracer, SolidType},
@@ -24,7 +24,6 @@ use crate::{
 	},
 };
 use legion::{
-	component,
 	systems::{ResourceSet, Runnable},
 	Entity, EntityStore, IntoQuery, Resources, SystemBuilder, Write,
 };
@@ -299,10 +298,9 @@ pub fn player_attack_system(_resources: &mut Resources) -> impl Runnable {
 		.write_resource::<Quadtree>()
 		.with_query(<(&Transform, Option<&Camera>)>::query())
 		.with_query(<&MapDynamic>::query())
-		.with_query(<&mut Health>::query().filter(component::<BoxCollider>()))
 		.read_component::<BoxCollider>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
-		.build(move |_command_buffer, world, resources, queries| {
+		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, client, quadtree) = resources;
 
 			if let Some(client_entity) = client.entity {
@@ -333,9 +331,14 @@ pub fn player_attack_system(_resources: &mut Resources) -> impl Runnable {
 					);
 
 					if let Some(collision) = trace.collision {
-						if let Ok(health) = queries.2.get_mut(world, collision.entity) {
-							health.damage.push((client_entity, 10.0));
-						}
+						command_buffer.push((
+							collision.entity,
+							Damage {
+								amount: 10.0,
+								origin_point: position,
+								source_entity: client_entity,
+							},
+						));
 					}
 				}
 			}

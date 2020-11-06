@@ -49,7 +49,7 @@ use crate::{
 			wsprite::{draw_weapon_sprites, WeaponSpriteRender},
 		},
 		floor::{floor_active_system, floor_switch_system, floor_touch_system},
-		health::damage_system,
+		health::apply_damage,
 		image::{import_palette, import_patch, Image, ImageData, Palette},
 		light::{light_flash_system, light_glow_system},
 		map::{
@@ -246,7 +246,7 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 		.add_thread_local(switch_active_system(resources)).flush()
 		.add_thread_local(texture_animation_system(resources)).flush()
 		.add_thread_local(texture_scroll_system(resources)).flush()
-		.add_thread_local(damage_system(resources)).flush()
+		.add_thread_local(apply_damage(resources)).flush()
 		.add_thread_local_fn({
 			let actions = Schedule::builder()
 				.add_system(blocks_types_system(resources))

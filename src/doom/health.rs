@@ -13,15 +13,14 @@ use legion::{
 	systems::{ResourceSet, Runnable},
 	Entity, IntoQuery, Resources, SystemBuilder, Write,
 };
+use nalgebra::Vector3;
 use rand::Rng;
-use smallvec::SmallVec;
 
 #[derive(Clone, Debug)]
 pub struct Health {
 	pub current: f32,
 	pub max: f32,
 	pub pain_chance: f32,
-	pub damage: SmallVec<[(Entity, f32); 8]>,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -36,34 +35,40 @@ impl SpawnFrom<HealthDef> for Health {
 			current: component.max,
 			max: component.max,
 			pain_chance: component.pain_chance,
-			damage: SmallVec::new(),
 		}
 	}
 }
 
-pub fn damage_system(resources: &mut Resources) -> impl Runnable {
+#[derive(Clone, Copy, Debug)]
+pub struct Damage {
+	pub amount: f32,
+	pub origin_point: Vector3<f32>,
+	pub source_entity: Entity,
+}
+
+pub fn apply_damage(resources: &mut Resources) -> impl Runnable {
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_spawn::<HealthDef, Health>();
 
-	SystemBuilder::new("damage_system")
+	SystemBuilder::new("apply_damage")
 		.read_resource::<AssetStorage>()
-		.with_query(<(
-			Entity,
-			&EntityTemplateRef,
-			&mut FrameRng,
-			&mut Health,
-			&mut State,
-		)>::query())
-		.build(move |command_buffer, world, resources, query| {
+		.with_query(<(Entity, &Entity, &Damage)>::query())
+		.with_query(<(&EntityTemplateRef, &mut FrameRng, &mut Health, &mut State)>::query())
+		.build(move |command_buffer, world, resources, queries| {
 			let asset_storage = resources;
+			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, template_ref, frame_rng, health, state) in query.iter_mut(world) {
-				for (_source, damage) in health.damage.drain(..) {
+			for (&entity, &target, damage) in queries.0.iter(&world0) {
+				command_buffer.remove(entity);
+
+				if let Ok((template_ref, frame_rng, health, state)) =
+					queries.1.get_mut(&mut world, target)
+				{
 					if health.current <= 0.0 {
 						break;
 					}
 
-					health.current -= damage;
+					health.current -= damage.amount;
 
 					let template = asset_storage.get(&template_ref.0).unwrap();
 
