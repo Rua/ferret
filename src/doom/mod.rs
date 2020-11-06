@@ -68,13 +68,10 @@ use crate::{
 		},
 		sprite::{import_sprite, Sprite},
 		state::{
-			entity::{
-				blocks_types_system, next_state_system, remove_entity_system, set_sprite_system,
-			},
-			state_system,
+			entity::{next_entity_state, remove_entity, set_blocks_types, set_entity_sprite},
+			state,
 			weapon::{
-				next_weapon_state_system, set_weapon_sprite_system, weapon_position_system,
-				weapon_ready_system, weapon_refire_system,
+				next_weapon_state, set_weapon_sprite, weapon_position, weapon_ready, weapon_refire,
 			},
 		},
 		switch::switch_active_system,
@@ -249,18 +246,18 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 		.add_thread_local(apply_damage(resources)).flush()
 		.add_thread_local_fn({
 			let actions = Schedule::builder()
-				.add_system(blocks_types_system(resources))
-				.add_system(next_state_system(resources))
-				.add_system(remove_entity_system(resources))
-				.add_system(set_sprite_system(resources))
-				.add_system(next_weapon_state_system(resources))
-				.add_system(set_weapon_sprite_system(resources))
-				.add_system(weapon_position_system(resources))
-				.add_system(weapon_ready_system(resources))
-				.add_system(weapon_refire_system(resources))
+				.add_system(next_entity_state(resources))
+				.add_system(remove_entity(resources))
+				.add_system(set_blocks_types(resources))
+				.add_system(set_entity_sprite(resources))
+				.add_system(next_weapon_state(resources))
+				.add_system(set_weapon_sprite(resources))
+				.add_system(weapon_position(resources))
+				.add_system(weapon_ready(resources))
+				.add_system(weapon_refire(resources))
 				.build();
 
-			state_system(resources, actions)
+			state(resources, actions)
 		})
 		.add_thread_local(frame_state_system(FRAME_TIME)).flush()
 		.build())

@@ -6,6 +6,7 @@ use crate::{
 		time::Timer,
 	},
 	doom::{
+		draw::wsprite::WeaponSpriteSlot,
 		map::spawn::{spawn_helper, SpawnContext},
 		template::{EntityTemplateRef, WeaponTemplate},
 	},
@@ -38,24 +39,15 @@ pub enum StateAction {
 	None,
 }
 
-#[derive(Clone, Debug)]
-pub struct WeaponState {
-	pub state: State,
-	pub current: AssetHandle<WeaponTemplate>,
-	pub switch_to: Option<AssetHandle<WeaponTemplate>>,
-}
-
 #[derive(Clone, Copy, Debug)]
-pub struct StateSpawnContext {
-	pub entity: Entity,
-}
+pub struct StateSpawnContext<T>(pub T);
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct EntityDef;
 
 impl SpawnFrom<EntityDef> for Entity {
 	fn spawn(_component: &EntityDef, _accessor: ComponentAccessor, resources: &Resources) -> Self {
-		<Read<StateSpawnContext>>::fetch(resources).entity
+		<Read<StateSpawnContext<Entity>>>::fetch(resources).0
 	}
 }
 
@@ -85,13 +77,13 @@ impl SpawnFrom<StateDef> for State {
 #[derive(Default, Debug)]
 struct StateSystemsRun(AtomicBool);
 
-pub fn state_system(
+pub fn state(
 	resources: &mut Resources,
 	mut actions: Schedule,
 ) -> impl FnMut(&mut World, &mut Resources) {
 	let mut schedule = Schedule::builder()
-		.add_system(state_set_system(resources))
-		.add_system(weapon_state_set_system(resources))
+		.add_system(entity_state(resources))
+		.add_system(weapon_state(resources))
 		.build();
 
 	move |world, resources| loop {
@@ -113,12 +105,12 @@ pub fn state_system(
 	}
 }
 
-pub fn state_set_system(resources: &mut Resources) -> impl Runnable {
+pub fn entity_state(resources: &mut Resources) -> impl Runnable {
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_spawn::<StateDef, State>();
 	handler_set.register_spawn::<EntityDef, Entity>();
 
-	SystemBuilder::new("state_set_system")
+	SystemBuilder::new("set_entity_state")
 		.read_resource::<FrameState>()
 		.read_resource::<StateSystemsRun>()
 		.with_query(<(Entity, &EntityTemplateRef, &mut State)>::query())
@@ -138,7 +130,7 @@ pub fn state_set_system(resources: &mut Resources) -> impl Runnable {
 					let handle = template_ref.0.clone();
 
 					command_buffer.exec_mut(move |world, resources| {
-						resources.insert(StateSpawnContext { entity });
+						resources.insert(StateSpawnContext(entity));
 						let asset_storage = <Read<AssetStorage>>::fetch(resources);
 						let state_world = &asset_storage
 							.get(&handle)
@@ -154,9 +146,29 @@ pub fn state_set_system(resources: &mut Resources) -> impl Runnable {
 			}
 
 			command_buffer.exec_mut(move |_world, resources| {
-				resources.remove::<StateSpawnContext>();
+				resources.remove::<StateSpawnContext<Entity>>();
 			});
 		})
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct WeaponSpriteSlotDef;
+
+impl SpawnFrom<WeaponSpriteSlotDef> for WeaponSpriteSlot {
+	fn spawn(
+		_component: &WeaponSpriteSlotDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> Self {
+		<Read<StateSpawnContext<WeaponSpriteSlot>>>::fetch(resources).0
+	}
+}
+
+#[derive(Clone, Debug)]
+pub struct WeaponState {
+	pub slots: [State; 2],
+	pub current: AssetHandle<WeaponTemplate>,
+	pub switch_to: Option<AssetHandle<WeaponTemplate>>,
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -176,21 +188,30 @@ impl SpawnFrom<WeaponStateDef> for WeaponState {
 			.unwrap();
 
 		WeaponState {
-			state: State {
-				timer: Timer::new_elapsed(frame_state.time, Duration::default()),
-				action: StateAction::Set((StateName::from("up").unwrap(), 0)),
-			},
+			slots: [
+				State {
+					timer: Timer::new_elapsed(frame_state.time, Duration::default()),
+					action: StateAction::Set((StateName::from("up").unwrap(), 0)),
+				},
+				State {
+					timer: Timer::new_elapsed(frame_state.time, Duration::default()),
+					action: StateAction::None,
+				},
+			],
 			current,
 			switch_to: None,
 		}
 	}
 }
 
-pub fn weapon_state_set_system(resources: &mut Resources) -> impl Runnable {
+pub fn weapon_state(resources: &mut Resources) -> impl Runnable {
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_spawn::<WeaponStateDef, WeaponState>();
+	handler_set.register_spawn::<WeaponSpriteSlotDef, WeaponSpriteSlot>();
 
-	SystemBuilder::new("weapon_state_set_system")
+	const SLOTS: [WeaponSpriteSlot; 2] = [WeaponSpriteSlot::Weapon, WeaponSpriteSlot::Flash];
+
+	SystemBuilder::new("set_weapon_state")
 		.read_resource::<FrameState>()
 		.read_resource::<StateSystemsRun>()
 		.with_query(<(Entity, &mut WeaponState)>::query())
@@ -198,35 +219,41 @@ pub fn weapon_state_set_system(resources: &mut Resources) -> impl Runnable {
 			let (frame_state, state_systems_run) = resources;
 
 			for (&entity, weapon_state) in query.iter_mut(world) {
-				if let StateAction::Wait(state_name) = weapon_state.state.action {
-					if weapon_state.state.timer.is_elapsed(frame_state.time) {
-						weapon_state.state.action = StateAction::Set(state_name);
+				for slot in SLOTS.iter().copied() {
+					let state = &mut weapon_state.slots[slot as usize];
+
+					if let StateAction::Wait(state_name) = state.action {
+						if state.timer.is_elapsed(frame_state.time) {
+							state.action = StateAction::Set(state_name);
+						}
 					}
-				}
 
-				if let StateAction::Set(state_name) = weapon_state.state.action {
-					state_systems_run.0.store(true, Ordering::Relaxed);
-					weapon_state.state.action = StateAction::None;
-					let handle = weapon_state.current.clone();
+					if let StateAction::Set(state_name) = state.action {
+						state_systems_run.0.store(true, Ordering::Relaxed);
+						state.action = StateAction::None;
+						let handle = weapon_state.current.clone();
 
-					command_buffer.exec_mut(move |world, resources| {
-						resources.insert(StateSpawnContext { entity });
-						let asset_storage = <Read<AssetStorage>>::fetch(resources);
-						let state_world = &asset_storage
-							.get(&handle)
-							.unwrap()
-							.states
-							.get(&state_name.0)
-							.and_then(|x| x.get(state_name.1))
-							.unwrap_or_else(|| panic!("Invalid state {:?}", state_name));
+						command_buffer.exec_mut(move |world, resources| {
+							resources.insert(StateSpawnContext(entity));
+							resources.insert(StateSpawnContext(slot));
+							let asset_storage = <Read<AssetStorage>>::fetch(resources);
+							let state_world = &asset_storage
+								.get(&handle)
+								.unwrap()
+								.states
+								.get(&state_name.0)
+								.and_then(|x| x.get(state_name.1))
+								.unwrap_or_else(|| panic!("Invalid state {:?}", state_name));
 
-						spawn_helper(&state_world, world, resources);
-					});
+							spawn_helper(&state_world, world, resources);
+						});
+					}
 				}
 			}
 
 			command_buffer.exec_mut(move |_world, resources| {
-				resources.remove::<StateSpawnContext>();
+				resources.remove::<StateSpawnContext<Entity>>();
+				resources.remove::<StateSpawnContext<WeaponSpriteSlot>>();
 			});
 		})
 }

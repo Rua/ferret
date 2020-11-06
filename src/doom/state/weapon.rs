@@ -3,7 +3,10 @@ use crate::{
 	doom::{
 		camera::{Camera, MovementBob},
 		client::Client,
-		draw::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
+		draw::{
+			sprite::SpriteRender,
+			wsprite::{WeaponSpriteRender, WeaponSpriteSlot},
+		},
 		state::{StateAction, StateName, WeaponState},
 	},
 };
@@ -20,28 +23,27 @@ pub struct NextWeaponState {
 	pub state: (StateName, usize),
 }
 
-pub fn next_weapon_state_system(resources: &mut Resources) -> impl Runnable {
+pub fn next_weapon_state(resources: &mut Resources) -> impl Runnable {
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_clone::<NextWeaponState>();
 
-	SystemBuilder::new("next_weapon_state_system")
+	SystemBuilder::new("next_weapon_state")
 		.read_resource::<FrameState>()
-		.with_query(<(Entity, &Entity, &NextWeaponState)>::query())
+		.with_query(<(Entity, &Entity, &WeaponSpriteSlot, &NextWeaponState)>::query())
 		.with_query(<&mut WeaponState>::query())
 		.build(move |command_buffer, world, resources, queries| {
 			let frame_state = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, next_state) in queries.0.iter(&world0) {
+			for (&entity, &target, &slot, next_state) in queries.0.iter(&world0) {
 				command_buffer.remove(entity);
 
 				if let Ok(weapon_state) = queries.1.get_mut(&mut world, target) {
-					if let StateAction::None = weapon_state.state.action {
-						weapon_state
-							.state
-							.timer
-							.restart_with(frame_state.time, next_state.time);
-						weapon_state.state.action = StateAction::Wait(next_state.state);
+					let state = &mut weapon_state.slots[slot as usize];
+
+					if let StateAction::None = state.action {
+						state.timer.restart_with(frame_state.time, next_state.time);
+						state.action = StateAction::Wait(next_state.state);
 					}
 				}
 			}
@@ -51,21 +53,21 @@ pub fn next_weapon_state_system(resources: &mut Resources) -> impl Runnable {
 #[derive(Clone, Debug)]
 pub struct SetWeaponSprite(pub SpriteRender);
 
-pub fn set_weapon_sprite_system(resources: &mut Resources) -> impl Runnable {
+pub fn set_weapon_sprite(resources: &mut Resources) -> impl Runnable {
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_clone::<SetWeaponSprite>();
 
-	SystemBuilder::new("set_weapon_sprite_system")
-		.with_query(<(Entity, &Entity, &SetWeaponSprite)>::query())
+	SystemBuilder::new("set_weapon_sprite")
+		.with_query(<(Entity, &Entity, &WeaponSpriteSlot, &SetWeaponSprite)>::query())
 		.with_query(<&mut WeaponSpriteRender>::query().filter(component::<WeaponState>()))
 		.build(move |command_buffer, world, _resources, queries| {
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, SetWeaponSprite(sprite)) in queries.0.iter(&world0) {
+			for (&entity, &target, &slot, SetWeaponSprite(sprite)) in queries.0.iter(&world0) {
 				command_buffer.remove(entity);
 
 				if let Ok(weapon_sprite_render) = queries.1.get_mut(&mut world, target) {
-					weapon_sprite_render.slots[0] = Some(sprite.clone());
+					weapon_sprite_render.slots[slot as usize] = Some(sprite.clone());
 				}
 			}
 		})
@@ -78,16 +80,16 @@ pub enum WeaponPosition {
 	Up,
 }
 
-pub fn weapon_position_system(resources: &mut Resources) -> impl Runnable {
+pub fn weapon_position(resources: &mut Resources) -> impl Runnable {
 	const DOWN_SPEED: f32 = 6.0;
 	const UP_SPEED: f32 = -6.0;
 
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_clone::<WeaponPosition>();
 
-	SystemBuilder::new("weapon_position_system")
+	SystemBuilder::new("weapon_position")
 		.read_resource::<FrameState>()
-		.with_query(<(Entity, &Entity, &WeaponPosition)>::query())
+		.with_query(<(Entity, &Entity, &WeaponSpriteSlot, &WeaponPosition)>::query())
 		.with_query(
 			<(
 				&Camera,
@@ -101,12 +103,14 @@ pub fn weapon_position_system(resources: &mut Resources) -> impl Runnable {
 			let frame_state = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, weapon_position) in queries.0.iter(&world0) {
+			for (&entity, &target, &slot, weapon_position) in queries.0.iter(&world0) {
 				command_buffer.remove(entity);
 
 				if let Ok((camera, movement_bob, weapon_state, weapon_sprite_render)) =
 					queries.1.get_mut(&mut world, target)
 				{
+					let state = &mut weapon_state.slots[slot as usize];
+
 					match weapon_position {
 						WeaponPosition::Bob => {
 							let mut angle = Angle::from_units(
@@ -128,7 +132,8 @@ pub fn weapon_position_system(resources: &mut Resources) -> impl Runnable {
 
 								if let Some(switch_to) = weapon_state.switch_to.take() {
 									let state_name = (StateName::from("up").unwrap(), 0);
-									weapon_state.state.action = StateAction::Set(state_name);
+									weapon_state.slots[slot as usize].action =
+										StateAction::Set(state_name);
 									weapon_state.current = switch_to;
 								}
 							}
@@ -139,7 +144,7 @@ pub fn weapon_position_system(resources: &mut Resources) -> impl Runnable {
 							if weapon_sprite_render.position[1] <= 0.0 {
 								weapon_sprite_render.position[1] = 0.0;
 								let state_name = (StateName::from("ready").unwrap(), 0);
-								weapon_state.state.action = StateAction::Set(state_name);
+								state.action = StateAction::Set(state_name);
 							}
 						}
 					}
@@ -151,28 +156,30 @@ pub fn weapon_position_system(resources: &mut Resources) -> impl Runnable {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct WeaponReady;
 
-pub fn weapon_ready_system(resources: &mut Resources) -> impl Runnable {
+pub fn weapon_ready(resources: &mut Resources) -> impl Runnable {
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_clone::<WeaponReady>();
 
-	SystemBuilder::new("weapon_ready_system")
+	SystemBuilder::new("weapon_ready")
 		.read_resource::<Client>()
-		.with_query(<(Entity, &Entity, &WeaponReady)>::query())
+		.with_query(<(Entity, &Entity, &WeaponSpriteSlot, &WeaponReady)>::query())
 		.with_query(<&mut WeaponState>::query().filter(component::<WeaponState>()))
 		.build(move |command_buffer, world, resources, queries| {
 			let client = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, WeaponReady) in queries.0.iter(&world0) {
+			for (&entity, &target, &slot, WeaponReady) in queries.0.iter(&world0) {
 				command_buffer.remove(entity);
 
 				if let Ok(weapon_state) = queries.1.get_mut(&mut world, target) {
+					let state = &mut weapon_state.slots[slot as usize];
+
 					if weapon_state.switch_to.is_some() {
 						let state_name = (StateName::from("down").unwrap(), 0);
-						weapon_state.state.action = StateAction::Set(state_name);
+						state.action = StateAction::Set(state_name);
 					} else if client.command.attack && !client.previous_command.attack {
 						let state_name = (StateName::from("attack").unwrap(), 0);
-						weapon_state.state.action = StateAction::Set(state_name);
+						state.action = StateAction::Set(state_name);
 					}
 				}
 			}
@@ -182,25 +189,27 @@ pub fn weapon_ready_system(resources: &mut Resources) -> impl Runnable {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct WeaponReFire;
 
-pub fn weapon_refire_system(resources: &mut Resources) -> impl Runnable {
+pub fn weapon_refire(resources: &mut Resources) -> impl Runnable {
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_clone::<WeaponReFire>();
 
-	SystemBuilder::new("weapon_refire_system")
+	SystemBuilder::new("weapon_refire")
 		.read_resource::<Client>()
-		.with_query(<(Entity, &Entity, &WeaponReFire)>::query())
+		.with_query(<(Entity, &Entity, &WeaponSpriteSlot, &WeaponReFire)>::query())
 		.with_query(<&mut WeaponState>::query().filter(component::<WeaponState>()))
 		.build(move |command_buffer, world, resources, queries| {
 			let client = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, WeaponReFire) in queries.0.iter(&world0) {
+			for (&entity, &target, &slot, WeaponReFire) in queries.0.iter(&world0) {
 				command_buffer.remove(entity);
 
 				if let Ok(weapon_state) = queries.1.get_mut(&mut world, target) {
+					let state = &mut weapon_state.slots[slot as usize];
+
 					if client.command.attack {
 						let state_name = (StateName::from("attack").unwrap(), 0);
-						weapon_state.state.action = StateAction::Set(state_name);
+						state.action = StateAction::Set(state_name);
 					}
 				}
 			}
