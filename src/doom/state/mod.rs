@@ -13,9 +13,12 @@ use crate::{
 use arrayvec::ArrayString;
 use legion::{
 	systems::{ResourceSet, Runnable},
-	Entity, IntoQuery, Read, Resources, SystemBuilder, Write,
+	Entity, IntoQuery, Read, Resources, Schedule, SystemBuilder, World, Write,
 };
-use std::time::Duration;
+use std::{
+	sync::atomic::{AtomicBool, Ordering},
+	time::Duration,
+};
 
 pub type StateName = ArrayString<[u8; 16]>;
 
@@ -79,6 +82,37 @@ impl SpawnFrom<StateDef> for State {
 	}
 }
 
+#[derive(Default, Debug)]
+struct StateSystemsRun(AtomicBool);
+
+pub fn state_system(
+	resources: &mut Resources,
+	mut actions: Schedule,
+) -> impl FnMut(&mut World, &mut Resources) {
+	let mut schedule = Schedule::builder()
+		.add_system(state_set_system(resources))
+		.add_system(weapon_state_set_system(resources))
+		.build();
+
+	move |world, resources| loop {
+		resources.insert(StateSystemsRun::default());
+		schedule.execute(world, resources);
+
+		{
+			let systems_run = <Read<StateSystemsRun>>::fetch(resources)
+				.0
+				.swap(false, Ordering::Relaxed);
+
+			if !systems_run {
+				resources.remove::<StateSystemsRun>();
+				break;
+			}
+		}
+
+		actions.execute(world, resources);
+	}
+}
+
 pub fn state_set_system(resources: &mut Resources) -> impl Runnable {
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_spawn::<StateDef, State>();
@@ -86,9 +120,10 @@ pub fn state_set_system(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("state_set_system")
 		.read_resource::<FrameState>()
+		.read_resource::<StateSystemsRun>()
 		.with_query(<(Entity, &EntityTemplateRef, &mut State)>::query())
 		.build(move |command_buffer, world, resources, query| {
-			let frame_state = resources;
+			let (frame_state, state_systems_run) = resources;
 
 			for (&entity, template_ref, state) in query.iter_mut(world) {
 				if let StateAction::Wait(state_name) = state.action {
@@ -98,6 +133,7 @@ pub fn state_set_system(resources: &mut Resources) -> impl Runnable {
 				}
 
 				if let StateAction::Set(state_name) = state.action {
+					state_systems_run.0.store(true, Ordering::Relaxed);
 					state.action = StateAction::None;
 					let handle = template_ref.0.clone();
 
@@ -156,9 +192,10 @@ pub fn weapon_state_set_system(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("weapon_state_set_system")
 		.read_resource::<FrameState>()
+		.read_resource::<StateSystemsRun>()
 		.with_query(<(Entity, &mut WeaponState)>::query())
 		.build(move |command_buffer, world, resources, query| {
-			let frame_state = resources;
+			let (frame_state, state_systems_run) = resources;
 
 			for (&entity, weapon_state) in query.iter_mut(world) {
 				if let StateAction::Wait(state_name) = weapon_state.state.action {
@@ -168,6 +205,7 @@ pub fn weapon_state_set_system(resources: &mut Resources) -> impl Runnable {
 				}
 
 				if let StateAction::Set(state_name) = weapon_state.state.action {
+					state_systems_run.0.store(true, Ordering::Relaxed);
 					weapon_state.state.action = StateAction::None;
 					let handle = weapon_state.current.clone();
 
@@ -186,5 +224,9 @@ pub fn weapon_state_set_system(resources: &mut Resources) -> impl Runnable {
 					});
 				}
 			}
+
+			command_buffer.exec_mut(move |_world, resources| {
+				resources.remove::<StateSpawnContext>();
+			});
 		})
 }

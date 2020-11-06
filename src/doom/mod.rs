@@ -71,12 +71,11 @@ use crate::{
 			entity::{
 				blocks_types_system, next_state_system, remove_entity_system, set_sprite_system,
 			},
-			state_set_system,
+			state_system,
 			weapon::{
 				next_weapon_state_system, set_weapon_sprite_system, weapon_position_system,
 				weapon_ready_system, weapon_refire_system,
 			},
-			weapon_state_set_system,
 		},
 		switch::switch_active_system,
 		template::{EntityTemplate, EntityTemplateRef, EntityTemplateRefDef, WeaponTemplate},
@@ -248,19 +247,21 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 		.add_thread_local(texture_animation_system(resources)).flush()
 		.add_thread_local(texture_scroll_system(resources)).flush()
 		.add_thread_local(damage_system(resources)).flush()
+		.add_thread_local_fn({
+			let actions = Schedule::builder()
+				.add_system(blocks_types_system(resources))
+				.add_system(next_state_system(resources))
+				.add_system(remove_entity_system(resources))
+				.add_system(set_sprite_system(resources))
+				.add_system(next_weapon_state_system(resources))
+				.add_system(set_weapon_sprite_system(resources))
+				.add_system(weapon_position_system(resources))
+				.add_system(weapon_ready_system(resources))
+				.add_system(weapon_refire_system(resources))
+				.build();
 
-		.add_thread_local(state_set_system(resources)).flush()
-		.add_thread_local(weapon_state_set_system(resources)).flush()
-		.add_thread_local(blocks_types_system(resources)).flush()
-		.add_thread_local(next_state_system(resources)).flush()
-		.add_thread_local(remove_entity_system(resources)).flush()
-		.add_thread_local(set_sprite_system(resources)).flush()
-		.add_thread_local(next_weapon_state_system(resources)).flush()
-		.add_thread_local(set_weapon_sprite_system(resources)).flush()
-		.add_thread_local(weapon_position_system(resources)).flush()
-		.add_thread_local(weapon_ready_system(resources)).flush()
-		.add_thread_local(weapon_refire_system(resources)).flush()
-
+			state_system(resources, actions)
+		})
 		.add_thread_local(frame_state_system(FRAME_TIME)).flush()
 		.build())
 }
