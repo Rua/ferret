@@ -6,7 +6,6 @@ use crate::{
 		time::Timer,
 	},
 	doom::{
-		draw::wsprite::WeaponSpriteSlot,
 		map::spawn::{spawn_helper, SpawnContext},
 		template::{EntityTemplateRef, WeaponTemplate},
 	},
@@ -171,6 +170,12 @@ pub struct WeaponState {
 	pub switch_to: Option<AssetHandle<WeaponTemplate>>,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub enum WeaponSpriteSlot {
+	Weapon = 0,
+	Flash = 1,
+}
+
 #[derive(Clone, Copy, Debug, Default)]
 pub struct WeaponStateDef;
 
@@ -207,6 +212,7 @@ impl SpawnFrom<WeaponStateDef> for WeaponState {
 pub fn weapon_state(resources: &mut Resources) -> impl Runnable {
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_spawn::<WeaponStateDef, WeaponState>();
+	handler_set.register_clone::<WeaponSpriteSlot>();
 	handler_set.register_spawn::<WeaponSpriteSlotDef, WeaponSpriteSlot>();
 
 	const SLOTS: [WeaponSpriteSlot; 2] = [WeaponSpriteSlot::Weapon, WeaponSpriteSlot::Flash];

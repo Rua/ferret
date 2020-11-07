@@ -5,8 +5,11 @@ use crate::{
 		draw::sprite::SpriteRender,
 		sound::StartSound,
 		state::{
-			weapon::{NextWeaponState, SetWeaponSprite, WeaponPosition, WeaponReFire, WeaponReady},
-			EntityDef, StateName, WeaponSpriteSlotDef,
+			weapon::{
+				NextWeaponState, SetWeaponSprite, SetWeaponState, WeaponPosition, WeaponReFire,
+				WeaponReady,
+			},
+			EntityDef, StateName, WeaponSpriteSlot, WeaponSpriteSlotDef,
 		},
 		template::WeaponTemplate,
 		WadMode,
@@ -38,7 +41,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pung.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("pung.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -62,7 +69,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pung.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("pung.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -86,7 +97,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pung.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("pung.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -115,7 +130,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pung.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("pung.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -132,7 +151,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pung.sprite"), frame: 2, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("pung.sprite"),
+							frame: 2,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -149,7 +172,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pung.sprite"), frame: 3, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("pung.sprite"),
+							frame: 3,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -166,7 +193,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pung.sprite"), frame: 2, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("pung.sprite"),
+							frame: 2,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -183,7 +214,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pung.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("pung.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -217,7 +252,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pisg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("pisg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -241,7 +280,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pisg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("pisg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -265,7 +308,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pisg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("pisg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -294,7 +341,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pisg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("pisg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -311,12 +362,21 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pisg.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("pisg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
 						StartSound(asset_storage.load("dspistol.sound")),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlot::Flash,
+						SetWeaponState((StateName::from("flash").unwrap(), 0)),
 					));
 					world
 				},
@@ -333,7 +393,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pisg.sprite"), frame: 2, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("pisg.sprite"),
+							frame: 2,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -350,7 +414,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pisg.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("pisg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -374,7 +442,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("pisf.sprite"), frame: 0, full_bright: true}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("pisf.sprite"),
+							frame: 0,
+							full_bright: true,
+						})),
 					));
 					world
 				},
@@ -383,15 +455,7 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						NextWeaponState {
-							time: 0 * FRAME_TIME,
-							state: (StateName::from("flash").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 4, full_bright: false}),
+						SetWeaponSprite(None),
 					));
 					world
 				},
@@ -420,7 +484,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("shtg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -444,7 +512,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("shtg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -468,7 +540,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("shtg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -497,7 +573,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("shtg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -514,12 +594,21 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("shtg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
 						StartSound(asset_storage.load("dsshotgn.sound")),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlot::Flash,
+						SetWeaponState((StateName::from("flash").unwrap(), 0)),
 					));
 					world
 				},
@@ -536,7 +625,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("shtg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -553,7 +646,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 2, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("shtg.sprite"),
+							frame: 2,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -570,7 +667,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 3, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("shtg.sprite"),
+							frame: 3,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -587,7 +688,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 2, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("shtg.sprite"),
+							frame: 2,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -604,7 +709,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("shtg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -621,7 +730,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("shtg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -638,7 +751,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("shtg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -662,7 +779,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtf.sprite"), frame: 0, full_bright: true}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("shtf.sprite"),
+							frame: 0,
+							full_bright: true,
+						})),
 					));
 					world
 				},
@@ -679,7 +800,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtf.sprite"), frame: 1, full_bright: true}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("shtf.sprite"),
+							frame: 1,
+							full_bright: true,
+						})),
 					));
 					world
 				},
@@ -688,15 +813,7 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						NextWeaponState {
-							time: 0 * FRAME_TIME,
-							state: (StateName::from("flash").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 4, full_bright: false}),
+						SetWeaponSprite(None),
 					));
 					world
 				},
@@ -710,7 +827,7 @@ pub fn load(resources: &mut Resources) {
 	let template = WeaponTemplate {
 		name: Some("chaingun"),
 		states: {
-			let mut states = HashMap::with_capacity(8);
+			let mut states = HashMap::with_capacity(10);
 			states.insert(StateName::from("up").unwrap(), vec![
 				{
 					let mut world = World::default();
@@ -725,7 +842,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("chgg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("chgg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -749,7 +870,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("chgg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("chgg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -773,7 +898,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("chgg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("chgg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -802,12 +931,21 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("chgg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("chgg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
 						StartSound(asset_storage.load("dspistol.sound")),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlot::Flash,
+						SetWeaponState((StateName::from("flash").unwrap(), 0)),
 					));
 					world
 				},
@@ -824,12 +962,21 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("chgg.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("chgg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
 						StartSound(asset_storage.load("dspistol.sound")),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlot::Flash,
+						SetWeaponState((StateName::from("flash2").unwrap(), 0)),
 					));
 					world
 				},
@@ -846,7 +993,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("chgg.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("chgg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -870,7 +1021,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("chgf.sprite"), frame: 0, full_bright: true}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("chgf.sprite"),
+							frame: 0,
+							full_bright: true,
+						})),
 					));
 					world
 				},
@@ -879,15 +1034,39 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
+						SetWeaponSprite(None),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("flash2").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
 						NextWeaponState {
-							time: 0 * FRAME_TIME,
-							state: (StateName::from("flash").unwrap(), 2),
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("flash2").unwrap(), 1),
 						},
 					));
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 4, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("chgf.sprite"),
+							frame: 1,
+							full_bright: true,
+						})),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(None),
 					));
 					world
 				},
@@ -916,7 +1095,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("misg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("misg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -940,7 +1123,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("misg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("misg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -964,7 +1151,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("misg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("misg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -993,7 +1184,16 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("misg.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("misg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlot::Flash,
+						SetWeaponState((StateName::from("flash").unwrap(), 0)),
 					));
 					world
 				},
@@ -1010,7 +1210,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("misg.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("misg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1032,7 +1236,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("misg.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("misg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1056,7 +1264,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("misf.sprite"), frame: 0, full_bright: true}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("misf.sprite"),
+							frame: 0,
+							full_bright: true,
+						})),
 					));
 					world
 				},
@@ -1073,7 +1285,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("misf.sprite"), frame: 1, full_bright: true}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("misf.sprite"),
+							frame: 1,
+							full_bright: true,
+						})),
 					));
 					world
 				},
@@ -1090,7 +1306,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("misf.sprite"), frame: 2, full_bright: true}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("misf.sprite"),
+							frame: 2,
+							full_bright: true,
+						})),
 					));
 					world
 				},
@@ -1107,7 +1327,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("misf.sprite"), frame: 3, full_bright: true}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("misf.sprite"),
+							frame: 3,
+							full_bright: true,
+						})),
 					));
 					world
 				},
@@ -1116,15 +1340,7 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						NextWeaponState {
-							time: 0 * FRAME_TIME,
-							state: (StateName::from("flash").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 4, full_bright: false}),
+						SetWeaponSprite(None),
 					));
 					world
 				},
@@ -1153,7 +1369,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 2, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sawg.sprite"),
+							frame: 2,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1177,7 +1397,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 2, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sawg.sprite"),
+							frame: 2,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1201,7 +1425,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 2, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sawg.sprite"),
+							frame: 2,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1228,7 +1456,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 3, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sawg.sprite"),
+							frame: 3,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1257,7 +1489,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sawg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -1274,7 +1510,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sawg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -1291,7 +1531,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sawg.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sawg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1314,7 +1558,7 @@ pub fn load(resources: &mut Resources) {
 	let template = WeaponTemplate {
 		name: Some("plasma"),
 		states: {
-			let mut states = HashMap::with_capacity(7);
+			let mut states = HashMap::with_capacity(9);
 			states.insert(StateName::from("up").unwrap(), vec![
 				{
 					let mut world = World::default();
@@ -1329,7 +1573,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("plsg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("plsg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1353,7 +1601,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("plsg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("plsg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1377,7 +1629,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("plsg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("plsg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1406,12 +1662,21 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("plsg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("plsg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
 						StartSound(asset_storage.load("dsplasma.sound")),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlot::Flash,
+						SetWeaponState((StateName::from("flash").unwrap(), 0)),
 					));
 					world
 				},
@@ -1428,7 +1693,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("plsg.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("plsg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1452,7 +1721,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("plsf.sprite"), frame: 0, full_bright: true}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("plsf.sprite"),
+							frame: 0,
+							full_bright: true,
+						})),
 					));
 					world
 				},
@@ -1461,15 +1734,39 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
+						SetWeaponSprite(None),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("flash2").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
 						NextWeaponState {
-							time: 0 * FRAME_TIME,
-							state: (StateName::from("flash").unwrap(), 2),
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("flash2").unwrap(), 1),
 						},
 					));
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 4, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("plsf.sprite"),
+							frame: 1,
+							full_bright: true,
+						})),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(None),
 					));
 					world
 				},
@@ -1498,7 +1795,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("bfgg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1522,7 +1823,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("bfgg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1546,7 +1851,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("bfgg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1575,7 +1884,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("bfgg.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1597,7 +1910,16 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("bfgg.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlot::Flash,
+						SetWeaponState((StateName::from("flash").unwrap(), 0)),
 					));
 					world
 				},
@@ -1614,7 +1936,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("bfgg.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -1631,7 +1957,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("bfgg.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1655,7 +1985,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("bfgf.sprite"), frame: 0, full_bright: true}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgf.sprite"),
+							frame: 0,
+							full_bright: true,
+						})),
 					));
 					world
 				},
@@ -1672,7 +2006,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("bfgf.sprite"), frame: 1, full_bright: true}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgf.sprite"),
+							frame: 1,
+							full_bright: true,
+						})),
 					));
 					world
 				},
@@ -1681,15 +2019,7 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						NextWeaponState {
-							time: 0 * FRAME_TIME,
-							state: (StateName::from("flash").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 4, full_bright: false}),
+						SetWeaponSprite(None),
 					));
 					world
 				},
@@ -1722,7 +2052,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1746,7 +2080,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1770,7 +2108,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1799,7 +2141,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -1816,12 +2162,21 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
 						StartSound(asset_storage.load("dsdshtgn.sound")),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlot::Flash,
+						SetWeaponState((StateName::from("flash").unwrap(), 0)),
 					));
 					world
 				},
@@ -1838,7 +2193,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 1, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -1855,7 +2214,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 2, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 2,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -1872,7 +2235,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 3, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 3,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1894,7 +2261,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 4, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 4,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -1911,7 +2282,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 5, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 5,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1933,7 +2308,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 6, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 6,
+							full_bright: false,
+						})),
 					));
 					world
 				},
@@ -1950,7 +2329,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 7, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 7,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1972,7 +2355,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 0, full_bright: false}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
 					));
 					world.push((
 						EntityDef,
@@ -1996,7 +2383,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 8, full_bright: true}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 8,
+							full_bright: true,
+						})),
 					));
 					world
 				},
@@ -2013,7 +2404,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("sht2.sprite"), frame: 9, full_bright: true}),
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 9,
+							full_bright: true,
+						})),
 					));
 					world
 				},
@@ -2022,15 +2417,7 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						NextWeaponState {
-							time: 0 * FRAME_TIME,
-							state: (StateName::from("flash").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						SetWeaponSprite(SpriteRender {sprite: asset_storage.load("shtg.sprite"), frame: 4, full_bright: false}),
+						SetWeaponSprite(None),
 					));
 					world
 				},

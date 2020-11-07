@@ -121,7 +121,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -138,7 +142,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -153,7 +161,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -168,7 +180,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -183,7 +199,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -200,7 +220,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -215,11 +239,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsplpain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 6, full_bright: false}),
+						StartSound(asset_storage.load("dsplpain.sound")),
 					));
 					world
 				},
@@ -236,7 +264,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -253,7 +285,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -268,16 +304,16 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -287,7 +323,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 9, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -302,7 +346,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -317,7 +365,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -332,7 +384,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -340,7 +396,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -357,7 +417,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 14, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -372,20 +436,20 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsslop.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 15, full_bright: false}),
+						StartSound(asset_storage.load("dsslop.sound")),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -395,7 +459,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 16, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 16,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -410,7 +482,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 17, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 17,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -425,7 +501,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 18, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 18,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -440,7 +520,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 19, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 19,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -455,7 +539,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 20, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 20,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -470,7 +558,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 21, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 21,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -478,7 +570,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 22, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 22,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -562,7 +658,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -577,7 +677,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -594,7 +698,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -609,7 +717,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -624,7 +736,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -639,7 +755,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -654,7 +774,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -669,7 +793,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -684,7 +812,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -699,7 +831,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -716,7 +852,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -731,11 +871,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dspopain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 6, full_bright: false}),
+						StartSound(asset_storage.load("dspopain.sound")),
 					));
 					world
 				},
@@ -752,7 +896,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -767,7 +915,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -782,7 +934,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -799,7 +955,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -814,20 +974,20 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dspodth1.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 8, full_bright: false}),
+						StartSound(asset_storage.load("dspodth1.sound")),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -837,7 +997,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 9, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -852,7 +1020,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -860,7 +1032,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -877,7 +1053,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -892,20 +1072,20 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsslop.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 13, full_bright: false}),
+						StartSound(asset_storage.load("dsslop.sound")),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -915,7 +1095,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 14, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -930,7 +1118,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 15, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -945,7 +1137,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 16, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 16,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -960,7 +1156,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 17, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 17,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -975,7 +1175,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 18, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 18,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -990,7 +1194,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 19, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 19,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -998,7 +1206,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 20, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 20,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1015,7 +1227,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1030,7 +1246,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1045,7 +1265,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1060,7 +1284,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1116,7 +1344,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1131,7 +1363,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1148,7 +1384,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1163,7 +1403,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1178,7 +1422,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1193,7 +1441,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1208,7 +1460,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1223,7 +1479,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1238,7 +1498,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1253,7 +1517,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1270,7 +1538,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1285,11 +1557,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dspopain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 6, full_bright: false}),
+						StartSound(asset_storage.load("dspopain.sound")),
 					));
 					world
 				},
@@ -1306,7 +1582,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1321,7 +1601,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 5, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 5,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -1336,7 +1620,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1353,7 +1641,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1368,20 +1660,20 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dspodth2.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 8, full_bright: false}),
+						StartSound(asset_storage.load("dspodth2.sound")),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -1391,7 +1683,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 9, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1406,7 +1706,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1414,7 +1718,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1431,7 +1739,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1446,20 +1758,20 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsslop.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 13, full_bright: false}),
+						StartSound(asset_storage.load("dsslop.sound")),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -1469,7 +1781,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 14, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1484,7 +1804,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 15, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1499,7 +1823,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 16, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 16,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1514,7 +1842,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 17, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 17,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1529,7 +1861,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 18, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 18,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1544,7 +1880,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 19, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 19,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1552,7 +1892,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 20, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 20,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1569,7 +1913,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1584,7 +1932,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1599,7 +1951,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1614,7 +1970,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1629,7 +1989,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1685,7 +2049,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1700,7 +2068,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1715,7 +2087,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1730,7 +2106,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1745,7 +2125,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1798,7 +2182,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1813,7 +2201,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1830,7 +2222,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1845,7 +2241,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1860,7 +2260,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1875,7 +2279,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1890,7 +2298,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1905,7 +2317,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1920,7 +2336,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1935,7 +2355,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1952,7 +2376,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -1967,11 +2395,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dspopain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 7, full_bright: false}),
+						StartSound(asset_storage.load("dspopain.sound")),
 					));
 					world
 				},
@@ -1988,7 +2420,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2003,7 +2439,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2018,7 +2458,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2035,7 +2479,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2050,7 +2498,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2065,7 +2517,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2082,7 +2538,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2097,11 +2557,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsbgdth1.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 9, full_bright: false}),
+						StartSound(asset_storage.load("dsbgdth1.sound")),
 					));
 					world
 				},
@@ -2116,16 +2580,16 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -2135,7 +2599,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 11, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2143,7 +2615,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2160,7 +2636,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2175,11 +2655,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsslop.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 14, full_bright: false}),
+						StartSound(asset_storage.load("dsslop.sound")),
 					));
 					world
 				},
@@ -2194,16 +2678,16 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 15, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -2213,7 +2697,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 16, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 16,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2228,7 +2720,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 17, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 17,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2243,7 +2739,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 18, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 18,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2258,7 +2758,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 19, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 19,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2266,7 +2770,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 20, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 20,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2283,7 +2791,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2298,7 +2810,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2313,7 +2829,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2328,7 +2848,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2343,7 +2867,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2399,7 +2927,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2414,7 +2946,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2431,7 +2967,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2446,7 +2986,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2461,7 +3005,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2476,7 +3024,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2491,7 +3043,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2506,7 +3062,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2521,7 +3081,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2536,7 +3100,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2553,7 +3121,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2568,11 +3140,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsdmpain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false}),
+						StartSound(asset_storage.load("dsdmpain.sound")),
 					));
 					world
 				},
@@ -2589,7 +3165,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2604,7 +3184,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2619,7 +3203,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2636,7 +3224,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2651,11 +3243,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dssgtdth.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false}),
+						StartSound(asset_storage.load("dssgtdth.sound")),
 					));
 					world
 				},
@@ -2670,16 +3266,16 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -2689,7 +3285,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2704,7 +3308,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2712,7 +3320,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2729,7 +3341,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2744,7 +3360,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2759,7 +3379,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2774,7 +3398,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2789,7 +3417,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2804,7 +3436,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2860,7 +3496,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2875,7 +3515,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2892,7 +3536,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2907,7 +3555,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2922,7 +3574,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2937,7 +3593,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2952,7 +3612,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2967,7 +3631,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2982,7 +3650,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -2997,7 +3669,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3014,7 +3690,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3029,11 +3709,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsdmpain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 7, full_bright: false}),
+						StartSound(asset_storage.load("dsdmpain.sound")),
 					));
 					world
 				},
@@ -3050,7 +3734,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3065,7 +3753,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3080,7 +3772,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3097,7 +3793,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3112,11 +3812,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dssgtdth.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false}),
+						StartSound(asset_storage.load("dssgtdth.sound")),
 					));
 					world
 				},
@@ -3131,16 +3835,16 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -3150,7 +3854,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3165,7 +3877,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3173,7 +3889,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3190,7 +3910,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3205,7 +3929,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3220,7 +3948,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3235,7 +3967,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3250,7 +3986,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3265,7 +4005,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3321,7 +4065,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3336,7 +4084,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3353,7 +4105,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3368,7 +4124,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3383,7 +4143,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3398,7 +4162,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3413,7 +4181,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3428,7 +4200,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3443,7 +4219,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3458,7 +4238,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3475,7 +4259,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3490,11 +4278,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsdmpain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 7, full_bright: false}),
+						StartSound(asset_storage.load("dsdmpain.sound")),
 					));
 					world
 				},
@@ -3511,7 +4303,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3526,7 +4322,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3541,7 +4341,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3558,7 +4362,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3573,7 +4381,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3588,7 +4400,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3605,7 +4421,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3620,11 +4440,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsbrsdth.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 9, full_bright: false}),
+						StartSound(asset_storage.load("dsbrsdth.sound")),
 					));
 					world
 				},
@@ -3639,16 +4463,16 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -3658,7 +4482,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 11, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3673,7 +4505,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3688,7 +4524,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3696,7 +4536,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 14, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3713,7 +4557,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 14, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3728,7 +4576,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3743,7 +4595,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3758,7 +4614,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3773,7 +4633,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3788,7 +4652,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3803,7 +4671,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("boss.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3859,7 +4731,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal7.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -3874,7 +4750,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal7.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -3891,7 +4771,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal7.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -3906,7 +4790,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal7.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -3921,7 +4809,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bal7.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal7.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -3981,7 +4873,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bar1.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bar1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -3996,7 +4892,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bar1.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bar1.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -4013,7 +4913,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bexp.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4028,11 +4932,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsbarexp.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bexp.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 1, full_bright: true}),
+						StartSound(asset_storage.load("dsbarexp.sound")),
 					));
 					world
 				},
@@ -4047,7 +4955,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bexp.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4062,7 +4974,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bexp.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4077,7 +4993,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bexp.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bexp.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4141,7 +5061,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal1.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4156,7 +5080,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal1.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4173,7 +5101,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal1.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4188,7 +5120,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal1.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4203,7 +5139,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bal1.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal1.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4263,7 +5203,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal2.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4278,7 +5222,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal2.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4295,7 +5243,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal2.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4310,7 +5262,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal2.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4325,7 +5281,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bal2.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal2.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4385,7 +5345,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("misl.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4402,7 +5366,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("misl.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4417,7 +5385,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("misl.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4432,7 +5404,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("misl.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4492,7 +5468,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("apls.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("apls.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4507,7 +5487,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("apls.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("apls.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4524,7 +5508,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("apbx.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4539,7 +5527,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("apbx.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4554,7 +5546,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("apbx.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4569,7 +5565,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("apbx.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4584,7 +5584,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("apbx.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("apbx.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4644,7 +5648,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4659,7 +5667,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -4674,7 +5686,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -4689,7 +5705,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("puff.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -4742,7 +5762,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("blud.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("blud.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -4757,7 +5781,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("blud.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("blud.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -4772,7 +5800,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("blud.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("blud.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -4825,7 +5857,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4840,7 +5876,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4855,7 +5895,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4870,7 +5914,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4885,7 +5933,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4900,7 +5952,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4915,7 +5971,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4930,7 +5990,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 5, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 5,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4945,7 +6009,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 6, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 6,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4960,7 +6028,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 7, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4975,7 +6047,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 8, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 8,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -4990,7 +6066,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tfog.sprite"), frame: 9, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 9,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5043,7 +6123,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ifog.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5058,7 +6142,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ifog.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5073,7 +6161,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ifog.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5088,7 +6180,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ifog.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5103,7 +6199,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ifog.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5118,7 +6218,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ifog.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5133,7 +6237,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("ifog.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ifog.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5204,7 +6312,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("arm1.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("arm1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5219,7 +6331,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("arm1.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("arm1.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5270,7 +6386,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("arm2.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("arm2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5285,7 +6405,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("arm2.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("arm2.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5336,7 +6460,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5351,7 +6479,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon1.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5366,7 +6498,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon1.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5381,7 +6517,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon1.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5396,7 +6536,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon1.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5411,7 +6555,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bon1.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon1.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5462,7 +6610,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5477,7 +6629,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon2.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5492,7 +6648,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon2.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5507,7 +6667,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon2.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5522,7 +6686,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon2.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5537,7 +6705,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bon2.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon2.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5588,7 +6760,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bkey.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bkey.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5603,7 +6779,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bkey.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bkey.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5654,7 +6834,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("rkey.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("rkey.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5669,7 +6853,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("rkey.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("rkey.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5720,7 +6908,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("ykey.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ykey.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5735,7 +6927,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("ykey.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ykey.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5779,7 +6975,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("stim.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("stim.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5823,7 +7023,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("medi.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("medi.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -5874,7 +7078,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("soul.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5889,7 +7097,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("soul.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5904,7 +7116,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("soul.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5919,7 +7135,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("soul.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5934,7 +7154,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("soul.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -5949,7 +7173,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("soul.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("soul.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6000,7 +7228,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pins.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pins.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6015,7 +7247,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pins.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pins.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6030,7 +7266,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pins.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pins.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6045,7 +7285,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pins.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pins.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6089,7 +7333,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("suit.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("suit.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6140,7 +7388,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pmap.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6155,7 +7407,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pmap.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6170,7 +7426,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pmap.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6185,7 +7445,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pmap.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6200,7 +7464,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pmap.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6215,7 +7483,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pmap.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pmap.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6266,7 +7538,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pvis.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pvis.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6281,7 +7557,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pvis.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pvis.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -6325,7 +7605,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("clip.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("clip.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -6369,7 +7653,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("ammo.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ammo.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -6413,7 +7701,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("rock.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("rock.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -6457,7 +7749,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("brok.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("brok.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -6501,7 +7797,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("shel.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("shel.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -6545,7 +7845,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sbox.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sbox.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -6589,7 +7893,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bpak.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bpak.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -6633,7 +7941,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("mgun.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("mgun.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -6677,7 +7989,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("csaw.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("csaw.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -6721,7 +8037,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("laun.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("laun.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -6765,7 +8085,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("shot.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("shot.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -6809,7 +8133,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("colu.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("colu.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6860,7 +8188,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tred.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tred.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6875,7 +8207,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tred.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tred.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6890,7 +8226,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tred.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tred.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6905,7 +8245,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tred.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tred.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -6949,7 +8293,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("elec.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("elec.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -6993,7 +8341,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cand.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cand.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -7037,7 +8389,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cbra.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cbra.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -7081,7 +8437,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7125,7 +8485,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("poss.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7169,7 +8533,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sarg.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7213,7 +8581,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("troo.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7257,7 +8629,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spos.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7301,7 +8677,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 22, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 22,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7345,7 +8725,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("play.sprite"), frame: 22, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 22,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7389,7 +8773,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pol5.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pol5.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7444,7 +8832,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7461,7 +8853,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7478,7 +8874,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7493,11 +8893,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsdmpain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 4, full_bright: false}),
+						StartSound(asset_storage.load("dsdmpain.sound")),
 					));
 					world
 				},
@@ -7512,7 +8916,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7529,7 +8937,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7544,7 +8956,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7559,7 +8975,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -7576,7 +8996,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7591,11 +9015,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dscacdth.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 7, full_bright: false}),
+						StartSound(asset_storage.load("dscacdth.sound")),
 					));
 					world
 				},
@@ -7610,7 +9038,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7625,16 +9057,16 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -7644,7 +9076,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 10, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7652,7 +9092,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7669,7 +9113,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7684,7 +9132,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7699,7 +9151,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7714,7 +9170,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7729,7 +9189,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7744,7 +9208,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -7800,7 +9268,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -7815,7 +9287,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -7832,7 +9308,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -7847,7 +9327,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -7864,7 +9348,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -7879,11 +9367,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsdmpain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 4, full_bright: true}),
+						StartSound(asset_storage.load("dsdmpain.sound")),
 					));
 					world
 				},
@@ -7900,7 +9392,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -7915,7 +9411,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -7930,7 +9430,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -7945,7 +9449,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -7962,7 +9470,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 5, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 5,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -7977,11 +9489,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsfirxpl.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 6,
+							full_bright: true,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 6, full_bright: true}),
+						StartSound(asset_storage.load("dsfirxpl.sound")),
 					));
 					world
 				},
@@ -7996,16 +9512,16 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 7, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -8015,7 +9531,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 8, full_bright: true}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 8,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -8030,7 +9554,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8045,7 +9573,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8109,7 +9641,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8124,7 +9660,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8141,7 +9681,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8156,7 +9700,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8171,7 +9719,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8186,7 +9738,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8201,7 +9757,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8216,7 +9776,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8231,7 +9795,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8246,7 +9814,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8261,7 +9833,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8276,7 +9852,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8291,7 +9871,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8306,7 +9890,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8323,7 +9911,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8338,11 +9930,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsdmpain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 8, full_bright: false}),
+						StartSound(asset_storage.load("dsdmpain.sound")),
 					));
 					world
 				},
@@ -8359,7 +9955,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -8374,7 +9974,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 6, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 6,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -8389,7 +9993,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 7, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -8404,7 +10012,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 7, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -8421,20 +10033,20 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsspidth.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 9, full_bright: false}),
+						StartSound(asset_storage.load("dsspidth.sound")),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -8444,7 +10056,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 10, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8459,7 +10079,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8474,7 +10098,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8489,7 +10117,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8504,7 +10136,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 14, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8519,7 +10155,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 15, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8534,7 +10174,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 16, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 16,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8549,7 +10193,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 17, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 17,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8564,7 +10212,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 18, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 18,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8572,7 +10224,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("spid.sprite"), frame: 18, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 18,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8628,7 +10284,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8643,7 +10303,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8660,7 +10324,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8675,7 +10343,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8690,7 +10362,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8705,7 +10381,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8720,7 +10400,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8735,7 +10419,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8750,7 +10438,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8765,7 +10457,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8782,11 +10478,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsdmpain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 6, full_bright: false}),
+						StartSound(asset_storage.load("dsdmpain.sound")),
 					));
 					world
 				},
@@ -8803,7 +10503,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8818,7 +10522,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8833,7 +10541,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8848,7 +10560,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8863,7 +10579,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8878,7 +10598,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8895,7 +10619,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8910,11 +10638,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dscybdth.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 8, full_bright: false}),
+						StartSound(asset_storage.load("dscybdth.sound")),
 					));
 					world
 				},
@@ -8929,7 +10661,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8944,7 +10680,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8959,16 +10699,16 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -8978,7 +10718,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 12, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -8993,7 +10741,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -9008,7 +10760,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 14, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -9023,7 +10779,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 15, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -9031,7 +10791,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cybr.sprite"), frame: 15, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -9087,7 +10851,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("plss.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plss.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9102,7 +10870,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("plss.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plss.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9119,7 +10891,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plse.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9134,7 +10910,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plse.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9149,7 +10929,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plse.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9164,7 +10948,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plse.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9179,7 +10967,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("plse.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plse.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9239,7 +11031,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bfs1.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfs1.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9254,7 +11050,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bfs1.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfs1.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9271,7 +11071,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe1.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9286,7 +11090,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe1.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9301,7 +11109,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe1.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9316,7 +11128,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe1.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9331,7 +11147,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe1.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9346,7 +11166,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bfe1.sprite"), frame: 5, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe1.sprite"),
+							frame: 5,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9406,7 +11230,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bfe2.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe2.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9421,7 +11249,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bfe2.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe2.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9436,7 +11268,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bfe2.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe2.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9451,7 +11287,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bfe2.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe2.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9504,7 +11344,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("ysku.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ysku.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -9519,7 +11363,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("ysku.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ysku.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9570,7 +11418,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("rsku.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("rsku.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -9585,7 +11437,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("rsku.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("rsku.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9636,7 +11492,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bsku.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bsku.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -9651,7 +11511,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bsku.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bsku.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9702,7 +11566,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pinv.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pinv.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9717,7 +11585,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pinv.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pinv.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9732,7 +11604,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pinv.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pinv.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9747,7 +11623,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pinv.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pinv.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9791,7 +11671,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pstr.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pstr.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -9835,7 +11719,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cell.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cell.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -9879,7 +11767,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("celp.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("celp.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -9923,7 +11815,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bfug.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfug.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -9967,7 +11863,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("plas.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plas.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -10011,7 +11911,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("col1.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("col1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -10055,7 +11959,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("col2.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("col2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -10099,7 +12007,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("col3.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("col3.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -10143,7 +12055,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("col4.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("col4.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -10187,7 +12103,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("col6.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("col6.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -10238,7 +12158,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("col5.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("col5.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -10253,7 +12177,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("col5.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("col5.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -10304,7 +12232,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("ceye.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ceye.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10319,7 +12251,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("ceye.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ceye.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10334,7 +12270,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("ceye.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ceye.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10349,7 +12289,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("ceye.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ceye.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10400,7 +12344,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fsku.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fsku.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10415,7 +12363,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fsku.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fsku.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10430,7 +12382,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fsku.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fsku.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10474,7 +12430,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tre1.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tre1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -10525,7 +12485,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tblu.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tblu.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10540,7 +12504,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tblu.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tblu.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10555,7 +12523,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tblu.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tblu.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10570,7 +12542,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tblu.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tblu.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10621,7 +12597,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tgrn.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tgrn.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10636,7 +12616,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tgrn.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tgrn.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10651,7 +12635,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tgrn.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tgrn.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10666,7 +12654,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tgrn.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tgrn.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10717,7 +12709,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("smbt.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smbt.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10732,7 +12728,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("smbt.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smbt.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10747,7 +12747,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("smbt.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smbt.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10762,7 +12766,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("smbt.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smbt.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10813,7 +12821,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("smgt.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smgt.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10828,7 +12840,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("smgt.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smgt.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10843,7 +12859,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("smgt.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smgt.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10858,7 +12878,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("smgt.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smgt.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10909,7 +12933,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("smrt.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smrt.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10924,7 +12952,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("smrt.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smrt.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10939,7 +12971,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("smrt.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smrt.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10954,7 +12990,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("smrt.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smrt.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -10998,7 +13038,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("smit.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smit.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11049,7 +13093,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11064,7 +13112,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor1.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11079,7 +13131,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor1.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11094,7 +13150,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor1.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11138,7 +13198,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("gor2.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11182,7 +13246,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("gor3.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor3.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11226,7 +13294,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("gor4.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor4.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11270,7 +13342,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("gor5.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor5.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11314,7 +13390,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("gor2.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11358,7 +13438,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("gor4.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor4.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11402,7 +13486,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("gor3.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor3.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11446,7 +13534,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("gor5.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor5.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11497,7 +13589,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11512,7 +13608,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor1.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11527,7 +13627,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor1.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11542,7 +13646,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("gor1.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor1.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11586,7 +13694,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("head.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11637,7 +13749,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skul.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11689,7 +13805,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pol2.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pol2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11733,7 +13853,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pol4.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pol4.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11784,7 +13908,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pol3.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pol3.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -11799,7 +13927,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pol3.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pol3.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -11843,7 +13975,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pol1.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pol1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11894,7 +14030,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pol6.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pol6.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11909,7 +14049,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pol6.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pol6.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -11953,7 +14097,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tre2.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tre2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12004,7 +14152,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fcan.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fcan.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12019,7 +14171,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fcan.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fcan.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12034,7 +14190,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fcan.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fcan.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12089,7 +14249,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12104,7 +14268,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12121,7 +14289,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12136,7 +14308,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12151,7 +14327,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12166,7 +14346,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12181,7 +14365,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12196,7 +14384,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12211,7 +14403,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12226,7 +14422,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12241,7 +14441,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12256,7 +14460,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12271,7 +14479,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12286,7 +14498,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12303,7 +14519,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 16, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 16,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12318,11 +14538,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsvipain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 16,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 16, full_bright: false}),
+						StartSound(asset_storage.load("dsvipain.sound")),
 					));
 					world
 				},
@@ -12339,7 +14563,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 6, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 6,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12354,7 +14582,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 6, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 6,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12369,7 +14601,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 7, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12384,7 +14620,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 8, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 8,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12399,7 +14639,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 9, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 9,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12414,7 +14658,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 10, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 10,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12429,7 +14677,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 11, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 11,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12444,7 +14696,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 12, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 12,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12459,7 +14715,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 13, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 13,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12474,7 +14734,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 14, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 14,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12489,7 +14753,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 15, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 15,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12506,7 +14774,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 16, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 16,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12521,20 +14793,20 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsvildth.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 17,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 17, full_bright: false}),
+						StartSound(asset_storage.load("dsvildth.sound")),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -12544,7 +14816,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 18, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 18,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12559,7 +14839,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 19, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 19,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12574,7 +14858,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 20, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 20,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12589,7 +14877,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 21, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 21,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12604,7 +14896,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 22, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 22,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12619,7 +14915,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 23, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 23,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12634,7 +14934,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 24, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 24,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12642,7 +14946,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("vile.sprite"), frame: 25, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("vile.sprite"),
+							frame: 25,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -12698,7 +15006,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12713,7 +15025,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12728,7 +15044,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12743,7 +15063,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12758,7 +15082,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12773,7 +15101,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12788,7 +15120,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12803,7 +15139,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12818,7 +15158,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12833,7 +15177,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12848,7 +15196,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12863,7 +15215,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12878,7 +15234,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12893,7 +15253,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12908,7 +15272,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12923,7 +15291,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12938,7 +15310,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12953,7 +15329,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12968,7 +15348,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12983,7 +15367,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 5, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 5,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -12998,7 +15386,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13013,7 +15405,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 5, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 5,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13028,7 +15424,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13043,7 +15443,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 5, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 5,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13058,7 +15462,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 6, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 6,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13073,7 +15481,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 7, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13088,7 +15500,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 6, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 6,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13103,7 +15519,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 7, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13118,7 +15538,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 6, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 6,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13133,7 +15557,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 7, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13186,7 +15614,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13201,7 +15633,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13218,7 +15654,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13233,7 +15673,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13248,7 +15692,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13263,7 +15711,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13278,7 +15730,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13293,7 +15749,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13308,7 +15768,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13323,7 +15787,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13338,7 +15806,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13353,7 +15825,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13368,7 +15844,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13383,7 +15863,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13400,7 +15884,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13415,11 +15903,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dspopain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false}),
+						StartSound(asset_storage.load("dspopain.sound")),
 					));
 					world
 				},
@@ -13436,7 +15928,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13451,7 +15947,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13466,7 +15966,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13481,7 +15985,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13498,7 +16006,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 9, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 9,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13513,7 +16025,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 9, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 9,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13528,7 +16044,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13543,7 +16063,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13560,7 +16084,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13575,7 +16103,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13590,20 +16122,20 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsskedth.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 13, full_bright: false}),
+						StartSound(asset_storage.load("dsskedth.sound")),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -13613,7 +16145,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 14, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13628,7 +16168,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 15, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13636,7 +16180,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 16, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 16,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13653,7 +16201,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 16, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 16,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13668,7 +16220,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 15, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13683,7 +16239,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 14, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13698,7 +16258,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13713,7 +16277,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13728,7 +16296,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("skel.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skel.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13784,7 +16356,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatb.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatb.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13799,7 +16375,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatb.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatb.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13816,7 +16396,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fbxp.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fbxp.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13831,7 +16415,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fbxp.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fbxp.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13846,7 +16434,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fbxp.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fbxp.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -13906,7 +16498,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13921,7 +16517,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13938,7 +16538,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13953,7 +16557,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13968,7 +16576,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13983,7 +16595,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -13998,7 +16614,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14013,7 +16633,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14028,7 +16652,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14043,7 +16671,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14058,7 +16690,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14073,7 +16709,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14088,7 +16728,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14103,7 +16747,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14120,7 +16768,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14135,11 +16787,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsmnpain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 9, full_bright: false}),
+						StartSound(asset_storage.load("dsmnpain.sound")),
 					));
 					world
 				},
@@ -14156,7 +16812,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14171,7 +16831,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 7, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -14186,7 +16850,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14201,7 +16869,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14216,7 +16888,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 7, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -14231,7 +16907,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14246,7 +16926,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14261,7 +16945,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 7, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -14276,7 +16964,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14291,7 +16983,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14308,7 +17004,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14323,20 +17023,20 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsmandth.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 11, full_bright: false}),
+						StartSound(asset_storage.load("dsmandth.sound")),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -14346,7 +17046,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 12, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14361,7 +17069,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14376,7 +17088,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 14, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14391,7 +17107,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 15, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14406,7 +17126,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 16, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 16,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14421,7 +17145,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 17, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 17,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14436,7 +17164,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 18, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 18,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14444,7 +17176,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 19, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 19,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14461,7 +17197,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 17, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 17,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14476,7 +17216,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 16, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 16,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14491,7 +17235,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 15, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14506,7 +17254,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 14, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14521,7 +17273,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14536,7 +17292,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14551,7 +17311,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14566,7 +17330,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fatt.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatt.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14622,7 +17390,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("manf.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("manf.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -14637,7 +17409,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("manf.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("manf.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -14654,7 +17430,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("misl.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -14669,7 +17449,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("misl.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -14684,7 +17468,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("misl.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("misl.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -14744,7 +17532,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14759,7 +17551,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14776,7 +17572,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14791,7 +17591,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14806,7 +17610,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14821,7 +17629,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14836,7 +17648,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14851,7 +17667,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14866,7 +17686,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14881,7 +17705,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14898,7 +17726,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14913,11 +17745,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dspopain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 6, full_bright: false}),
+						StartSound(asset_storage.load("dspopain.sound")),
 					));
 					world
 				},
@@ -14934,7 +17770,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14949,7 +17789,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 5, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 5,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -14964,7 +17808,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -14979,7 +17827,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -14996,7 +17848,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15011,20 +17867,20 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dspodth2.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 8, full_bright: false}),
+						StartSound(asset_storage.load("dspodth2.sound")),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -15034,7 +17890,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 9, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15049,7 +17913,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15064,7 +17932,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15079,7 +17951,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15087,7 +17963,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15104,7 +17984,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 14, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15119,20 +18003,20 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsslop.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 15, full_bright: false}),
+						StartSound(asset_storage.load("dsslop.sound")),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -15142,7 +18026,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 16, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 16,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15157,7 +18049,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 17, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 17,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15172,7 +18068,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 18, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 18,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15180,7 +18080,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 19, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 19,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15197,7 +18101,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15212,7 +18120,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15227,7 +18139,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15242,7 +18158,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15257,7 +18177,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15272,7 +18196,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15287,7 +18215,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("cpos.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cpos.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15343,7 +18275,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15358,7 +18294,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15375,7 +18315,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15390,7 +18334,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15405,7 +18353,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15420,7 +18372,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15435,7 +18391,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15450,7 +18410,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15465,7 +18429,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15480,7 +18448,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15497,7 +18469,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15512,11 +18488,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsdmpain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 7, full_bright: false}),
+						StartSound(asset_storage.load("dsdmpain.sound")),
 					));
 					world
 				},
@@ -15533,7 +18513,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15548,7 +18532,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15563,7 +18551,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15580,7 +18572,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15595,7 +18591,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15610,7 +18610,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15627,7 +18631,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15642,11 +18650,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dskntdth.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 9, full_bright: false}),
+						StartSound(asset_storage.load("dskntdth.sound")),
 					));
 					world
 				},
@@ -15661,16 +18673,16 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -15680,7 +18692,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 11, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15695,7 +18715,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15710,7 +18734,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15718,7 +18746,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 14, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15735,7 +18767,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 14, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15750,7 +18786,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15765,7 +18805,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15780,7 +18824,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15795,7 +18843,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15810,7 +18862,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15825,7 +18881,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bos2.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bos2.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15881,7 +18941,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15896,7 +18960,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15913,7 +18981,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15928,7 +19000,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15943,7 +19019,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15958,7 +19038,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15973,7 +19057,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -15988,7 +19076,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16003,7 +19095,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16018,7 +19114,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16033,7 +19133,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16048,7 +19152,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16063,7 +19171,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16078,7 +19190,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16093,7 +19209,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16110,7 +19230,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16125,11 +19249,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsdmpain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 8, full_bright: false}),
+						StartSound(asset_storage.load("dsdmpain.sound")),
 					));
 					world
 				},
@@ -16146,7 +19274,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -16161,7 +19293,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 6, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 6,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -16176,7 +19312,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 7, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -16191,7 +19331,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 7, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -16208,20 +19352,20 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsbspdth.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 9, full_bright: false}),
+						StartSound(asset_storage.load("dsbspdth.sound")),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -16231,7 +19375,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 10, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16246,7 +19398,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16261,7 +19417,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16276,7 +19436,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16291,7 +19455,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 14, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16299,7 +19467,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 15, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16316,7 +19488,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 15, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16331,7 +19507,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 14, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16346,7 +19526,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16361,7 +19545,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16376,7 +19564,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16391,7 +19583,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16406,7 +19602,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bspi.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bspi.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16462,7 +19662,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16479,7 +19683,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16494,7 +19702,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16509,7 +19721,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16524,7 +19740,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16539,7 +19759,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16554,7 +19778,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16571,7 +19799,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16586,11 +19818,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dspepain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 6, full_bright: false}),
+						StartSound(asset_storage.load("dspepain.sound")),
 					));
 					world
 				},
@@ -16607,7 +19843,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16622,7 +19862,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16637,7 +19881,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 5, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 5,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -16652,7 +19900,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 5, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 5,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -16669,7 +19921,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 7, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -16684,11 +19940,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dspedth.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 8,
+							full_bright: true,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 8, full_bright: true}),
+						StartSound(asset_storage.load("dspedth.sound")),
 					));
 					world
 				},
@@ -16703,7 +19963,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 9, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 9,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -16718,7 +19982,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 10, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 10,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -16733,7 +20001,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 11, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 11,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -16748,7 +20020,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 12, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 12,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -16773,7 +20049,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16788,7 +20068,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16803,7 +20087,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16818,7 +20106,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16833,7 +20125,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16848,7 +20144,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pain.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pain.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16904,7 +20204,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16919,7 +20223,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16936,7 +20244,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16951,7 +20263,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16966,7 +20282,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16981,7 +20301,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -16996,7 +20320,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17011,7 +20339,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 2, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17026,7 +20358,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17041,7 +20377,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17058,7 +20398,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17073,11 +20417,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dspopain.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 7, full_bright: false}),
+						StartSound(asset_storage.load("dspopain.sound")),
 					));
 					world
 				},
@@ -17094,7 +20442,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17109,7 +20461,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17124,7 +20480,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 6, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 6,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -17139,7 +20499,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17154,7 +20518,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 6, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 6,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -17169,7 +20537,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17186,7 +20558,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17201,20 +20577,20 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsssdth.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 9, full_bright: false}),
+						StartSound(asset_storage.load("dsssdth.sound")),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -17224,7 +20600,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 10, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17239,7 +20623,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17247,7 +20635,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17264,7 +20656,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 13, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17279,20 +20675,20 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsslop.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 14, full_bright: false}),
+						StartSound(asset_storage.load("dsslop.sound")),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
 					world.push((
 						EntityDef,
 						NextState {
@@ -17302,7 +20698,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 15, full_bright: false}),
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17317,7 +20721,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 16, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 16,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17332,7 +20740,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 17, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 17,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17347,7 +20759,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 18, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 18,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17362,7 +20778,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 19, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 19,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17377,7 +20797,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 20, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 20,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17385,7 +20809,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 21, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 21,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17402,7 +20830,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17417,7 +20849,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17432,7 +20868,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17447,7 +20887,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17462,7 +20906,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17511,7 +20959,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("keen.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17528,7 +20980,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 12, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("keen.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17543,11 +20999,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dskeenpn.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("keen.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 12, full_bright: false}),
+						StartSound(asset_storage.load("dskeenpn.sound")),
 					));
 					world
 				},
@@ -17564,7 +21024,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("keen.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17579,7 +21043,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 1, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("keen.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17594,11 +21062,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dskeendt.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("keen.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 2, full_bright: false}),
+						StartSound(asset_storage.load("dskeendt.sound")),
 					));
 					world
 				},
@@ -17613,7 +21085,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 3, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("keen.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17628,7 +21104,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 4, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("keen.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17643,7 +21123,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 5, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("keen.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17658,7 +21142,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 6, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("keen.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17673,7 +21161,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 7, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("keen.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17688,7 +21180,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 8, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("keen.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17703,7 +21199,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 9, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("keen.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17718,7 +21218,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 10, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("keen.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17726,7 +21230,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("keen.sprite"), frame: 11, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("keen.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17775,7 +21283,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bbrn.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17792,11 +21304,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsbospn.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bbrn.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 1, full_bright: false}),
+						StartSound(asset_storage.load("dsbospn.sound")),
 					));
 					world
 				},
@@ -17813,11 +21329,15 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						StartSound(asset_storage.load("dsbosdth.sound")),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bbrn.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false}),
+						StartSound(asset_storage.load("dsbosdth.sound")),
 					));
 					world
 				},
@@ -17832,7 +21352,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bbrn.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17847,7 +21371,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bbrn.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17855,7 +21383,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bbrn.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bbrn.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17911,7 +21443,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17928,7 +21464,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -17943,7 +21483,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sswv.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sswv.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -18006,7 +21550,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bosf.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bosf.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18021,7 +21569,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bosf.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bosf.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18036,7 +21588,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bosf.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bosf.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18051,7 +21607,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("bosf.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bosf.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18103,7 +21663,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18118,7 +21682,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18133,7 +21701,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18148,7 +21720,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18163,7 +21739,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 4, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18178,7 +21758,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 5, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 5,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18193,7 +21777,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 6, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 6,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18208,7 +21796,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("fire.sprite"), frame: 7, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fire.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18261,7 +21853,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("mega.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("mega.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18276,7 +21872,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("mega.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("mega.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18291,7 +21891,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("mega.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("mega.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18306,7 +21910,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("mega.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("mega.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18350,7 +21958,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("sgn2.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sgn2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -18401,7 +22013,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tlmp.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tlmp.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18416,7 +22032,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tlmp.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tlmp.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18431,7 +22051,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tlmp.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tlmp.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18446,7 +22070,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tlmp.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tlmp.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18497,7 +22125,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tlp2.sprite"), frame: 0, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tlp2.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18512,7 +22144,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tlp2.sprite"), frame: 1, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tlp2.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18527,7 +22163,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tlp2.sprite"), frame: 2, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tlp2.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18542,7 +22182,11 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("tlp2.sprite"), frame: 3, full_bright: true}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tlp2.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
 					));
 					world
 				},
@@ -18586,7 +22230,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("hdb1.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("hdb1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -18630,7 +22278,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("hdb2.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("hdb2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -18674,7 +22326,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("hdb3.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("hdb3.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -18718,7 +22374,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("hdb4.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("hdb4.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -18762,7 +22422,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("hdb5.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("hdb5.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -18806,7 +22470,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("hdb6.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("hdb6.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -18850,7 +22518,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pob1.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pob1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -18888,7 +22560,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("pob2.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pob2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},
@@ -18926,7 +22602,11 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						SetEntitySprite(SpriteRender {sprite: asset_storage.load("brs1.sprite"), frame: 0, full_bright: false}),
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("brs1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
 					));
 					world
 				},

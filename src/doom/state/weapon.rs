@@ -3,11 +3,8 @@ use crate::{
 	doom::{
 		camera::{Camera, MovementBob},
 		client::Client,
-		draw::{
-			sprite::SpriteRender,
-			wsprite::{WeaponSpriteRender, WeaponSpriteSlot},
-		},
-		state::{StateAction, StateName, WeaponState},
+		draw::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
+		state::{StateAction, StateName, WeaponSpriteSlot, WeaponState},
 	},
 };
 use legion::{
@@ -51,7 +48,7 @@ pub fn next_weapon_state(resources: &mut Resources) -> impl Runnable {
 }
 
 #[derive(Clone, Debug)]
-pub struct SetWeaponSprite(pub SpriteRender);
+pub struct SetWeaponSprite(pub Option<SpriteRender>);
 
 pub fn set_weapon_sprite(resources: &mut Resources) -> impl Runnable {
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
@@ -67,7 +64,31 @@ pub fn set_weapon_sprite(resources: &mut Resources) -> impl Runnable {
 				command_buffer.remove(entity);
 
 				if let Ok(weapon_sprite_render) = queries.1.get_mut(&mut world, target) {
-					weapon_sprite_render.slots[slot as usize] = Some(sprite.clone());
+					weapon_sprite_render.slots[slot as usize] = sprite.clone();
+				}
+			}
+		})
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct SetWeaponState(pub (StateName, usize));
+
+pub fn set_weapon_state(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<SetWeaponState>();
+
+	SystemBuilder::new("set_weapon_state")
+		.with_query(<(Entity, &Entity, &WeaponSpriteSlot, &SetWeaponState)>::query())
+		.with_query(<&mut WeaponState>::query())
+		.build(move |command_buffer, world, _resources, queries| {
+			let (world0, mut world) = world.split_for_query(&queries.0);
+
+			for (&entity, &target, &slot, &SetWeaponState(next_state)) in queries.0.iter(&world0) {
+				command_buffer.remove(entity);
+
+				if let Ok(weapon_state) = queries.1.get_mut(&mut world, target) {
+					let state = &mut weapon_state.slots[slot as usize];
+					state.action = StateAction::Set(next_state);
 				}
 			}
 		})

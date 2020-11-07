@@ -38,12 +38,6 @@ pub struct WeaponSpriteRender {
 	pub slots: [Option<SpriteRender>; 2],
 }
 
-#[derive(Clone, Copy, Debug)]
-pub enum WeaponSpriteSlot {
-	Weapon = 0,
-	Flash = 1,
-}
-
 pub fn draw_weapon_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 	let (draw_target, render_context) = <(Read<DrawTarget>, Read<RenderContext>)>::fetch(resources);
 	let device = render_context.device();
