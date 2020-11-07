@@ -47,7 +47,7 @@ pub fn spawn_helper(
 pub fn spawn_entity(
 	world: &mut World,
 	resources: &mut Resources,
-	template_handle: AssetHandle<EntityTemplate>,
+	template_handle: &AssetHandle<EntityTemplate>,
 	transform: Transform,
 ) -> Entity {
 	// Create spawn context and insert into resources, for SpawnFrom implementations to read
@@ -134,7 +134,7 @@ pub fn spawn_things(
 			rotation: Vector3::new(0.into(), 0.into(), thing.angle),
 		};
 
-		spawn_entity(world, resources, template_handle, transform);
+		spawn_entity(world, resources, &template_handle, transform);
 	}
 
 	Ok(())
@@ -168,7 +168,7 @@ pub fn spawn_player(
 		None => bail!("Spawn point for player {} not found", player_num),
 	};
 
-	Ok(spawn_entity(world, resources, template_handle, transform))
+	Ok(spawn_entity(world, resources, &template_handle, transform))
 }
 
 pub fn spawn_map_entities(

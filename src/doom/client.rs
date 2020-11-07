@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		frame::FrameState,
-		geometry::{Line2, AABB3},
+		geometry::{Line2, Line3, AABB3},
 		input::{Bindings, InputState},
 		quadtree::Quadtree,
 		spawn::SpawnMergerHandlerSet,
@@ -335,8 +335,8 @@ pub fn player_attack_system(_resources: &mut Resources) -> impl Runnable {
 							collision.entity,
 							Damage {
 								amount: 10.0,
-								origin_point: position,
 								source_entity: client_entity,
+								line: Line3::new(position, trace.move_step),
 							},
 						));
 					}

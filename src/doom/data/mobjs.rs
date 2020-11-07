@@ -604,6 +604,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 100.0,
 					pain_chance: 0.99609375,
+					blood: true,
 				},
 				MovementBob {
 					max: 16.0,
@@ -1309,6 +1310,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 20.0,
 					pain_chance: 0.78125,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("poss.sprite"),
@@ -2014,6 +2016,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 30.0,
 					pain_chance: 0.6640625,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("spos.sprite"),
@@ -2892,6 +2895,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 60.0,
 					pain_chance: 0.78125,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("troo.sprite"),
@@ -3461,6 +3465,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 150.0,
 					pain_chance: 0.703125,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("sarg.sprite"),
@@ -4030,6 +4035,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 150.0,
 					pain_chance: 0.703125,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("sarg.sprite"),
@@ -4696,6 +4702,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 1000.0,
 					pain_chance: 0.1953125,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("boss.sprite"),
@@ -5026,6 +5033,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 20.0,
 					pain_chance: 0.0,
+					blood: false,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bar1.sprite"),
@@ -5833,6 +5841,7 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
+				VelocityDef,
 			));
 			world
 		},
@@ -9233,6 +9242,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 400.0,
 					pain_chance: 0.5,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("head.sprite"),
@@ -9606,6 +9616,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 100.0,
 					pain_chance: 1.0,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("skul.sprite"),
@@ -10249,6 +10260,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 3000.0,
 					pain_chance: 0.15625,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("spid.sprite"),
@@ -10816,6 +10828,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 4000.0,
 					pain_chance: 0.078125,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("cybr.sprite"),
@@ -14971,6 +14984,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 700.0,
 					pain_chance: 0.0390625,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("vile.sprite"),
@@ -16321,6 +16335,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 300.0,
 					pain_chance: 0.390625,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("skel.sprite"),
@@ -17355,6 +17370,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 600.0,
 					pain_chance: 0.3125,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("fatt.sprite"),
@@ -18240,6 +18256,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 70.0,
 					pain_chance: 0.6640625,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("cpos.sprite"),
@@ -18906,6 +18923,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 500.0,
 					pain_chance: 0.1953125,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bos2.sprite"),
@@ -19627,6 +19645,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 500.0,
 					pain_chance: 0.5,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bspi.sprite"),
@@ -20169,6 +20188,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 400.0,
 					pain_chance: 0.5,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("pain.sprite"),
@@ -20931,6 +20951,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 50.0,
 					pain_chance: 0.6640625,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("sswv.sprite"),
@@ -21255,6 +21276,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 100.0,
 					pain_chance: 1.0,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("keen.sprite"),
@@ -21408,6 +21430,7 @@ pub fn load(resources: &mut Resources) {
 				HealthDef {
 					max: 250.0,
 					pain_chance: 0.99609375,
+					blood: true,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bbrn.sprite"),
