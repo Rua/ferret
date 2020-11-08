@@ -67,13 +67,22 @@ pub struct BoxCollider {
 /// Component for entities that can move and be pushed around.
 #[derive(Clone, Copy, Debug)]
 pub struct Physics {
+	pub collision_response: CollisionResponse,
 	pub gravity: bool,
 	pub mass: f32,
 	pub velocity: Vector3<f32>,
 }
 
+/// How the entity responds to colliding with something.
+#[derive(Clone, Copy, Debug)]
+pub enum CollisionResponse {
+	Stop,
+	StepSlide,
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct PhysicsDef {
+	pub collision_response: CollisionResponse,
 	pub gravity: bool,
 	pub mass: f32,
 }
@@ -83,6 +92,7 @@ impl From<PhysicsDef> for Physics {
 		assert_ne!(component.mass, 0.0);
 
 		Physics {
+			collision_response: component.collision_response,
 			gravity: component.gravity,
 			mass: component.mass,
 			velocity: Vector3::zeros(),
@@ -180,34 +190,103 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 					};
 
 					// Apply the move
-					step_slide_move(
-						&tracer,
-						&mut transform.position,
-						&mut physics.velocity,
-						&mut step_events,
-						&mut touch_events,
-						entity,
-						&entity_bbox,
-						solid_type,
-						frame_state.delta_time,
-					);
+					match physics.collision_response {
+						CollisionResponse::Stop => simple_move(
+							&tracer,
+							&mut transform.position,
+							&mut physics.velocity,
+							&mut touch_events,
+							entity,
+							&entity_bbox,
+							solid_type,
+							frame_state.delta_time,
+						),
+						CollisionResponse::StepSlide => step_slide_move(
+							&tracer,
+							&mut transform.position,
+							&mut physics.velocity,
+							&mut step_events,
+							&mut touch_events,
+							entity,
+							&entity_bbox,
+							solid_type,
+							frame_state.delta_time,
+						),
+					}
 
 					// Set new position and velocity
-					let (transform_mut, physics_mut, _) =
-						queries.2.get_mut(&mut world, entity).unwrap();
-					*transform_mut = transform;
-					*physics_mut = physics;
 					quadtree.insert(
 						entity,
-						&AABB2::from(&entity_bbox.offset(transform_mut.position)),
+						&AABB2::from(&entity_bbox.offset(transform.position)),
 					);
 				}
+
+				let (transform_mut, physics_mut, _) =
+					queries.2.get_mut(&mut world, entity).unwrap();
+				*transform_mut = transform;
+				*physics_mut = physics;
 
 				// Send events
 				step_event_channel.iter_write(step_events);
 				touch_event_channel.iter_write(touch_events);
 			}
 		})
+}
+
+fn simple_move<W: EntityStore>(
+	tracer: &EntityTracer<W>,
+	position: &mut Vector3<f32>,
+	velocity: &mut Vector3<f32>,
+	touch_events: &mut SmallVec<[TouchEvent; 8]>,
+	entity: Entity,
+	entity_bbox: &AABB3,
+	solid_type: SolidType,
+	time_left: Duration,
+) {
+	let trace = tracer.trace(
+		&entity_bbox.offset(*position),
+		*velocity * time_left.as_secs_f32(),
+		solid_type,
+	);
+
+	// Commit to the move
+	*position += trace.move_step;
+
+	for touched in trace.touched.iter().copied() {
+		if touch_events.iter().find(|t| t.touched == touched).is_none() {
+			touch_events.push(TouchEvent {
+				toucher: entity,
+				touched,
+				collision: None,
+			});
+		}
+	}
+
+	let collision = match trace.collision {
+		Some(x) => x,
+		None => return,
+	};
+
+	let speed = -velocity.dot(&collision.normal);
+	*velocity = Vector3::zeros();
+
+	let touch_collision = Some(TouchEventCollision {
+		normal: collision.normal,
+		speed,
+	});
+
+	if let Some(event) = touch_events
+		.iter_mut()
+		.find(|t| t.touched == collision.entity)
+	{
+		event.collision = touch_collision;
+	} else {
+		touch_events.push(TouchEvent {
+			toucher: entity,
+			touched: collision.entity,
+			collision: touch_collision,
+		});
+	}
 }
 
 fn step_slide_move<W: EntityStore>(
