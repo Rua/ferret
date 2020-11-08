@@ -4,14 +4,16 @@ use crate::{
 	doom::{
 		camera::{Camera, MovementBob},
 		client::User,
-		components::{SpawnPoint, TransformDef, VelocityDef},
+		components::{RandomTransformDef, SpawnPoint, TransformDef, Velocity, VelocityDef},
 		data::FRAME_TIME,
 		draw::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
 		health::HealthDef,
 		physics::{BoxCollider, SolidBits, SolidType},
 		sound::StartSound,
 		state::{
-			entity::{NextState, RemoveEntity, SetBlocksTypes, SetEntitySprite},
+			entity::{
+				NextState, NextStateRandomTimeDef, RemoveEntity, SetBlocksTypes, SetEntitySprite,
+			},
 			EntityDef, StateDef, StateName, WeaponStateDef,
 		},
 		template::{EntityTemplate, EntityTemplateRefDef, EntityTypeId},
@@ -5649,8 +5651,8 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..4 * FRAME_TIME).into(),
 							state: (StateName::from("spawn").unwrap(), 1),
 						},
 					));
@@ -5743,8 +5745,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
+				RandomTransformDef([(0.0..=0.0).into(), (0.0..=0.0).into(), (-4.0..=4.0).into()]),
+				Velocity {
+					velocity: Vector3::new(0.0, 0.0, 1.0)
 				},
 			));
 			world
@@ -5754,7 +5757,7 @@ pub fn load(resources: &mut Resources) {
 	asset_storage.insert_with_name("puff", template);
 
 	let template = EntityTemplate {
-		name: Some("blood"),
+		name: Some("blood1"),
 		type_id: None,
 		states: {
 			let mut states = HashMap::with_capacity(3);
@@ -5763,8 +5766,8 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..8 * FRAME_TIME).into(),
 							state: (StateName::from("spawn").unwrap(), 1),
 						},
 					));
@@ -5838,16 +5841,151 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
+				RandomTransformDef([(0.0..=0.0).into(), (0.0..=0.0).into(), (-4.0..=4.0).into()]),
+				Velocity {
+					velocity: Vector3::new(0.0, 0.0, 2.0)
 				},
-				VelocityDef,
 			));
 			world
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("blood", template);
+	asset_storage.insert_with_name("blood1", template);
+
+	let template = EntityTemplate {
+		name: Some("blood2"),
+		type_id: None,
+		states: {
+			let mut states = HashMap::with_capacity(2);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("blud.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("blud.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				FrameRngDef,
+				SpriteRender {
+					sprite: asset_storage.load("blud.sprite"),
+					frame: 1,
+					full_bright: false,
+				},
+				StateDef,
+				RandomTransformDef([(0.0..=0.0).into(), (0.0..=0.0).into(), (-4.0..=4.0).into()]),
+				Velocity {
+					velocity: Vector3::new(0.0, 0.0, 2.0)
+				},
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	};
+	asset_storage.insert_with_name("blood2", template);
+
+	let template = EntityTemplate {
+		name: Some("blood3"),
+		type_id: None,
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("blud.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				FrameRngDef,
+				SpriteRender {
+					sprite: asset_storage.load("blud.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				RandomTransformDef([(0.0..=0.0).into(), (0.0..=0.0).into(), (-4.0..=4.0).into()]),
+				Velocity {
+					velocity: Vector3::new(0.0, 0.0, 2.0)
+				},
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	};
+	asset_storage.insert_with_name("blood3", template);
 
 	let template = EntityTemplate {
 		name: Some("tfog"),

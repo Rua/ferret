@@ -1,5 +1,6 @@
 use crate::{
 	common::{
+		frame::FrameState,
 		geometry::Angle,
 		spawn::{ComponentAccessor, SpawnFrom},
 	},
@@ -10,6 +11,7 @@ use crate::{
 };
 use legion::{systems::ResourceSet, Read, Resources};
 use nalgebra::Vector3;
+use rand::{distributions::Uniform, Rng};
 
 #[derive(Clone, Copy, Debug)]
 pub struct SpawnPoint {
@@ -44,6 +46,25 @@ impl SpawnFrom<TransformDef> for Transform {
 			}
 		}
 
+		transform
+	}
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct RandomTransformDef(pub [Uniform<f32>; 3]);
+
+impl SpawnFrom<RandomTransformDef> for Transform {
+	fn spawn(
+		component: &RandomTransformDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> Self {
+		let (spawn_context, frame_state) =
+			<(Read<SpawnContext>, Read<FrameState>)>::fetch(resources);
+		let mut rng = frame_state.rng.lock().unwrap();
+		let mut transform = spawn_context.transform;
+		let offset = Vector3::from_iterator(component.0.iter().map(|u| rng.sample(u)));
+		transform.position += offset;
 		transform
 	}
 }

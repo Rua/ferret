@@ -1,5 +1,8 @@
 use crate::{
-	common::{frame::FrameState, spawn::SpawnMergerHandlerSet},
+	common::{
+		frame::FrameState,
+		spawn::{ComponentAccessor, SpawnFrom, SpawnMergerHandlerSet},
+	},
 	doom::{
 		draw::sprite::SpriteRender,
 		physics::{BoxCollider, SolidBits},
@@ -9,8 +12,9 @@ use crate::{
 use legion::{
 	component,
 	systems::{ResourceSet, Runnable},
-	Entity, IntoQuery, Resources, SystemBuilder, Write,
+	Entity, IntoQuery, Read, Resources, SystemBuilder, Write,
 };
+use rand::{distributions::Uniform, Rng};
 use std::time::Duration;
 
 #[derive(Clone, Copy, Debug)]
@@ -19,9 +23,32 @@ pub struct NextState {
 	pub state: (StateName, usize),
 }
 
+#[derive(Clone, Debug)]
+pub struct NextStateRandomTimeDef {
+	pub time: Uniform<Duration>,
+	pub state: (StateName, usize),
+}
+
+impl SpawnFrom<NextStateRandomTimeDef> for NextState {
+	fn spawn(
+		component: &NextStateRandomTimeDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> Self {
+		let frame_state = <Read<FrameState>>::fetch(resources);
+		let mut rng = frame_state.rng.lock().unwrap();
+
+		NextState {
+			time: rng.sample(component.time),
+			state: component.state,
+		}
+	}
+}
+
 pub fn next_entity_state(resources: &mut Resources) -> impl Runnable {
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_clone::<NextState>();
+	handler_set.register_spawn::<NextStateRandomTimeDef, NextState>();
 
 	SystemBuilder::new("next_entity_state")
 		.read_resource::<FrameState>()

@@ -6,11 +6,10 @@ use crate::{
 		spawn::{ComponentAccessor, SpawnFrom, SpawnMergerHandlerSet},
 	},
 	doom::{
-		components::{Transform, Velocity},
+		components::Transform,
 		map::spawn::spawn_entity,
 		state::{State, StateAction, StateName},
 		template::EntityTemplateRef,
-		FRAME_TIME,
 	},
 };
 use legion::{
@@ -19,7 +18,6 @@ use legion::{
 };
 use nalgebra::Vector3;
 use rand::Rng;
-use std::time::Duration;
 
 #[derive(Clone, Debug)]
 pub struct Health {
@@ -79,41 +77,23 @@ pub fn apply_damage(resources: &mut Resources) -> impl Runnable {
 
 					// Spawn particles
 					// TODO make this a part of entity templates
-					let template_name = if health.blood { "blood" } else { "puff" };
+					let template_name = if health.blood {
+						if damage.amount <= 9.0 {
+							"blood3"
+						} else if damage.amount <= 12.0 {
+							"blood2"
+						} else {
+							"blood1"
+						}
+					} else {
+						"puff"
+					};
 					let handle = asset_storage
 						.handle_for(template_name)
 						.expect("Damage particle template is not present");
 
 					command_buffer.exec_mut(move |world, resources| {
-						let entity = spawn_entity(world, resources, &handle, transform);
-						if let Ok((frame_rng, state, transform, velocity)) =
-							<(&mut FrameRng, &mut State, &mut Transform, &mut Velocity)>::query()
-								.get_mut(world, entity)
-						{
-							transform.position[2] += frame_rng.gen_range(-4.0, 4.0);
-
-							let diff = frame_rng.gen_range(0, 8) * FRAME_TIME;
-							let new_time = state
-								.timer
-								.target_time()
-								.checked_sub(diff)
-								.unwrap_or(Duration::default());
-							state.timer.set_target(new_time);
-
-							if template_name == "blood" {
-								velocity.velocity[2] += 2.0;
-
-								if damage.amount < 9.0 {
-									let new = (StateName::from("spawn").unwrap(), 2);
-									state.action = StateAction::Set(new);
-								} else if damage.amount <= 12.0 {
-									let new = (StateName::from("spawn").unwrap(), 1);
-									state.action = StateAction::Set(new);
-								}
-							} else {
-								velocity.velocity[2] += 1.0;
-							}
-						}
+						spawn_entity(world, resources, &handle, transform);
 					});
 
 					// Apply damage

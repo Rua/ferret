@@ -334,7 +334,7 @@ pub fn player_attack_system(_resources: &mut Resources) -> impl Runnable {
 						command_buffer.push((
 							collision.entity,
 							Damage {
-								amount: 10.0,
+								amount: 15.0,
 								source_entity: client_entity,
 								line: Line3::new(position, trace.move_step),
 							},

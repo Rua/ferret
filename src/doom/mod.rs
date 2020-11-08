@@ -36,7 +36,9 @@ use crate::{
 			player_attack_system, player_command_system, player_move_system, player_use_system,
 			player_weapon_system, Client,
 		},
-		components::{SpawnPoint, Transform, TransformDef, Velocity, VelocityDef},
+		components::{
+			RandomTransformDef, SpawnPoint, Transform, TransformDef, Velocity, VelocityDef,
+		},
 		data::FRAME_TIME,
 		door::{door_active_system, door_switch_system, door_touch_system, door_use_system},
 		draw::{
@@ -184,6 +186,8 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 		let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 		handler_set.register_clone::<SpawnPoint>();
 		handler_set.register_spawn::<TransformDef, Transform>();
+		handler_set.register_spawn::<RandomTransformDef, Transform>();
+		handler_set.register_clone::<Velocity>();
 		handler_set.register_from::<VelocityDef, Velocity>();
 		handler_set.register_spawn::<EntityTemplateRefDef, EntityTemplateRef>();
 		handler_set.register_clone::<LinedefRef>();
