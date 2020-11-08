@@ -3,9 +3,8 @@ use crate::{
 		assets::AssetHandle, frame::FrameState, geometry::Angle, spawn::SpawnMergerHandlerSet,
 	},
 	doom::{
-		components::Velocity,
 		data::FRAME_RATE,
-		physics::{StepEvent, TouchEvent},
+		physics::{Physics, StepEvent, TouchEvent},
 		sound::{Sound, StartSound},
 	},
 };
@@ -119,10 +118,10 @@ pub fn movement_bob_system(resources: &mut Resources) -> impl Runnable {
 		.register_clone::<MovementBob>();
 
 	SystemBuilder::new("movement_bob_system")
-		.with_query(<(&Velocity, &mut MovementBob)>::query())
+		.with_query(<(&Physics, &mut MovementBob)>::query())
 		.build(move |_command_buffer, world, _resources, query| {
-			for (velocity, movement_bob) in query.iter_mut(world) {
-				let velocity2: Vector2<f32> = velocity.velocity.fixed_resize(0.0) / FRAME_RATE;
+			for (physics, movement_bob) in query.iter_mut(world) {
+				let velocity2: Vector2<f32> = physics.velocity.fixed_resize(0.0) / FRAME_RATE;
 				movement_bob.amplitude = (velocity2.norm_squared() * 0.25).min(movement_bob.max);
 			}
 		})

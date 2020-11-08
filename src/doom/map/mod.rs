@@ -12,7 +12,8 @@ use crate::{
 	doom::{
 		image::Image,
 		map::{load::LinedefFlags, textures::TextureType},
-		physics::{CollisionPlane, SolidBits},
+		physics::SolidBits,
+		trace::CollisionPlane,
 	},
 };
 use bitflags::bitflags;

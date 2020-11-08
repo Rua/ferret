@@ -19,6 +19,7 @@ pub mod state;
 pub mod switch;
 pub mod template;
 pub mod texture;
+pub mod trace;
 pub mod ui;
 pub mod wad;
 
@@ -36,9 +37,7 @@ use crate::{
 			player_attack_system, player_command_system, player_move_system, player_use_system,
 			player_weapon_system, Client,
 		},
-		components::{
-			RandomTransformDef, SpawnPoint, Transform, TransformDef, Velocity, VelocityDef,
-		},
+		components::{RandomTransformDef, SpawnPoint, Transform, TransformDef},
 		data::FRAME_TIME,
 		door::{door_active_system, door_switch_system, door_touch_system, door_use_system},
 		draw::{
@@ -61,7 +60,7 @@ use crate::{
 			},
 			LinedefRef, Map, MapDynamic, SectorRef,
 		},
-		physics::physics_system,
+		physics::physics,
 		plat::{plat_active_system, plat_switch_system, plat_touch_system},
 		sectormove::sector_move_system,
 		sound::{
@@ -187,8 +186,6 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 		handler_set.register_clone::<SpawnPoint>();
 		handler_set.register_spawn::<TransformDef, Transform>();
 		handler_set.register_spawn::<RandomTransformDef, Transform>();
-		handler_set.register_clone::<Velocity>();
-		handler_set.register_from::<VelocityDef, Velocity>();
 		handler_set.register_spawn::<EntityTemplateRefDef, EntityTemplateRef>();
 		handler_set.register_clone::<LinedefRef>();
 		handler_set.register_clone::<MapDynamic>();
@@ -229,7 +226,7 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 		.add_thread_local(player_weapon_system(resources)).flush()
 		.add_thread_local(player_attack_system(resources)).flush()
 		.add_thread_local(player_use_system(resources)).flush()
-		.add_thread_local(physics_system(resources)).flush()
+		.add_thread_local(physics(resources)).flush()
 		.add_thread_local(movement_bob_system(resources)).flush()
 		.add_thread_local(camera_system(resources)).flush()
 		.add_thread_local(door_use_system(resources)).flush()

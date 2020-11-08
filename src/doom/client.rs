@@ -9,18 +9,19 @@ use crate::{
 	},
 	doom::{
 		camera::Camera,
-		components::{Transform, Velocity},
+		components::Transform,
 		data::{FORWARD_ACCEL, STRAFE_ACCEL},
 		door::{DoorSwitchUse, DoorUse},
 		floor::FloorSwitchUse,
 		health::Damage,
 		input::{BoolInput, FloatInput, UserCommand},
 		map::MapDynamic,
-		physics::{BoxCollider, EntityTracer, SolidType},
+		physics::{BoxCollider, Physics, SolidType},
 		plat::PlatSwitchUse,
 		sound::{Sound, StartSound},
 		state::WeaponState,
 		template::WeaponTemplate,
+		trace::EntityTracer,
 	},
 };
 use legion::{
@@ -106,7 +107,7 @@ pub fn player_move_system(_resources: &mut Resources) -> impl Runnable {
 		.with_query(<&mut Transform>::query())
 		.with_query(<&MapDynamic>::query())
 		.with_query(<(&Transform, &BoxCollider)>::query())
-		.with_query(<(&Transform, &mut Velocity)>::query())
+		.with_query(<(&Transform, &mut Physics)>::query())
 		.read_component::<BoxCollider>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
 		.build(move |_command_buffer, world, resources, queries| {
@@ -165,14 +166,14 @@ pub fn player_move_system(_resources: &mut Resources) -> impl Runnable {
 					client.command.strafe.max(-1.0).min(1.0) * STRAFE_ACCEL,
 				);
 
-				let (transform, velocity) = queries.3.get_mut(world, client_entity).unwrap();
+				let (transform, physics) = queries.3.get_mut(world, client_entity).unwrap();
 
 				let angles = Vector3::new(0.into(), 0.into(), transform.rotation[2]);
 				let axes = crate::common::geometry::angles_to_axes(angles);
 				let accel = (axes[0] * move_dir[0] + axes[1] * move_dir[1])
 					* frame_state.delta_time.as_secs_f32();
 
-				velocity.velocity += accel;
+				physics.velocity += accel;
 			}
 		})
 }

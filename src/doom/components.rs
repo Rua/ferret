@@ -68,17 +68,3 @@ impl SpawnFrom<RandomTransformDef> for Transform {
 		transform
 	}
 }
-
-#[derive(Clone, Copy, Debug, Default)]
-pub struct Velocity {
-	pub velocity: Vector3<f32>,
-}
-
-#[derive(Clone, Copy, Debug, Default)]
-pub struct VelocityDef;
-
-impl From<VelocityDef> for Velocity {
-	fn from(_src_component: VelocityDef) -> Self {
-		Velocity::default()
-	}
-}

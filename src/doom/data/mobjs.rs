@@ -4,11 +4,11 @@ use crate::{
 	doom::{
 		camera::{Camera, MovementBob},
 		client::User,
-		components::{RandomTransformDef, SpawnPoint, TransformDef, Velocity, VelocityDef},
+		components::{RandomTransformDef, SpawnPoint, TransformDef},
 		data::FRAME_TIME,
 		draw::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
 		health::HealthDef,
-		physics::{BoxCollider, SolidBits, SolidType},
+		physics::{BoxCollider, Physics, PhysicsDef, SolidBits, SolidType},
 		sound::StartSound,
 		state::{
 			entity::{
@@ -612,6 +612,10 @@ pub fn load(resources: &mut Resources) {
 					max: 16.0,
 					amplitude: 0.0,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("play.sprite"),
 					frame: 0,
@@ -624,7 +628,6 @@ pub fn load(resources: &mut Resources) {
 				User {
 					error_sound: asset_storage.load("dsnoway.sound"),
 				},
-				VelocityDef,
 				WeaponSpriteRender {
 					position: Vector2::new(0.0, 96.0),
 					slots: [
@@ -1314,6 +1317,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.78125,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("poss.sprite"),
 					frame: 0,
@@ -1323,7 +1330,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -2020,6 +2026,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.6640625,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("spos.sprite"),
 					frame: 0,
@@ -2029,7 +2039,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -2152,8 +2161,18 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("puff.sprite"),
 					frame: 1,
@@ -2899,6 +2918,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.78125,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("troo.sprite"),
 					frame: 0,
@@ -2908,7 +2931,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -3469,6 +3491,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.703125,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 400.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("sarg.sprite"),
 					frame: 0,
@@ -3478,7 +3504,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -4039,6 +4064,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.703125,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 400.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("sarg.sprite"),
 					frame: 0,
@@ -4048,7 +4077,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -4706,6 +4734,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.1953125,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 1000.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("boss.sprite"),
 					frame: 0,
@@ -4715,7 +4747,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -4848,6 +4879,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bal7.sprite"),
 					frame: 0,
@@ -4857,7 +4892,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -5037,6 +5071,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.0,
 					blood: false,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bar1.sprite"),
 					frame: 0,
@@ -5046,7 +5084,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -5179,6 +5216,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bal1.sprite"),
 					frame: 0,
@@ -5188,7 +5229,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -5321,6 +5361,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bal2.sprite"),
 					frame: 0,
@@ -5330,7 +5374,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -5444,6 +5487,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("misl.sprite"),
 					frame: 0,
@@ -5453,7 +5500,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -5624,6 +5670,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("apls.sprite"),
 					frame: 0,
@@ -5633,7 +5683,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -5737,8 +5786,19 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				Physics {
+					gravity: false,
+					mass: 100.0,
+					velocity: Vector3::new(0.0, 0.0, 1.0),
+				},
 				SpriteRender {
 					sprite: asset_storage.load("puff.sprite"),
 					frame: 0,
@@ -5746,9 +5806,6 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateDef,
 				RandomTransformDef([(0.0..=0.0).into(), (0.0..=0.0).into(), (-4.0..=4.0).into()]),
-				Velocity {
-					velocity: Vector3::new(0.0, 0.0, 1.0)
-				},
 			));
 			world
 		},
@@ -5833,8 +5890,19 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				Physics {
+					gravity: true,
+					mass: 100.0,
+					velocity: Vector3::new(0.0, 0.0, 2.0),
+				},
 				SpriteRender {
 					sprite: asset_storage.load("blud.sprite"),
 					frame: 2,
@@ -5842,9 +5910,6 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateDef,
 				RandomTransformDef([(0.0..=0.0).into(), (0.0..=0.0).into(), (-4.0..=4.0).into()]),
-				Velocity {
-					velocity: Vector3::new(0.0, 0.0, 2.0)
-				},
 			));
 			world
 		},
@@ -5910,8 +5975,19 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				Physics {
+					gravity: true,
+					mass: 100.0,
+					velocity: Vector3::new(0.0, 0.0, 2.0),
+				},
 				SpriteRender {
 					sprite: asset_storage.load("blud.sprite"),
 					frame: 1,
@@ -5919,9 +5995,6 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateDef,
 				RandomTransformDef([(0.0..=0.0).into(), (0.0..=0.0).into(), (-4.0..=4.0).into()]),
-				Velocity {
-					velocity: Vector3::new(0.0, 0.0, 2.0)
-				},
 			));
 			world
 		},
@@ -5968,8 +6041,19 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				Physics {
+					gravity: true,
+					mass: 100.0,
+					velocity: Vector3::new(0.0, 0.0, 2.0),
+				},
 				SpriteRender {
 					sprite: asset_storage.load("blud.sprite"),
 					frame: 0,
@@ -5977,9 +6061,6 @@ pub fn load(resources: &mut Resources) {
 				},
 				StateDef,
 				RandomTransformDef([(0.0..=0.0).into(), (0.0..=0.0).into(), (-4.0..=4.0).into()]),
-				Velocity {
-					velocity: Vector3::new(0.0, 0.0, 2.0)
-				},
 			));
 			world
 		},
@@ -6235,8 +6316,18 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("tfog.sprite"),
 					frame: 0,
@@ -6406,8 +6497,18 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("ifog.sprite"),
 					frame: 0,
@@ -6430,8 +6531,18 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
@@ -6500,6 +6611,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("arm1.sprite"),
 					frame: 0,
@@ -6574,6 +6689,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("arm2.sprite"),
 					frame: 0,
@@ -6724,6 +6843,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bon1.sprite"),
 					frame: 0,
@@ -6874,6 +6997,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bon2.sprite"),
 					frame: 0,
@@ -6948,6 +7075,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bkey.sprite"),
 					frame: 0,
@@ -7022,6 +7153,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("rkey.sprite"),
 					frame: 0,
@@ -7096,6 +7231,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("ykey.sprite"),
 					frame: 0,
@@ -7144,6 +7283,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("stim.sprite"),
 					frame: 0,
@@ -7192,6 +7335,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("medi.sprite"),
 					frame: 0,
@@ -7342,6 +7489,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("soul.sprite"),
 					frame: 0,
@@ -7454,6 +7605,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("pins.sprite"),
 					frame: 0,
@@ -7502,6 +7657,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("suit.sprite"),
 					frame: 0,
@@ -7652,6 +7811,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("pmap.sprite"),
 					frame: 0,
@@ -7726,6 +7889,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("pvis.sprite"),
 					frame: 0,
@@ -7774,6 +7941,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("clip.sprite"),
 					frame: 0,
@@ -7822,6 +7993,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("ammo.sprite"),
 					frame: 0,
@@ -7870,6 +8045,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("rock.sprite"),
 					frame: 0,
@@ -7918,6 +8097,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("brok.sprite"),
 					frame: 0,
@@ -7966,6 +8149,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("shel.sprite"),
 					frame: 0,
@@ -8014,6 +8201,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("sbox.sprite"),
 					frame: 0,
@@ -8062,6 +8253,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bpak.sprite"),
 					frame: 0,
@@ -8110,6 +8305,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("mgun.sprite"),
 					frame: 0,
@@ -8158,6 +8357,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("csaw.sprite"),
 					frame: 0,
@@ -8206,6 +8409,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("laun.sprite"),
 					frame: 0,
@@ -8254,6 +8461,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("shot.sprite"),
 					frame: 0,
@@ -8302,6 +8513,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("colu.sprite"),
 					frame: 0,
@@ -8414,6 +8629,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("tred.sprite"),
 					frame: 0,
@@ -8462,6 +8681,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("elec.sprite"),
 					frame: 0,
@@ -8510,6 +8733,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("cand.sprite"),
 					frame: 0,
@@ -8558,6 +8785,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("cbra.sprite"),
 					frame: 0,
@@ -8606,6 +8837,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("play.sprite"),
 					frame: 13,
@@ -8654,6 +8889,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("poss.sprite"),
 					frame: 11,
@@ -8702,6 +8941,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("sarg.sprite"),
 					frame: 13,
@@ -8750,6 +8993,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("troo.sprite"),
 					frame: 12,
@@ -8798,6 +9045,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("spos.sprite"),
 					frame: 11,
@@ -8846,6 +9097,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("play.sprite"),
 					frame: 22,
@@ -8894,6 +9149,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("play.sprite"),
 					frame: 22,
@@ -8942,6 +9201,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("pol5.sprite"),
 					frame: 0,
@@ -9382,6 +9645,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.5,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: false,
+					mass: 400.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("head.sprite"),
 					frame: 0,
@@ -9391,7 +9658,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -9756,6 +10022,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 1.0,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: false,
+					mass: 50.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("skul.sprite"),
 					frame: 0,
@@ -9765,7 +10035,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -10400,6 +10669,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.15625,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 1000.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("spid.sprite"),
 					frame: 0,
@@ -10409,7 +10682,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -10968,6 +11240,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.078125,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 1000.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("cybr.sprite"),
 					frame: 0,
@@ -10977,7 +11253,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -11148,6 +11423,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("plss.sprite"),
 					frame: 0,
@@ -11157,7 +11436,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -11347,6 +11625,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bfs1.sprite"),
 					frame: 0,
@@ -11356,7 +11638,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -11460,8 +11741,18 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bfe2.sprite"),
 					frame: 0,
@@ -11536,6 +11827,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("ysku.sprite"),
 					frame: 0,
@@ -11610,6 +11905,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("rsku.sprite"),
 					frame: 0,
@@ -11684,6 +11983,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bsku.sprite"),
 					frame: 0,
@@ -11796,6 +12099,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("pinv.sprite"),
 					frame: 0,
@@ -11844,6 +12151,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("pstr.sprite"),
 					frame: 0,
@@ -11892,6 +12203,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("cell.sprite"),
 					frame: 0,
@@ -11940,6 +12255,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("celp.sprite"),
 					frame: 0,
@@ -11988,6 +12307,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bfug.sprite"),
 					frame: 0,
@@ -12036,6 +12359,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("plas.sprite"),
 					frame: 0,
@@ -12084,6 +12411,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("col1.sprite"),
 					frame: 0,
@@ -12132,6 +12463,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("col2.sprite"),
 					frame: 0,
@@ -12180,6 +12515,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("col3.sprite"),
 					frame: 0,
@@ -12228,6 +12567,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("col4.sprite"),
 					frame: 0,
@@ -12276,6 +12619,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("col6.sprite"),
 					frame: 0,
@@ -12350,6 +12697,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("col5.sprite"),
 					frame: 0,
@@ -12462,6 +12813,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("ceye.sprite"),
 					frame: 0,
@@ -12555,6 +12910,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("fsku.sprite"),
 					frame: 0,
@@ -12603,6 +12962,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("tre1.sprite"),
 					frame: 0,
@@ -12715,6 +13078,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("tblu.sprite"),
 					frame: 0,
@@ -12827,6 +13194,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("tgrn.sprite"),
 					frame: 0,
@@ -12939,6 +13310,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("smbt.sprite"),
 					frame: 0,
@@ -13051,6 +13426,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("smgt.sprite"),
 					frame: 0,
@@ -13163,6 +13542,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("smrt.sprite"),
 					frame: 0,
@@ -13211,6 +13594,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("smit.sprite"),
 					frame: 0,
@@ -13323,6 +13710,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("gor1.sprite"),
 					frame: 0,
@@ -13371,6 +13762,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("gor2.sprite"),
 					frame: 0,
@@ -13419,6 +13814,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("gor3.sprite"),
 					frame: 0,
@@ -13467,6 +13866,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("gor4.sprite"),
 					frame: 0,
@@ -13515,6 +13918,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("gor5.sprite"),
 					frame: 0,
@@ -13563,6 +13970,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("gor2.sprite"),
 					frame: 0,
@@ -13611,6 +14022,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("gor4.sprite"),
 					frame: 0,
@@ -13659,6 +14074,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("gor3.sprite"),
 					frame: 0,
@@ -13707,6 +14126,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("gor5.sprite"),
 					frame: 0,
@@ -13819,6 +14242,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("gor1.sprite"),
 					frame: 0,
@@ -13867,6 +14294,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("head.sprite"),
 					frame: 11,
@@ -13930,6 +14361,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("skul.sprite"),
 					frame: 10,
@@ -13978,6 +14413,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("pol2.sprite"),
 					frame: 0,
@@ -14026,6 +14465,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("pol4.sprite"),
 					frame: 0,
@@ -14100,6 +14543,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("pol3.sprite"),
 					frame: 0,
@@ -14148,6 +14595,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("pol1.sprite"),
 					frame: 0,
@@ -14222,6 +14673,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("pol6.sprite"),
 					frame: 0,
@@ -14270,6 +14725,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("tre2.sprite"),
 					frame: 0,
@@ -14363,6 +14822,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("fcan.sprite"),
 					frame: 0,
@@ -15124,6 +15587,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.0390625,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 500.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("vile.sprite"),
 					frame: 0,
@@ -15133,7 +15600,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -15731,8 +16197,18 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("fire.sprite"),
 					frame: 0,
@@ -16475,6 +16951,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.390625,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 500.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("skel.sprite"),
 					frame: 0,
@@ -16484,7 +16964,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -16617,6 +17096,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("fatb.sprite"),
 					frame: 0,
@@ -16626,7 +17109,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -17510,6 +17992,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.3125,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 1000.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("fatt.sprite"),
 					frame: 0,
@@ -17519,7 +18005,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -17652,6 +18137,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("manf.sprite"),
 					frame: 0,
@@ -17661,7 +18150,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -18396,6 +18884,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.6640625,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("cpos.sprite"),
 					frame: 0,
@@ -18405,7 +18897,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -19063,6 +19554,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.1953125,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 1000.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bos2.sprite"),
 					frame: 0,
@@ -19072,7 +19567,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -19785,6 +20279,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.5,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 600.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bspi.sprite"),
 					frame: 0,
@@ -19794,7 +20292,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -20328,6 +20825,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.5,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: false,
+					mass: 400.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("pain.sprite"),
 					frame: 0,
@@ -20337,7 +20838,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -21091,6 +21591,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.6640625,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("sswv.sprite"),
 					frame: 0,
@@ -21100,7 +21604,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -21416,6 +21919,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 1.0,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: false,
+					mass: 10000000.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("keen.sprite"),
 					frame: 0,
@@ -21425,7 +21932,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: true,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -21570,6 +22076,10 @@ pub fn load(resources: &mut Resources) {
 					pain_chance: 0.99609375,
 					blood: true,
 				},
+				PhysicsDef {
+					gravity: true,
+					mass: 10000000.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bbrn.sprite"),
 					frame: 0,
@@ -21579,7 +22089,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -21658,8 +22167,18 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 32.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("sswv.sprite"),
 					frame: 0,
@@ -21682,8 +22201,18 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 32.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
@@ -21790,6 +22319,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("bosf.sprite"),
 					frame: 0,
@@ -21799,7 +22332,6 @@ pub fn load(resources: &mut Resources) {
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
-				VelocityDef,
 			));
 			world
 		},
@@ -21979,8 +22511,18 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("fire.sprite"),
 					frame: 0,
@@ -22093,6 +22635,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("mega.sprite"),
 					frame: 0,
@@ -22141,6 +22687,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("sgn2.sprite"),
 					frame: 0,
@@ -22253,6 +22803,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("tlmp.sprite"),
 					frame: 0,
@@ -22365,6 +22919,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("tlp2.sprite"),
 					frame: 0,
@@ -22413,6 +22971,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb1.sprite"),
 					frame: 0,
@@ -22461,6 +23023,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb2.sprite"),
 					frame: 0,
@@ -22509,6 +23075,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb3.sprite"),
 					frame: 0,
@@ -22557,6 +23127,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb4.sprite"),
 					frame: 0,
@@ -22605,6 +23179,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb5.sprite"),
 					frame: 0,
@@ -22653,6 +23231,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: false,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb6.sprite"),
 					frame: 0,
@@ -22693,8 +23275,18 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("pob1.sprite"),
 					frame: 0,
@@ -22735,8 +23327,18 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("pob2.sprite"),
 					frame: 0,
@@ -22777,8 +23379,18 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				PhysicsDef {
+					gravity: true,
+					mass: 100.0,
+				},
 				SpriteRender {
 					sprite: asset_storage.load("brs1.sprite"),
 					frame: 0,

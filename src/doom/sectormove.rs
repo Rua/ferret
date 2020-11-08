@@ -9,8 +9,9 @@ use crate::{
 	doom::{
 		components::Transform,
 		map::{MapDynamic, SectorRef},
-		physics::{BoxCollider, SectorTracer},
+		physics::BoxCollider,
 		sound::{Sound, StartSound},
+		trace::SectorTracer,
 	},
 };
 use legion::{

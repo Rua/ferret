@@ -10,7 +10,8 @@ use crate::{
 			textures::TextureType, Anim, Linedef, Map, Node, NodeChild, Sector, SectorSlot, Seg,
 			Sidedef, SidedefSlot, Subsector, Thing, ThingFlags,
 		},
-		physics::{CollisionPlane, SolidBits},
+		physics::SolidBits,
+		trace::CollisionPlane,
 		wad::read_string,
 	},
 };

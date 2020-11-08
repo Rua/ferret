@@ -2,22 +2,21 @@ use crate::{
 	common::{
 		assets::AssetStorage,
 		frame::FrameState,
-		geometry::{Interval, Plane3, AABB2, AABB3},
+		geometry::{AABB2, AABB3},
 		quadtree::Quadtree,
 		spawn::SpawnMergerHandlerSet,
 	},
 	doom::{
-		components::{Transform, Velocity},
+		components::Transform,
 		data::{FRICTION, GRAVITY},
 		door::DoorTouch,
 		floor::FloorTouch,
-		map::{Map, MapDynamic, NodeChild, Subsector},
+		map::MapDynamic,
 		plat::PlatTouch,
+		trace::EntityTracer,
 	},
 };
-use arrayvec::ArrayVec;
 use bitflags::bitflags;
-use lazy_static::lazy_static;
 use legion::{
 	component,
 	systems::{ResourceSet, Runnable},
@@ -28,18 +27,80 @@ use shrev::EventChannel;
 use smallvec::SmallVec;
 use std::time::Duration;
 
-#[derive(Default)]
-pub struct PhysicsSystem;
+bitflags! {
+	/// What solid types an entity will block movement for.
+	pub struct SolidBits: u8 {
+		const PLAYER = 0b1;
+		const MONSTER = 0b10;
+		const PROJECTILE = 0b100;
+		const PARTICLE = 0b1000;
+	}
+}
 
-pub fn physics_system(resources: &mut Resources) -> impl Runnable {
+/// What type of solid an entity is.
+#[derive(Clone, Copy, Debug)]
+#[repr(u8)]
+pub enum SolidType {
+	PLAYER = SolidBits::PLAYER.bits(),
+	MONSTER = SolidBits::MONSTER.bits(),
+	PROJECTILE = SolidBits::PROJECTILE.bits(),
+	PARTICLE = SolidBits::PARTICLE.bits(),
+}
+
+impl SolidBits {
+	/// Returns whether the current entity will block movement of a certain solid type.
+	#[inline]
+	pub fn blocks(&self, solid_type: SolidType) -> bool {
+		self.intersects(SolidBits::from_bits_truncate(solid_type as u8))
+	}
+}
+
+/// Component for entities that can be collided with, optionally blocking movement.
+#[derive(Clone, Copy, Debug)]
+pub struct BoxCollider {
+	pub height: f32,
+	pub radius: f32,
+	pub solid_type: SolidType,
+	pub blocks_types: SolidBits,
+}
+
+/// Component for entities that can move and be pushed around.
+#[derive(Clone, Copy, Debug)]
+pub struct Physics {
+	pub gravity: bool,
+	pub mass: f32,
+	pub velocity: Vector3<f32>,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct PhysicsDef {
+	pub gravity: bool,
+	pub mass: f32,
+}
+
+impl From<PhysicsDef> for Physics {
+	fn from(component: PhysicsDef) -> Self {
+		assert_ne!(component.mass, 0.0);
+
+		Physics {
+			gravity: component.gravity,
+			mass: component.mass,
+			velocity: Vector3::zeros(),
+		}
+	}
+}
+
+pub fn physics(resources: &mut Resources) -> impl Runnable {
 	resources.insert(EventChannel::<StepEvent>::new());
 	resources.insert(EventChannel::<TouchEvent>::new());
 
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_clone::<BoxCollider>();
 	handler_set.register_clone::<TouchAction>();
+	handler_set.register_clone::<Physics>();
+	handler_set.register_from::<PhysicsDef, Physics>();
 
-	SystemBuilder::new("physics_system")
+	SystemBuilder::new("physics")
 		.read_resource::<AssetStorage>()
 		.read_resource::<FrameState>()
 		.write_resource::<Quadtree>()
@@ -48,9 +109,9 @@ pub fn physics_system(resources: &mut Resources) -> impl Runnable {
 		.with_query(<&MapDynamic>::query())
 		.with_query(
 			<(Entity, &Transform)>::query()
-				.filter(component::<BoxCollider>() & component::<Velocity>()),
+				.filter(component::<BoxCollider>() & component::<Physics>()),
 		)
-		.with_query(<(&mut Transform, &mut Velocity, &BoxCollider)>::query())
+		.with_query(<(&mut Transform, &mut Physics, &BoxCollider)>::query())
 		.read_component::<BoxCollider>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
 		.build(move |_command_buffer, world, resources, queries| {
@@ -64,10 +125,9 @@ pub fn physics_system(resources: &mut Resources) -> impl Runnable {
 			let entities: Vec<Entity> = queries.1.iter(&world).map(|(e, _)| *e).collect();
 
 			for entity in entities {
-				let (transform, velocity, box_collider) =
+				let (&mut mut transform, &mut mut physics, box_collider) =
 					queries.2.get_mut(&mut world, entity).unwrap();
-				let mut new_position = transform.position;
-				let mut new_velocity = velocity.velocity;
+
 				let entity_bbox =
 					{ AABB3::from_radius_height(box_collider.radius, box_collider.height) };
 				let solid_type = box_collider.solid_type;
@@ -75,62 +135,73 @@ pub fn physics_system(resources: &mut Resources) -> impl Runnable {
 				let mut step_events: SmallVec<[StepEvent; 8]> = SmallVec::new();
 				let mut touch_events: SmallVec<[TouchEvent; 8]> = SmallVec::new();
 
-				if new_velocity == Vector3::zeros() {
-					continue;
+				{
+					let tracer = EntityTracer {
+						map,
+						map_dynamic,
+						quadtree: &quadtree,
+						world: &world,
+					};
+
+					// Check for ground
+					let trace = tracer.trace(
+						&entity_bbox.offset(transform.position),
+						Vector3::new(0.0, 0.0, -0.25),
+						solid_type,
+					);
+
+					if let Some(collision) = trace.collision {
+						// Entity is on ground, apply friction
+						// TODO make this work with any ground normal
+						let factor = FRICTION.powf(frame_state.delta_time.as_secs_f32());
+						physics.velocity[0] *= factor;
+						physics.velocity[1] *= factor;
+
+						// Send touch event
+						touch_events.push(TouchEvent {
+							toucher: entity,
+							touched: collision.entity,
+							collision: None,
+						});
+					} else if physics.gravity {
+						// Entity isn't on ground, apply gravity
+						physics.velocity[2] -= GRAVITY * frame_state.delta_time.as_secs_f32();
+					}
 				}
 
-				quadtree.remove(entity);
+				if physics.velocity != Vector3::zeros() {
+					quadtree.remove(entity);
 
-				let tracer = EntityTracer {
-					map,
-					map_dynamic,
-					quadtree: &quadtree,
-					world: &world,
-				};
+					let tracer = EntityTracer {
+						map,
+						map_dynamic,
+						quadtree: &quadtree,
+						world: &world,
+					};
 
-				// Check for ground
-				let trace = tracer.trace(
-					&entity_bbox.offset(new_position),
-					Vector3::new(0.0, 0.0, -0.25),
-					solid_type,
-				);
+					// Apply the move
+					step_slide_move(
+						&tracer,
+						&mut transform.position,
+						&mut physics.velocity,
+						&mut step_events,
+						&mut touch_events,
+						entity,
+						&entity_bbox,
+						solid_type,
+						frame_state.delta_time,
+					);
 
-				if let Some(collision) = trace.collision {
-					// Entity is on ground, apply friction
-					// TODO make this work with any ground normal
-					let factor = FRICTION.powf(frame_state.delta_time.as_secs_f32());
-					new_velocity[0] *= factor;
-					new_velocity[1] *= factor;
-
-					// Send touch event
-					touch_events.push(TouchEvent {
-						toucher: entity,
-						touched: collision.entity,
-						collision: None,
-					});
-				} else {
-					// Entity isn't on ground, apply gravity
-					new_velocity[2] -= GRAVITY * frame_state.delta_time.as_secs_f32();
+					// Set new position and velocity
+					let (transform_mut, physics_mut, _) =
+						queries.2.get_mut(&mut world, entity).unwrap();
+					*transform_mut = transform;
+					*physics_mut = physics;
+					quadtree.insert(
+						entity,
+						&AABB2::from(&entity_bbox.offset(transform_mut.position)),
+					);
 				}
-
-				// Apply the move
-				step_slide_move(
-					&tracer,
-					&mut new_position,
-					&mut new_velocity,
-					&mut step_events,
-					&mut touch_events,
-					entity,
-					&entity_bbox,
-					solid_type,
-					frame_state.delta_time,
-				);
-
-				// Set new position and velocity
-				let (transform, velocity, _) = queries.2.get_mut(&mut world, entity).unwrap();
-				transform.position = new_position;
-				velocity.velocity = new_velocity;
-				quadtree.insert(entity, &AABB2::from(&entity_bbox.offset(new_position)));
 
 				// Send events
 				step_event_channel.iter_write(step_events);
@@ -246,38 +317,7 @@ fn step_slide_move<W: EntityStore>(
 	}
 }
 
-bitflags! {
-	pub struct SolidBits: u8 {
-		const PLAYER = 0b1;
-		const MONSTER = 0b10;
-		const PROJECTILE = 0b100;
-	}
-}
-
-#[derive(Clone, Copy, Debug)]
-#[repr(u8)]
-pub enum SolidType {
-	PLAYER = SolidBits::PLAYER.bits(),
-	MONSTER = SolidBits::MONSTER.bits(),
-	PROJECTILE = SolidBits::PROJECTILE.bits(),
-}
-
-impl SolidBits {
-	#[inline]
-	pub fn blocks(&self, solid_type: SolidType) -> bool {
-		self.intersects(SolidBits::from_bits_truncate(solid_type as u8))
-	}
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct BoxCollider {
-	pub height: f32,
-	pub radius: f32,
-	/// What type of solid this entity is.
-	pub solid_type: SolidType,
-	/// What solid types this entity will block movement for.
-	pub blocks_types: SolidBits,
-}
+pub const DISTANCE_EPSILON: f32 = 0.03125;
 
 #[derive(Clone, Copy, Debug)]
 pub struct TouchEvent {
@@ -303,450 +343,4 @@ pub enum TouchAction {
 pub struct StepEvent {
 	pub entity: Entity,
 	pub height: f32,
-}
-
-pub struct EntityTracer<'a, W: EntityStore> {
-	pub map: &'a Map,
-	pub map_dynamic: &'a MapDynamic,
-	pub quadtree: &'a Quadtree,
-	pub world: &'a W,
-}
-
-#[derive(Clone, Debug)]
-pub struct EntityTrace {
-	pub fraction: f32,
-	pub move_step: Vector3<f32>,
-	pub collision: Option<EntityTraceCollision>,
-	pub touched: SmallVec<[Entity; 4]>,
-}
-
-#[derive(Clone, Debug)]
-pub struct EntityTraceCollision {
-	pub entity: Entity,
-	pub normal: Vector3<f32>,
-	pub step_z: Option<f32>,
-}
-
-pub const DISTANCE_EPSILON: f32 = 0.03125;
-const EXTRA_HEADROOM: f32 = 0.1;
-
-impl<'a, W: EntityStore> EntityTracer<'a, W> {
-	pub fn trace(
-		&self,
-		entity_bbox: &AABB3,
-		move_step: Vector3<f32>,
-		solid_type: SolidType,
-	) -> EntityTrace {
-		let mut trace_fraction = 1.0;
-		let mut trace_collision = None;
-		let mut trace_touched: SmallVec<[(f32, Entity); 8]> = SmallVec::new();
-
-		let zero_bbox = AABB3::from_point(entity_bbox.middle());
-		let move_bbox = entity_bbox.union(&entity_bbox.offset(move_step));
-		let move_bbox2 = AABB2::from(&move_bbox);
-
-		self.map
-			.traverse_nodes(NodeChild::Node(0), &move_bbox2, &mut |node: NodeChild| {
-				let linedefs = match node {
-					NodeChild::Subsector(index) => &self.map.subsectors[index].linedefs,
-					NodeChild::Node(index) => &self.map.nodes[index].linedefs,
-				};
-
-				for linedef_index in linedefs.iter().copied() {
-					let linedef = &self.map.linedefs[linedef_index];
-
-					if !move_bbox2.overlaps(&linedef.bbox) {
-						continue;
-					}
-
-					let linedef_dynamic = &self.map_dynamic.linedefs[linedef_index];
-
-					if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
-						let front_interval =
-							&self.map_dynamic.sectors[front_sidedef.sector_index].interval;
-						let back_interval =
-							&self.map_dynamic.sectors[back_sidedef.sector_index].interval;
-
-						let intersection = front_interval.intersection(*back_interval);
-						let union = front_interval.union(*back_interval);
-						let intervals = ArrayVec::from([
-							(
-								Interval::new(union.min, intersection.min),
-								SolidBits::all(),
-								true,
-							),
-							(
-								Interval::new(intersection.min, intersection.max + EXTRA_HEADROOM),
-								linedef.blocks_types,
-								false,
-							),
-							(
-								Interval::new(intersection.max + EXTRA_HEADROOM, union.max),
-								SolidBits::all(),
-								false,
-							),
-						]);
-
-						for (interval, blocks_types, step) in intervals.into_iter() {
-							if interval.is_empty() {
-								continue;
-							}
-
-							let z_planes = [
-								CollisionPlane(
-									Plane3::new(-interval.min, Vector3::new(0.0, 0.0, -1.0)),
-									false,
-								),
-								CollisionPlane(
-									Plane3::new(interval.max, Vector3::new(0.0, 0.0, 1.0)),
-									false,
-								),
-							];
-							let iter = linedef.collision_planes.iter().chain(z_planes.iter());
-
-							// Non-solid linedefs are only touched
-							// if the midpoint of the entity touches
-							let bbox = if blocks_types.blocks(solid_type) {
-								entity_bbox
-							} else {
-								&zero_bbox
-							};
-
-							if let Some((fraction, normal)) = trace_planes(bbox, move_step, iter) {
-								if blocks_types.blocks(solid_type) {
-									if fraction < trace_fraction
-										// Wall takes priority over other vertical surfaces
-										|| fraction == trace_fraction && normal[2] == 0.0
-									{
-										trace_fraction = fraction;
-										trace_collision = Some(EntityTraceCollision {
-											entity: linedef_dynamic.entity,
-											normal,
-											step_z: if step
-												&& !linedef.blocks_types.blocks(solid_type)
-											{
-												Some(interval.max + DISTANCE_EPSILON)
-											} else {
-												None
-											},
-										});
-										trace_touched.retain(|(f, _)| *f <= fraction);
-									}
-								} else if fraction <= trace_fraction {
-									trace_touched.push((fraction, linedef_dynamic.entity));
-								}
-							}
-						}
-					} else if let [Some(front_sidedef), None] = &linedef.sidedefs {
-						let front_interval =
-							&self.map_dynamic.sectors[front_sidedef.sector_index].interval;
-						let z_planes = [
-							CollisionPlane(
-								Plane3::new(-front_interval.min, Vector3::new(0.0, 0.0, -1.0)),
-								false,
-							),
-							CollisionPlane(
-								Plane3::new(
-									front_interval.max + EXTRA_HEADROOM,
-									Vector3::new(0.0, 0.0, 1.0),
-								),
-								false,
-							),
-						];
-						let iter = linedef.collision_planes.iter().chain(z_planes.iter());
-
-						if let Some((fraction, normal)) =
-							trace_planes(&entity_bbox, move_step, iter)
-						{
-							if SolidBits::all().blocks(solid_type) {
-								if fraction < trace_fraction
-									// Wall takes priority over other vertical surfaces
-									|| fraction == trace_fraction && normal[2] == 0.0
-								{
-									trace_fraction = fraction;
-									trace_collision = Some(EntityTraceCollision {
-										entity: linedef_dynamic.entity,
-										normal,
-										step_z: None,
-									});
-									trace_touched.retain(|(f, _)| *f <= fraction);
-								}
-							} else if fraction <= trace_fraction {
-								trace_touched.push((fraction, linedef_dynamic.entity));
-							}
-						}
-					}
-				}
-
-				if let NodeChild::Subsector(subsector_index) = node {
-					let subsector = &self.map.subsectors[subsector_index];
-
-					if !move_bbox2.overlaps(&subsector.bbox) {
-						return;
-					}
-
-					let sector_dynamic = &self.map_dynamic.sectors[subsector.sector_index];
-
-					for (distance, normal) in ArrayVec::from([
-						(
-							-(sector_dynamic.interval.max + EXTRA_HEADROOM),
-							Vector3::new(0.0, 0.0, -1.0),
-						),
-						(sector_dynamic.interval.min, Vector3::new(0.0, 0.0, 1.0)),
-					])
-					.into_iter()
-					{
-						let z_planes = [
-							CollisionPlane(Plane3::new(distance, normal), true),
-							CollisionPlane(Plane3::new(-distance, -normal), false),
-						];
-						let iter = subsector.collision_planes.iter().chain(z_planes.iter());
-
-						if let Some((fraction, normal)) =
-							trace_planes(&entity_bbox, move_step, iter)
-						{
-							if SolidBits::all().blocks(solid_type) {
-								if fraction < trace_fraction
-									// Flat takes priority over other horizontal surfaces
-									|| fraction == trace_fraction
-										&& normal[0] == 0.0 && normal[1] == 0.0
-								{
-									trace_fraction = fraction;
-									trace_collision = Some(EntityTraceCollision {
-										entity: sector_dynamic.entity,
-										normal,
-										step_z: None,
-									});
-									trace_touched.retain(|(f, _)| *f <= fraction);
-								}
-							} else if fraction <= trace_fraction {
-								trace_touched.push((fraction, sector_dynamic.entity));
-							}
-						}
-					}
-				}
-			});
-
-		self.quadtree
-			.traverse_nodes(&move_bbox2, &mut |entities: &[Entity]| {
-				for &entity in entities {
-					let (transform, box_collider) =
-						match <(&Transform, &BoxCollider)>::query().get(self.world, entity) {
-							Ok(x) => x,
-							_ => continue,
-						};
-
-					let other_bbox =
-						AABB3::from_radius_height(box_collider.radius, box_collider.height)
-							.offset(transform.position);
-
-					// Don't collide against self
-					if entity_bbox == &other_bbox {
-						continue;
-					}
-
-					if !move_bbox.overlaps(&other_bbox) {
-						continue;
-					}
-
-					let other_planes = other_bbox
-						.planes()
-						.iter()
-						.map(|p| CollisionPlane(*p, true))
-						.collect::<Vec<_>>(); // TODO make this not allocate
-
-					if let Some((fraction, normal)) =
-						trace_planes(&entity_bbox, move_step, other_planes.iter())
-					{
-						if box_collider.blocks_types.blocks(solid_type) {
-							if fraction < trace_fraction {
-								trace_fraction = fraction;
-								trace_collision = Some(EntityTraceCollision {
-									entity,
-									normal,
-									step_z: Some(other_bbox[2].max + DISTANCE_EPSILON),
-								});
-								trace_touched.retain(|(f, _)| *f <= fraction);
-							}
-						} else if fraction <= trace_fraction {
-							trace_touched.push((fraction, entity));
-						}
-					}
-				}
-			});
-
-		EntityTrace {
-			fraction: trace_fraction,
-			move_step: move_step * trace_fraction,
-			collision: trace_collision,
-			touched: trace_touched.into_iter().map(|(_, e)| e).collect(),
-		}
-	}
-}
-
-pub struct SectorTracer<'a, W: EntityStore> {
-	pub map: &'a Map,
-	pub map_dynamic: &'a MapDynamic,
-	pub quadtree: &'a Quadtree,
-	pub world: &'a W,
-}
-
-#[derive(Clone, Debug)]
-pub struct SectorTrace {
-	pub fraction: f32,
-	pub move_step: f32,
-	pub pushed_entities: SmallVec<[SectorTraceEntity; 8]>,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct SectorTraceEntity {
-	pub entity: Entity,
-	pub move_step: Vector3<f32>,
-}
-
-impl<'a, W: EntityStore> SectorTracer<'a, W> {
-	pub fn trace<'b>(
-		&self,
-		mut distance: f32,
-		normal: f32,
-		move_step: f32,
-		subsectors: impl Iterator<Item = &'b Subsector> + Clone,
-	) -> SectorTrace {
-		if normal < 0.0 {
-			distance -= EXTRA_HEADROOM;
-		}
-
-		let normal3 = Vector3::new(0.0, 0.0, normal);
-		let move_step3 = Vector3::new(0.0, 0.0, move_step);
-
-		let mut trace_fraction = 1.0;
-		let mut trace_touched = SmallVec::<[(f32, Entity); 8]>::new();
-
-		let z_planes = [
-			CollisionPlane(Plane3::new(distance * normal, normal3), true),
-			CollisionPlane(Plane3::new(-distance * normal, -normal3), false),
-		];
-
-		let entity_tracer = EntityTracer {
-			map: self.map,
-			map_dynamic: self.map_dynamic,
-			quadtree: self.quadtree,
-			world: self.world,
-		};
-
-		for (&entity, transform, box_collider) in
-			<(Entity, &Transform, &BoxCollider)>::query().iter(self.world)
-		{
-			let entity_bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height)
-				.offset(transform.position);
-			let entity_bbox2 = AABB2::from(&entity_bbox);
-
-			for subsector in subsectors
-				.clone()
-				.filter(|s| entity_bbox2.overlaps(&s.bbox))
-			{
-				let iter = subsector.collision_planes.iter().chain(z_planes.iter());
-
-				if let Some((hit_fraction, _)) = trace_planes(&entity_bbox, -move_step3, iter) {
-					if hit_fraction < 1.0 {
-						let remainder = 1.0 - hit_fraction;
-						let entity_move_step = remainder * move_step3;
-
-						// TODO solid mask
-						let trace = entity_tracer.trace(
-							&entity_bbox,
-							entity_move_step,
-							box_collider.solid_type,
-						);
-						let total_fraction = hit_fraction + remainder * trace.fraction;
-
-						if total_fraction < trace_fraction {
-							trace_fraction = total_fraction;
-							trace_touched.retain(|(f, _)| *f <= total_fraction);
-						}
-
-						if hit_fraction <= total_fraction {
-							trace_touched.push((hit_fraction, entity));
-						}
-
-						break;
-					}
-				}
-			}
-		}
-
-		SectorTrace {
-			fraction: trace_fraction,
-			move_step: move_step * trace_fraction,
-			pushed_entities: trace_touched
-				.into_iter()
-				.map(|(hit_fraction, entity)| SectorTraceEntity {
-					entity,
-					move_step: move_step3 * (trace_fraction - hit_fraction),
-				})
-				.collect(),
-		}
-	}
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct CollisionPlane(pub Plane3, pub bool);
-
-fn trace_planes<'a>(
-	entity_bbox: &AABB3,
-	move_step: Vector3<f32>,
-	collision_planes: impl IntoIterator<Item = &'a CollisionPlane>,
-) -> Option<(f32, Vector3<f32>)> {
-	let mut interval = Interval::new(f32::NEG_INFINITY, 1.0);
-	let mut ret = None;
-
-	for CollisionPlane(plane, collides) in collision_planes.into_iter() {
-		let closest_point =
-			entity_bbox
-				.vector()
-				.zip_map(&plane.normal, |b, n| if n < 0.0 { b.max } else { b.min });
-		let start_dist = closest_point.dot(&plane.normal) - plane.distance;
-		let move_dist = move_step.dot(&plane.normal);
-
-		if start_dist < 0.0 && start_dist + move_dist < 0.0 {
-			continue;
-		}
-
-		if move_dist < 0.0 {
-			let fraction = (start_dist - DISTANCE_EPSILON) / -move_dist;
-
-			if fraction > interval.min {
-				interval.min = fraction;
-
-				if *collides {
-					ret = Some((f32::max(0.0, interval.min), plane.normal));
-				}
-			}
-		} else {
-			if start_dist > 0.0 {
-				return None;
-			}
-
-			let fraction = (start_dist + DISTANCE_EPSILON) / -move_dist;
-
-			if fraction < interval.max {
-				interval.max = fraction;
-			}
-		}
-	}
-
-	if !interval.is_empty() {
-		ret
-	} else {
-		None
-	}
-}
-
-lazy_static! {
-	static ref BBOX_NORMALS: [Vector3<f32>; 4] = [
-		Vector3::new(1.0, 0.0, 0.0),   // right
-		Vector3::new(0.0, 1.0, 0.0),   // up
-		Vector3::new(-1.0, 0.0, 0.0),  // left
-		Vector3::new(0.0, -1.0, 0.0),  // down
-	];
 }
