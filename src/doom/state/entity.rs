@@ -1,12 +1,16 @@
 use crate::{
 	common::{
+		assets::AssetStorage,
 		frame::FrameState,
 		spawn::{ComponentAccessor, SpawnFrom, SpawnMergerHandlerSet},
+		time::Timer,
 	},
 	doom::{
 		draw::sprite::SpriteRender,
+		map::spawn::{spawn_helper, SpawnContext},
 		physics::{BoxCollider, SolidBits},
-		state::{State, StateAction, StateName},
+		state::{State, StateAction, StateName, StateSpawnContext, StateSystemsRun},
+		template::EntityTemplateRef,
 	},
 };
 use legion::{
@@ -15,7 +19,75 @@ use legion::{
 	Entity, IntoQuery, Read, Resources, SystemBuilder, Write,
 };
 use rand::{distributions::Uniform, Rng};
-use std::time::Duration;
+use std::{sync::atomic::Ordering, time::Duration};
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct StateDef;
+
+impl SpawnFrom<StateDef> for State {
+	fn spawn(_component: &StateDef, _accessor: ComponentAccessor, resources: &Resources) -> Self {
+		let (asset_storage, frame_state, spawn_context) =
+			<(Read<AssetStorage>, Read<FrameState>, Read<SpawnContext>)>::fetch(resources);
+		let template = asset_storage.get(&spawn_context.template_handle).unwrap();
+
+		let spawn_state_name = (StateName::from("spawn").unwrap(), 0);
+		template
+			.states
+			.get(&spawn_state_name.0)
+			.and_then(|x| x.get(spawn_state_name.1))
+			.expect("Entity template has no spawn state");
+
+		State {
+			timer: Timer::new_elapsed(frame_state.time, Duration::default()),
+			action: StateAction::Set(spawn_state_name),
+		}
+	}
+}
+
+pub fn entity_state(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_spawn::<StateDef, State>();
+
+	SystemBuilder::new("set_entity_state")
+		.read_resource::<FrameState>()
+		.read_resource::<StateSystemsRun>()
+		.with_query(<(Entity, &EntityTemplateRef, &mut State)>::query())
+		.build(move |command_buffer, world, resources, query| {
+			let (frame_state, state_systems_run) = resources;
+
+			for (&entity, template_ref, state) in query.iter_mut(world) {
+				if let StateAction::Wait(state_name) = state.action {
+					if state.timer.is_elapsed(frame_state.time) {
+						state.action = StateAction::Set(state_name);
+					}
+				}
+
+				if let StateAction::Set(state_name) = state.action {
+					state_systems_run.0.store(true, Ordering::Relaxed);
+					state.action = StateAction::None;
+					let handle = template_ref.0.clone();
+
+					command_buffer.exec_mut(move |world, resources| {
+						resources.insert(StateSpawnContext(entity));
+						let asset_storage = <Read<AssetStorage>>::fetch(resources);
+						let state_world = &asset_storage
+							.get(&handle)
+							.unwrap()
+							.states
+							.get(&state_name.0)
+							.and_then(|x| x.get(state_name.1))
+							.unwrap_or_else(|| panic!("Invalid state {:?}", state_name));
+
+						spawn_helper(&state_world, world, resources);
+					});
+				}
+			}
+
+			command_buffer.exec_mut(move |_world, resources| {
+				resources.remove::<StateSpawnContext<Entity>>();
+			});
+		})
+}
 
 #[derive(Clone, Copy, Debug)]
 pub struct NextState {

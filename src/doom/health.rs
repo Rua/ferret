@@ -6,8 +6,6 @@ use crate::{
 		spawn::{ComponentAccessor, SpawnFrom, SpawnMergerHandlerSet},
 	},
 	doom::{
-		components::Transform,
-		map::spawn::spawn_entity,
 		state::{State, StateAction, StateName},
 		template::EntityTemplateRef,
 	},
@@ -16,7 +14,6 @@ use legion::{
 	systems::{ResourceSet, Runnable},
 	Entity, IntoQuery, Resources, SystemBuilder, Write,
 };
-use nalgebra::Vector3;
 use rand::Rng;
 
 #[derive(Clone, Debug)]
@@ -24,14 +21,12 @@ pub struct Health {
 	pub current: f32,
 	pub max: f32,
 	pub pain_chance: f32,
-	pub blood: bool,
 }
 
 #[derive(Clone, Copy, Debug)]
 pub struct HealthDef {
 	pub max: f32,
 	pub pain_chance: f32,
-	pub blood: bool,
 }
 
 impl SpawnFrom<HealthDef> for Health {
@@ -40,7 +35,6 @@ impl SpawnFrom<HealthDef> for Health {
 			current: component.max,
 			max: component.max,
 			pain_chance: component.pain_chance,
-			blood: component.blood,
 		}
 	}
 }
@@ -70,32 +64,6 @@ pub fn apply_damage(resources: &mut Resources) -> impl Runnable {
 				if let Ok((template_ref, frame_rng, health, state)) =
 					queries.1.get_mut(&mut world, target)
 				{
-					let transform = Transform {
-						position: damage.line.point + damage.line.dir,
-						rotation: Vector3::zeros(),
-					};
-
-					// Spawn particles
-					// TODO make this a part of entity templates
-					let template_name = if health.blood {
-						if damage.amount <= 9.0 {
-							"blood3"
-						} else if damage.amount <= 12.0 {
-							"blood2"
-						} else {
-							"blood1"
-						}
-					} else {
-						"puff"
-					};
-					let handle = asset_storage
-						.handle_for(template_name)
-						.expect("Damage particle template is not present");
-
-					command_buffer.exec_mut(move |world, resources| {
-						spawn_entity(world, resources, &handle, transform);
-					});
-
 					// Apply damage
 					if health.current <= 0.0 {
 						break;

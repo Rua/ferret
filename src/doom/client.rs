@@ -2,24 +2,22 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		frame::FrameState,
-		geometry::{Line2, Line3, AABB3},
+		geometry::{Line2, AABB3},
 		input::{Bindings, InputState},
 		quadtree::Quadtree,
 		spawn::SpawnMergerHandlerSet,
 	},
 	doom::{
-		camera::Camera,
 		components::Transform,
 		data::{FORWARD_ACCEL, STRAFE_ACCEL},
 		door::{DoorSwitchUse, DoorUse},
 		floor::FloorSwitchUse,
-		health::Damage,
 		input::{BoolInput, FloatInput, UserCommand},
 		map::MapDynamic,
-		physics::{BoxCollider, Physics, SolidType},
+		physics::{BoxCollider, Physics},
 		plat::PlatSwitchUse,
 		sound::{Sound, StartSound},
-		state::WeaponState,
+		state::weapon::WeaponState,
 		template::WeaponTemplate,
 		trace::EntityTracer,
 	},
@@ -287,60 +285,6 @@ pub fn player_weapon_system(_resources: &mut Resources) -> impl Runnable {
 					.map(Clone::clone)
 				{
 					weapon_state.switch_to = Some(switch_to);
-				}
-			}
-		})
-}
-
-pub fn player_attack_system(_resources: &mut Resources) -> impl Runnable {
-	SystemBuilder::new("player_attack_system")
-		.read_resource::<AssetStorage>()
-		.read_resource::<Client>()
-		.write_resource::<Quadtree>()
-		.with_query(<(&Transform, Option<&Camera>)>::query())
-		.with_query(<&MapDynamic>::query())
-		.read_component::<BoxCollider>() // used by EntityTracer
-		.read_component::<Transform>() // used by EntityTracer
-		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, client, quadtree) = resources;
-
-			if let Some(client_entity) = client.entity {
-				if client.command.attack && !client.previous_command.attack {
-					let (transform, camera) = queries.0.get(world, client_entity).unwrap();
-					let map_dynamic = queries.1.iter(world).next().unwrap();
-					let map = asset_storage.get(&map_dynamic.map).unwrap();
-
-					let tracer = EntityTracer {
-						map,
-						map_dynamic,
-						quadtree: &quadtree,
-						world,
-					};
-
-					const ATTACKRANGE: f32 = 2000.0;
-					let axes = crate::common::geometry::angles_to_axes(transform.rotation);
-					let mut position = transform.position;
-
-					if let Some(camera) = camera {
-						position += camera.base + camera.offset;
-					}
-
-					let trace = tracer.trace(
-						&AABB3::from_point(position),
-						axes[0] * ATTACKRANGE,
-						SolidType::PROJECTILE,
-					);
-
-					if let Some(collision) = trace.collision {
-						command_buffer.push((
-							collision.entity,
-							Damage {
-								amount: 15.0,
-								source_entity: client_entity,
-								line: Line3::new(position, trace.move_step),
-							},
-						));
-					}
 				}
 			}
 		})

@@ -62,6 +62,13 @@ pub struct BoxCollider {
 	pub radius: f32,
 	pub solid_type: SolidType,
 	pub blocks_types: SolidBits,
+	pub damage_particle: DamageParticle,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum DamageParticle {
+	Blood,
+	Puff,
 }
 
 /// Component for entities that can move and be pushed around.

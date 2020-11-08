@@ -1,18 +1,152 @@
 use crate::{
-	common::{frame::FrameState, geometry::Angle, spawn::SpawnMergerHandlerSet},
+	common::{
+		assets::{AssetHandle, AssetStorage},
+		frame::{FrameRng, FrameState},
+		geometry::{Angle, Line3, AABB3},
+		quadtree::Quadtree,
+		spawn::{ComponentAccessor, SpawnFrom, SpawnMergerHandlerSet},
+		time::Timer,
+	},
 	doom::{
 		camera::{Camera, MovementBob},
 		client::Client,
+		components::Transform,
 		draw::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
-		state::{StateAction, StateName, WeaponSpriteSlot, WeaponState},
+		health::Damage,
+		map::{
+			spawn::{spawn_entity, spawn_helper},
+			MapDynamic,
+		},
+		physics::{BoxCollider, DamageParticle, SolidType},
+		state::{State, StateAction, StateName, StateSpawnContext, StateSystemsRun},
+		template::WeaponTemplate,
+		trace::EntityTracer,
 	},
 };
 use legion::{
 	component,
 	systems::{ResourceSet, Runnable},
-	Entity, IntoQuery, Resources, SystemBuilder, Write,
+	Entity, IntoQuery, Read, Resources, SystemBuilder, Write,
 };
-use std::time::Duration;
+use nalgebra::Vector3;
+use rand::{distributions::Uniform, Rng};
+use std::{sync::atomic::Ordering, time::Duration};
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct WeaponSpriteSlotDef;
+
+impl SpawnFrom<WeaponSpriteSlotDef> for WeaponSpriteSlot {
+	fn spawn(
+		_component: &WeaponSpriteSlotDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> Self {
+		<Read<StateSpawnContext<WeaponSpriteSlot>>>::fetch(resources).0
+	}
+}
+
+#[derive(Clone, Debug)]
+pub struct WeaponState {
+	pub slots: [State; 2],
+	pub current: AssetHandle<WeaponTemplate>,
+	pub switch_to: Option<AssetHandle<WeaponTemplate>>,
+	pub inaccurate: bool,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum WeaponSpriteSlot {
+	Weapon = 0,
+	Flash = 1,
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct WeaponStateDef;
+
+impl SpawnFrom<WeaponStateDef> for WeaponState {
+	fn spawn(
+		_component: &WeaponStateDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> WeaponState {
+		let (asset_storage, frame_state) =
+			<(Read<AssetStorage>, Read<FrameState>)>::fetch(resources);
+
+		let current = asset_storage
+			.handle_for::<WeaponTemplate>("pistol")
+			.unwrap();
+
+		WeaponState {
+			slots: [
+				State {
+					timer: Timer::new_elapsed(frame_state.time, Duration::default()),
+					action: StateAction::Set((StateName::from("up").unwrap(), 0)),
+				},
+				State {
+					timer: Timer::new_elapsed(frame_state.time, Duration::default()),
+					action: StateAction::None,
+				},
+			],
+			current,
+			switch_to: None,
+			inaccurate: false,
+		}
+	}
+}
+
+pub fn weapon_state(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_spawn::<WeaponStateDef, WeaponState>();
+	handler_set.register_clone::<WeaponSpriteSlot>();
+	handler_set.register_spawn::<WeaponSpriteSlotDef, WeaponSpriteSlot>();
+
+	const SLOTS: [WeaponSpriteSlot; 2] = [WeaponSpriteSlot::Weapon, WeaponSpriteSlot::Flash];
+
+	SystemBuilder::new("set_weapon_state")
+		.read_resource::<FrameState>()
+		.read_resource::<StateSystemsRun>()
+		.with_query(<(Entity, &mut WeaponState)>::query())
+		.build(move |command_buffer, world, resources, query| {
+			let (frame_state, state_systems_run) = resources;
+
+			for (&entity, weapon_state) in query.iter_mut(world) {
+				for slot in SLOTS.iter().copied() {
+					let state = &mut weapon_state.slots[slot as usize];
+
+					if let StateAction::Wait(state_name) = state.action {
+						if state.timer.is_elapsed(frame_state.time) {
+							state.action = StateAction::Set(state_name);
+						}
+					}
+
+					if let StateAction::Set(state_name) = state.action {
+						state_systems_run.0.store(true, Ordering::Relaxed);
+						state.action = StateAction::None;
+						let handle = weapon_state.current.clone();
+
+						command_buffer.exec_mut(move |world, resources| {
+							resources.insert(StateSpawnContext(entity));
+							resources.insert(StateSpawnContext(slot));
+							let asset_storage = <Read<AssetStorage>>::fetch(resources);
+							let state_world = &asset_storage
+								.get(&handle)
+								.unwrap()
+								.states
+								.get(&state_name.0)
+								.and_then(|x| x.get(state_name.1))
+								.unwrap_or_else(|| panic!("Invalid state {:?}", state_name));
+
+							spawn_helper(&state_world, world, resources);
+						});
+					}
+				}
+			}
+
+			command_buffer.exec_mut(move |_world, resources| {
+				resources.remove::<StateSpawnContext<Entity>>();
+				resources.remove::<StateSpawnContext<WeaponSpriteSlot>>();
+			});
+		})
+}
 
 #[derive(Clone, Copy, Debug)]
 pub struct NextWeaponState {
@@ -41,6 +175,120 @@ pub fn next_weapon_state(resources: &mut Resources) -> impl Runnable {
 					if let StateAction::None = state.action {
 						state.timer.restart_with(frame_state.time, next_state.time);
 						state.action = StateAction::Wait(next_state.state);
+					}
+				}
+			}
+		})
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct FirePistol;
+
+pub fn fire_pistol(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<FirePistol>();
+
+	let damage_range = Uniform::from(1..=3);
+	let angle = Angle::from_units(1.0 / 64.0);
+	let yaw_range = Uniform::from(-angle.0..=angle.0);
+
+	SystemBuilder::new("fire_pistol")
+		.read_resource::<AssetStorage>()
+		.read_resource::<Quadtree>()
+		.with_query(<(Entity, &Entity, &FirePistol)>::query())
+		.with_query(<(Option<&BoxCollider>, &Transform, &WeaponState)>::query())
+		.with_query(<&mut FrameRng>::query())
+		.with_query(<&MapDynamic>::query())
+		.with_query(<&BoxCollider>::query())
+		.read_component::<BoxCollider>() // used by EntityTracer
+		.read_component::<Transform>() // used by EntityTracer
+		.build(move |command_buffer, world, resources, queries| {
+			let (asset_storage, quadtree) = resources;
+			let (mut world1, world) = world.split_for_query(&queries.2);
+
+			for (&entity, &target, FirePistol) in queries.0.iter(&world) {
+				command_buffer.remove(entity);
+
+				if let (Ok((box_collider, transform, weapon_state)), Ok(frame_rng)) = (
+					queries.1.get(&world, target),
+					queries.2.get_mut(&mut world1, target),
+				) {
+					// Trace the trajectory
+					let map_dynamic = queries.3.iter(&world).next().unwrap();
+					let map = asset_storage.get(&map_dynamic.map).unwrap();
+
+					let tracer = EntityTracer {
+						map,
+						map_dynamic,
+						quadtree: &quadtree,
+						world: &world,
+					};
+
+					let mut position = transform.position;
+
+					if let Some(box_collider) = box_collider {
+						position[2] += box_collider.height * 0.5 + 8.0;
+					}
+
+					const ATTACKRANGE: f32 = 2000.0;
+					let mut rotation = transform.rotation;
+
+					if weapon_state.inaccurate {
+						rotation[2] += Angle(frame_rng.sample(yaw_range));
+					}
+
+					let move_step =
+						crate::common::geometry::angles_to_axes(rotation)[0] * ATTACKRANGE;
+
+					let trace = tracer.trace(
+						&AABB3::from_point(position),
+						move_step,
+						SolidType::PROJECTILE,
+					);
+
+					// Hit something!
+					if let Some(collision) = trace.collision {
+						// Apply the damage
+						let damage = 5.0 * frame_rng.sample(damage_range) as f32;
+
+						command_buffer.push((
+							collision.entity,
+							Damage {
+								amount: damage,
+								source_entity: target,
+								line: Line3::new(position, trace.move_step),
+							},
+						));
+
+						// Spawn particles
+						let particle = queries
+							.4
+							.get(&world, collision.entity)
+							.map(|x| x.damage_particle)
+							.unwrap_or(DamageParticle::Puff);
+						let template_name = match particle {
+							DamageParticle::Blood => {
+								if damage <= 9.0 {
+									"blood3"
+								} else if damage <= 12.0 {
+									"blood2"
+								} else {
+									"blood1"
+								}
+							}
+							DamageParticle::Puff => "puff",
+						};
+						let handle = asset_storage
+							.handle_for(template_name)
+							.expect("Damage particle template is not present");
+
+						let transform = Transform {
+							position: position + trace.move_step,
+							rotation: Vector3::zeros(),
+						};
+						command_buffer.exec_mut(move |world, resources| {
+							spawn_entity(world, resources, &handle, transform);
+						});
 					}
 				}
 			}
@@ -231,6 +479,9 @@ pub fn weapon_refire(resources: &mut Resources) -> impl Runnable {
 					if client.command.attack {
 						let state_name = (StateName::from("attack").unwrap(), 0);
 						state.action = StateAction::Set(state_name);
+						weapon_state.inaccurate = true;
+					} else {
+						weapon_state.inaccurate = false;
 					}
 				}
 			}

@@ -6,10 +6,10 @@ use crate::{
 		sound::StartSound,
 		state::{
 			weapon::{
-				NextWeaponState, SetWeaponSprite, SetWeaponState, WeaponPosition, WeaponReFire,
-				WeaponReady,
+				FirePistol, NextWeaponState, SetWeaponSprite, SetWeaponState, WeaponPosition,
+				WeaponReFire, WeaponReady, WeaponSpriteSlot, WeaponSpriteSlotDef,
 			},
-			EntityDef, StateName, WeaponSpriteSlot, WeaponSpriteSlotDef,
+			EntityDef, StateName,
 		},
 		template::WeaponTemplate,
 		WadMode,
@@ -367,6 +367,11 @@ pub fn load(resources: &mut Resources) {
 							frame: 1,
 							full_bright: false,
 						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						FirePistol,
 					));
 					world.push((
 						EntityDef,

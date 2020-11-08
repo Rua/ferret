@@ -34,8 +34,8 @@ use crate::{
 	doom::{
 		camera::{camera_system, movement_bob_system},
 		client::{
-			player_attack_system, player_command_system, player_move_system, player_use_system,
-			player_weapon_system, Client,
+			player_command_system, player_move_system, player_use_system, player_weapon_system,
+			Client,
 		},
 		components::{RandomTransformDef, SpawnPoint, Transform, TransformDef},
 		data::FRAME_TIME,
@@ -72,8 +72,8 @@ use crate::{
 			entity::{next_entity_state, remove_entity, set_blocks_types, set_entity_sprite},
 			state,
 			weapon::{
-				next_weapon_state, set_weapon_sprite, set_weapon_state, weapon_position,
-				weapon_ready, weapon_refire,
+				fire_pistol, next_weapon_state, set_weapon_sprite, set_weapon_state,
+				weapon_position, weapon_ready, weapon_refire,
 			},
 		},
 		switch::switch_active_system,
@@ -224,7 +224,6 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 		.add_thread_local(player_command_system(resources)).flush()
 		.add_thread_local(player_move_system(resources)).flush()
 		.add_thread_local(player_weapon_system(resources)).flush()
-		.add_thread_local(player_attack_system(resources)).flush()
 		.add_thread_local(player_use_system(resources)).flush()
 		.add_thread_local(physics(resources)).flush()
 		.add_thread_local(movement_bob_system(resources)).flush()
@@ -253,6 +252,7 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 				.add_system(set_blocks_types(resources))
 				.add_system(set_entity_sprite(resources))
 				.add_system(next_weapon_state(resources))
+				.add_system(fire_pistol(resources))
 				.add_system(set_weapon_sprite(resources))
 				.add_system(set_weapon_state(resources))
 				.add_system(weapon_position(resources))
