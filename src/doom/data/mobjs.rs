@@ -5846,7 +5846,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
-					velocity: Vector3::new(0.0, 0.0, 5.0 * FRAME_RATE),
+					velocity: Vector3::new(0.0, 0.0, 2.0 * FRAME_RATE),
 				},
 				SpriteRender {
 					sprite: asset_storage.load("blud.sprite"),
