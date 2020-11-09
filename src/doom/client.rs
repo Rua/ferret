@@ -38,41 +38,64 @@ pub struct Client {
 
 pub fn player_command_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("player_command_system")
+		.read_resource::<AssetStorage>()
 		.read_resource::<Bindings<BoolInput, FloatInput>>()
 		.read_resource::<InputState>()
 		.write_resource::<Client>()
-		.build(move |_command_buffer, _world, resources, _queries| {
-			let (bindings, input_state, client) = resources;
+		.with_query(<&WeaponState>::query())
+		.build(move |_command_buffer, world, resources, query| {
+			let (asset_storage, bindings, input_state, client) = resources;
 
-			let weapon_keys = [
-				bindings.bool_value(&BoolInput::Weapon1, &input_state),
-				bindings.bool_value(&BoolInput::Weapon2, &input_state),
-				bindings.bool_value(&BoolInput::Weapon3, &input_state),
-				bindings.bool_value(&BoolInput::Weapon4, &input_state),
-				bindings.bool_value(&BoolInput::Weapon5, &input_state),
-				bindings.bool_value(&BoolInput::Weapon6, &input_state),
-				bindings.bool_value(&BoolInput::Weapon7, &input_state),
-			];
-			let mut iter =
-				weapon_keys
-					.iter()
-					.enumerate()
-					.filter_map(|(i, x)| if *x { Some(i + 1) } else { None });
+			let weapon: Option<String> = client.entity.and_then(|entity| {
+				let weapon_keys = [
+					bindings.bool_value(&BoolInput::Weapon1, &input_state),
+					bindings.bool_value(&BoolInput::Weapon2, &input_state),
+					bindings.bool_value(&BoolInput::Weapon3, &input_state),
+					bindings.bool_value(&BoolInput::Weapon4, &input_state),
+					bindings.bool_value(&BoolInput::Weapon5, &input_state),
+					bindings.bool_value(&BoolInput::Weapon6, &input_state),
+					bindings.bool_value(&BoolInput::Weapon7, &input_state),
+				];
+				let mut iter =
+					weapon_keys
+						.iter()
+						.enumerate()
+						.filter_map(|(i, x)| if *x { Some(i + 1) } else { None });
 
-			let weapon_index: Option<usize> = match (iter.next(), iter.next()) {
-				(Some(i), None) => Some(i),
-				_ => None,
-			};
+				let weapon_index: Option<usize> = match (iter.next(), iter.next()) {
+					(Some(i), None) => Some(i),
+					_ => None,
+				};
 
-			let weapon: Option<String> = weapon_index.map(|i| match i {
-				1 => "fist".into(),
-				2 => "pistol".into(),
-				3 => "shotgun".into(),
-				4 => "chaingun".into(),
-				5 => "missile".into(),
-				6 => "plasma".into(),
-				7 => "bfg".into(),
-				_ => unreachable!(),
+				let weapon_state = query
+					.get(world, entity)
+					.expect("Client entity does not have WeaponState");
+				let weapon_template = asset_storage
+					.get(&weapon_state.current)
+					.expect("Entity has invalid current weapon");
+
+				weapon_index.map(|i| match i {
+					1 => {
+						if weapon_template.name == Some("chainsaw") {
+							"fist".into()
+						} else {
+							"chainsaw".into()
+						}
+					}
+					2 => "pistol".into(),
+					3 => {
+						if weapon_template.name == Some("supershotgun") {
+							"shotgun".into()
+						} else {
+							"supershotgun".into()
+						}
+					}
+					4 => "chaingun".into(),
+					5 => "missile".into(),
+					6 => "plasma".into(),
+					7 => "bfg".into(),
+					_ => unreachable!(),
+				})
 			});
 
 			let mut command = UserCommand {
