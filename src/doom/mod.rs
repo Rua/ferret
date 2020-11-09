@@ -72,7 +72,7 @@ use crate::{
 			entity::{next_entity_state, remove_entity, set_blocks_types, set_entity_sprite},
 			state,
 			weapon::{
-				fire_pistol, next_weapon_state, set_weapon_sprite, set_weapon_state,
+				line_attack, next_weapon_state, set_weapon_sprite, set_weapon_state,
 				weapon_position, weapon_ready, weapon_refire,
 			},
 		},
@@ -252,7 +252,7 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 				.add_system(set_blocks_types(resources))
 				.add_system(set_entity_sprite(resources))
 				.add_system(next_weapon_state(resources))
-				.add_system(fire_pistol(resources))
+				.add_system(line_attack(resources))
 				.add_system(set_weapon_sprite(resources))
 				.add_system(set_weapon_state(resources))
 				.add_system(weapon_position(resources))

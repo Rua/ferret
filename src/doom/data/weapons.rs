@@ -1,12 +1,12 @@
 use crate::{
-	common::assets::AssetStorage,
+	common::{assets::AssetStorage, geometry::Angle},
 	doom::{
 		data::FRAME_TIME,
 		draw::sprite::SpriteRender,
 		sound::StartSound,
 		state::{
 			weapon::{
-				FirePistol, NextWeaponState, SetWeaponSprite, SetWeaponState, WeaponPosition,
+				LineAttack, NextWeaponState, SetWeaponSprite, SetWeaponState, WeaponPosition,
 				WeaponReFire, WeaponReady, WeaponSpriteSlot, WeaponSpriteSlotDef,
 			},
 			EntityDef, StateName,
@@ -16,6 +16,7 @@ use crate::{
 	},
 };
 use legion::{systems::ResourceSet, Read, Resources, World, Write};
+use nalgebra::Vector2;
 use std::{collections::HashMap, default::Default};
 
 #[rustfmt::skip]
@@ -371,7 +372,16 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						FirePistol,
+						LineAttack {
+							count: 1,
+							damage_range: (1..=3).into(),
+							damage_multiplier: 5.0,
+							distance: 2000.0,
+							spread: Vector2::new(
+								Angle::from_units(1.0 / 64.0),
+								Angle(0),
+							),
+						},
 					));
 					world.push((
 						EntityDef,
@@ -604,6 +614,20 @@ pub fn load(resources: &mut Resources) {
 							frame: 0,
 							full_bright: false,
 						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						LineAttack {
+							count: 7,
+							damage_range: (1..=3).into(),
+							damage_multiplier: 5.0,
+							distance: 2000.0,
+							spread: Vector2::new(
+								Angle::from_units(1.0 / 64.0),
+								Angle(0),
+							),
+						},
 					));
 					world.push((
 						EntityDef,
@@ -945,6 +969,20 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
+						LineAttack {
+							count: 1,
+							damage_range: (1..=3).into(),
+							damage_multiplier: 5.0,
+							distance: 2000.0,
+							spread: Vector2::new(
+								Angle::from_units(1.0 / 64.0),
+								Angle(0),
+							),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
 						StartSound(asset_storage.load("dspistol.sound")),
 					));
 					world.push((
@@ -972,6 +1010,20 @@ pub fn load(resources: &mut Resources) {
 							frame: 1,
 							full_bright: false,
 						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						LineAttack {
+							count: 1,
+							damage_range: (1..=3).into(),
+							damage_multiplier: 5.0,
+							distance: 2000.0,
+							spread: Vector2::new(
+								Angle::from_units(1.0 / 64.0),
+								Angle(0),
+							),
+						},
 					));
 					world.push((
 						EntityDef,
@@ -2172,6 +2224,20 @@ pub fn load(resources: &mut Resources) {
 							frame: 0,
 							full_bright: false,
 						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						LineAttack {
+							count: 20,
+							damage_range: (1..=3).into(),
+							damage_multiplier: 5.0,
+							distance: 2000.0,
+							spread: Vector2::new(
+								Angle::from_units(1.0 / 32.0),
+								Angle::from_units(1.0 / 524288.0),
+							),
+						},
 					));
 					world.push((
 						EntityDef,
