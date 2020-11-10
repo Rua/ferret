@@ -10,7 +10,7 @@ use crate::{
 };
 use anyhow::Context;
 use legion::{systems::Runnable, Resources, SystemBuilder};
-use vulkano::command_buffer::{AutoCommandBufferBuilder, CommandBuffer};
+use vulkano::command_buffer::{AutoCommandBufferBuilder, CommandBuffer, SubpassContents};
 
 pub fn start_draw(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 	resources.insert::<Option<DrawContext>>(None);
@@ -58,7 +58,11 @@ pub fn start_draw(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 					.as_mut()
 					.unwrap()
 					.commands
-					.begin_render_pass(draw_target.framebuffer().clone(), false, clear_value)
+					.begin_render_pass(
+						draw_target.framebuffer().clone(),
+						SubpassContents::Inline,
+						clear_value,
+					)
 					.context("Couldn't begin render pass")?;
 
 				Ok(())

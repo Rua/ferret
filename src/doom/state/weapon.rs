@@ -466,7 +466,7 @@ pub fn weapon_ready(resources: &mut Resources) -> impl Runnable {
 					if weapon_state.switch_to.is_some() {
 						let state_name = (StateName::from("down").unwrap(), 0);
 						state.action = StateAction::Set(state_name);
-					} else if client.command.attack && !client.previous_command.attack {
+					} else if client.command.attack {
 						let state_name = (StateName::from("attack").unwrap(), 0);
 						state.action = StateAction::Set(state_name);
 					}
