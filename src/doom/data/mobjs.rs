@@ -5716,7 +5716,7 @@ pub fn load(resources: &mut Resources) {
 	asset_storage.insert_with_name("arachplaz", template);
 
 	let template = EntityTemplate {
-		name: Some("puff"),
+		name: Some("puff1"),
 		type_id: None,
 		world: {
 			let mut world = World::default();
@@ -5730,11 +5730,10 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
-				Physics {
+				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
-					velocity: Vector3::new(0.0, 0.0, 1.0 * FRAME_RATE),
 				},
 				SpriteRender {
 					sprite: asset_storage.load("puff.sprite"),
@@ -5742,7 +5741,9 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
-				RandomTransformDef([(0.0..=0.0).into(), (0.0..=0.0).into(), (-4.0..=4.0).into()]),
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -5753,8 +5754,8 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						NextStateRandomTimeDef {
-							time: (FRAME_TIME..4 * FRAME_TIME).into(),
+						NextState {
+							time: 4 * FRAME_TIME,
 							state: (StateName::from("spawn").unwrap(), 1),
 						},
 					));
@@ -5838,7 +5839,95 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("puff", template);
+	asset_storage.insert_with_name("puff1", template);
+
+	let template = EntityTemplate {
+		name: Some("puff3"),
+		type_id: None,
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				FrameRngDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("puff.sprite"),
+					frame: 2,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(2);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	};
+	asset_storage.insert_with_name("puff3", template);
 
 	let template = EntityTemplate {
 		name: Some("blood1"),

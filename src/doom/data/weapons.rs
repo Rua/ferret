@@ -158,6 +158,24 @@ pub fn load(resources: &mut Resources) {
 							full_bright: false,
 						})),
 					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						LineAttack {
+							count: 1,
+							damage_range: (1..=10).into(),
+							damage_multiplier: 2.0,
+							distance: 64.0,
+							spread: Vector2::new(
+								Angle::from_units(1.0 / 64.0),
+								Angle(0),
+							),
+							accurate_until_refire: false,
+							sparks: false,
+							hit_sound: Some(asset_storage.load("dspunch.sound")),
+							miss_sound: None,
+						},
+					));
 					world
 				},
 				{
@@ -381,6 +399,10 @@ pub fn load(resources: &mut Resources) {
 								Angle::from_units(1.0 / 64.0),
 								Angle(0),
 							),
+							accurate_until_refire: true,
+							sparks: true,
+							hit_sound: None,
+							miss_sound: None,
 						},
 					));
 					world.push((
@@ -627,6 +649,10 @@ pub fn load(resources: &mut Resources) {
 								Angle::from_units(1.0 / 64.0),
 								Angle(0),
 							),
+							accurate_until_refire: false,
+							sparks: true,
+							hit_sound: None,
+							miss_sound: None,
 						},
 					));
 					world.push((
@@ -978,6 +1004,10 @@ pub fn load(resources: &mut Resources) {
 								Angle::from_units(1.0 / 64.0),
 								Angle(0),
 							),
+							accurate_until_refire: true,
+							sparks: true,
+							hit_sound: None,
+							miss_sound: None,
 						},
 					));
 					world.push((
@@ -1023,6 +1053,10 @@ pub fn load(resources: &mut Resources) {
 								Angle::from_units(1.0 / 64.0),
 								Angle(0),
 							),
+							accurate_until_refire: true,
+							sparks: true,
+							hit_sound: None,
+							miss_sound: None,
 						},
 					));
 					world.push((
@@ -1411,7 +1445,7 @@ pub fn load(resources: &mut Resources) {
 	let template = WeaponTemplate {
 		name: Some("chainsaw"),
 		states: {
-			let mut states = HashMap::with_capacity(7);
+			let mut states = HashMap::with_capacity(8);
 			states.insert(StateName::from("up").unwrap(), vec![
 				{
 					let mut world = World::default();
@@ -1419,8 +1453,34 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						WeaponSpriteSlotDef,
 						NextWeaponState {
+							time: 0 * FRAME_TIME,
+							state: (StateName::from("up").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sawg.sprite"),
+							frame: 2,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						StartSound(asset_storage.load("dssawup.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
 							time: 1 * FRAME_TIME,
-							state: (StateName::from("up").unwrap(), 0),
+							state: (StateName::from("up").unwrap(), 1),
 						},
 					));
 					world.push((
@@ -1491,6 +1551,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
+						StartSound(asset_storage.load("dssawidl.sound")),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
 						WeaponPosition::Bob,
 					));
 					world.push((
@@ -1552,6 +1617,24 @@ pub fn load(resources: &mut Resources) {
 							full_bright: false,
 						})),
 					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						LineAttack {
+							count: 1,
+							damage_range: (1..=10).into(),
+							damage_multiplier: 2.0,
+							distance: 65.0,
+							spread: Vector2::new(
+								Angle::from_units(1.0 / 64.0),
+								Angle(0),
+							),
+							accurate_until_refire: false,
+							sparks: true,
+							hit_sound: Some(asset_storage.load("dssawhit.sound")),
+							miss_sound: Some(asset_storage.load("dssawful.sound")),
+						},
+					));
 					world
 				},
 				{
@@ -1572,6 +1655,24 @@ pub fn load(resources: &mut Resources) {
 							frame: 1,
 							full_bright: false,
 						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						LineAttack {
+							count: 1,
+							damage_range: (1..=10).into(),
+							damage_multiplier: 2.0,
+							distance: 65.0,
+							spread: Vector2::new(
+								Angle::from_units(1.0 / 64.0),
+								Angle(0),
+							),
+							accurate_until_refire: false,
+							sparks: true,
+							hit_sound: Some(asset_storage.load("dssawhit.sound")),
+							miss_sound: Some(asset_storage.load("dssawful.sound")),
+						},
 					));
 					world
 				},
@@ -2235,8 +2336,12 @@ pub fn load(resources: &mut Resources) {
 							distance: 2000.0,
 							spread: Vector2::new(
 								Angle::from_units(1.0 / 32.0),
-								Angle::from_units(1.0 / 524288.0),
+								Angle::from_units(1.0 / 50.526199853),
 							),
+							accurate_until_refire: false,
+							sparks: true,
+							hit_sound: None,
+							miss_sound: None,
 						},
 					));
 					world.push((

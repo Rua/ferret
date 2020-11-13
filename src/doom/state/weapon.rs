@@ -15,9 +15,10 @@ use crate::{
 		health::Damage,
 		map::{
 			spawn::{spawn_entity, spawn_helper},
-			MapDynamic,
+			LinedefRef, MapDynamic, SectorRef,
 		},
 		physics::{BoxCollider, DamageParticle, SolidType},
+		sound::{Sound, StartSound},
 		state::{State, StateAction, StateName, StateSpawnContext, StateSystemsRun},
 		template::WeaponTemplate,
 		trace::EntityTracer,
@@ -182,13 +183,17 @@ pub fn next_weapon_state(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct LineAttack {
 	pub count: usize,
 	pub damage_range: Uniform<u32>,
 	pub damage_multiplier: f32,
 	pub distance: f32,
 	pub spread: Vector2<Angle>,
+	pub accurate_until_refire: bool,
+	pub sparks: bool,
+	pub hit_sound: Option<AssetHandle<Sound>>,
+	pub miss_sound: Option<AssetHandle<Sound>>,
 }
 
 pub fn line_attack(resources: &mut Resources) -> impl Runnable {
@@ -202,14 +207,18 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 		.with_query(<(Option<&BoxCollider>, &Transform, &WeaponState)>::query())
 		.with_query(<&mut FrameRng>::query())
 		.with_query(<&MapDynamic>::query())
-		.with_query(<&BoxCollider>::query())
+		.with_query(<(
+			Option<&BoxCollider>,
+			Option<&LinedefRef>,
+			Option<&SectorRef>,
+		)>::query())
 		.read_component::<BoxCollider>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
 		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, quadtree) = resources;
 			let (mut world1, world) = world.split_for_query(&queries.2);
 
-			for (&entity, &target, &line_attack) in queries.0.iter(&world) {
+			for (&entity, &target, line_attack) in queries.0.iter(&world) {
 				command_buffer.remove(entity);
 
 				if let (Ok((box_collider, transform, weapon_state)), Ok(frame_rng)) = (
@@ -235,32 +244,26 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 					for _ in 0..line_attack.count {
 						let mut rotation = transform.rotation;
 
-						// Apply spread if there are multiple bullets or
-						// if the weapon is shooting inaccurately.
-						if line_attack.count > 1 || weapon_state.inaccurate {
+						// Apply spread if the weapon is shooting inaccurately.
+						// Subtracting two uniform random numbers results in a triangle distribution.
+						if !line_attack.accurate_until_refire || weapon_state.inaccurate {
 							if !line_attack.spread[0].is_zero() {
 								rotation[2] +=
-									Angle(frame_rng.gen_range(
-										-line_attack.spread[0].0,
-										line_attack.spread[0].0,
-									));
+									frame_rng.gen_range(0, line_attack.spread[0].0) -
+									frame_rng.gen_range(0, line_attack.spread[0].0);
 							}
 
 							if !line_attack.spread[1].is_zero() {
 								rotation[1] +=
-									Angle(frame_rng.gen_range(
-										-line_attack.spread[1].0,
-										line_attack.spread[1].0,
-									));
+									frame_rng.gen_range(0, line_attack.spread[1].0) -
+									frame_rng.gen_range(0, line_attack.spread[1].0);
 							}
 						}
 
-						let move_step = crate::common::geometry::angles_to_axes(rotation)[0]
-							* line_attack.distance;
-
+						let direction = crate::common::geometry::angles_to_axes(rotation)[0];
 						let trace = tracer.trace(
 							&AABB3::from_point(position),
-							move_step,
+							direction * line_attack.distance,
 							SolidType::PROJECTILE,
 						);
 
@@ -280,11 +283,34 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 							));
 
 							// Spawn particles
-							let particle = queries
-								.4
-								.get(&world, collision.entity)
-								.map(|x| x.damage_particle)
-								.unwrap_or(DamageParticle::Puff);
+							let mut particle_transform = Transform {
+								position: position + trace.move_step,
+								rotation: Vector3::zeros(),
+							};
+
+							let particle = match queries.4.get(&world, collision.entity) {
+								Ok((Some(box_collider), None, None)) => {
+									// Hit a mobj
+									particle_transform.position -= direction * 10.0;
+									box_collider.damage_particle
+								}
+								Ok((None, Some(_linedef_ref), None)) => {
+									// Hit a linedef
+									// TODO test for sky
+									particle_transform.position -= direction * 4.0;
+									DamageParticle::Puff
+								}
+								Ok((None, None, Some(_sector_ref))) => {
+									// Hit a sector
+									// TODO test for sky
+									particle_transform.position -= direction * 4.0;
+									DamageParticle::Puff
+								}
+								_ => {
+									log::warn!("Collision entity {:?} does not have exactly one of BoxCollider, LinedefRef, SectorRef", collision.entity);
+									continue
+								}
+							};
 							let template_name = match particle {
 								DamageParticle::Blood => {
 									if damage <= 9.0 {
@@ -295,19 +321,31 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 										"blood1"
 									}
 								}
-								DamageParticle::Puff => "puff",
+								DamageParticle::Puff => {
+									if line_attack.sparks {
+										"puff1"
+									} else {
+										"puff3"
+									}
+								}
 							};
 							let handle = asset_storage
 								.handle_for(template_name)
 								.expect("Damage particle template is not present");
 
-							let transform = Transform {
-								position: position + trace.move_step,
-								rotation: Vector3::zeros(),
-							};
 							command_buffer.exec_mut(move |world, resources| {
-								spawn_entity(world, resources, &handle, transform);
+								spawn_entity(world, resources, &handle, particle_transform);
 							});
+
+							// Play hit sound if present
+							if let Some(sound) = line_attack.hit_sound.as_ref() {
+								command_buffer.push((target, StartSound(sound.clone())));
+							}
+						} else {
+							// Play miss sound if present
+							if let Some(sound) = line_attack.miss_sound.as_ref() {
+								command_buffer.push((target, StartSound(sound.clone())));
+							}
 						}
 					}
 				}
