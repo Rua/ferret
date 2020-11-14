@@ -14,6 +14,7 @@ pub mod physics;
 pub mod plat;
 pub mod sectormove;
 pub mod sound;
+pub mod spawn;
 pub mod sprite;
 pub mod state;
 pub mod switch;
@@ -413,11 +414,11 @@ pub fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> any
 				.load(&RelativePath::new(&name_lower).with_extension("things"))?,
 		)?
 	};
-	map::spawn::spawn_map_entities(world, resources, &map_handle)?;
-	map::spawn::spawn_things(things, world, resources)?;
+	spawn::spawn_map_entities(world, resources, &map_handle)?;
+	spawn::spawn_things(things, world, resources)?;
 
 	// Spawn player
-	let entity = map::spawn::spawn_player(world, resources, 1)?;
+	let entity = spawn::spawn_player(world, resources, 1)?;
 	<Write<Client>>::fetch_mut(resources).entity = Some(entity);
 
 	log::debug!(

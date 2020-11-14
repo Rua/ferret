@@ -4,7 +4,7 @@ use crate::{
 		frame::{FrameRng, FrameState},
 		geometry::{Angle, Line3, AABB3},
 		quadtree::Quadtree,
-		spawn::{ComponentAccessor, SpawnFrom, SpawnMergerHandlerSet},
+		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
 		time::Timer,
 	},
 	doom::{
@@ -13,13 +13,11 @@ use crate::{
 		components::Transform,
 		draw::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
 		health::Damage,
-		map::{
-			spawn::{spawn_entity, spawn_helper},
-			LinedefRef, MapDynamic, SectorRef,
-		},
+		map::{LinedefRef, MapDynamic, SectorRef},
 		physics::{BoxCollider, DamageParticle, SolidType},
 		sound::{Sound, StartSound},
-		state::{State, StateAction, StateName, StateSpawnContext, StateSystemsRun},
+		spawn::{spawn_entity, spawn_helper},
+		state::{State, StateAction, StateName, StateSystemsRun},
 		template::WeaponTemplate,
 		trace::EntityTracer,
 	},
@@ -43,7 +41,7 @@ impl SpawnFrom<WeaponSpriteSlotDef> for WeaponSpriteSlot {
 		_accessor: ComponentAccessor,
 		resources: &Resources,
 	) -> Self {
-		<Read<StateSpawnContext<WeaponSpriteSlot>>>::fetch(resources).0
+		<Read<SpawnContext<WeaponSpriteSlot>>>::fetch(resources).0
 	}
 }
 
@@ -126,8 +124,8 @@ pub fn weapon_state(resources: &mut Resources) -> impl Runnable {
 						let handle = weapon_state.current.clone();
 
 						command_buffer.exec_mut(move |world, resources| {
-							resources.insert(StateSpawnContext(entity));
-							resources.insert(StateSpawnContext(slot));
+							resources.insert(SpawnContext(entity));
+							resources.insert(SpawnContext(slot));
 							let asset_storage = <Read<AssetStorage>>::fetch(resources);
 							let state_world = &asset_storage
 								.get(&handle)
@@ -144,8 +142,8 @@ pub fn weapon_state(resources: &mut Resources) -> impl Runnable {
 			}
 
 			command_buffer.exec_mut(move |_world, resources| {
-				resources.remove::<StateSpawnContext<Entity>>();
-				resources.remove::<StateSpawnContext<WeaponSpriteSlot>>();
+				resources.remove::<SpawnContext<Entity>>();
+				resources.remove::<SpawnContext<WeaponSpriteSlot>>();
 			});
 		})
 }

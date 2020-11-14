@@ -1,9 +1,9 @@
 use crate::{
 	common::{
 		assets::AssetHandle,
-		spawn::{ComponentAccessor, SpawnFrom},
+		spawn::{ComponentAccessor, SpawnContext, SpawnFrom},
 	},
-	doom::{map::spawn::SpawnContext, state::StateName},
+	doom::state::StateName,
 };
 use legion::{systems::ResourceSet, Read, Resources, World};
 use std::collections::HashMap;
@@ -35,8 +35,8 @@ impl SpawnFrom<EntityTemplateRefDef> for EntityTemplateRef {
 		_accessor: ComponentAccessor,
 		resources: &Resources,
 	) -> EntityTemplateRef {
-		let spawn_context = <Read<SpawnContext>>::fetch(resources);
-		EntityTemplateRef(spawn_context.template_handle.clone())
+		let template_handle = <Read<SpawnContext<AssetHandle<EntityTemplate>>>>::fetch(resources);
+		EntityTemplateRef(template_handle.0.clone())
 	}
 }
 

@@ -9,11 +9,7 @@ pub trait SpawnFrom<FromT: Sized>
 where
 	Self: Sized,
 {
-	fn spawn(
-		component: &FromT,
-		accessor: ComponentAccessor,
-		resources: &Resources,
-	) -> Self;
+	fn spawn(component: &FromT, accessor: ComponentAccessor, resources: &Resources) -> Self;
 }
 
 /// A Merger implementation that passes Resources and ComponentAccessor to the closure
@@ -170,3 +166,6 @@ impl<'a> ComponentAccessor<'a> {
 			.and_then(|slice| slice.into_slice().get(self.index))
 	}
 }
+
+#[derive(Clone, Copy, Debug)]
+pub struct SpawnContext<T>(pub T);

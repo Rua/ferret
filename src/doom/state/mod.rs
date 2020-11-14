@@ -1,6 +1,6 @@
 use crate::{
 	common::{
-		spawn::{ComponentAccessor, SpawnFrom, SpawnMergerHandlerSet},
+		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
 		time::Timer,
 	},
 	doom::state::{entity::entity_state, weapon::weapon_state},
@@ -27,15 +27,12 @@ pub enum StateAction {
 	None,
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct StateSpawnContext<T>(pub T);
-
 #[derive(Clone, Copy, Debug, Default)]
 pub struct EntityDef;
 
 impl SpawnFrom<EntityDef> for Entity {
 	fn spawn(_component: &EntityDef, _accessor: ComponentAccessor, resources: &Resources) -> Self {
-		<Read<StateSpawnContext<Entity>>>::fetch(resources).0
+		<Read<SpawnContext<Entity>>>::fetch(resources).0
 	}
 }
 

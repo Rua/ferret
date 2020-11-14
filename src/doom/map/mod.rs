@@ -1,6 +1,5 @@
 pub mod load;
 pub mod meshes;
-pub mod spawn;
 pub mod textures;
 
 use crate::{

@@ -4,7 +4,7 @@ use crate::{
 		frame::FrameState,
 		geometry::{Interval, AABB2, AABB3},
 		quadtree::Quadtree,
-		spawn::{SpawnMerger, SpawnMergerHandlerSet},
+		spawn::{SpawnContext, SpawnMerger, SpawnMergerHandlerSet},
 		time::Timer,
 	},
 	doom::{
@@ -27,13 +27,6 @@ use legion::{
 use nalgebra::{Vector2, Vector3};
 use std::collections::HashMap;
 
-#[derive(Clone, Debug)]
-pub struct SpawnContext {
-	pub template_handle: AssetHandle<EntityTemplate>,
-	pub transform: Transform,
-	pub sector_interval: Interval,
-}
-
 pub fn spawn_helper(
 	src_world: &World,
 	dst_world: &mut World,
@@ -51,30 +44,13 @@ pub fn spawn_entity(
 	transform: Transform,
 ) -> Entity {
 	// Create spawn context and insert into resources, for SpawnFrom implementations to read
-	let spawn_context = {
-		let asset_storage = <Read<AssetStorage>>::fetch(resources);
-
-		let sector_interval = {
-			let map_dynamic = <&MapDynamic>::query().iter(world).next().unwrap();
-			let map = asset_storage.get(&map_dynamic.map).unwrap();
-			let ssect = map.find_subsector(transform.position.fixed_resize(0.0));
-			map_dynamic.sectors[ssect.sector_index].interval
-		};
-
-		SpawnContext {
-			template_handle: template_handle.clone(),
-			transform,
-			sector_interval,
-		}
-	};
-
-	resources.insert(spawn_context);
+	resources.insert(SpawnContext(transform));
+	resources.insert(SpawnContext(template_handle.clone()));
 
 	// Create the entity
 	let entity = {
-		let (asset_storage, spawn_context) =
-			<(Read<AssetStorage>, Read<SpawnContext>)>::fetch(resources);
-		let template = asset_storage.get(&spawn_context.template_handle).unwrap();
+		let asset_storage = <Read<AssetStorage>>::fetch(resources);
+		let template = asset_storage.get(template_handle).unwrap();
 
 		if template.world.is_empty() {
 			world.push(())
@@ -85,13 +61,18 @@ pub fn spawn_entity(
 	};
 
 	// Add entity to quadtree
-	let mut quadtree = <Write<Quadtree>>::fetch_mut(resources);
-	if let Ok((&entity, box_collider, transform)) =
-		<(Entity, &BoxCollider, &Transform)>::query().get(world, entity)
 	{
-		let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
-		quadtree.insert(entity, &AABB2::from(&bbox.offset(transform.position)));
+		let mut quadtree = <Write<Quadtree>>::fetch_mut(resources);
+		if let Ok((&entity, box_collider, transform)) =
+			<(Entity, &BoxCollider, &Transform)>::query().get(world, entity)
+		{
+			let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
+			quadtree.insert(entity, &AABB2::from(&bbox.offset(transform.position)));
+		}
 	}
+
+	resources.remove::<SpawnContext<Transform>>();
+	resources.remove::<SpawnContext<AssetHandle<EntityTemplate>>>();
 
 	entity
 }
@@ -128,13 +109,24 @@ pub fn spawn_things(
 			template_handle
 		};
 
-		// Use NAN to use the default spawn height
+		// Use NAN to use the default spawn height based on the sector interval
 		let transform = Transform {
 			position: Vector3::new(thing.position[0], thing.position[1], f32::NAN),
 			rotation: Vector3::new(0.into(), 0.into(), thing.angle),
 		};
 
+		let sector_interval = {
+			let asset_storage = <Read<AssetStorage>>::fetch(resources);
+			let map_dynamic = <&MapDynamic>::query().iter(world).next().unwrap();
+			let map = asset_storage.get(&map_dynamic.map).unwrap();
+			let ssect = map.find_subsector(transform.position.fixed_resize(0.0));
+			SpawnContext(map_dynamic.sectors[ssect.sector_index].interval)
+		};
+		resources.insert(sector_interval);
+
 		spawn_entity(world, resources, &template_handle, transform);
+
+		resources.remove::<SpawnContext<Interval>>();
 	}
 
 	Ok(())

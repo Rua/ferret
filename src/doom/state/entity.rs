@@ -1,16 +1,16 @@
 use crate::{
 	common::{
-		assets::AssetStorage,
+		assets::{AssetHandle, AssetStorage},
 		frame::FrameState,
-		spawn::{ComponentAccessor, SpawnFrom, SpawnMergerHandlerSet},
+		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
 		time::Timer,
 	},
 	doom::{
 		draw::sprite::SpriteRender,
-		map::spawn::{spawn_helper, SpawnContext},
 		physics::{BoxCollider, SolidBits},
-		state::{State, StateAction, StateName, StateSpawnContext, StateSystemsRun},
-		template::EntityTemplateRef,
+		spawn::spawn_helper,
+		state::{State, StateAction, StateName, StateSystemsRun},
+		template::{EntityTemplate, EntityTemplateRef},
 	},
 };
 use legion::{
@@ -26,9 +26,12 @@ pub struct StateDef;
 
 impl SpawnFrom<StateDef> for State {
 	fn spawn(_component: &StateDef, _accessor: ComponentAccessor, resources: &Resources) -> Self {
-		let (asset_storage, frame_state, spawn_context) =
-			<(Read<AssetStorage>, Read<FrameState>, Read<SpawnContext>)>::fetch(resources);
-		let template = asset_storage.get(&spawn_context.template_handle).unwrap();
+		let (asset_storage, frame_state, template_handle) = <(
+			Read<AssetStorage>,
+			Read<FrameState>,
+			Read<SpawnContext<AssetHandle<EntityTemplate>>>,
+		)>::fetch(resources);
+		let template = asset_storage.get(&template_handle.0).unwrap();
 
 		let spawn_state_name = (StateName::from("spawn").unwrap(), 0);
 		template
@@ -68,7 +71,7 @@ pub fn entity_state(resources: &mut Resources) -> impl Runnable {
 					let handle = template_ref.0.clone();
 
 					command_buffer.exec_mut(move |world, resources| {
-						resources.insert(StateSpawnContext(entity));
+						resources.insert(SpawnContext(entity));
 						let asset_storage = <Read<AssetStorage>>::fetch(resources);
 						let state_world = &asset_storage
 							.get(&handle)
@@ -84,7 +87,7 @@ pub fn entity_state(resources: &mut Resources) -> impl Runnable {
 			}
 
 			command_buffer.exec_mut(move |_world, resources| {
-				resources.remove::<StateSpawnContext<Entity>>();
+				resources.remove::<SpawnContext<Entity>>();
 			});
 		})
 }
