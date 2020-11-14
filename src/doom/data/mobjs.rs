@@ -154,6 +154,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::StepSlide,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("play.sprite"),
@@ -676,6 +677,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("poss.sprite"),
@@ -1367,6 +1369,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("spos.sprite"),
@@ -2073,6 +2076,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("puff.sprite"),
@@ -2222,6 +2226,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("troo.sprite"),
@@ -2972,6 +2977,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 400.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("sarg.sprite"),
@@ -3546,6 +3552,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 400.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("sarg.sprite"),
@@ -4120,6 +4127,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 1000.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("boss.sprite"),
@@ -4787,6 +4795,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 15.0 * FRAME_RATE,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bal7.sprite"),
@@ -4938,6 +4947,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bar1.sprite"),
@@ -5127,6 +5137,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 10.0 * FRAME_RATE,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bal1.sprite"),
@@ -5274,6 +5285,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 10.0 * FRAME_RATE,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bal2.sprite"),
@@ -5421,6 +5433,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 20.0 * FRAME_RATE,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("misl.sprite"),
@@ -5549,6 +5562,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 25.0 * FRAME_RATE,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("apls.sprite"),
@@ -5734,6 +5748,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("puff.sprite"),
@@ -5860,6 +5875,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("puff.sprite"),
@@ -6209,6 +6225,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("tfog.sprite"),
@@ -6487,6 +6504,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("ifog.sprite"),
@@ -6670,6 +6688,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				TransformDef {
 					spawn_on_ceiling: false,
@@ -6700,6 +6719,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("arm1.sprite"),
@@ -6780,6 +6800,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("arm2.sprite"),
@@ -6860,6 +6881,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bon1.sprite"),
@@ -7016,6 +7038,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bon2.sprite"),
@@ -7172,6 +7195,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bkey.sprite"),
@@ -7252,6 +7276,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("rkey.sprite"),
@@ -7332,6 +7357,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("ykey.sprite"),
@@ -7412,6 +7438,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("stim.sprite"),
@@ -7466,6 +7493,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("medi.sprite"),
@@ -7520,6 +7548,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("soul.sprite"),
@@ -7676,6 +7705,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("pins.sprite"),
@@ -7794,6 +7824,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("suit.sprite"),
@@ -7848,6 +7879,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("pmap.sprite"),
@@ -8004,6 +8036,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("pvis.sprite"),
@@ -8084,6 +8117,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("clip.sprite"),
@@ -8138,6 +8172,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("ammo.sprite"),
@@ -8192,6 +8227,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("rock.sprite"),
@@ -8246,6 +8282,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("brok.sprite"),
@@ -8300,6 +8337,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("shel.sprite"),
@@ -8354,6 +8392,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("sbox.sprite"),
@@ -8408,6 +8447,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bpak.sprite"),
@@ -8462,6 +8502,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("mgun.sprite"),
@@ -8516,6 +8557,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("csaw.sprite"),
@@ -8570,6 +8612,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("laun.sprite"),
@@ -8624,6 +8667,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("shot.sprite"),
@@ -8678,6 +8722,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("colu.sprite"),
@@ -8732,6 +8777,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("tred.sprite"),
@@ -8850,6 +8896,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("elec.sprite"),
@@ -8904,6 +8951,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("cand.sprite"),
@@ -8958,6 +9006,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("cbra.sprite"),
@@ -9012,6 +9061,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("play.sprite"),
@@ -9066,6 +9116,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("poss.sprite"),
@@ -9120,6 +9171,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("sarg.sprite"),
@@ -9174,6 +9226,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("troo.sprite"),
@@ -9228,6 +9281,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("spos.sprite"),
@@ -9282,6 +9336,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("play.sprite"),
@@ -9336,6 +9391,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("play.sprite"),
@@ -9390,6 +9446,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("pol5.sprite"),
@@ -9452,6 +9509,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 400.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("head.sprite"),
@@ -9893,6 +9951,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 50.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("skul.sprite"),
@@ -10271,6 +10330,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 1000.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("spid.sprite"),
@@ -10919,6 +10979,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 1000.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("cybr.sprite"),
@@ -11487,6 +11548,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 25.0 * FRAME_RATE,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("plss.sprite"),
@@ -11672,6 +11734,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 25.0 * FRAME_RATE,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bfs1.sprite"),
@@ -11876,6 +11939,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bfe2.sprite"),
@@ -12002,6 +12066,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("ysku.sprite"),
@@ -12082,6 +12147,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("rsku.sprite"),
@@ -12162,6 +12228,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bsku.sprite"),
@@ -12242,6 +12309,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("pinv.sprite"),
@@ -12360,6 +12428,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("pstr.sprite"),
@@ -12414,6 +12483,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("cell.sprite"),
@@ -12468,6 +12538,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("celp.sprite"),
@@ -12522,6 +12593,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bfug.sprite"),
@@ -12576,6 +12648,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("plas.sprite"),
@@ -12630,6 +12703,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("col1.sprite"),
@@ -12684,6 +12758,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("col2.sprite"),
@@ -12738,6 +12813,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("col3.sprite"),
@@ -12792,6 +12868,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("col4.sprite"),
@@ -12846,6 +12923,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("col6.sprite"),
@@ -12900,6 +12978,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("col5.sprite"),
@@ -12980,6 +13059,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("ceye.sprite"),
@@ -13098,6 +13178,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("fsku.sprite"),
@@ -13197,6 +13278,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("tre1.sprite"),
@@ -13251,6 +13333,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("tblu.sprite"),
@@ -13369,6 +13452,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("tgrn.sprite"),
@@ -13487,6 +13571,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("smbt.sprite"),
@@ -13605,6 +13690,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("smgt.sprite"),
@@ -13723,6 +13809,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("smrt.sprite"),
@@ -13841,6 +13928,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("smit.sprite"),
@@ -13895,6 +13983,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("gor1.sprite"),
@@ -14013,6 +14102,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("gor2.sprite"),
@@ -14067,6 +14157,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("gor3.sprite"),
@@ -14121,6 +14212,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("gor4.sprite"),
@@ -14175,6 +14267,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("gor5.sprite"),
@@ -14229,6 +14322,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("gor2.sprite"),
@@ -14283,6 +14377,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("gor4.sprite"),
@@ -14337,6 +14432,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("gor3.sprite"),
@@ -14391,6 +14487,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("gor5.sprite"),
@@ -14445,6 +14542,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("gor1.sprite"),
@@ -14563,6 +14661,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("head.sprite"),
@@ -14617,6 +14716,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("skul.sprite"),
@@ -14686,6 +14786,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("pol2.sprite"),
@@ -14740,6 +14841,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("pol4.sprite"),
@@ -14794,6 +14896,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("pol3.sprite"),
@@ -14874,6 +14977,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("pol1.sprite"),
@@ -14928,6 +15032,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("pol6.sprite"),
@@ -15008,6 +15113,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("tre2.sprite"),
@@ -15062,6 +15168,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("fcan.sprite"),
@@ -15169,6 +15276,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 500.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("vile.sprite"),
@@ -15927,6 +16035,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("fire.sprite"),
@@ -16551,6 +16660,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 500.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("skel.sprite"),
@@ -17294,6 +17404,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 10.0 * FRAME_RATE,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("fatb.sprite"),
@@ -17445,6 +17556,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 1000.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("fatt.sprite"),
@@ -18338,6 +18450,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 20.0 * FRAME_RATE,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("manf.sprite"),
@@ -18489,6 +18602,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("cpos.sprite"),
@@ -19237,6 +19351,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 1000.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bos2.sprite"),
@@ -19908,6 +20023,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 600.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bspi.sprite"),
@@ -20634,6 +20750,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 400.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("pain.sprite"),
@@ -21181,6 +21298,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("sswv.sprite"),
@@ -21948,6 +22066,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 10000000.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("keen.sprite"),
@@ -22277,6 +22396,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 10000000.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bbrn.sprite"),
@@ -22431,6 +22551,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("sswv.sprite"),
@@ -22532,6 +22653,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				TransformDef {
 					spawn_on_ceiling: false,
@@ -22562,6 +22684,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 10.0 * FRAME_RATE,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("bosf.sprite"),
@@ -22680,6 +22803,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("fire.sprite"),
@@ -22882,6 +23006,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("mega.sprite"),
@@ -23000,6 +23125,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("sgn2.sprite"),
@@ -23054,6 +23180,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("tlmp.sprite"),
@@ -23172,6 +23299,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("tlp2.sprite"),
@@ -23290,6 +23418,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb1.sprite"),
@@ -23344,6 +23473,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb2.sprite"),
@@ -23398,6 +23528,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb3.sprite"),
@@ -23452,6 +23583,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb4.sprite"),
@@ -23506,6 +23638,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb5.sprite"),
@@ -23560,6 +23693,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("hdb6.sprite"),
@@ -23614,6 +23748,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("pob1.sprite"),
@@ -23668,6 +23803,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("pob2.sprite"),
@@ -23722,6 +23858,7 @@ pub fn load(resources: &mut Resources) {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
 					mass: 100.0,
+					speed: 0.0,
 				},
 				SpriteRender {
 					sprite: asset_storage.load("brs1.sprite"),

@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		frame::{FrameRng, FrameState},
-		geometry::{Angle, Line3, AABB3},
+		geometry::{angles_to_axes, Angle, Line3, AABB3},
 		quadtree::Quadtree,
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
 		time::Timer,
@@ -258,7 +258,7 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 							}
 						}
 
-						let direction = crate::common::geometry::angles_to_axes(rotation)[0];
+						let direction = angles_to_axes(rotation)[0];
 						let trace = tracer.trace(
 							&AABB3::from_point(position),
 							direction * line_attack.distance,
@@ -393,6 +393,39 @@ pub fn set_weapon_state(resources: &mut Resources) -> impl Runnable {
 				if let Ok(weapon_state) = queries.1.get_mut(&mut world, target) {
 					let state = &mut weapon_state.slots[slot as usize];
 					state.action = StateAction::Set(next_state);
+				}
+			}
+		})
+}
+
+#[derive(Clone, Debug)]
+pub struct SpawnProjectile(pub String);
+
+pub fn spawn_projectile(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<SpawnProjectile>();
+
+	SystemBuilder::new("spawn_projectile")
+		.read_resource::<AssetStorage>()
+		.with_query(<(Entity, &Entity, &SpawnProjectile)>::query())
+		.with_query(<&Transform>::query().filter(component::<WeaponState>()))
+		.build(move |command_buffer, world, resources, queries| {
+			let asset_storage = resources;
+			let (world0, world) = world.split_for_query(&queries.0);
+
+			for (&entity, &target, SpawnProjectile(template_name)) in queries.0.iter(&world0) {
+				command_buffer.remove(entity);
+
+				if let Ok(&(mut transform)) = queries.1.get(&world, target) {
+					let handle = asset_storage
+						.handle_for(&template_name)
+						.expect("Invalid template name on SpawnProjectile");
+
+					transform.position[2] += 32.0;
+
+					command_buffer.exec_mut(move |world, resources| {
+						spawn_entity(world, resources, &handle, transform);
+					});
 				}
 			}
 		})

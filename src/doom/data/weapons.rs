@@ -6,8 +6,8 @@ use crate::{
 		sound::StartSound,
 		state::{
 			weapon::{
-				LineAttack, NextWeaponState, SetWeaponSprite, SetWeaponState, WeaponPosition,
-				WeaponReFire, WeaponReady, WeaponSpriteSlot, WeaponSpriteSlotDef,
+				LineAttack, NextWeaponState, SetWeaponSprite, SetWeaponState, SpawnProjectile,
+				WeaponPosition, WeaponReFire, WeaponReady, WeaponSpriteSlot, WeaponSpriteSlotDef,
 			},
 			EntityDef, StateName,
 		},
@@ -1310,6 +1310,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
+						SpawnProjectile("rocket".into()),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
 						StartSound(asset_storage.load("dsrlaunc.sound")),
 					));
 					world
@@ -1829,6 +1834,11 @@ pub fn load(resources: &mut Resources) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
+						SpawnProjectile("plasma".into()),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
 						StartSound(asset_storage.load("dsplasma.sound")),
 					));
 					world.push((
@@ -2099,6 +2109,11 @@ pub fn load(resources: &mut Resources) {
 							frame: 1,
 							full_bright: false,
 						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SpawnProjectile("bfg".into()),
 					));
 					world
 				},

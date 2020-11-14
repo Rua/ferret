@@ -91,13 +91,13 @@ impl SpawnMergerHandlerSet {
 		})
 	}
 
-	pub fn register_from<FromT, IntoT>(&mut self)
+	/*pub fn register_from<FromT, IntoT>(&mut self)
 	where
 		FromT: Component + Clone,
 		IntoT: Component + From<FromT>,
 	{
 		self.register_closure::<FromT, IntoT, _>(|component, _, _| FromT::clone(component).into())
-	}
+	}*/
 
 	pub fn register_spawn<FromT, IntoT>(&mut self)
 	where

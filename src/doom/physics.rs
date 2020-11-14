@@ -2,9 +2,9 @@ use crate::{
 	common::{
 		assets::AssetStorage,
 		frame::FrameState,
-		geometry::{AABB2, AABB3},
+		geometry::{angles_to_axes, AABB2, AABB3},
 		quadtree::Quadtree,
-		spawn::SpawnMergerHandlerSet,
+		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
 	},
 	doom::{
 		components::Transform,
@@ -20,7 +20,7 @@ use bitflags::bitflags;
 use legion::{
 	component,
 	systems::{ResourceSet, Runnable},
-	Entity, EntityStore, IntoQuery, Resources, SystemBuilder, Write,
+	Entity, EntityStore, IntoQuery, Read, Resources, SystemBuilder, Write,
 };
 use nalgebra::Vector3;
 use shrev::EventChannel;
@@ -87,22 +87,32 @@ pub enum CollisionResponse {
 	StepSlide,
 }
 
+/// Spawns a Physics component using the specified initial speed,
+// in the direction specified by the spawn Transform angle.
 #[derive(Clone, Copy, Debug)]
 pub struct PhysicsDef {
 	pub collision_response: CollisionResponse,
 	pub gravity: bool,
 	pub mass: f32,
+	pub speed: f32,
 }
 
-impl From<PhysicsDef> for Physics {
-	fn from(component: PhysicsDef) -> Self {
+impl SpawnFrom<PhysicsDef> for Physics {
+	fn spawn(component: &PhysicsDef, _accessor: ComponentAccessor, resources: &Resources) -> Self {
 		assert_ne!(component.mass, 0.0);
+
+		let velocity = if component.speed > 0.0 {
+			let transform = <Read<SpawnContext<Transform>>>::fetch(resources);
+			angles_to_axes(transform.0.rotation)[0] * component.speed
+		} else {
+			Vector3::zeros()
+		};
 
 		Physics {
 			collision_response: component.collision_response,
 			gravity: component.gravity,
 			mass: component.mass,
-			velocity: Vector3::zeros(),
+			velocity,
 		}
 	}
 }
@@ -115,7 +125,7 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<BoxCollider>();
 	handler_set.register_clone::<TouchAction>();
 	handler_set.register_clone::<Physics>();
-	handler_set.register_from::<PhysicsDef, Physics>();
+	handler_set.register_spawn::<PhysicsDef, Physics>();
 
 	SystemBuilder::new("physics")
 		.read_resource::<AssetStorage>()
@@ -167,22 +177,25 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 						solid_type,
 					);
 
-					if let Some(collision) = trace.collision {
-						// Entity is on ground, apply friction
-						// TODO make this work with any ground normal
-						let factor = FRICTION.powf(frame_state.delta_time.as_secs_f32());
-						physics.velocity[0] *= factor;
-						physics.velocity[1] *= factor;
+					// Only things that get pulled to the ground can experience friction
+					if physics.gravity {
+						if let Some(collision) = trace.collision {
+							// Entity is on ground, apply friction
+							// TODO make this work with any ground normal
+							let factor = FRICTION.powf(frame_state.delta_time.as_secs_f32());
+							physics.velocity[0] *= factor;
+							physics.velocity[1] *= factor;
 
-						// Send touch event
-						touch_events.push(TouchEvent {
-							toucher: entity,
-							touched: collision.entity,
-							collision: None,
-						});
-					} else if physics.gravity {
-						// Entity isn't on ground, apply gravity
-						physics.velocity[2] -= GRAVITY * frame_state.delta_time.as_secs_f32();
+							// Send touch event
+							touch_events.push(TouchEvent {
+								toucher: entity,
+								touched: collision.entity,
+								collision: None,
+							});
+						} else {
+							// Entity isn't on ground, apply gravity
+							physics.velocity[2] -= GRAVITY * frame_state.delta_time.as_secs_f32();
+						}
 					}
 				}
 
