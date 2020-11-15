@@ -1312,11 +1312,6 @@ pub fn load(resources: &mut Resources) {
 						WeaponSpriteSlotDef,
 						SpawnProjectile("rocket".into()),
 					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						StartSound(asset_storage.load("dsrlaunc.sound")),
-					));
 					world
 				},
 				{
@@ -1835,11 +1830,6 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						WeaponSpriteSlotDef,
 						SpawnProjectile("plasma".into()),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						StartSound(asset_storage.load("dsplasma.sound")),
 					));
 					world.push((
 						EntityDef,

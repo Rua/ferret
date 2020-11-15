@@ -421,6 +421,8 @@ pub fn spawn_projectile(resources: &mut Resources) -> impl Runnable {
 						.handle_for(&template_name)
 						.expect("Invalid template name on SpawnProjectile");
 
+					let direction = angles_to_axes(transform.rotation)[0];
+					transform.position += direction; // Start a little forward from the spawner
 					transform.position[2] += 32.0;
 
 					command_buffer.exec_mut(move |world, resources| {

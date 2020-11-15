@@ -4810,15 +4810,38 @@ pub fn load(resources: &mut Resources) {
 			world
 		},
 		states: {
-			let mut states = HashMap::with_capacity(5);
+			let mut states = HashMap::with_capacity(6);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				{
 					let mut world = World::default();
 					world.push((
 						EntityDef,
 						NextState {
-							time: 4 * FRAME_TIME,
+							time: 0 * FRAME_TIME,
 							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal7.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirsht.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
 						},
 					));
 					world.push((
@@ -4837,7 +4860,7 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						NextState {
 							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
+							state: (StateName::from("spawn").unwrap(), 1),
 						},
 					));
 					world.push((
@@ -5152,15 +5175,38 @@ pub fn load(resources: &mut Resources) {
 			world
 		},
 		states: {
-			let mut states = HashMap::with_capacity(5);
+			let mut states = HashMap::with_capacity(6);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				{
 					let mut world = World::default();
 					world.push((
 						EntityDef,
 						NextState {
-							time: 4 * FRAME_TIME,
+							time: 0 * FRAME_TIME,
 							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal1.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirsht.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
 						},
 					));
 					world.push((
@@ -5179,7 +5225,7 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						NextState {
 							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
+							state: (StateName::from("spawn").unwrap(), 1),
 						},
 					));
 					world.push((
@@ -5300,15 +5346,38 @@ pub fn load(resources: &mut Resources) {
 			world
 		},
 		states: {
-			let mut states = HashMap::with_capacity(5);
+			let mut states = HashMap::with_capacity(6);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				{
 					let mut world = World::default();
 					world.push((
 						EntityDef,
 						NextState {
-							time: 4 * FRAME_TIME,
+							time: 0 * FRAME_TIME,
 							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal2.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirsht.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
 						},
 					));
 					world.push((
@@ -5327,7 +5396,7 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						NextState {
 							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
+							state: (StateName::from("spawn").unwrap(), 1),
 						},
 					));
 					world.push((
@@ -5448,15 +5517,38 @@ pub fn load(resources: &mut Resources) {
 			world
 		},
 		states: {
-			let mut states = HashMap::with_capacity(4);
+			let mut states = HashMap::with_capacity(5);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				{
 					let mut world = World::default();
 					world.push((
 						EntityDef,
 						NextState {
+							time: 0 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("misl.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsrlaunc.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
 							time: 1 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
+							state: (StateName::from("spawn").unwrap(), 1),
 						},
 					));
 					world.push((
@@ -5577,15 +5669,38 @@ pub fn load(resources: &mut Resources) {
 			world
 		},
 		states: {
-			let mut states = HashMap::with_capacity(7);
+			let mut states = HashMap::with_capacity(8);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				{
 					let mut world = World::default();
 					world.push((
 						EntityDef,
 						NextState {
-							time: 5 * FRAME_TIME,
+							time: 0 * FRAME_TIME,
 							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("apls.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsplasma.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
 						},
 					));
 					world.push((
@@ -5604,7 +5719,7 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						NextState {
 							time: 5 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
+							state: (StateName::from("spawn").unwrap(), 1),
 						},
 					));
 					world.push((
@@ -11563,15 +11678,38 @@ pub fn load(resources: &mut Resources) {
 			world
 		},
 		states: {
-			let mut states = HashMap::with_capacity(7);
+			let mut states = HashMap::with_capacity(8);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				{
 					let mut world = World::default();
 					world.push((
 						EntityDef,
 						NextState {
-							time: 6 * FRAME_TIME,
+							time: 0 * FRAME_TIME,
 							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plss.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsplasma.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
 						},
 					));
 					world.push((
@@ -11590,7 +11728,7 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						NextState {
 							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
+							state: (StateName::from("spawn").unwrap(), 1),
 						},
 					));
 					world.push((
@@ -17419,15 +17557,38 @@ pub fn load(resources: &mut Resources) {
 			world
 		},
 		states: {
-			let mut states = HashMap::with_capacity(5);
+			let mut states = HashMap::with_capacity(6);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				{
 					let mut world = World::default();
 					world.push((
 						EntityDef,
 						NextState {
-							time: 2 * FRAME_TIME,
+							time: 0 * FRAME_TIME,
 							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fatb.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsskeatk.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
 						},
 					));
 					world.push((
@@ -17446,7 +17607,7 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						NextState {
 							time: 2 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
+							state: (StateName::from("spawn").unwrap(), 1),
 						},
 					));
 					world.push((
@@ -18465,15 +18626,38 @@ pub fn load(resources: &mut Resources) {
 			world
 		},
 		states: {
-			let mut states = HashMap::with_capacity(5);
+			let mut states = HashMap::with_capacity(6);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				{
 					let mut world = World::default();
 					world.push((
 						EntityDef,
 						NextState {
-							time: 4 * FRAME_TIME,
+							time: 0 * FRAME_TIME,
 							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("manf.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirsht.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
 						},
 					));
 					world.push((
@@ -18492,7 +18676,7 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						NextState {
 							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
+							state: (StateName::from("spawn").unwrap(), 1),
 						},
 					));
 					world.push((
@@ -22699,15 +22883,38 @@ pub fn load(resources: &mut Resources) {
 			world
 		},
 		states: {
-			let mut states = HashMap::with_capacity(4);
+			let mut states = HashMap::with_capacity(5);
 			states.insert(StateName::from("spawn").unwrap(), vec![
 				{
 					let mut world = World::default();
 					world.push((
 						EntityDef,
 						NextState {
-							time: 3 * FRAME_TIME,
+							time: 0 * FRAME_TIME,
 							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bosf.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsbospit.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
 						},
 					));
 					world.push((
@@ -22726,7 +22933,7 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						NextState {
 							time: 3 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
+							state: (StateName::from("spawn").unwrap(), 3),
 						},
 					));
 					world.push((
@@ -22745,7 +22952,7 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						NextState {
 							time: 3 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
+							state: (StateName::from("spawn").unwrap(), 4),
 						},
 					));
 					world.push((
@@ -22764,7 +22971,7 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						NextState {
 							time: 3 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
+							state: (StateName::from("spawn").unwrap(), 1),
 						},
 					));
 					world.push((
