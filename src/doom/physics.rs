@@ -280,10 +280,9 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 				}
 			}
 
-			/*			command_buffer.exec_mut(move |_world, resources| {
-				resources.remove::<SpawnContext<Entity>>();
-				resources.remove::<SpawnContext<WeaponSpriteSlot>>();
-			});*/
+			command_buffer.exec_mut(move |_world, resources| {
+				resources.remove::<SpawnContext<TouchEvent>>();
+			});
 		})
 }
 
