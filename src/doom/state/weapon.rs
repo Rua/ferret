@@ -101,7 +101,7 @@ pub fn weapon_state(resources: &mut Resources) -> impl Runnable {
 
 	const SLOTS: [WeaponSpriteSlot; 2] = [WeaponSpriteSlot::Weapon, WeaponSpriteSlot::Flash];
 
-	SystemBuilder::new("set_weapon_state")
+	SystemBuilder::new("weapon_state")
 		.read_resource::<FrameState>()
 		.read_resource::<StateSystemsRun>()
 		.with_query(<(Entity, &mut WeaponState)>::query())

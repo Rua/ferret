@@ -12,8 +12,9 @@ use std::collections::HashMap;
 pub struct EntityTemplate {
 	pub name: Option<&'static str>,
 	pub type_id: Option<EntityTypeId>,
-	pub states: HashMap<StateName, Vec<World>>,
 	pub world: World,
+	pub touch: World,
+	pub states: HashMap<StateName, Vec<World>>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

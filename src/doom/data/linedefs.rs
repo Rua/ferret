@@ -3,10 +3,10 @@ use crate::{
 	doom::{
 		client::UseAction,
 		data::{FRAME_RATE, FRAME_TIME},
-		door::{DoorParams, DoorState, DoorSwitchUse, DoorTouch, DoorUse},
-		floor::{FloorParams, FloorSwitchUse, FloorTargetHeight, FloorTouch},
-		physics::TouchAction,
-		plat::{PlatParams, PlatSwitchUse, PlatTargetHeight, PlatTouch},
+		door::{DoorLinedefTouch, DoorParams, DoorState, DoorSwitchUse, DoorUse},
+		floor::{FloorLinedefTouch, FloorParams, FloorSwitchUse, FloorTargetHeight},
+		physics::{TouchEventDef, Touchable},
+		plat::{PlatLinedefTouch, PlatParams, PlatSwitchUse, PlatTargetHeight},
 		switch::SwitchParams,
 		template::{EntityTemplate, EntityTypeId},
 		texture::TextureScroll,
@@ -843,8 +843,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(90)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::DoorTouch(DoorTouch {
+				TouchEventDef,
+				DoorLinedefTouch {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Closed,
@@ -856,7 +862,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsdorcls.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -869,8 +875,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(105)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::DoorTouch(DoorTouch {
+				TouchEventDef,
+				DoorLinedefTouch {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Closed,
@@ -882,7 +894,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsbdcls.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -895,8 +907,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(4)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::DoorTouch(DoorTouch {
+				TouchEventDef,
+				DoorLinedefTouch {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Closed,
@@ -908,7 +926,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsdorcls.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -921,8 +939,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(108)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::DoorTouch(DoorTouch {
+				TouchEventDef,
+				DoorLinedefTouch {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Closed,
@@ -934,7 +958,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsbdcls.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -951,8 +975,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(86)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::DoorTouch(DoorTouch {
+				TouchEventDef,
+				DoorLinedefTouch {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -964,7 +994,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsdorcls.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -977,8 +1007,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(106)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::DoorTouch(DoorTouch {
+				TouchEventDef,
+				DoorLinedefTouch {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -990,7 +1026,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsbdcls.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -1003,8 +1039,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(2)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::DoorTouch(DoorTouch {
+				TouchEventDef,
+				DoorLinedefTouch {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -1016,7 +1058,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsdorcls.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -1029,8 +1071,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(109)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::DoorTouch(DoorTouch {
+				TouchEventDef,
+				DoorLinedefTouch {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -1042,7 +1090,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsbdcls.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -1059,8 +1107,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(75)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::DoorTouch(DoorTouch {
+				TouchEventDef,
+				DoorLinedefTouch {
 					params: DoorParams {
 						start_state: DoorState::Open,
 						end_state: DoorState::Closed,
@@ -1072,7 +1126,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsdorcls.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -1085,8 +1139,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(107)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::DoorTouch(DoorTouch {
+				TouchEventDef,
+				DoorLinedefTouch {
 					params: DoorParams {
 						start_state: DoorState::Open,
 						end_state: DoorState::Closed,
@@ -1098,7 +1158,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsbdcls.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -1111,8 +1171,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(3)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::DoorTouch(DoorTouch {
+				TouchEventDef,
+				DoorLinedefTouch {
 					params: DoorParams {
 						start_state: DoorState::Open,
 						end_state: DoorState::Closed,
@@ -1124,7 +1190,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsdorcls.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -1137,8 +1203,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(110)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::DoorTouch(DoorTouch {
+				TouchEventDef,
+				DoorLinedefTouch {
 					params: DoorParams {
 						start_state: DoorState::Open,
 						end_state: DoorState::Closed,
@@ -1150,7 +1222,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsbdcls.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -1167,8 +1239,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(76)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::DoorTouch(DoorTouch {
+				TouchEventDef,
+				DoorLinedefTouch {
 					params: DoorParams {
 						start_state: DoorState::Open,
 						end_state: DoorState::Open,
@@ -1180,7 +1258,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsdorcls.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -1193,8 +1271,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(16)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::DoorTouch(DoorTouch {
+				TouchEventDef,
+				DoorLinedefTouch {
 					params: DoorParams {
 						start_state: DoorState::Open,
 						end_state: DoorState::Open,
@@ -1206,7 +1290,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsdorcls.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -1650,8 +1734,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(92)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::Current,
@@ -1661,7 +1751,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -1674,8 +1764,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(58)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::Current,
@@ -1685,7 +1781,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -1699,8 +1795,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(93)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::Current,
@@ -1710,7 +1812,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -1724,8 +1826,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(59)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::Current,
@@ -1735,7 +1843,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -1752,8 +1860,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(82)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourFloor,
@@ -1763,7 +1877,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -1776,8 +1890,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(38)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourFloor,
@@ -1787,7 +1907,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -1801,8 +1921,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(84)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourFloor,
@@ -1812,7 +1938,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -1826,8 +1952,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(37)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourFloor,
@@ -1837,7 +1969,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -1854,8 +1986,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(128)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
@@ -1865,7 +2003,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -1878,8 +2016,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(119)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
@@ -1889,7 +2033,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -1902,8 +2046,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(129)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 4.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
@@ -1913,7 +2063,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -1926,8 +2076,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(130)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 4.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
@@ -1937,7 +2093,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -1954,8 +2110,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(91)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
@@ -1965,7 +2127,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -1978,8 +2140,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(5)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
@@ -1989,7 +2157,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -2003,8 +2171,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(94)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
@@ -2014,7 +2188,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -2028,8 +2202,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(56)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
@@ -2039,7 +2219,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -2056,8 +2236,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(83)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::HighestNeighbourFloor,
@@ -2067,7 +2253,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -2080,8 +2266,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(19)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::HighestNeighbourFloor,
@@ -2091,7 +2283,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -2104,8 +2296,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(98)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 4.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::HighestNeighbourFloor,
@@ -2115,7 +2313,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -2128,8 +2326,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(36)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::FloorTouch(FloorTouch {
+				TouchEventDef,
+				FloorLinedefTouch {
 					params: FloorParams {
 						speed: 4.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::HighestNeighbourFloor,
@@ -2139,7 +2343,7 @@ pub fn load(resources: &mut Resources) {
 						finish_sound: Some(asset_storage.load("dspstop.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -2296,8 +2500,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(88)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::PlatTouch(PlatTouch {
+				TouchEventDef,
+				PlatLinedefTouch {
 					params: PlatParams {
 						speed: 4.0 * FRAME_RATE,
 						wait_time: 105 * FRAME_TIME,
@@ -2314,7 +2524,7 @@ pub fn load(resources: &mut Resources) {
 						high_height_offset: 0.0,
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -2327,8 +2537,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(120)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::PlatTouch(PlatTouch {
+				TouchEventDef,
+				PlatLinedefTouch {
 					params: PlatParams {
 						speed: 8.0 * FRAME_RATE,
 						wait_time: 105 * FRAME_TIME,
@@ -2345,7 +2561,7 @@ pub fn load(resources: &mut Resources) {
 						high_height_offset: 0.0,
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -2358,8 +2574,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(10)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::PlatTouch(PlatTouch {
+				TouchEventDef,
+				PlatLinedefTouch {
 					params: PlatParams {
 						speed: 4.0 * FRAME_RATE,
 						wait_time: 105 * FRAME_TIME,
@@ -2376,7 +2598,7 @@ pub fn load(resources: &mut Resources) {
 						high_height_offset: 0.0,
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -2389,8 +2611,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(121)),
 		world: {
 			let mut world = World::default();
+			world.push((Touchable,));
+			world
+		},
+		touch: {
+			let mut world = World::default();
 			world.push((
-				TouchAction::PlatTouch(PlatTouch {
+				TouchEventDef,
+				PlatLinedefTouch {
 					params: PlatParams {
 						speed: 8.0 * FRAME_RATE,
 						wait_time: 105 * FRAME_TIME,
@@ -2407,7 +2635,7 @@ pub fn load(resources: &mut Resources) {
 						high_height_offset: 0.0,
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},

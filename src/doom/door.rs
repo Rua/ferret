@@ -9,7 +9,7 @@ use crate::{
 	doom::{
 		client::{UseAction, UseEvent},
 		map::{LinedefRef, Map, MapDynamic},
-		physics::{TouchAction, TouchEvent},
+		physics::{TouchEvent, Touchable},
 		sectormove::{CeilingMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
 		sound::{Sound, StartSound},
 		switch::{SwitchActive, SwitchParams},
@@ -307,61 +307,56 @@ pub fn door_switch_system(resources: &mut Resources) -> impl Runnable {
 }
 
 #[derive(Clone, Debug)]
-pub struct DoorTouch {
+pub struct DoorLinedefTouch {
 	pub params: DoorParams,
 	pub retrigger: bool,
 }
 
-pub fn door_touch_system(resources: &mut Resources) -> impl Runnable {
-	let mut touch_event_reader = resources
-		.get_mut::<EventChannel<TouchEvent>>()
-		.unwrap()
-		.register_reader();
+pub fn door_linedef_touch(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<DoorLinedefTouch>();
 
-	SystemBuilder::new("door_touch_system")
+	SystemBuilder::new("door_linedef_touch")
 		.read_resource::<AssetStorage>()
-		.read_resource::<EventChannel<TouchEvent>>()
 		.read_resource::<FrameState>()
-		.with_query(<(&LinedefRef, &TouchAction)>::query())
+		.with_query(<(Entity, &TouchEvent, &DoorLinedefTouch)>::query())
+		.with_query(<&LinedefRef>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<DoorActive>() // used by activate_with_tag
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, touch_event_channel, frame_state) = resources;
+			let (asset_storage, frame_state) = resources;
 
-			let (mut world0, mut world) = world.split_for_query(&queries.0);
-			let (mut world1, world) = world.split_for_query(&queries.1);
+			let (world0, mut world) = world.split_for_query(&queries.0);
+			let (mut world1, mut world) = world.split_for_query(&queries.1);
+			let (mut world2, world) = world.split_for_query(&queries.2);
 
-			for touch_event in touch_event_channel.read(&mut touch_event_reader) {
+			for (&entity, touch_event, door_linedef_touch) in queries.0.iter(&world0) {
+				command_buffer.remove(entity);
+
 				if touch_event.collision.is_some() {
 					continue;
 				}
 
-				let (linedef_ref, door_touch) =
-					match queries.0.get_mut(&mut world0, touch_event.touched) {
-						Ok((linedef_ref, TouchAction::DoorTouch(door_touch))) => {
-							(linedef_ref, door_touch)
+				if let Ok(linedef_ref) = queries.1.get_mut(&mut world1, touch_event.entity) {
+					let map_dynamic = queries
+						.2
+						.get_mut(&mut world2, linedef_ref.map_entity)
+						.unwrap();
+					let map = asset_storage.get(&map_dynamic.map).unwrap();
+					let linedef = &map.linedefs[linedef_ref.index];
+
+					if activate_with_tag(
+						&door_linedef_touch.params,
+						command_buffer,
+						frame_state,
+						linedef.sector_tag,
+						&world,
+						map,
+						map_dynamic,
+					) {
+						if !door_linedef_touch.retrigger {
+							command_buffer.remove_component::<Touchable>(touch_event.entity);
 						}
-						_ => continue,
-					};
-
-				let map_dynamic = queries
-					.1
-					.get_mut(&mut world1, linedef_ref.map_entity)
-					.unwrap();
-				let map = asset_storage.get(&map_dynamic.map).unwrap();
-				let linedef = &map.linedefs[linedef_ref.index];
-
-				if activate_with_tag(
-					&door_touch.params,
-					command_buffer,
-					frame_state,
-					linedef.sector_tag,
-					&world,
-					map,
-					map_dynamic,
-				) {
-					if !door_touch.retrigger {
-						command_buffer.remove_component::<TouchAction>(touch_event.touched);
 					}
 				}
 			}

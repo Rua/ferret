@@ -4,8 +4,8 @@ use crate::{
 	},
 	doom::{
 		data::FRAME_RATE,
-		physics::{Physics, StepEvent, TouchEvent},
-		sound::{Sound, StartSound},
+		physics::{Physics, StepEvent},
+		sound::Sound,
 	},
 };
 use legion::{
@@ -28,41 +28,19 @@ pub struct Camera {
 }
 
 pub fn camera_system(resources: &mut Resources) -> impl Runnable {
-	let (mut handler_set, mut step_event_channel, mut touch_event_channel) =
-		<(
-			Write<SpawnMergerHandlerSet>,
-			Write<EventChannel<StepEvent>>,
-			Write<EventChannel<TouchEvent>>,
-		)>::fetch_mut(resources);
+	let (mut handler_set, mut step_event_channel) =
+		<(Write<SpawnMergerHandlerSet>, Write<EventChannel<StepEvent>>)>::fetch_mut(resources);
 
 	handler_set.register_clone::<Camera>();
 	let mut step_event_reader = step_event_channel.register_reader();
-	let mut touch_event_reader = touch_event_channel.register_reader();
 
 	SystemBuilder::new("camera_system")
 		.read_resource::<FrameState>()
 		.read_resource::<EventChannel<StepEvent>>()
-		.read_resource::<EventChannel<TouchEvent>>()
 		.with_query(<&mut Camera>::query())
 		.with_query(<(&MovementBob, &mut Camera)>::query())
-		.build(move |command_buffer, world, resources, queries| {
-			let (frame_state, step_event_channel, touch_event_channel) = resources;
-
-			// Entity hitting the ground
-			for touch_event in touch_event_channel.read(&mut touch_event_reader) {
-				if let (Ok(mut camera), Some(collision)) = (
-					queries.0.get_mut(world, touch_event.toucher),
-					touch_event.collision,
-				) {
-					let down_speed = collision.normal[2] * collision.speed;
-
-					if down_speed >= 8.0 * FRAME_RATE {
-						camera.deviation_velocity = -down_speed / 8.0;
-						command_buffer
-							.push((touch_event.toucher, StartSound(camera.impact_sound.clone())));
-					}
-				}
-			}
+		.build(move |_command_buffer, world, resources, queries| {
+			let (frame_state, step_event_channel) = resources;
 
 			// Entity stepping up
 			for step_event in step_event_channel.read(&mut step_event_reader) {

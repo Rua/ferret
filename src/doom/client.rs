@@ -8,13 +8,14 @@ use crate::{
 		spawn::SpawnMergerHandlerSet,
 	},
 	doom::{
+		camera::Camera,
 		components::Transform,
-		data::{FORWARD_ACCEL, STRAFE_ACCEL},
+		data::{FORWARD_ACCEL, FRAME_RATE, STRAFE_ACCEL},
 		door::{DoorSwitchUse, DoorUse},
 		floor::FloorSwitchUse,
 		input::{BoolInput, FloatInput, UserCommand},
 		map::MapDynamic,
-		physics::{BoxCollider, Physics},
+		physics::{BoxCollider, Physics, TouchEvent},
 		plat::PlatSwitchUse,
 		sound::{Sound, StartSound},
 		state::weapon::WeaponState,
@@ -311,6 +312,39 @@ pub fn player_weapon_system(_resources: &mut Resources) -> impl Runnable {
 					.map(Clone::clone)
 				{
 					weapon_state.switch_to = Some(switch_to);
+				}
+			}
+		})
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct PlayerTouch;
+
+pub fn player_touch(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<PlayerTouch>();
+
+	SystemBuilder::new("player_touch")
+		.with_query(<(Entity, &TouchEvent, &PlayerTouch)>::query())
+		.with_query(<&mut Camera>::query())
+		.build(move |command_buffer, world, _resources, queries| {
+			let (world0, mut world) = world.split_for_query(&queries.0);
+
+			for (&entity, touch_event, PlayerTouch) in queries.0.iter(&world0) {
+				command_buffer.remove(entity);
+
+				// Shift the camera downwards if hitting the ground
+				if let (Ok(camera), Some(collision)) = (
+					queries.1.get_mut(&mut world, touch_event.entity),
+					touch_event.collision,
+				) {
+					let down_speed = collision.normal[2] * collision.speed;
+
+					if down_speed >= 8.0 * FRAME_RATE {
+						camera.deviation_velocity = -down_speed / 8.0;
+						command_buffer
+							.push((touch_event.entity, StartSound(camera.impact_sound.clone())));
+					}
 				}
 			}
 		})

@@ -3,14 +3,14 @@ use crate::{
 	common::{assets::AssetStorage, frame::FrameRngDef},
 	doom::{
 		camera::{Camera, MovementBob},
-		client::User,
+		client::{User, PlayerTouch},
 		components::{RandomTransformDef, SpawnPoint, TransformDef},
 		data::{FRAME_RATE, FRAME_TIME},
 		draw::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
 		health::HealthDef,
 		physics::{
 			BoxCollider, CollisionResponse, DamageParticle, Physics, PhysicsDef, SolidBits,
-			SolidType,
+			SolidType, TouchEventDef, Touchable,
 		},
 		sound::StartSound,
 		state::{
@@ -162,6 +162,7 @@ pub fn load(resources: &mut Resources) {
 					full_bright: false,
 				},
 				StateDef,
+				Touchable,
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
@@ -649,6 +650,14 @@ pub fn load(resources: &mut Resources) {
 				},
 			]);
 			states
+		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				PlayerTouch,
+			));
+			world
 		},
 		.. EntityTemplate::default()
 	};

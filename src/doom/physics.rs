@@ -9,10 +9,9 @@ use crate::{
 	doom::{
 		components::Transform,
 		data::{FRICTION, GRAVITY},
-		door::DoorTouch,
-		floor::FloorTouch,
 		map::MapDynamic,
-		plat::PlatTouch,
+		spawn::spawn_helper,
+		template::EntityTemplateRef,
 		trace::EntityTracer,
 	},
 };
@@ -119,11 +118,11 @@ impl SpawnFrom<PhysicsDef> for Physics {
 
 pub fn physics(resources: &mut Resources) -> impl Runnable {
 	resources.insert(EventChannel::<StepEvent>::new());
-	resources.insert(EventChannel::<TouchEvent>::new());
 
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_clone::<BoxCollider>();
-	handler_set.register_clone::<TouchAction>();
+	handler_set.register_clone::<Touchable>();
+	handler_set.register_spawn::<TouchEventDef, TouchEvent>();
 	handler_set.register_clone::<Physics>();
 	handler_set.register_spawn::<PhysicsDef, Physics>();
 
@@ -132,18 +131,18 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<FrameState>()
 		.write_resource::<Quadtree>()
 		.write_resource::<EventChannel<StepEvent>>()
-		.write_resource::<EventChannel<TouchEvent>>()
 		.with_query(<&MapDynamic>::query())
 		.with_query(
 			<(Entity, &Transform)>::query()
 				.filter(component::<BoxCollider>() & component::<Physics>()),
 		)
-		.with_query(<(&mut Transform, &mut Physics, &BoxCollider)>::query())
+		.with_query(<(&Transform, &Physics, &BoxCollider)>::query())
+		.with_query(<(&mut Transform, &mut Physics)>::query())
+		.with_query(<(&EntityTemplateRef, &Touchable)>::query())
 		.read_component::<BoxCollider>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
-		.build(move |_command_buffer, world, resources, queries| {
-			let (asset_storage, frame_state, quadtree, step_event_channel, touch_event_channel) =
-				resources;
+		.build(move |command_buffer, world, resources, queries| {
+			let (asset_storage, frame_state, quadtree, step_event_channel) = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 			let map_dynamic = queries.0.iter(&world0).next().unwrap();
 			let map = asset_storage.get(&map_dynamic.map).unwrap();
@@ -152,7 +151,7 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 			let entities: Vec<Entity> = queries.1.iter(&world).map(|(e, _)| *e).collect();
 
 			for entity in entities {
-				let (&mut mut transform, &mut mut physics, box_collider) =
+				let (&(mut transform), &(mut physics), box_collider) =
 					queries.2.get_mut(&mut world, entity).unwrap();
 
 				let entity_bbox =
@@ -188,8 +187,8 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 
 							// Send touch event
 							touch_events.push(TouchEvent {
-								toucher: entity,
-								touched: collision.entity,
+								entity,
+								other: collision.entity,
 								collision: None,
 							});
 						} else {
@@ -241,15 +240,50 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 					);
 				}
 
-				let (transform_mut, physics_mut, _) =
-					queries.2.get_mut(&mut world, entity).unwrap();
+				let (transform_mut, physics_mut) = queries.3.get_mut(&mut world, entity).unwrap();
 				*transform_mut = transform;
 				*physics_mut = physics;
 
 				// Send events
 				step_event_channel.iter_write(step_events);
-				touch_event_channel.iter_write(touch_events);
+
+				for touch_event in touch_events {
+					if let Ok((template_ref, Touchable)) = queries.4.get(&world, touch_event.entity)
+					{
+						let handle = template_ref.0.clone();
+						command_buffer.exec_mut(move |world, resources| {
+							resources.insert(SpawnContext(touch_event));
+							let asset_storage = <Read<AssetStorage>>::fetch(resources);
+							let touch_world = &asset_storage.get(&handle).unwrap().touch;
+							spawn_helper(&touch_world, world, resources);
+						});
+					}
+
+					if let Ok((template_ref, Touchable)) = queries.4.get(&world, touch_event.other)
+					{
+						let touch_event = TouchEvent {
+							entity: touch_event.other,
+							other: touch_event.entity,
+							collision: touch_event.collision.map(|c| TouchEventCollision {
+								normal: -c.normal,
+								speed: c.speed,
+							}),
+						};
+						let handle = template_ref.0.clone();
+						command_buffer.exec_mut(move |world, resources| {
+							resources.insert(SpawnContext(touch_event));
+							let asset_storage = <Read<AssetStorage>>::fetch(resources);
+							let touch_world = &asset_storage.get(&handle).unwrap().touch;
+							spawn_helper(&touch_world, world, resources);
+						});
+					}
+				}
 			}
+
+			/*			command_buffer.exec_mut(move |_world, resources| {
+				resources.remove::<SpawnContext<Entity>>();
+				resources.remove::<SpawnContext<WeaponSpriteSlot>>();
+			});*/
 		})
 }
 
@@ -272,11 +306,11 @@ fn simple_move<W: EntityStore>(
 	// Commit to the move
 	*position += trace.move_step;
 
-	for touched in trace.touched.iter().copied() {
-		if touch_events.iter().find(|t| t.touched == touched).is_none() {
+	for other in trace.touched.iter().copied() {
+		if touch_events.iter().find(|t| t.other == other).is_none() {
 			touch_events.push(TouchEvent {
-				toucher: entity,
-				touched,
+				entity,
+				other,
 				collision: None,
 			});
 		}
@@ -297,13 +331,13 @@ fn simple_move<W: EntityStore>(
 
 	if let Some(event) = touch_events
 		.iter_mut()
-		.find(|t| t.touched == collision.entity)
+		.find(|t| t.other == collision.entity)
 	{
 		event.collision = touch_collision;
 	} else {
 		touch_events.push(TouchEvent {
-			toucher: entity,
-			touched: collision.entity,
+			entity,
+			other: collision.entity,
 			collision: touch_collision,
 		});
 	}
@@ -338,11 +372,11 @@ fn step_slide_move<W: EntityStore>(
 			.checked_sub(time_left.mul_f32(trace.fraction))
 			.unwrap_or_default();
 
-		for touched in trace.touched.iter().copied() {
-			if touch_events.iter().find(|t| t.touched == touched).is_none() {
+		for other in trace.touched.iter().copied() {
+			if touch_events.iter().find(|t| t.other == other).is_none() {
 				touch_events.push(TouchEvent {
-					toucher: entity,
-					touched,
+					entity,
+					other,
 					collision: None,
 				});
 			}
@@ -370,11 +404,11 @@ fn step_slide_move<W: EntityStore>(
 					*position += trace.move_step;
 					step_events.push(StepEvent { entity, height });
 
-					for touched in trace.touched.iter().copied() {
-						if touch_events.iter().find(|t| t.touched == touched).is_none() {
+					for other in trace.touched.iter().copied() {
+						if touch_events.iter().find(|t| t.other == other).is_none() {
 							touch_events.push(TouchEvent {
-								toucher: entity,
-								touched,
+								entity,
+								other,
 								collision: None,
 							});
 						}
@@ -403,13 +437,13 @@ fn step_slide_move<W: EntityStore>(
 
 		if let Some(event) = touch_events
 			.iter_mut()
-			.find(|t| t.touched == collision.entity)
+			.find(|t| t.other == collision.entity)
 		{
 			event.collision = touch_collision;
 		} else {
 			touch_events.push(TouchEvent {
-				toucher: entity,
-				touched: collision.entity,
+				entity,
+				other: collision.entity,
 				collision: touch_collision,
 			});
 		}
@@ -418,10 +452,13 @@ fn step_slide_move<W: EntityStore>(
 
 pub const DISTANCE_EPSILON: f32 = 0.03125;
 
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Touchable;
+
 #[derive(Clone, Copy, Debug)]
 pub struct TouchEvent {
-	pub toucher: Entity,
-	pub touched: Entity,
+	pub entity: Entity,
+	pub other: Entity,
 	pub collision: Option<TouchEventCollision>,
 }
 
@@ -431,11 +468,17 @@ pub struct TouchEventCollision {
 	pub speed: f32,
 }
 
-#[derive(Clone, Debug)]
-pub enum TouchAction {
-	DoorTouch(DoorTouch),
-	FloorTouch(FloorTouch),
-	PlatTouch(PlatTouch),
+#[derive(Clone, Copy, Debug, Default)]
+pub struct TouchEventDef;
+
+impl SpawnFrom<TouchEventDef> for TouchEvent {
+	fn spawn(
+		_component: &TouchEventDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> Self {
+		<Read<SpawnContext<TouchEvent>>>::fetch(resources).0
+	}
 }
 
 #[derive(Clone, Copy, Debug)]
