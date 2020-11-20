@@ -70,7 +70,7 @@ pub fn draw_world(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 				// The 1.2 factor here applies the same stretching as in the original.
 				let viewport_dimensions = ui_params.viewport_dimensions();
 				let aspect_ratio = (viewport_dimensions[0] / viewport_dimensions[1]) * 1.2;
-				let proj = perspective_matrix(90.0, aspect_ratio, Interval::new(1.0, 20000.0));
+				let proj = perspective_matrix(90.0, aspect_ratio, Interval::new(4.0, 20000.0));
 
 				// View matrix
 				let (

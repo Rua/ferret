@@ -3,7 +3,7 @@ use crate::{
 	common::{assets::AssetStorage, frame::FrameRngDef},
 	doom::{
 		camera::{Camera, MovementBob},
-		client::{User, PlayerTouch},
+		client::{PlayerTouch, User},
 		components::{RandomTransformDef, SpawnPoint, TransformDef},
 		data::{FRAME_RATE, FRAME_TIME},
 		draw::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
@@ -16,9 +16,9 @@ use crate::{
 		state::{
 			entity::{
 				NextState, NextStateRandomTimeDef, RemoveEntity, SetBlocksTypes, SetEntitySprite,
-				StateDef,
+				SetSolidType, StateDef,
 			},
-			weapon::WeaponStateDef,
+			weapon::{OwnerDef, ProjectileTouch, WeaponStateDef},
 			EntityDef, StateName,
 		},
 		template::{EntityTemplate, EntityTemplateRefDef, EntityTypeId},
@@ -4800,6 +4800,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -4812,6 +4813,7 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
+				Touchable,
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
@@ -4888,8 +4890,8 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..6 * FRAME_TIME).into(),
 							state: (StateName::from("death").unwrap(), 1),
 						},
 					));
@@ -4900,6 +4902,14 @@ pub fn load(resources: &mut Resources) {
 							frame: 2,
 							full_bright: true,
 						}),
+					));
+					world.push((
+						EntityDef,
+						SetSolidType(SolidType::PARTICLE),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirxpl.sound")),
 					));
 					world
 				},
@@ -4951,6 +4961,17 @@ pub fn load(resources: &mut Resources) {
 				},
 			]);
 			states
+		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 8.0,
+				},
+			));
+			world
 		},
 		.. EntityTemplate::default()
 	};
@@ -5165,6 +5186,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -5177,6 +5199,7 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
+				Touchable,
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
@@ -5253,8 +5276,8 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..6 * FRAME_TIME).into(),
 							state: (StateName::from("death").unwrap(), 1),
 						},
 					));
@@ -5265,6 +5288,14 @@ pub fn load(resources: &mut Resources) {
 							frame: 2,
 							full_bright: true,
 						}),
+					));
+					world.push((
+						EntityDef,
+						SetSolidType(SolidType::PARTICLE),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirxpl.sound")),
 					));
 					world
 				},
@@ -5316,6 +5347,17 @@ pub fn load(resources: &mut Resources) {
 				},
 			]);
 			states
+		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 3.0,
+				},
+			));
+			world
 		},
 		.. EntityTemplate::default()
 	};
@@ -5336,6 +5378,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -5348,6 +5391,7 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
+				Touchable,
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
@@ -5424,8 +5468,8 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..6 * FRAME_TIME).into(),
 							state: (StateName::from("death").unwrap(), 1),
 						},
 					));
@@ -5436,6 +5480,14 @@ pub fn load(resources: &mut Resources) {
 							frame: 2,
 							full_bright: true,
 						}),
+					));
+					world.push((
+						EntityDef,
+						SetSolidType(SolidType::PARTICLE),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirxpl.sound")),
 					));
 					world
 				},
@@ -5488,6 +5540,17 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 5.0,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("headshot", template);
@@ -5507,6 +5570,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -5519,6 +5583,7 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
+				Touchable,
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
@@ -5576,8 +5641,8 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..8 * FRAME_TIME).into(),
 							state: (StateName::from("death").unwrap(), 1),
 						},
 					));
@@ -5588,6 +5653,14 @@ pub fn load(resources: &mut Resources) {
 							frame: 1,
 							full_bright: true,
 						}),
+					));
+					world.push((
+						EntityDef,
+						SetSolidType(SolidType::PARTICLE),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsbarexp.sound")),
 					));
 					world
 				},
@@ -5640,6 +5713,17 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 20.0,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("rocket", template);
@@ -5659,6 +5743,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -5671,6 +5756,7 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
+				Touchable,
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
@@ -5747,8 +5833,8 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..5 * FRAME_TIME).into(),
 							state: (StateName::from("death").unwrap(), 1),
 						},
 					));
@@ -5759,6 +5845,14 @@ pub fn load(resources: &mut Resources) {
 							frame: 0,
 							full_bright: true,
 						}),
+					));
+					world.push((
+						EntityDef,
+						SetSolidType(SolidType::PARTICLE),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirxpl.sound")),
 					));
 					world
 				},
@@ -5848,6 +5942,17 @@ pub fn load(resources: &mut Resources) {
 				},
 			]);
 			states
+		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 5.0,
+				},
+			));
+			world
 		},
 		.. EntityTemplate::default()
 	};
@@ -11668,6 +11773,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -11680,6 +11786,7 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
+				Touchable,
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
@@ -11756,8 +11863,8 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..4 * FRAME_TIME).into(),
 							state: (StateName::from("death").unwrap(), 1),
 						},
 					));
@@ -11768,6 +11875,14 @@ pub fn load(resources: &mut Resources) {
 							frame: 0,
 							full_bright: true,
 						}),
+					));
+					world.push((
+						EntityDef,
+						SetSolidType(SolidType::PARTICLE),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirxpl.sound")),
 					));
 					world
 				},
@@ -11858,6 +11973,17 @@ pub fn load(resources: &mut Resources) {
 			]);
 			states
 		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 5.0,
+				},
+			));
+			world
+		},
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert_with_name("plasma", template);
@@ -11877,6 +12003,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -11889,6 +12016,7 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
+				Touchable,
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
@@ -11942,8 +12070,8 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..8 * FRAME_TIME).into(),
 							state: (StateName::from("death").unwrap(), 1),
 						},
 					));
@@ -11954,6 +12082,14 @@ pub fn load(resources: &mut Resources) {
 							frame: 0,
 							full_bright: true,
 						}),
+					));
+					world.push((
+						EntityDef,
+						SetSolidType(SolidType::PARTICLE),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsrxplod.sound")),
 					));
 					world
 				},
@@ -12062,6 +12198,17 @@ pub fn load(resources: &mut Resources) {
 				},
 			]);
 			states
+		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 100.0,
+				},
+			));
+			world
 		},
 		.. EntityTemplate::default()
 	};
@@ -17547,6 +17694,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -17559,6 +17707,7 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
+				Touchable,
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
@@ -17635,8 +17784,8 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..8 * FRAME_TIME).into(),
 							state: (StateName::from("death").unwrap(), 1),
 						},
 					));
@@ -17647,6 +17796,14 @@ pub fn load(resources: &mut Resources) {
 							frame: 0,
 							full_bright: true,
 						}),
+					));
+					world.push((
+						EntityDef,
+						SetSolidType(SolidType::PARTICLE),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsbarexp.sound")),
 					));
 					world
 				},
@@ -17698,6 +17855,17 @@ pub fn load(resources: &mut Resources) {
 				},
 			]);
 			states
+		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 10.0,
+				},
+			));
+			world
 		},
 		.. EntityTemplate::default()
 	};
@@ -18616,6 +18784,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -18628,6 +18797,7 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
+				Touchable,
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
@@ -18704,8 +18874,8 @@ pub fn load(resources: &mut Resources) {
 					let mut world = World::default();
 					world.push((
 						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..8 * FRAME_TIME).into(),
 							state: (StateName::from("death").unwrap(), 1),
 						},
 					));
@@ -18716,6 +18886,14 @@ pub fn load(resources: &mut Resources) {
 							frame: 1,
 							full_bright: true,
 						}),
+					));
+					world.push((
+						EntityDef,
+						SetSolidType(SolidType::PARTICLE),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirxpl.sound")),
 					));
 					world
 				},
@@ -18767,6 +18945,17 @@ pub fn load(resources: &mut Resources) {
 				},
 			]);
 			states
+		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 8.0,
+				},
+			));
+			world
 		},
 		.. EntityTemplate::default()
 	};
@@ -22873,6 +23062,7 @@ pub fn load(resources: &mut Resources) {
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,
+				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -22885,6 +23075,7 @@ pub fn load(resources: &mut Resources) {
 					full_bright: true,
 				},
 				StateDef,
+				Touchable,
 				TransformDef {
 					spawn_on_ceiling: false,
 				},
@@ -22995,6 +23186,17 @@ pub fn load(resources: &mut Resources) {
 				},
 			]);
 			states
+		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 3.0,
+				},
+			));
+			world
 		},
 		.. EntityTemplate::default()
 	};

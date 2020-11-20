@@ -2,7 +2,6 @@ use crate::{
 	common::{
 		assets::AssetStorage,
 		frame::FrameRng,
-		geometry::Line3,
 		spawn::{ComponentAccessor, SpawnFrom, SpawnMergerHandlerSet},
 	},
 	doom::{
@@ -43,7 +42,7 @@ impl SpawnFrom<HealthDef> for Health {
 pub struct Damage {
 	pub amount: f32,
 	pub source_entity: Entity,
-	pub line: Line3,
+	//pub line: Line3,
 }
 
 pub fn apply_damage(resources: &mut Resources) -> impl Runnable {

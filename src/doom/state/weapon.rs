@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		frame::{FrameRng, FrameState},
-		geometry::{angles_to_axes, Angle, Line3, AABB3},
+		geometry::{angles_to_axes, Angle, AABB3},
 		quadtree::Quadtree,
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
 		time::Timer,
@@ -14,7 +14,7 @@ use crate::{
 		draw::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
 		health::Damage,
 		map::{LinedefRef, MapDynamic, SectorRef},
-		physics::{BoxCollider, DamageParticle, SolidType},
+		physics::{BoxCollider, DamageParticle, SolidType, TouchEvent},
 		sound::{Sound, StartSound},
 		spawn::{spawn_entity, spawn_helper},
 		state::{State, StateAction, StateName, StateSystemsRun},
@@ -214,14 +214,14 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 		.read_component::<Transform>() // used by EntityTracer
 		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, quadtree) = resources;
-			let (mut world1, world) = world.split_for_query(&queries.2);
+			let (mut world2, world) = world.split_for_query(&queries.2);
 
 			for (&entity, &target, line_attack) in queries.0.iter(&world) {
 				command_buffer.remove(entity);
 
 				if let (Ok((box_collider, transform, weapon_state)), Ok(frame_rng)) = (
 					queries.1.get(&world, target),
-					queries.2.get_mut(&mut world1, target),
+					queries.2.get_mut(&mut world2, target),
 				) {
 					let map_dynamic = queries.3.iter(&world).next().unwrap();
 					let map = asset_storage.get(&map_dynamic.map).unwrap();
@@ -276,7 +276,7 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 								Damage {
 									amount: damage,
 									source_entity: target,
-									line: Line3::new(position, trace.move_step),
+									//line: Line3::new(position, trace.move_step),
 								},
 							));
 
@@ -352,6 +352,53 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 }
 
 #[derive(Clone, Debug)]
+pub struct ProjectileTouch {
+	pub damage_range: Uniform<u32>,
+	pub damage_multiplier: f32,
+}
+
+pub fn projectile_touch(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<ProjectileTouch>();
+
+	SystemBuilder::new("projectile_touch")
+		.with_query(<(Entity, &TouchEvent, &ProjectileTouch)>::query())
+		.with_query(<(&mut FrameRng, &Owner, &mut State)>::query())
+		.build(move |command_buffer, world, _resources, queries| {
+			let (world0, mut world) = world.split_for_query(&queries.0);
+
+			for (&entity, touch_event, projectile_touch) in queries.0.iter(&world0) {
+				command_buffer.remove(entity);
+
+				if !touch_event.collision.is_some() {
+					continue;
+				}
+
+				if let Ok((frame_rng, &Owner(source_entity), state)) =
+					queries.1.get_mut(&mut world, touch_event.entity)
+				{
+					// Kill the projectile entity
+					let new = (StateName::from("death").unwrap(), 0);
+					state.action = StateAction::Set(new);
+
+					// Apply the damage to the other entity
+					let damage = projectile_touch.damage_multiplier
+						* frame_rng.sample(projectile_touch.damage_range) as f32;
+
+					command_buffer.push((
+						touch_event.other,
+						Damage {
+							amount: damage,
+							source_entity,
+							//line: Line3::new(transform.position, physics.velocity),
+						},
+					));
+				}
+			}
+		})
+}
+
+#[derive(Clone, Debug)]
 pub struct SetWeaponSprite(pub Option<SpriteRender>);
 
 pub fn set_weapon_sprite(resources: &mut Resources) -> impl Runnable {
@@ -398,11 +445,24 @@ pub fn set_weapon_state(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct Owner(pub Entity);
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct OwnerDef;
+
+impl SpawnFrom<OwnerDef> for Owner {
+	fn spawn(_component: &OwnerDef, _accessor: ComponentAccessor, resources: &Resources) -> Self {
+		<Read<SpawnContext<Owner>>>::fetch(resources).0
+	}
+}
+
 #[derive(Clone, Debug)]
 pub struct SpawnProjectile(pub String);
 
 pub fn spawn_projectile(resources: &mut Resources) -> impl Runnable {
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_spawn::<OwnerDef, Owner>();
 	handler_set.register_clone::<SpawnProjectile>();
 
 	SystemBuilder::new("spawn_projectile")
@@ -426,10 +486,15 @@ pub fn spawn_projectile(resources: &mut Resources) -> impl Runnable {
 					transform.position[2] += 32.0;
 
 					command_buffer.exec_mut(move |world, resources| {
+						resources.insert(SpawnContext(Owner(target)));
 						spawn_entity(world, resources, &handle, transform);
 					});
 				}
 			}
+
+			command_buffer.exec_mut(move |_world, resources| {
+				resources.remove::<SpawnContext<Owner>>();
+			})
 		})
 }
 

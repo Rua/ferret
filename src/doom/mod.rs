@@ -70,11 +70,14 @@ use crate::{
 		},
 		sprite::{import_sprite, Sprite},
 		state::{
-			entity::{next_entity_state, remove_entity, set_blocks_types, set_entity_sprite},
+			entity::{
+				next_entity_state, remove_entity, set_blocks_types, set_entity_sprite,
+				set_solid_type,
+			},
 			state,
 			weapon::{
-				line_attack, next_weapon_state, set_weapon_sprite, set_weapon_state,
-				spawn_projectile, weapon_position, weapon_ready, weapon_refire,
+				line_attack, next_weapon_state, projectile_touch, set_weapon_sprite,
+				set_weapon_state, spawn_projectile, weapon_position, weapon_ready, weapon_refire,
 			},
 		},
 		switch::switch_active_system,
@@ -226,11 +229,14 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 		.add_thread_local(player_move_system(resources)).flush()
 		.add_thread_local(player_weapon_system(resources)).flush()
 		.add_thread_local(player_use_system(resources)).flush()
+
 		.add_thread_local(physics(resources)).flush()
 		.add_thread_local(door_linedef_touch(resources)).flush()
 		.add_thread_local(floor_linedef_touch(resources)).flush()
 		.add_thread_local(plat_linedef_touch(resources)).flush()
 		.add_thread_local(player_touch(resources)).flush()
+		.add_thread_local(projectile_touch(resources)).flush()
+
 		.add_thread_local(movement_bob_system(resources)).flush()
 		.add_thread_local(camera_system(resources)).flush()
 		.add_thread_local(door_use_system(resources)).flush()
@@ -253,6 +259,7 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 				.add_system(remove_entity(resources))
 				.add_system(set_blocks_types(resources))
 				.add_system(set_entity_sprite(resources))
+				.add_system(set_solid_type(resources))
 				.add_system(next_weapon_state(resources))
 				.add_system(line_attack(resources))
 				.add_system(set_weapon_sprite(resources))

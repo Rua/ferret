@@ -7,7 +7,7 @@ use crate::{
 	},
 	doom::{
 		draw::sprite::SpriteRender,
-		physics::{BoxCollider, SolidBits},
+		physics::{BoxCollider, SolidBits, SolidType},
 		spawn::spawn_helper,
 		state::{State, StateAction, StateName, StateSystemsRun},
 		template::{EntityTemplate, EntityTemplateRef},
@@ -167,7 +167,7 @@ pub fn remove_entity(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct SetBlocksTypes(pub SolidBits);
 
 pub fn set_blocks_types(resources: &mut Resources) -> impl Runnable {
@@ -180,11 +180,11 @@ pub fn set_blocks_types(resources: &mut Resources) -> impl Runnable {
 		.build(move |command_buffer, world, _resources, queries| {
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, SetBlocksTypes(blocks_types)) in queries.0.iter(&world0) {
+			for (&entity, &target, &SetBlocksTypes(blocks_types)) in queries.0.iter(&world0) {
 				command_buffer.remove(entity);
 
 				if let Ok(box_collider) = queries.1.get_mut(&mut world, target) {
-					box_collider.blocks_types = *blocks_types;
+					box_collider.blocks_types = blocks_types;
 				}
 			}
 		})
@@ -208,6 +208,29 @@ pub fn set_entity_sprite(resources: &mut Resources) -> impl Runnable {
 
 				if let Ok(sprite_render) = queries.1.get_mut(&mut world, target) {
 					*sprite_render = sprite.clone();
+				}
+			}
+		})
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct SetSolidType(pub SolidType);
+
+pub fn set_solid_type(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<SetSolidType>();
+
+	SystemBuilder::new("set_solid_type")
+		.with_query(<(Entity, &Entity, &SetSolidType)>::query())
+		.with_query(<&mut BoxCollider>::query().filter(component::<State>()))
+		.build(move |command_buffer, world, _resources, queries| {
+			let (world0, mut world) = world.split_for_query(&queries.0);
+
+			for (&entity, &target, &SetSolidType(solid_type)) in queries.0.iter(&world0) {
+				command_buffer.remove(entity);
+
+				if let Ok(box_collider) = queries.1.get_mut(&mut world, target) {
+					box_collider.solid_type = solid_type;
 				}
 			}
 		})
