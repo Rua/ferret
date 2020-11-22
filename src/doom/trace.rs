@@ -362,7 +362,6 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 						let remainder = 1.0 - hit_fraction;
 						let entity_move_step = remainder * move_step3;
 
-						// TODO solid mask
 						let trace = entity_tracer.trace(
 							&entity_bbox,
 							entity_move_step,

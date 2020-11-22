@@ -76,7 +76,7 @@ use crate::{
 			},
 			state,
 			weapon::{
-				line_attack, next_weapon_state, projectile_touch, set_weapon_sprite,
+				line_attack, next_weapon_state, projectile_touch, radius_attack, set_weapon_sprite,
 				set_weapon_state, spawn_projectile, weapon_position, weapon_ready, weapon_refire,
 			},
 		},
@@ -262,6 +262,7 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 				.add_system(set_solid_type(resources))
 				.add_system(next_weapon_state(resources))
 				.add_system(line_attack(resources))
+				.add_system(radius_attack(resources))
 				.add_system(set_weapon_sprite(resources))
 				.add_system(set_weapon_state(resources))
 				.add_system(spawn_projectile(resources))

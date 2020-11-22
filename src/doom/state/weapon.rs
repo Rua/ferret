@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		frame::{FrameRng, FrameState},
-		geometry::{angles_to_axes, Angle, AABB3},
+		geometry::{angles_to_axes, Angle, AABB2, AABB3},
 		quadtree::Quadtree,
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
 		time::Timer,
@@ -394,6 +394,75 @@ pub fn projectile_touch(resources: &mut Resources) -> impl Runnable {
 						},
 					));
 				}
+			}
+		})
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct RadiusAttack {
+	pub damage: f32,
+	pub radius: f32,
+}
+
+pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<RadiusAttack>();
+
+	SystemBuilder::new("radius_attack")
+		.read_resource::<Quadtree>()
+		.with_query(<(Entity, &Entity, &RadiusAttack)>::query())
+		.with_query(<(&Owner, &Transform)>::query())
+		.with_query(<(&BoxCollider, &Transform)>::query())
+		.build(move |command_buffer, world, resources, queries| {
+			let quadtree = resources;
+
+			for (&entity, &target, radius_attack) in queries.0.iter(world) {
+				command_buffer.remove(entity);
+
+				let (source_entity, midpoint) = match queries.1.get(world, target) {
+					Ok((&Owner(source_entity), transform)) => (source_entity, transform.position),
+					Err(_) => continue,
+				};
+
+				let query = &mut queries.2;
+
+				quadtree.traverse_nodes(
+					&AABB2::from_radius(radius_attack.radius).offset(midpoint.fixed_resize(0.0)),
+					&mut |entities: &[Entity]| {
+						for &entity in entities {
+							let (box_collider, transform) = match query.get(world, entity) {
+								Ok(x) => x,
+								_ => continue,
+							};
+
+							if !box_collider.blocks_types.blocks(SolidType::PROJECTILE) {
+								continue;
+							}
+
+							let bbox =
+								AABB3::from_radius_height(box_collider.radius, box_collider.height)
+									.offset(transform.position);
+							let dist_sq = bbox.distance(midpoint).norm_squared();
+
+							if dist_sq >= radius_attack.radius * radius_attack.radius {
+								continue;
+							}
+
+							// TODO check for line-of-sight
+
+							// Apply the damage
+							let scale = 1.0 - dist_sq.sqrt() / radius_attack.radius;
+
+							command_buffer.push((
+								entity,
+								Damage {
+									amount: radius_attack.damage * scale,
+									source_entity,
+								},
+							));
+						}
+					},
+				);
 			}
 		})
 }

@@ -184,11 +184,6 @@ impl Interval {
 	}
 
 	/*#[inline]
-	pub fn is_inside(self, other: Interval) -> bool {
-		self.min >= other.min && self.max <= other.max
-	}*/
-
-	/*#[inline]
 	pub fn normalize(self) -> Interval {
 		if self.is_empty() {
 			Interval {
@@ -201,10 +196,10 @@ impl Interval {
 	}*/
 
 	#[inline]
-	pub fn add(self, value: f32) -> Interval {
+	pub fn add_point(self, point: f32) -> Interval {
 		Interval {
-			min: f32::min(self.min, value),
-			max: f32::max(self.max, value),
+			min: f32::min(self.min, point),
+			max: f32::max(self.max, point),
 		}
 	}
 
@@ -212,6 +207,20 @@ impl Interval {
 	pub fn contains(&self, value: f32) -> bool {
 		self.min <= value && self.max >= value
 	}*/
+
+	/// Returns the signed distance from the point to the nearest edge of the interval.
+	/// The return value is positive if the interval is above the point,
+	/// negative if the interval is below, 0.0 if the point is inside the interval.
+	#[inline]
+	pub fn distance(self, point: f32) -> f32 {
+		if point < self.min {
+			self.min - point
+		} else if point > self.max {
+			self.max - point
+		} else {
+			0.0
+		}
+	}
 
 	#[inline]
 	pub fn intersection(self, other: Interval) -> Interval {
@@ -308,12 +317,21 @@ where
 		DefaultAllocator: Allocator<f32, D>,
 		Owned<f32, D>: Copy,
 	{
-		self.0.zip_apply(&point, |s, p| s.add(p));
+		self.0.zip_apply(&point, |s, p| s.add_point(p));
 	}
 
 	#[inline]
 	pub fn is_empty(&self) -> bool {
 		self.0.iter().copied().any(Interval::is_empty)
+	}
+
+	#[inline]
+	pub fn distance(&self, point: VectorN<f32, D>) -> VectorN<f32, D>
+	where
+		DefaultAllocator: Allocator<f32, D>,
+		Owned<f32, D>: Copy,
+	{
+		self.0.zip_map(&point, |i, p| i.distance(p))
 	}
 
 	#[inline]
@@ -404,12 +422,12 @@ where
 }
 
 impl AABB2 {
-	/*pub fn from_radius(radius: f32) -> AABB2 {
+	pub fn from_radius(radius: f32) -> AABB2 {
 		AABB(Vector2::new(
 			Interval::new(-radius, radius),
 			Interval::new(-radius, radius),
 		))
-	}*/
+	}
 
 	#[inline]
 	pub fn from_extents(top: f32, bottom: f32, left: f32, right: f32) -> AABB2 {

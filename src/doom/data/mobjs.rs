@@ -18,7 +18,7 @@ use crate::{
 				NextState, NextStateRandomTimeDef, RemoveEntity, SetBlocksTypes, SetEntitySprite,
 				SetSolidType, StateDef,
 			},
-			weapon::{OwnerDef, ProjectileTouch, WeaponStateDef},
+			weapon::{OwnerDef, ProjectileTouch, RadiusAttack, WeaponStateDef},
 			EntityDef, StateName,
 		},
 		template::{EntityTemplate, EntityTemplateRefDef, EntityTypeId},
@@ -5129,6 +5129,13 @@ pub fn load(resources: &mut Resources) {
 					));
 					world.push((
 						EntityDef,
+						RadiusAttack {
+							damage: 128.0,
+							radius: 128.0,
+						},
+					));
+					world.push((
+						EntityDef,
 						SetEntitySprite(SpriteRender {
 							sprite: asset_storage.load("bexp.sprite"),
 							frame: 3,
@@ -5644,6 +5651,13 @@ pub fn load(resources: &mut Resources) {
 						NextStateRandomTimeDef {
 							time: (FRAME_TIME..8 * FRAME_TIME).into(),
 							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						RadiusAttack {
+							damage: 128.0,
+							radius: 128.0,
 						},
 					));
 					world.push((
