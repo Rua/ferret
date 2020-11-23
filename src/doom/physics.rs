@@ -296,16 +296,14 @@ fn simple_move<W: EntityStore>(
 	solid_type: SolidType,
 	time_left: Duration,
 ) {
-	let trace = tracer.trace(
-		&entity_bbox.offset(*position),
-		*velocity * time_left.as_secs_f32(),
-		solid_type,
-	);
+	let bbox = entity_bbox.offset(*position);
+	let trace = tracer.trace(&bbox, *velocity * time_left.as_secs_f32(), solid_type);
 
 	// Commit to the move
 	*position += trace.move_step;
 
-	for other in trace.touched.iter().copied() {
+	// Touch nonsolids
+	for other in tracer.trace_nonsolid(&bbox, trace.move_step, solid_type) {
 		if touch_events.iter().find(|t| t.other == other).is_none() {
 			touch_events.push(TouchEvent {
 				entity,
@@ -359,11 +357,8 @@ fn step_slide_move<W: EntityStore>(
 	let mut range = 0..4;
 
 	while range.next().is_some() && time_left != Duration::default() {
-		let trace = tracer.trace(
-			&entity_bbox.offset(*position),
-			*velocity * time_left.as_secs_f32(),
-			solid_type,
-		);
+		let bbox = entity_bbox.offset(*position);
+		let trace = tracer.trace(&bbox, *velocity * time_left.as_secs_f32(), solid_type);
 
 		// Commit to the move
 		*position += trace.move_step;
@@ -371,7 +366,8 @@ fn step_slide_move<W: EntityStore>(
 			.checked_sub(time_left.mul_f32(trace.fraction))
 			.unwrap_or_default();
 
-		for other in trace.touched.iter().copied() {
+		// Touch nonsolids
+		for other in tracer.trace_nonsolid(&bbox, trace.move_step, solid_type) {
 			if touch_events.iter().find(|t| t.other == other).is_none() {
 				touch_events.push(TouchEvent {
 					entity,
@@ -393,17 +389,15 @@ fn step_slide_move<W: EntityStore>(
 
 			// See if it can move up by the step height
 			if height > 0.0 && height < MAX_STEP {
-				let trace = tracer.trace(
-					&entity_bbox.offset(*position),
-					Vector3::new(0.0, 0.0, height),
-					solid_type,
-				);
+				let bbox = entity_bbox.offset(*position);
+				let trace = tracer.trace(&bbox, Vector3::new(0.0, 0.0, height), solid_type);
 
 				if trace.collision.is_none() {
 					*position += trace.move_step;
 					step_events.push(StepEvent { entity, height });
 
-					for other in trace.touched.iter().copied() {
+					// Touch nonsolids
+					for other in tracer.trace_nonsolid(&bbox, trace.move_step, solid_type) {
 						if touch_events.iter().find(|t| t.other == other).is_none() {
 							touch_events.push(TouchEvent {
 								entity,
