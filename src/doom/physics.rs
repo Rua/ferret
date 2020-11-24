@@ -265,8 +265,8 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 							entity: touch_event.other,
 							other: touch_event.entity,
 							collision: touch_event.collision.map(|c| TouchEventCollision {
+								velocity: -c.velocity,
 								normal: -c.normal,
-								speed: c.speed,
 							}),
 						};
 						let handle = template_ref.0.clone();
@@ -318,12 +318,10 @@ fn simple_move<W: EntityStore>(
 		None => return,
 	};
 
-	let speed = -velocity.dot(&collision.normal);
-	*velocity = Vector3::zeros();
-
+	// Add TouchEvent
 	let touch_collision = Some(TouchEventCollision {
+		velocity: *velocity,
 		normal: collision.normal,
-		speed,
 	});
 
 	if let Some(event) = touch_events
@@ -338,6 +336,9 @@ fn simple_move<W: EntityStore>(
 			collision: touch_collision,
 		});
 	}
+
+	// Stop the entity
+	*velocity = Vector3::zeros();
 }
 
 fn step_slide_move<W: EntityStore>(
@@ -413,19 +414,10 @@ fn step_slide_move<W: EntityStore>(
 			}
 		}
 
-		// Entity has collided, push back along surface normal
-		let speed = -velocity.dot(&collision.normal);
-		*velocity += collision.normal * speed;
-
-		// Do not bounce back
-		if velocity.dot(&original_velocity) <= 0.0 {
-			*velocity = Vector3::zeros();
-			break;
-		}
-
+		// Add TouchEvent
 		let touch_collision = Some(TouchEventCollision {
 			normal: collision.normal,
-			speed,
+			velocity: *velocity,
 		});
 
 		if let Some(event) = touch_events
@@ -439,6 +431,16 @@ fn step_slide_move<W: EntityStore>(
 				other: collision.entity,
 				collision: touch_collision,
 			});
+		}
+
+		// Push back along surface normal
+		let speed = -velocity.dot(&collision.normal);
+		*velocity += collision.normal * speed;
+
+		// Do not bounce back
+		if velocity.dot(&original_velocity) <= 0.0 {
+			*velocity = Vector3::zeros();
+			break;
 		}
 	}
 }
@@ -457,8 +459,8 @@ pub struct TouchEvent {
 
 #[derive(Clone, Copy, Debug)]
 pub struct TouchEventCollision {
+	pub velocity: Vector3<f32>,
 	pub normal: Vector3<f32>,
-	pub speed: f32,
 }
 
 #[derive(Clone, Copy, Debug, Default)]

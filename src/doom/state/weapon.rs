@@ -274,9 +274,9 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 							command_buffer.push((
 								collision.entity,
 								Damage {
-									amount: damage,
+									damage,
 									source_entity: target,
-									//line: Line3::new(position, trace.move_step),
+									direction: trace.move_step,
 								},
 							));
 
@@ -370,29 +370,27 @@ pub fn projectile_touch(resources: &mut Resources) -> impl Runnable {
 			for (&entity, touch_event, projectile_touch) in queries.0.iter(&world0) {
 				command_buffer.remove(entity);
 
-				if !touch_event.collision.is_some() {
-					continue;
-				}
+				if let Some(collision) = touch_event.collision {
+					if let Ok((frame_rng, &Owner(source_entity), state)) =
+						queries.1.get_mut(&mut world, touch_event.entity)
+					{
+						// Kill the projectile entity
+						let new = (StateName::from("death").unwrap(), 0);
+						state.action = StateAction::Set(new);
 
-				if let Ok((frame_rng, &Owner(source_entity), state)) =
-					queries.1.get_mut(&mut world, touch_event.entity)
-				{
-					// Kill the projectile entity
-					let new = (StateName::from("death").unwrap(), 0);
-					state.action = StateAction::Set(new);
+						// Apply the damage to the other entity
+						let damage = projectile_touch.damage_multiplier
+							* frame_rng.sample(projectile_touch.damage_range) as f32;
 
-					// Apply the damage to the other entity
-					let damage = projectile_touch.damage_multiplier
-						* frame_rng.sample(projectile_touch.damage_range) as f32;
-
-					command_buffer.push((
-						touch_event.other,
-						Damage {
-							amount: damage,
-							source_entity,
-							//line: Line3::new(transform.position, physics.velocity),
-						},
-					));
+						command_buffer.push((
+							touch_event.other,
+							Damage {
+								damage,
+								source_entity,
+								direction: collision.velocity,
+							},
+						));
+					}
 				}
 			}
 		})
@@ -442,7 +440,8 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 							let bbox =
 								AABB3::from_radius_height(box_collider.radius, box_collider.height)
 									.offset(transform.position);
-							let dist_sq = bbox.distance(midpoint).norm_squared();
+							let direction = bbox.direction_from(midpoint);
+							let dist_sq = direction.norm_squared();
 
 							if dist_sq >= radius_attack.radius * radius_attack.radius {
 								continue;
@@ -456,8 +455,9 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 							command_buffer.push((
 								entity,
 								Damage {
-									amount: radius_attack.damage * scale,
+									damage: radius_attack.damage * scale,
 									source_entity,
+									direction,
 								},
 							));
 						}

@@ -208,11 +208,11 @@ impl Interval {
 		self.min <= value && self.max >= value
 	}*/
 
-	/// Returns the signed distance from the point to the nearest edge of the interval.
+	/// Returns the direction and distance from the point to the nearest edge of the interval.
 	/// The return value is positive if the interval is above the point,
 	/// negative if the interval is below, 0.0 if the point is inside the interval.
 	#[inline]
-	pub fn distance(self, point: f32) -> f32 {
+	pub fn direction_from(self, point: f32) -> f32 {
 		if point < self.min {
 			self.min - point
 		} else if point > self.max {
@@ -326,12 +326,12 @@ where
 	}
 
 	#[inline]
-	pub fn distance(&self, point: VectorN<f32, D>) -> VectorN<f32, D>
+	pub fn direction_from(&self, point: VectorN<f32, D>) -> VectorN<f32, D>
 	where
 		DefaultAllocator: Allocator<f32, D>,
 		Owned<f32, D>: Copy,
 	{
-		self.0.zip_map(&point, |i, p| i.distance(p))
+		self.0.zip_map(&point, |i, p| i.direction_from(p))
 	}
 
 	#[inline]

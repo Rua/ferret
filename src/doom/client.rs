@@ -338,7 +338,8 @@ pub fn player_touch(resources: &mut Resources) -> impl Runnable {
 					queries.1.get_mut(&mut world, touch_event.entity),
 					touch_event.collision,
 				) {
-					let down_speed = collision.normal[2] * collision.speed;
+					let speed = -collision.velocity.dot(&collision.normal);
+					let down_speed = collision.normal[2] * speed;
 
 					if down_speed >= 8.0 * FRAME_RATE {
 						camera.deviation_velocity = -down_speed / 8.0;
