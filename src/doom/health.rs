@@ -16,6 +16,7 @@ use legion::{
 	Entity, IntoQuery, Resources, SystemBuilder, Write,
 };
 use nalgebra::Vector3;
+use num_traits::Zero;
 use rand::Rng;
 
 #[derive(Clone, Debug)]
@@ -80,22 +81,27 @@ pub fn apply_damage(resources: &mut Resources) -> impl Runnable {
 
 					health.current -= damage.damage;
 
-					// Push the entity in the direction of the damage
+					// Push the entity away from the damage source
 					if let Some(physics) = physics {
 						let mut direction =
-							Vector3::new(damage.direction[0], damage.direction[1], 0.0).normalize();
-						let mut thrust = damage.damage * 12.5 * FRAME_RATE / physics.mass;
+							Vector3::new(damage.direction[0], damage.direction[1], 0.0);
 
-						// Sometimes push the other direction for low damage
-						if health.current < 0.0
-							&& damage.damage < 40.0 && damage.direction[2] > 64.0
-							&& frame_rng.gen_bool(0.5)
-						{
-							direction = -direction;
-							thrust *= 4.0;
+						// Avoid dividing by zero
+						if !direction.is_zero() {
+							direction.normalize_mut();
+							let mut thrust = damage.damage * 12.5 * FRAME_RATE / physics.mass;
+
+							// Sometimes push the other direction for low damage
+							if health.current < 0.0
+								&& damage.damage < 40.0 && damage.direction[2] > 64.0
+								&& frame_rng.gen_bool(0.5)
+							{
+								direction = -direction;
+								thrust *= 4.0;
+							}
+
+							physics.velocity += direction * thrust;
 						}
-
-						physics.velocity += direction * thrust;
 					}
 
 					// Trigger states

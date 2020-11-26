@@ -440,8 +440,7 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 							let bbox =
 								AABB3::from_radius_height(box_collider.radius, box_collider.height)
 									.offset(transform.position);
-							let direction = bbox.direction_from(midpoint);
-							let dist_sq = direction.norm_squared();
+							let dist_sq = bbox.direction_from(midpoint).norm_squared();
 
 							if dist_sq >= radius_attack.radius * radius_attack.radius {
 								continue;
@@ -457,7 +456,7 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 								Damage {
 									damage: radius_attack.damage * scale,
 									source_entity,
-									direction,
+									direction: transform.position - midpoint,
 								},
 							));
 						}

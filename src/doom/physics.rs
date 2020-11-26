@@ -22,6 +22,7 @@ use legion::{
 	Entity, EntityStore, IntoQuery, Read, Resources, SystemBuilder, Write,
 };
 use nalgebra::Vector3;
+use num_traits::Zero;
 use shrev::EventChannel;
 use smallvec::SmallVec;
 use std::time::Duration;
@@ -198,7 +199,7 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 					}
 				}
 
-				if physics.velocity != Vector3::zeros() {
+				if !physics.velocity.is_zero() {
 					quadtree.remove(entity);
 
 					let tracer = EntityTracer {
