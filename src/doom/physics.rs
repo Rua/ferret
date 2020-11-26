@@ -172,8 +172,8 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 					// Check for ground
 					let trace = tracer.trace(
 						&entity_bbox.offset(transform.position),
-						Vector3::new(0.0, 0.0, -0.25),
 						solid_type,
+						Vector3::new(0.0, 0.0, -0.25),
 					);
 
 					// Only things that get pulled to the ground can experience friction
@@ -296,14 +296,14 @@ fn simple_move<W: EntityStore>(
 	solid_type: SolidType,
 	time_left: Duration,
 ) {
-	let bbox = entity_bbox.offset(*position);
-	let trace = tracer.trace(&bbox, *velocity * time_left.as_secs_f32(), solid_type);
+	let start_bbox = entity_bbox.offset(*position);
+	let trace = tracer.trace(&start_bbox, solid_type, *velocity * time_left.as_secs_f32());
 
 	// Commit to the move
 	*position += trace.move_step;
 
 	// Touch nonsolids
-	for other in tracer.trace_nonsolid(&bbox, trace.move_step, solid_type) {
+	for other in tracer.trace_nonsolid(&start_bbox, solid_type, trace.move_step) {
 		if touch_events.iter().find(|t| t.other == other).is_none() {
 			touch_events.push(TouchEvent {
 				entity,
@@ -358,8 +358,8 @@ fn step_slide_move<W: EntityStore>(
 	let mut range = 0..4;
 
 	while range.next().is_some() && time_left != Duration::default() {
-		let bbox = entity_bbox.offset(*position);
-		let trace = tracer.trace(&bbox, *velocity * time_left.as_secs_f32(), solid_type);
+		let start_bbox = entity_bbox.offset(*position);
+		let trace = tracer.trace(&start_bbox, solid_type, *velocity * time_left.as_secs_f32());
 
 		// Commit to the move
 		*position += trace.move_step;
@@ -368,7 +368,7 @@ fn step_slide_move<W: EntityStore>(
 			.unwrap_or_default();
 
 		// Touch nonsolids
-		for other in tracer.trace_nonsolid(&bbox, trace.move_step, solid_type) {
+		for other in tracer.trace_nonsolid(&start_bbox, solid_type, trace.move_step) {
 			if touch_events.iter().find(|t| t.other == other).is_none() {
 				touch_events.push(TouchEvent {
 					entity,
@@ -390,15 +390,15 @@ fn step_slide_move<W: EntityStore>(
 
 			// See if it can move up by the step height
 			if height > 0.0 && height < MAX_STEP {
-				let bbox = entity_bbox.offset(*position);
-				let trace = tracer.trace(&bbox, Vector3::new(0.0, 0.0, height), solid_type);
+				let start_bbox = entity_bbox.offset(*position);
+				let trace = tracer.trace(&start_bbox, solid_type, Vector3::new(0.0, 0.0, height));
 
 				if trace.collision.is_none() {
 					*position += trace.move_step;
 					step_events.push(StepEvent { entity, height });
 
 					// Touch nonsolids
-					for other in tracer.trace_nonsolid(&bbox, trace.move_step, solid_type) {
+					for other in tracer.trace_nonsolid(&start_bbox, solid_type, trace.move_step) {
 						if touch_events.iter().find(|t| t.other == other).is_none() {
 							touch_events.push(TouchEvent {
 								entity,

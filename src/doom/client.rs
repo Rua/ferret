@@ -162,7 +162,7 @@ pub fn player_move_system(_resources: &mut Resources) -> impl Runnable {
 				let map_dynamic = queries.1.iter(world).next().unwrap();
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 
-				let (entity_bbox, solid_type) = {
+				let (start_bbox, solid_type) = {
 					let (transform, box_collider) = queries.2.get(world, client_entity).unwrap();
 					(
 						AABB3::from_radius_height(box_collider.radius, box_collider.height)
@@ -178,7 +178,7 @@ pub fn player_move_system(_resources: &mut Resources) -> impl Runnable {
 					world,
 				};
 
-				let trace = tracer.trace(&entity_bbox, Vector3::new(0.0, 0.0, -0.25), solid_type);
+				let trace = tracer.trace(&start_bbox, solid_type, Vector3::new(0.0, 0.0, -0.25));
 
 				if trace.collision.is_none() {
 					// Player is not on ground

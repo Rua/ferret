@@ -261,8 +261,8 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 						let direction = angles_to_axes(rotation)[0];
 						let trace = tracer.trace(
 							&AABB3::from_point(position),
-							direction * line_attack.distance,
 							SolidType::PROJECTILE,
+							direction * line_attack.distance,
 						);
 
 						// Hit something!
