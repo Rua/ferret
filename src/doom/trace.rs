@@ -53,8 +53,11 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 		let move_bbox = start_bbox.union(&end_bbox);
 		let move_bbox2 = AABB2::from(&move_bbox);
 
-		self.map
-			.traverse_nodes(NodeChild::Node(0), &move_bbox2, &mut |node: NodeChild| {
+		self.map.traverse_nodes(
+			NodeChild::Node(0),
+			&start_bbox.into(),
+			move_step.fixed_resize(0.0),
+			&mut |node: NodeChild| {
 				let linedefs = match node {
 					NodeChild::Subsector(index) => &self.map.subsectors[index].linedefs,
 					NodeChild::Node(index) => &self.map.nodes[index].linedefs,
@@ -106,11 +109,11 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 
 							let z_planes = [
 								CollisionPlane(
-									Plane3::new(-interval.min, Vector3::new(0.0, 0.0, -1.0)),
+									Plane3::new(Vector3::new(0.0, 0.0, -1.0), -interval.min),
 									false,
 								),
 								CollisionPlane(
-									Plane3::new(interval.max, Vector3::new(0.0, 0.0, 1.0)),
+									Plane3::new(Vector3::new(0.0, 0.0, 1.0), interval.max),
 									false,
 								),
 							];
@@ -142,13 +145,13 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 							&self.map_dynamic.sectors[front_sidedef.sector_index].interval;
 						let z_planes = [
 							CollisionPlane(
-								Plane3::new(-front_interval.min, Vector3::new(0.0, 0.0, -1.0)),
+								Plane3::new(Vector3::new(0.0, 0.0, -1.0), -front_interval.min),
 								false,
 							),
 							CollisionPlane(
 								Plane3::new(
-									front_interval.max + EXTRA_HEADROOM,
 									Vector3::new(0.0, 0.0, 1.0),
+									front_interval.max + EXTRA_HEADROOM,
 								),
 								false,
 							),
@@ -191,8 +194,8 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 					.into_iter()
 					{
 						let z_planes = [
-							CollisionPlane(Plane3::new(distance, normal), true),
-							CollisionPlane(Plane3::new(-distance, -normal), false),
+							CollisionPlane(Plane3::new(normal, distance), true),
+							CollisionPlane(Plane3::new(-normal, -distance), false),
 						];
 						let iter = subsector.collision_planes.iter().chain(z_planes.iter());
 
@@ -213,7 +216,8 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						}
 					}
 				}
-			});
+			},
+		);
 
 		self.quadtree
 			.traverse_nodes(&move_bbox2, &mut |entities: &[Entity]| {
@@ -282,8 +286,11 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 		let move_bbox = start_bbox.union(&end_bbox);
 		let move_bbox2 = AABB2::from(&move_bbox);
 
-		self.map
-			.traverse_nodes(NodeChild::Node(0), &move_bbox2, &mut |node: NodeChild| {
+		self.map.traverse_nodes(
+			NodeChild::Node(0),
+			&start_bbox.into(),
+			move_step.fixed_resize(0.0),
+			&mut |node: NodeChild| {
 				let linedefs = match node {
 					NodeChild::Subsector(index) => &self.map.subsectors[index].linedefs,
 					NodeChild::Node(index) => &self.map.nodes[index].linedefs,
@@ -319,11 +326,11 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 
 						let z_planes = [
 							CollisionPlane(
-								Plane3::new(-interval.min, Vector3::new(0.0, 0.0, -1.0)),
+								Plane3::new(Vector3::new(0.0, 0.0, -1.0), -interval.min),
 								false,
 							),
 							CollisionPlane(
-								Plane3::new(interval.max, Vector3::new(0.0, 0.0, 1.0)),
+								Plane3::new(Vector3::new(0.0, 0.0, 1.0), interval.max),
 								false,
 							),
 						];
@@ -336,7 +343,8 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						}
 					}
 				}
-			});
+			},
+		);
 
 		self.quadtree
 			.traverse_nodes(&move_bbox2, &mut |entities: &[Entity]| {
@@ -419,8 +427,8 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 		let mut trace_touched = SmallVec::<[(f32, Entity); 8]>::new();
 
 		let z_planes = [
-			CollisionPlane(Plane3::new(distance * normal, normal3), true),
-			CollisionPlane(Plane3::new(-distance * normal, -normal3), false),
+			CollisionPlane(Plane3::new(normal3, distance * normal), true),
+			CollisionPlane(Plane3::new(-normal3, -distance * normal), false),
 		];
 
 		let entity_tracer = EntityTracer {

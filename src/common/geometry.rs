@@ -4,6 +4,7 @@ use nalgebra::{
 };
 use num_traits::identities::Zero;
 
+/// A line segment between two points, represented as a start point and a direction vector.
 #[derive(Debug, Clone, Copy)]
 pub struct Line<D>
 where
@@ -24,12 +25,14 @@ where
 	DefaultAllocator: Allocator<f32, D>,
 	Owned<f32, D>: Copy,
 {
+	/// Constructs a new `Line` from a start point and a direction vector.
 	#[inline]
 	pub fn new(point: VectorN<f32, D>, dir: VectorN<f32, D>) -> Line<D> {
-		assert_ne!(dir, VectorN::zeros());
+		debug_assert!(!dir.is_zero());
 		Line { point, dir }
 	}
 
+	/// Returns a new `Line`, with the direction vector negated and start and end points swapped.
 	#[inline]
 	pub fn inverse(&self) -> Line<D> {
 		Line {
@@ -40,6 +43,9 @@ where
 }
 
 impl Line2 {
+	/// Calculates the intersection between two 2D `Line`s. Returns the position of the
+	/// intersection point along both lines, expressed in terms of the fraction of the total
+	/// length of each line, from the starting point.
 	#[inline]
 	pub fn intersect(&self, other: &Line2) -> Option<(f32, f32)> {
 		let normal = Vector2::new(other.dir[1], -other.dir[0]).normalize();
@@ -59,6 +65,7 @@ impl Line2 {
 }
 
 impl From<&Line3> for Line2 {
+	/// Constructs a 2D `Line` from a 3D `Line` by discarding the third coordinate.
 	#[inline]
 	fn from(line: &Line3) -> Line2 {
 		Line2::new(
@@ -68,6 +75,8 @@ impl From<&Line3> for Line2 {
 	}
 }
 
+/// An infinite plane, represented as a normal vector and the shortest distance from the origin
+/// (along the normal).
 #[derive(Clone, Copy, Debug)]
 pub struct Plane<D>
 where
@@ -75,8 +84,8 @@ where
 	DefaultAllocator: Allocator<f32, D>,
 	Owned<f32, D>: Copy,
 {
-	pub distance: f32,
 	pub normal: VectorN<f32, D>,
+	pub distance: f32,
 }
 
 pub type Plane2 = Plane<U2>;
@@ -88,21 +97,24 @@ where
 	DefaultAllocator: Allocator<f32, D>,
 	Owned<f32, D>: Copy,
 {
+	/// Constructs a new `Plane` from a normal vector and the shortest distance from the origin.
 	#[inline]
-	pub fn new(distance: f32, normal: VectorN<f32, D>) -> Plane<D> {
-		assert_ne!(normal, VectorN::zeros());
-		Plane { distance, normal }
+	pub fn new(normal: VectorN<f32, D>, distance: f32) -> Plane<D> {
+		assert!(!normal.is_zero());
+		Plane { normal, distance }
 	}
 
+	/// Returns a new `Plane` with the normal and distance negated.
 	#[inline]
 	pub fn inverse(&self) -> Plane<D> {
 		Plane {
-			distance: -self.distance,
 			normal: -self.normal,
+			distance: -self.distance,
 		}
 	}
 }
 
+/// A generic type representing the side of a line that something is on.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Side {
 	Right = 0,
@@ -121,6 +133,9 @@ impl std::ops::Not for Side {
 	}
 }
 
+/// An interval between two points on the real numbers line.
+/// * If `min == max`, it represents a single point.
+/// * If `min > max`, it represents an empty interval, containing no points.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Interval {
 	pub min: f32,
@@ -128,11 +143,14 @@ pub struct Interval {
 }
 
 impl Interval {
+	/// Constructs a new `Interval` from a `min` and `max` value.
 	#[inline]
 	pub fn new(min: f32, max: f32) -> Interval {
 		Interval { min, max }
 	}
 
+	/// Constructs a new empty `Interval`,
+	/// with `min` and `max` set to positive and negative infinity respectively.
 	#[inline]
 	pub fn empty() -> Interval {
 		Interval {
@@ -141,6 +159,7 @@ impl Interval {
 		}
 	}
 
+	/// Constructs an `Interval` from a single point, with `min` and `max` set to that point.
 	#[inline]
 	pub fn from_point(point: f32) -> Interval {
 		Interval {
@@ -168,16 +187,32 @@ impl Interval {
 		ret
 	}*/
 
+	/// Returns the length of the interval, `max - min`. Negative if the interval is empty.
 	#[inline]
 	pub fn len(self) -> f32 {
 		self.max - self.min
 	}
 
+	/// Returns the point halfway between `min` and `max`.
+	#[inline]
+	pub fn middle(self) -> f32 {
+		0.5 * (self.min + self.max)
+	}
+
+	/// Returns whether the interval is empty.
 	#[inline]
 	pub fn is_empty(self) -> bool {
 		self.min > self.max
 	}
 
+	/// Returns whether the interval is a single point.
+	#[inline]
+	pub fn is_point(self) -> bool {
+		self.min == self.max
+	}
+
+	/// Returns whether the interval is empty or a single point.
+	/// In other words, whether it contains more than one point or not.
 	#[inline]
 	pub fn is_empty_or_point(self) -> bool {
 		self.min >= self.max
@@ -195,6 +230,8 @@ impl Interval {
 		}
 	}*/
 
+	/// Returns a new `Interval`,
+	/// expanded to cover the given point if it is not within the interval already.
 	#[inline]
 	pub fn add_point(self, point: f32) -> Interval {
 		Interval {
@@ -203,12 +240,22 @@ impl Interval {
 		}
 	}
 
+	/// Returns a new `Interval` with `value` added to both `min` and `max`.
+	#[inline]
+	pub fn offset(self, value: f32) -> Interval {
+		Interval {
+			min: self.min + value,
+			max: self.max + value,
+		}
+	}
+
 	/*#[inline]
 	pub fn contains(&self, value: f32) -> bool {
 		self.min <= value && self.max >= value
 	}*/
 
-	/// Returns the direction and distance from the point to the nearest edge of the interval.
+	/// Returns a number representing the direction and distance from the point to the nearest
+	/// edge of the interval.
 	/// The return value is positive if the interval is above the point,
 	/// negative if the interval is below, 0.0 if the point is inside the interval.
 	#[inline]
@@ -222,6 +269,18 @@ impl Interval {
 		}
 	}
 
+	/// Returns the union of `self` with `other`,
+	/// representing the points appearing in at least one of the intervals.
+	#[inline]
+	pub fn union(self, other: Interval) -> Interval {
+		Interval {
+			min: f32::min(self.min, other.min),
+			max: f32::max(self.max, other.max),
+		}
+	}
+
+	/// Returns the intersection of `self` with `other`,
+	/// representing the points both intervals have in common.
 	#[inline]
 	pub fn intersection(self, other: Interval) -> Interval {
 		Interval {
@@ -230,30 +289,11 @@ impl Interval {
 		}
 	}
 
-	#[inline]
-	pub fn middle(self) -> f32 {
-		0.5 * (self.min + self.max)
-	}
-
-	#[inline]
-	pub fn offset(self, value: f32) -> Interval {
-		Interval {
-			min: self.min + value,
-			max: self.max + value,
-		}
-	}
-
+	/// Returns whether `self` has any overlap with `other`.
+	/// Equivalent to `!self.intersection(other).is_empty()`.
 	#[inline]
 	pub fn overlaps(self, other: Interval) -> bool {
 		self.min <= other.max && self.max >= other.min
-	}
-
-	#[inline]
-	pub fn union(self, other: Interval) -> Interval {
-		Interval {
-			min: f32::min(self.min, other.min),
-			max: f32::max(self.max, other.max),
-		}
 	}
 }
 
@@ -263,6 +303,10 @@ impl std::fmt::Display for Interval {
 	}
 }
 
+/// An axis-aligned bounding box.
+///
+/// This is represented internally by a vector of `Interval` for each axis,
+/// so many of the methods on `AABB` map straightforwardly to an equivalent on `Interval`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct AABB<D>(VectorN<Interval, D>)
 where
@@ -279,11 +323,14 @@ where
 	DefaultAllocator: Allocator<Interval, D>,
 	Owned<Interval, D>: Copy,
 {
+	/// Constructs a new empty `AABB`, with an empty interval for each axis.
 	#[inline]
 	pub fn empty() -> AABB<D> {
 		AABB(VectorN::repeat(Interval::empty()))
 	}
 
+	/// Constructs an `AABB` from a single point,
+	/// with `min` and `max` set to that point along each axis.
 	#[inline]
 	pub fn from_point(point: VectorN<f32, D>) -> AABB<D>
 	where
@@ -293,6 +340,7 @@ where
 		AABB(point.map(Interval::from_point))
 	}
 
+	/// Constructs an `AABB` directly from a vector of intervals.
 	#[inline]
 	pub fn from_intervals(intervals: VectorN<Interval, D>) -> AABB<D>
 	where
@@ -302,6 +350,7 @@ where
 		AABB(intervals)
 	}
 
+	/// Constructs an `AABB` from the minimum and maximum extent of the bounding box.
 	#[inline]
 	pub fn from_minmax(min: VectorN<f32, D>, max: VectorN<f32, D>) -> AABB<D>
 	where
@@ -311,47 +360,7 @@ where
 		AABB(min.zip_map(&max, |min, max| Interval { min, max }))
 	}
 
-	#[inline]
-	pub fn add_point(&mut self, point: VectorN<f32, D>)
-	where
-		DefaultAllocator: Allocator<f32, D>,
-		Owned<f32, D>: Copy,
-	{
-		self.0.zip_apply(&point, |s, p| s.add_point(p));
-	}
-
-	#[inline]
-	pub fn is_empty(&self) -> bool {
-		self.0.iter().copied().any(Interval::is_empty)
-	}
-
-	#[inline]
-	pub fn direction_from(&self, point: VectorN<f32, D>) -> VectorN<f32, D>
-	where
-		DefaultAllocator: Allocator<f32, D>,
-		Owned<f32, D>: Copy,
-	{
-		self.0.zip_map(&point, |i, p| i.direction_from(p))
-	}
-
-	#[inline]
-	pub fn max(&self) -> VectorN<f32, D>
-	where
-		DefaultAllocator: Allocator<f32, D>,
-		Owned<f32, D>: Copy,
-	{
-		self.0.map(|i| i.max)
-	}
-
-	#[inline]
-	pub fn middle(&self) -> VectorN<f32, D>
-	where
-		DefaultAllocator: Allocator<f32, D>,
-		Owned<f32, D>: Copy,
-	{
-		self.0.map(|i| i.middle())
-	}
-
+	/// Returns a vector containing the `min` value of each axis.
 	#[inline]
 	pub fn min(&self) -> VectorN<f32, D>
 	where
@@ -361,6 +370,27 @@ where
 		self.0.map(|i| i.min)
 	}
 
+	/// Returns a vector containing the `max` value of each axis.
+	#[inline]
+	pub fn max(&self) -> VectorN<f32, D>
+	where
+		DefaultAllocator: Allocator<f32, D>,
+		Owned<f32, D>: Copy,
+	{
+		self.0.map(|i| i.max)
+	}
+
+	/// Returns the point containing the middle value of each axis, as given by [`Interval::middle()`].
+	#[inline]
+	pub fn middle(&self) -> VectorN<f32, D>
+	where
+		DefaultAllocator: Allocator<f32, D>,
+		Owned<f32, D>: Copy,
+	{
+		self.0.map(|i| i.middle())
+	}
+
+	/// Returns a reference to the internal vector of `Interval`s.
 	#[inline]
 	pub fn vector(&self) -> &VectorN<Interval, D>
 	where
@@ -370,6 +400,32 @@ where
 		&self.0
 	}
 
+	/// Returns whether the bounding box has an empty interval along at least one axis.
+	#[inline]
+	pub fn is_empty(&self) -> bool {
+		self.0.iter().copied().any(Interval::is_empty)
+	}
+
+	/// Returns whether the bounding box has a pointlike interval along at least one axis.
+	/// The other axes can have any value.
+	#[inline]
+	pub fn is_point(&self) -> bool {
+		self.0.iter().copied().any(Interval::is_point)
+	}
+
+	/// Returns a new `AABB`,
+	/// expanded to cover the given point if it is not within the box already.
+	#[inline]
+	pub fn add_point(&mut self, point: VectorN<f32, D>)
+	where
+		DefaultAllocator: Allocator<f32, D>,
+		Owned<f32, D>: Copy,
+	{
+		self.0.zip_apply(&point, |s, p| s.add_point(p));
+	}
+
+	/// Returns a new `AABB` with each axis of `offset` added to both `min` and `max` on the
+	/// corresponding axis of the bounding box.
 	#[inline]
 	pub fn offset(&self, offset: VectorN<f32, D>) -> AABB<D>
 	where
@@ -379,14 +435,39 @@ where
 		AABB(self.0.zip_map(&offset, |s, o| s.offset(o)))
 	}
 
+	/// Returns a vector representing the direction and distance from the point to the nearest
+	/// edge of the bounding box.
+	/// Each axis of the return value is positive if the interval on that axis is above the point,
+	/// negative if the interval is below, 0.0 if the point is inside the interval.
 	#[inline]
-	pub fn overlaps(&self, other: &AABB<D>) -> bool {
-		(0..D::dim()).all(|i| self.0[i].overlaps(other.0[i]))
+	pub fn direction_from(&self, point: VectorN<f32, D>) -> VectorN<f32, D>
+	where
+		DefaultAllocator: Allocator<f32, D>,
+		Owned<f32, D>: Copy,
+	{
+		self.0.zip_map(&point, |i, p| i.direction_from(p))
 	}
 
+	/// Returns the union of `self` with `other`,
+	/// representing the points appearing in at least one of the bounding boxes.
 	#[inline]
 	pub fn union(&self, other: &AABB<D>) -> AABB<D> {
 		AABB(self.0.zip_map(&other.0, |s, o| s.union(o)))
+	}
+
+	/// Returns the intersection of `self` with `other`,
+	/// representing the points both bounding boxes have in common.
+	#[inline]
+	#[allow(dead_code)]
+	pub fn intersection(&self, other: &AABB<D>) -> AABB<D> {
+		AABB(self.0.zip_map(&other.0, |s, o| s.union(o)))
+	}
+
+	/// Returns whether `self` has any overlap with `other`.
+	/// Equivalent to `!self.intersection(other).is_empty()`.
+	#[inline]
+	pub fn overlaps(&self, other: &AABB<D>) -> bool {
+		(0..D::dim()).all(|i| self.0[i].overlaps(other.0[i]))
 	}
 }
 
@@ -422,6 +503,7 @@ where
 }
 
 impl AABB2 {
+	/// Constructs a new 2D `AABB` containing all points within the given radius.
 	pub fn from_radius(radius: f32) -> AABB2 {
 		AABB(Vector2::new(
 			Interval::new(-radius, radius),
@@ -429,6 +511,7 @@ impl AABB2 {
 		))
 	}
 
+	/// Constructs a new 2D `AABB` from four edge points.
 	#[inline]
 	pub fn from_extents(top: f32, bottom: f32, left: f32, right: f32) -> AABB2 {
 		AABB(Vector2::new(
@@ -437,18 +520,21 @@ impl AABB2 {
 		))
 	}
 
+	/// Returns an array of four 3D [`Plane`]s that enclose the bounding box.
+	/// The normal of each plane points to the outside.
 	#[inline]
 	pub fn planes(&self) -> [Plane3; 4] {
 		[
-			Plane3::new(-self[0].min, Vector3::new(-1.0, 0.0, 0.0)),
-			Plane3::new(self[0].max, Vector3::new(1.0, 0.0, 0.0)),
-			Plane3::new(-self[1].min, Vector3::new(0.0, -1.0, 0.0)),
-			Plane3::new(self[1].max, Vector3::new(0.0, 1.0, 0.0)),
+			Plane3::new(Vector3::new(-1.0, 0.0, 0.0), -self[0].min),
+			Plane3::new(Vector3::new(1.0, 0.0, 0.0), self[0].max),
+			Plane3::new(Vector3::new(0.0, -1.0, 0.0), -self[1].min),
+			Plane3::new(Vector3::new(0.0, 1.0, 0.0), self[1].max),
 		]
 	}
 }
 
 impl From<&AABB3> for AABB2 {
+	/// Constructs a 2D `AABB` from a 3D `AABB` by discarding the third axis.
 	#[inline]
 	fn from(bbox: &AABB3) -> AABB2 {
 		AABB(Vector2::new(bbox.0[0], bbox.0[1]))
@@ -456,6 +542,8 @@ impl From<&AABB3> for AABB2 {
 }
 
 impl AABB3 {
+	/// Constructs a new 2D `AABB` containing all points within the cylinder,
+	/// with given radius along the first two axes. The third axis ranges from 0.0 to `height`.
 	#[inline]
 	pub fn from_radius_height(radius: f32, height: f32) -> AABB3 {
 		AABB(Vector3::new(
@@ -465,15 +553,17 @@ impl AABB3 {
 		))
 	}
 
+	/// Returns an array of six 3D [`Plane`]s that enclose the bounding box.
+	/// The normal of each plane points to the outside.
 	#[inline]
 	pub fn planes(&self) -> [Plane3; 6] {
 		[
-			Plane3::new(-self[0].min, Vector3::new(-1.0, 0.0, 0.0)),
-			Plane3::new(self[0].max, Vector3::new(1.0, 0.0, 0.0)),
-			Plane3::new(-self[1].min, Vector3::new(0.0, -1.0, 0.0)),
-			Plane3::new(self[1].max, Vector3::new(0.0, 1.0, 0.0)),
-			Plane3::new(-self[2].min, Vector3::new(0.0, 0.0, -1.0)),
-			Plane3::new(self[2].max, Vector3::new(0.0, 0.0, 1.0)),
+			Plane3::new(Vector3::new(-1.0, 0.0, 0.0), -self[0].min),
+			Plane3::new(Vector3::new(1.0, 0.0, 0.0), self[0].max),
+			Plane3::new(Vector3::new(0.0, -1.0, 0.0), -self[1].min),
+			Plane3::new(Vector3::new(0.0, 1.0, 0.0), self[1].max),
+			Plane3::new(Vector3::new(0.0, 0.0, -1.0), -self[2].min),
+			Plane3::new(Vector3::new(0.0, 0.0, 1.0), self[2].max),
 		]
 	}
 }
@@ -487,58 +577,72 @@ impl AABB3 {
 	}
 }*/
 
-// Represented internally as BAM
+/// An angle of orientation, represented internally as an `i32` using
+/// [Binary Anglular Measurement](https://en.wikipedia.org/wiki/Binary_scaling#Binary_angles) (BAM).
+///
+/// The maximum representable range is [-180°, 180°) or [-π, π),
+/// addition, subtraction and negation will wrap around if they overflow.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct Angle(pub i32);
 
 const MAX_AS_F64: f64 = 0x1_0000_0000u64 as f64;
 
 impl Angle {
+	/// Constructs an `Angle` from units, where 1.0 represents a full rotation.
 	#[inline]
 	pub fn from_units(units: f64) -> Angle {
 		Angle((units.rem_euclid(1.0) * MAX_AS_F64) as u32 as i32)
 	}
 
+	/// Constructs an `Angle` from degrees.
 	#[inline]
 	pub fn from_degrees(degrees: f64) -> Angle {
 		Angle::from_units(degrees * (1.0 / 360.0))
 	}
 
+	/// Constructs an `Angle` from radians.
 	#[inline]
 	pub fn from_radians(radians: f64) -> Angle {
 		Angle::from_units(radians * 0.5 * std::f64::consts::FRAC_1_PI)
 	}
 
+	/// Converts to units in the range [-0.5, 0.5).
 	#[inline]
 	pub fn to_units(self) -> f64 {
 		self.0 as f64 / MAX_AS_F64
 	}
 
-	#[inline]
-	pub fn to_degrees(self) -> f64 {
-		self.to_units() * 360.0
-	}
-
-	#[inline]
-	pub fn to_radians(self) -> f64 {
-		self.to_units() * 2.0 * std::f64::consts::PI
-	}
-
+	/// Converts to units in the range [0.0, 1.0).
 	#[inline]
 	pub fn to_units_unsigned(self) -> f64 {
 		self.0 as u32 as f64 / MAX_AS_F64
 	}
 
+	/// Converts to degrees in the range [-180.0, 180.0).
+	#[inline]
+	pub fn to_degrees(self) -> f64 {
+		self.to_units() * 360.0
+	}
+
+	/// Converts to radians in the range [-PI, PI).
+	#[inline]
+	pub fn to_radians(self) -> f64 {
+		self.to_units() * 2.0 * std::f64::consts::PI
+	}
+
+	/// Computes the sine of the angle.
 	#[inline]
 	pub fn sin(self) -> f64 {
 		self.to_radians().sin()
 	}
 
+	/// Computes the cosine of the angle.
 	#[inline]
 	pub fn cos(self) -> f64 {
 		self.to_radians().cos()
 	}
 
+	/// Computes the tangent of the angle.
 	#[allow(dead_code)]
 	#[inline]
 	pub fn tan(self) -> f64 {
@@ -641,6 +745,7 @@ impl std::ops::SubAssign<i32> for Angle {
 	}
 }
 
+/// Converts a system of rotations to three unit vectors.
 pub fn angles_to_axes(angles: Vector3<Angle>) -> [Vector3<f32>; 3] {
 	let sin = angles.map(Angle::sin);
 	let cos = angles.map(Angle::cos);
@@ -664,10 +769,11 @@ pub fn angles_to_axes(angles: Vector3<Angle>) -> [Vector3<f32>; 3] {
 	]
 }
 
-// A projection matrix that creates a world coordinate system with
-// x = forward
-// y = left
-// z = up
+/// Returns a projection matrix that creates a right-handed world coordinate system where,
+/// for input vectors:
+/// * Index 0 represents the camera forward axis
+/// * Index 1 represents the camera left axis
+/// * Index 2 represents the camera up axis
 #[rustfmt::skip]
 pub fn perspective_matrix(fovx: f32, aspect: f32, depth_range: Interval) -> Matrix4<f32> {
 	let fovx = fovx.to_radians();

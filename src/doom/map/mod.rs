@@ -194,28 +194,53 @@ impl Map {
 		}
 	}
 
-	pub fn traverse_nodes<F: FnMut(NodeChild)>(&self, node: NodeChild, bbox: &AABB2, func: &mut F) {
+	pub fn traverse_nodes<F: FnMut(NodeChild)>(
+		&self,
+		node: NodeChild,
+		bbox: &AABB2,
+		move_step: Vector2<f32>,
+		func: &mut F,
+	) {
 		func(node);
 
 		if let NodeChild::Node(index) = node {
 			let node = &self.nodes[index];
-			let sides = [
-				Vector2::new(bbox[0].min, bbox[1].min).dot(&node.plane.normal)
-					- node.plane.distance,
-				Vector2::new(bbox[0].min, bbox[1].max).dot(&node.plane.normal)
-					- node.plane.distance,
-				Vector2::new(bbox[0].max, bbox[1].min).dot(&node.plane.normal)
-					- node.plane.distance,
-				Vector2::new(bbox[0].max, bbox[1].max).dot(&node.plane.normal)
-					- node.plane.distance,
-			];
+			let move_step_normal = move_step.dot(&node.plane.normal);
 
-			if sides.iter().any(|x| *x >= 0.0) {
-				self.traverse_nodes(node.child_indices[Side::Right as usize], bbox, func);
+			let move_interval = if bbox.is_point() {
+				let start = bbox.min().dot(&node.plane.normal);
+				let end = start + move_step_normal;
+				Interval::empty().add_point(start).add_point(end)
+			} else {
+				let start = Interval::empty()
+					.add_point(Vector2::new(bbox[0].min, bbox[1].min).dot(&node.plane.normal))
+					.add_point(Vector2::new(bbox[0].min, bbox[1].max).dot(&node.plane.normal))
+					.add_point(Vector2::new(bbox[0].max, bbox[1].min).dot(&node.plane.normal))
+					.add_point(Vector2::new(bbox[0].max, bbox[1].max).dot(&node.plane.normal));
+				let end = start.offset(move_step_normal);
+				start.union(end)
+			};
+
+			let direction = move_interval
+				.offset(-node.plane.distance)
+				.direction_from(0.0);
+
+			if direction >= 0.0 {
+				self.traverse_nodes(
+					node.child_indices[Side::Right as usize],
+					bbox,
+					move_step,
+					func,
+				);
 			}
 
-			if sides.iter().any(|x| *x <= 0.0) {
-				self.traverse_nodes(node.child_indices[Side::Left as usize], bbox, func);
+			if direction <= 0.0 {
+				self.traverse_nodes(
+					node.child_indices[Side::Left as usize],
+					bbox,
+					move_step,
+					func,
+				);
 			}
 		}
 	}

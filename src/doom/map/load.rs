@@ -426,15 +426,15 @@ fn build_linedefs(
 		if normal[0] != 0.0 && normal[1] != 0.0 {
 			collision_planes.push(CollisionPlane(
 				Plane3::new(
-					line.point.dot(&normal),
 					Vector3::new(normal[0], normal[1], 0.0),
+					line.point.dot(&normal),
 				),
 				true,
 			));
 			collision_planes.push(CollisionPlane(
 				Plane3::new(
-					-line.point.dot(&normal),
 					Vector3::new(-normal[0], -normal[1], 0.0),
+					-line.point.dot(&normal),
 				),
 				true,
 			));
@@ -599,7 +599,7 @@ fn build_nodes(data: &[u8], ssectors: &[Subsector]) -> anyhow::Result<Vec<Node>>
 		let distance = partition_point.dot(&normal);
 
 		ret.push(Node {
-			plane: Plane2::new(distance, normal),
+			plane: Plane2::new(normal, distance),
 			linedefs: Vec::new(),
 			child_bboxes: [
 				AABB2::from_extents(
@@ -852,7 +852,7 @@ fn build_gl_nodes(data: &[u8], gl_ssect: &[Subsector]) -> anyhow::Result<Vec<Nod
 		let distance = partition_point.dot(&normal);
 
 		ret.push(Node {
-			plane: Plane2::new(distance, normal),
+			plane: Plane2::new(normal, distance),
 			linedefs: Vec::new(),
 			child_bboxes: [
 				AABB2::from_extents(
@@ -956,8 +956,8 @@ fn generate_subsector_planes(segs: &[Seg]) -> (AABB2, Vec<CollisionPlane>) {
 		if seg.normal[0] != 0.0 && seg.normal[1] != 0.0 {
 			Some(CollisionPlane(
 				Plane3::new(
-					seg.line.point.dot(&-seg.normal),
 					Vector3::new(-seg.normal[0], -seg.normal[1], 0.0),
+					seg.line.point.dot(&-seg.normal),
 				),
 				false,
 			))
