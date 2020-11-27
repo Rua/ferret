@@ -1,3 +1,5 @@
+//! Various types and functions used for geometry calculations.
+
 use nalgebra::{
 	allocator::Allocator, storage::Owned, DefaultAllocator, DimName, Matrix4, Vector2, Vector3,
 	VectorN, U2, U3,
@@ -5,6 +7,8 @@ use nalgebra::{
 use num_traits::identities::Zero;
 
 /// A line segment between two points, represented as a start point and a direction vector.
+///
+/// [`Line2`] and [`Line3`] are type aliases for lines in 2D and 3D space, respectively.
 #[derive(Debug, Clone, Copy)]
 pub struct Line<D>
 where
@@ -16,7 +20,9 @@ where
 	pub dir: VectorN<f32, D>,
 }
 
+/// A [`Line`] in 2D space.
 pub type Line2 = Line<U2>;
+/// A [`Line`] in 3D space.
 pub type Line3 = Line<U3>;
 
 impl<D> Line<D>
@@ -43,9 +49,16 @@ where
 }
 
 impl Line2 {
-	/// Calculates the intersection between two 2D `Line`s. Returns the position of the
-	/// intersection point along both lines, expressed in terms of the fraction of the total
-	/// length of each line, from the starting point.
+	/// Calculates the intersection between two 2D `Line`s.
+	/// Returns `Some` if there is an intersection, `None` otherwise.
+	///
+	/// If an intersection is found, a tuple of `f32` from 0.0 to 1.0 inclusive is returned,
+	/// giving, for `self` and `other` respectively, the position of the intersection point as the
+	/// fraction of the total length from the starting point.
+	///
+	/// The intersection point is therefore equivalently
+	/// * `self.point + tuple.0 * self.dir`
+	/// * `other.point + tuple.1 * other.dir`
 	#[inline]
 	pub fn intersect(&self, other: &Line2) -> Option<(f32, f32)> {
 		let normal = Vector2::new(other.dir[1], -other.dir[0]).normalize();
@@ -64,8 +77,8 @@ impl Line2 {
 	}
 }
 
+/// Constructs a 2D `Line` from a 3D `Line` by discarding the third coordinate.
 impl From<&Line3> for Line2 {
-	/// Constructs a 2D `Line` from a 3D `Line` by discarding the third coordinate.
 	#[inline]
 	fn from(line: &Line3) -> Line2 {
 		Line2::new(
@@ -77,6 +90,8 @@ impl From<&Line3> for Line2 {
 
 /// An infinite plane, represented as a normal vector and the shortest distance from the origin
 /// (along the normal).
+///
+/// [`Plane2`] and [`Plane3`] are type aliases for planes in 2D and 3D space, respectively.
 #[derive(Clone, Copy, Debug)]
 pub struct Plane<D>
 where
@@ -88,7 +103,9 @@ where
 	pub distance: f32,
 }
 
+/// A [`Plane`] in 2D space; that is, an infinite line.
 pub type Plane2 = Plane<U2>;
+/// A [`Plane`] in 3D space.
 pub type Plane3 = Plane<U3>;
 
 impl<D> Plane<D>
@@ -114,7 +131,7 @@ where
 	}
 }
 
-/// A generic type representing the side of a line that something is on.
+/// The side of a line or plane that something is on.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Side {
 	Right = 0,
@@ -187,18 +204,6 @@ impl Interval {
 		ret
 	}*/
 
-	/// Returns the length of the interval, `max - min`. Negative if the interval is empty.
-	#[inline]
-	pub fn len(self) -> f32 {
-		self.max - self.min
-	}
-
-	/// Returns the point halfway between `min` and `max`.
-	#[inline]
-	pub fn middle(self) -> f32 {
-		0.5 * (self.min + self.max)
-	}
-
 	/// Returns whether the interval is empty.
 	#[inline]
 	pub fn is_empty(self) -> bool {
@@ -211,11 +216,22 @@ impl Interval {
 		self.min == self.max
 	}
 
-	/// Returns whether the interval is empty or a single point.
-	/// In other words, whether it contains more than one point or not.
+	/// Returns whether the interval is proper; that is, contains more than one point.
 	#[inline]
-	pub fn is_empty_or_point(self) -> bool {
+	pub fn is_proper(self) -> bool {
 		self.min >= self.max
+	}
+
+	/// Returns the length of the interval, `max - min`. Negative if the interval is empty.
+	#[inline]
+	pub fn len(self) -> f32 {
+		self.max - self.min
+	}
+
+	/// Returns the point halfway between `min` and `max`.
+	#[inline]
+	pub fn middle(self) -> f32 {
+		0.5 * (self.min + self.max)
 	}
 
 	/*#[inline]
@@ -307,6 +323,8 @@ impl std::fmt::Display for Interval {
 ///
 /// This is represented internally by a vector of `Interval` for each axis,
 /// so many of the methods on `AABB` map straightforwardly to an equivalent on `Interval`.
+///
+/// [`AABB2`] and [`AABB3`] are type aliases for bounding boxes in 2D and 3D space, respectively.
 #[derive(Clone, Debug, PartialEq)]
 pub struct AABB<D>(VectorN<Interval, D>)
 where
@@ -314,7 +332,9 @@ where
 	DefaultAllocator: Allocator<Interval, D>,
 	Owned<Interval, D>: Copy;
 
+/// An [`AABB`] in 2D space.
 pub type AABB2 = AABB<U2>;
+/// An [`AABB`] in 3D space.
 pub type AABB3 = AABB<U3>;
 
 impl<D> AABB<D>
@@ -360,6 +380,19 @@ where
 		AABB(min.zip_map(&max, |min, max| Interval { min, max }))
 	}
 
+	/// Returns whether the bounding box has an empty interval along at least one axis.
+	#[inline]
+	pub fn is_empty(&self) -> bool {
+		self.0.iter().copied().any(Interval::is_empty)
+	}
+
+	/// Returns whether the bounding box has a pointlike interval along at least one axis.
+	/// The other axes can have any value.
+	#[inline]
+	pub fn is_point(&self) -> bool {
+		self.0.iter().copied().any(Interval::is_point)
+	}
+
 	/// Returns a vector containing the `min` value of each axis.
 	#[inline]
 	pub fn min(&self) -> VectorN<f32, D>
@@ -398,19 +431,6 @@ where
 		Owned<Interval, D>: Copy,
 	{
 		&self.0
-	}
-
-	/// Returns whether the bounding box has an empty interval along at least one axis.
-	#[inline]
-	pub fn is_empty(&self) -> bool {
-		self.0.iter().copied().any(Interval::is_empty)
-	}
-
-	/// Returns whether the bounding box has a pointlike interval along at least one axis.
-	/// The other axes can have any value.
-	#[inline]
-	pub fn is_point(&self) -> bool {
-		self.0.iter().copied().any(Interval::is_point)
 	}
 
 	/// Returns a new `AABB`,
@@ -533,8 +553,8 @@ impl AABB2 {
 	}
 }
 
+/// Constructs a 2D `AABB` from a 3D `AABB` by discarding the third axis.
 impl From<&AABB3> for AABB2 {
-	/// Constructs a 2D `AABB` from a 3D `AABB` by discarding the third axis.
 	#[inline]
 	fn from(bbox: &AABB3) -> AABB2 {
 		AABB(Vector2::new(bbox.0[0], bbox.0[1]))
@@ -790,6 +810,7 @@ pub fn perspective_matrix(fovx: f32, aspect: f32, depth_range: Interval) -> Matr
 	)
 }
 
+/// Constructs an orthographic matrix with bounding planes from the given bounding box.
 #[rustfmt::skip]
 pub fn ortho_matrix(bbox: AABB3) -> Matrix4<f32> {
 	let rml = bbox[0].max - bbox[0].min;

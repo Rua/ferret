@@ -1,3 +1,5 @@
+//! Ferret, a Doom-compatible game engine.
+
 mod common;
 mod doom;
 

@@ -1,3 +1,5 @@
+//! Items that are broadly applicable, not specific to one particular game.
+
 pub mod assets;
 pub mod commands;
 pub mod configvars;

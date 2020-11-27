@@ -1043,7 +1043,7 @@ fn fixup_segs(
 				}
 			}
 
-			if interval.is_empty_or_point() {
+			if !interval.is_proper() {
 				log::warn!(
 					"Subsector {} linedef {} has been reduced to zero length by BSP plane intersections",
 					subsector_index,

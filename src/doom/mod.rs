@@ -1,3 +1,5 @@
+//! Items specific to the implementation of Doom.
+
 pub mod camera;
 pub mod client;
 pub mod components;
