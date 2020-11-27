@@ -1,3 +1,5 @@
+//! Asset loading and storage.
+
 use derivative::Derivative;
 use downcast_rs::{impl_downcast, DowncastSync};
 use fnv::FnvHashMap;
@@ -9,13 +11,32 @@ use std::{
 	sync::{Arc, Weak},
 };
 
+/// A blanket trait for types that can be used as assets.
 pub trait Asset: Send + Sync + 'static {}
 impl<T: Send + Sync + 'static> Asset for T {}
 
+/// A blanket trait for types that can be used as asset import data.
+///
+/// It implements [`DowncastSync`] so that it can be downcast to a known type.
+/// Asset importer functions return a trait object of this type, which is then optionally provided
+/// to the processing function in [`AssetStorage::process`].
 pub trait ImportData: DowncastSync {}
 impl_downcast!(sync ImportData);
 impl<T: DowncastSync> ImportData for T {}
 
+/// Types that can load raw asset data from a path.
+pub trait DataSource: Send + Sync + 'static {
+	/// Loads the asset at the given `path`, and returns the bytes loaded.
+	fn load(&self, path: &RelativePath) -> anyhow::Result<Vec<u8>>;
+
+	/// Returns whether an asset exists at the given `path`.
+	fn exists(&self, path: &RelativePath) -> bool;
+
+	/// Returns an iterator that yields all the available asset names.
+	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a>;
+}
+
+/// Loads assets and allows them to be retrieved.
 pub struct AssetStorage {
 	importer: fn(
 		path: &RelativePath,
@@ -27,6 +48,9 @@ pub struct AssetStorage {
 }
 
 impl AssetStorage {
+	/// Constructs a new `AssetStorage`.
+	/// The `importer` is a callback function that is called whenever a new asset needs to be
+	/// loaded, and should return the imported asset data.
 	#[inline]
 	pub fn new(
 		importer: fn(
@@ -43,11 +67,17 @@ impl AssetStorage {
 		}
 	}
 
+	/// Returns a reference to the source that the `AssetStorage` was constructed with.
 	#[inline]
 	pub fn source(&self) -> &dyn DataSource {
 		&*self.source
 	}
 
+	/// Adds a storage for the given asset type.
+	/// `needs_processing` indicates whether the asset is considered finished after loading,
+	/// or needs further processing (for example, uploading to the GPU). If this is `true`,
+	/// then the asset will not be available until it is processed with
+	/// [`process`](AssetStorage::process).
 	#[inline]
 	pub fn add_storage<A: Asset>(&mut self, needs_processing: bool) {
 		let mut storage = AssetStorageTyped::<A>::default();
@@ -59,12 +89,15 @@ impl AssetStorage {
 		self.storages.insert(TypeId::of::<A>(), Box::new(storage));
 	}
 
+	/// Returns the asset associated with the given `handle`,
+	/// or `None` if it does not exist in the storage.
 	#[inline]
 	pub fn get<A: Asset>(&self, handle: &AssetHandle<A>) -> Option<&A> {
 		let storage = storage::<A>(&self.storages);
 		storage.assets.get(&handle.id())
 	}
 
+	/// Returns an iterator that iterates over all assets of the given type.
 	#[inline]
 	pub fn iter<A: Asset>(&self) -> impl Iterator<Item = (&AssetHandle<A>, &A)> {
 		let storage = storage::<A>(&self.storages);
@@ -74,12 +107,15 @@ impl AssetStorage {
 			.map(move |handle| (handle, storage.assets.get(&handle.id()).unwrap()))
 	}
 
+	/// Returns the handle associated with the given asset name,
+	/// or `None` if it does not exist in the storage.
 	#[inline]
 	pub fn handle_for<A: Asset>(&self, name: &str) -> Option<AssetHandle<A>> {
 		let storage = storage::<A>(&self.storages);
 		storage.names.get(name).and_then(WeakHandle::upgrade)
 	}
 
+	/// Inserts the given `asset` into the storage, returning a new handle for it.
 	#[inline]
 	pub fn insert<A: Asset>(&mut self, asset: A) -> AssetHandle<A> {
 		let handle = self.handle_allocator.allocate();
@@ -89,6 +125,8 @@ impl AssetStorage {
 		handle
 	}
 
+	/// Inserts the given `asset` into the storage, assigning it the given `name`, and
+	/// returning a new handle for it.
 	#[inline]
 	pub fn insert_with_name<A: Asset>(&mut self, name: &str, asset: A) -> AssetHandle<A> {
 		let storage = storage_mut::<A>(&mut self.storages);
@@ -110,6 +148,12 @@ impl AssetStorage {
 		}
 	}
 
+	/// Loads the asset with the given `name`, returning a new handle for it.
+	/// Panics if the asset could not be loaded.
+	///
+	/// If this asset type's storage was added with `needs_processing` set,
+	/// then [`process`](AssetStorage::process) will need to be called before it is available,
+	/// otherwise it will be available after `load` completes.
 	#[inline]
 	pub fn load<A: Asset>(&mut self, name: &str) -> AssetHandle<A> {
 		match storage_mut::<A>(&mut self.storages)
@@ -145,6 +189,12 @@ impl AssetStorage {
 		}
 	}
 
+	/// Processes assets of the given type, using the provided processing function.
+	/// This is used with asset types whose storage was added with `needs_processing` set,
+	/// it has no effect for others.
+	///
+	/// The processing function should return the final form of the asset, which will be available
+	/// once `process` completes. If it returns `Err`, `process` will panic.
 	#[inline]
 	pub fn process<
 		A: Asset,
@@ -213,6 +263,7 @@ struct AssetStorageTyped<A: Asset> {
 	unprocessed: Option<Vec<(AssetHandle<A>, anyhow::Result<Box<dyn ImportData>>, String)>>,
 }
 
+/// An opaque handle for an asset. The associated asset can be retrieved in the `AssetStorage`.
 #[derive(Derivative)]
 #[derivative(
 	Clone(bound = ""),
@@ -280,10 +331,4 @@ impl HandleAllocator {
 			marker: PhantomData,
 		}
 	}
-}
-
-pub trait DataSource: Send + Sync + 'static {
-	fn load(&self, path: &RelativePath) -> anyhow::Result<Vec<u8>>;
-	fn exists(&self, path: &RelativePath) -> bool;
-	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a>;
 }
