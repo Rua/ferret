@@ -409,7 +409,7 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("radius_attack")
 		.read_resource::<Quadtree>()
 		.with_query(<(Entity, &Entity, &RadiusAttack)>::query())
-		.with_query(<(&Owner, &Transform)>::query())
+		.with_query(<(Option<&Owner>, &Transform)>::query())
 		.with_query(<(&BoxCollider, &Transform)>::query())
 		.build(move |command_buffer, world, resources, queries| {
 			let quadtree = resources;
@@ -418,7 +418,9 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 				command_buffer.remove(entity);
 
 				let (source_entity, midpoint) = match queries.1.get(world, target) {
-					Ok((&Owner(source_entity), transform)) => (source_entity, transform.position),
+					Ok((owner, transform)) => {
+						(owner.map(|o| o.0).unwrap_or(target), transform.position)
+					}
 					Err(_) => continue,
 				};
 
