@@ -197,7 +197,7 @@ impl Map {
 	pub fn traverse_nodes<F: FnMut(NodeChild)>(
 		&self,
 		node: NodeChild,
-		bbox: &AABB2,
+		start_bbox: &AABB2,
 		move_step: Vector2<f32>,
 		func: &mut F,
 	) {
@@ -207,16 +207,20 @@ impl Map {
 			let node = &self.nodes[index];
 			let move_step_normal = move_step.dot(&node.plane.normal);
 
-			let move_interval = if bbox.is_point() {
-				let start = bbox.min().dot(&node.plane.normal);
+			let move_interval = if start_bbox.is_point() {
+				let start = start_bbox.min().dot(&node.plane.normal);
 				let end = start + move_step_normal;
 				Interval::empty().add_point(start).add_point(end)
 			} else {
-				let start = Interval::empty()
-					.add_point(Vector2::new(bbox[0].min, bbox[1].min).dot(&node.plane.normal))
-					.add_point(Vector2::new(bbox[0].min, bbox[1].max).dot(&node.plane.normal))
-					.add_point(Vector2::new(bbox[0].max, bbox[1].min).dot(&node.plane.normal))
-					.add_point(Vector2::new(bbox[0].max, bbox[1].max).dot(&node.plane.normal));
+				let points = [
+					Vector2::new(start_bbox[0].min, start_bbox[1].min),
+					Vector2::new(start_bbox[0].min, start_bbox[1].max),
+					Vector2::new(start_bbox[0].max, start_bbox[1].min),
+					Vector2::new(start_bbox[0].max, start_bbox[1].max),
+				];
+				let start = points.iter().copied().fold(Interval::empty(), |i, p| {
+					i.add_point(p.dot(&node.plane.normal))
+				});
 				let end = start.offset(move_step_normal);
 				start.union(end)
 			};
@@ -228,7 +232,7 @@ impl Map {
 			if direction >= 0.0 {
 				self.traverse_nodes(
 					node.child_indices[Side::Right as usize],
-					bbox,
+					start_bbox,
 					move_step,
 					func,
 				);
@@ -237,7 +241,7 @@ impl Map {
 			if direction <= 0.0 {
 				self.traverse_nodes(
 					node.child_indices[Side::Left as usize],
-					bbox,
+					start_bbox,
 					move_step,
 					func,
 				);
