@@ -192,46 +192,47 @@ impl Quadtree {
 	}
 
 	#[inline]
-	pub fn traverse_nodes<F: FnMut(&[Entity])>(&self, bbox: &AABB2, func: &mut F) {
-		self.traverse_nodes_r(0, bbox, func);
+	pub fn traverse_nodes<F: FnMut(&[Entity])>(
+		&self,
+		start_bbox: &AABB2,
+		move_step: Vector2<f32>,
+		func: &mut F,
+	) {
+		self.traverse_nodes_r(0, start_bbox, move_step, func);
 	}
 
-	fn traverse_nodes_r<F: FnMut(&[Entity])>(&self, index: usize, bbox: &AABB2, func: &mut F) {
+	fn traverse_nodes_r<F: FnMut(&[Entity])>(
+		&self,
+		index: usize,
+		start_bbox: &AABB2,
+		move_step: Vector2<f32>,
+		func: &mut F,
+	) {
 		if !self.nodes[index].entities.is_empty() {
 			func(&self.nodes[index].entities);
 		}
 
 		if let Some((middle, child_nodes)) = self.nodes[index].children {
-			let offset = bbox.offset(-middle);
-			let crosses_split = [
-				offset[0].min <= 0.0 && offset[0].max >= 0.0,
-				offset[1].min <= 0.0 && offset[1].max >= 0.0,
-			];
+			let direction: Vector2<f32> = middle.zip_zip_map(
+				&start_bbox.vector(),
+				&move_step,
+				|middle, start_bbox, move_step| start_bbox.extend(move_step).direction_from(middle),
+			);
 
-			if crosses_split[0] && crosses_split[1] {
-				// Bounding box crosses both splits, recurse into all four children
-				for &(x, y) in &[(0, 0), (0, 1), (1, 0), (1, 1)] {
-					self.traverse_nodes_r(child_nodes[x][y], bbox, func);
-				}
-			} else if crosses_split[0] {
-				// Bounding box crosses x-axis split only
-				let y = (offset[1].min > 0.0) as usize;
-				for x in 0..2 {
-					self.traverse_nodes_r(child_nodes[x][y], bbox, func);
-				}
-			} else if crosses_split[1] {
-				// Bounding box crosses y-axis split only
-				let x = (offset[0].min > 0.0) as usize;
-				for y in 0..2 {
-					self.traverse_nodes_r(child_nodes[x][y], bbox, func);
-				}
-			} else {
-				// Bounding box lies in one of the quadrants, recurse into that quadrant
-				let [x, y] = [
-					(offset[0].min > 0.0) as usize,
-					(offset[1].min > 0.0) as usize,
-				];
-				self.traverse_nodes_r(child_nodes[x][y], bbox, func);
+			if direction[0] <= 0.0 && direction[1] <= 0.0 {
+				self.traverse_nodes_r(child_nodes[0][0], start_bbox, move_step, func);
+			}
+
+			if direction[0] <= 0.0 && direction[1] >= 0.0 {
+				self.traverse_nodes_r(child_nodes[0][1], start_bbox, move_step, func);
+			}
+
+			if direction[0] >= 0.0 && direction[1] <= 0.0 {
+				self.traverse_nodes_r(child_nodes[1][0], start_bbox, move_step, func);
+			}
+
+			if direction[0] >= 0.0 && direction[1] >= 0.0 {
+				self.traverse_nodes_r(child_nodes[1][1], start_bbox, move_step, func);
 			}
 		}
 	}

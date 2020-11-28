@@ -428,6 +428,7 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 
 				quadtree.traverse_nodes(
 					&AABB2::from_radius(radius_attack.radius).offset(midpoint.fixed_resize(0.0)),
+					Vector2::zeros(),
 					&mut |entities: &[Entity]| {
 						for &entity in entities {
 							let (box_collider, transform) = match query.get(world, entity) {

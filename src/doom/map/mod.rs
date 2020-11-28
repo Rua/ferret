@@ -218,16 +218,16 @@ impl Map {
 					Vector2::new(start_bbox[0].max, start_bbox[1].min),
 					Vector2::new(start_bbox[0].max, start_bbox[1].max),
 				];
-				let start = points.iter().copied().fold(Interval::empty(), |i, p| {
-					i.add_point(p.dot(&node.plane.normal))
-				});
-				let end = start.offset(move_step_normal);
-				start.union(end)
+				points
+					.iter()
+					.copied()
+					.fold(Interval::empty(), |i, p| {
+						i.add_point(p.dot(&node.plane.normal))
+					})
+					.extend(move_step_normal)
 			};
 
-			let direction = move_interval
-				.offset(-node.plane.distance)
-				.direction_from(0.0);
+			let direction = move_interval.direction_from(node.plane.distance);
 
 			if direction >= 0.0 {
 				self.traverse_nodes(

@@ -265,6 +265,23 @@ impl Interval {
 		}
 	}
 
+	/// Returns a new `Interval`, with `value` added to `min` if it is less than 0,
+	/// to `max` if it is greater than 0.
+	#[inline]
+	pub fn extend(self, value: f32) -> Interval {
+		if value < 0.0 {
+			Interval {
+				min: self.min + value,
+				max: self.max,
+			}
+		} else {
+			Interval {
+				min: self.min,
+				max: self.max + value,
+			}
+		}
+	}
+
 	/*#[inline]
 	pub fn contains(&self, value: f32) -> bool {
 		self.min <= value && self.max >= value
@@ -455,6 +472,17 @@ where
 		AABB(self.0.zip_map(&offset, |s, o| s.offset(o)))
 	}
 
+	/// Returns a new `AABB` with each axis of `offset` added to `min` or `max` of the
+	/// corresponding axis of the bounding box, depending on the sign.
+	#[inline]
+	pub fn extend(&self, offset: VectorN<f32, D>) -> AABB<D>
+	where
+		DefaultAllocator: Allocator<f32, D>,
+		Owned<f32, D>: Copy,
+	{
+		AABB(self.0.zip_map(&offset, |s, o| s.extend(o)))
+	}
+
 	/// Returns a vector representing the direction and distance from the point to the nearest
 	/// edge of the bounding box.
 	/// Each axis of the return value is positive if the interval on that axis is above the point,
@@ -471,6 +499,7 @@ where
 	/// Returns the union of `self` with `other`,
 	/// representing the points appearing in at least one of the bounding boxes.
 	#[inline]
+	#[allow(dead_code)]
 	pub fn union(&self, other: &AABB<D>) -> AABB<D> {
 		AABB(self.0.zip_map(&other.0, |s, o| s.union(o)))
 	}
@@ -480,7 +509,7 @@ where
 	#[inline]
 	#[allow(dead_code)]
 	pub fn intersection(&self, other: &AABB<D>) -> AABB<D> {
-		AABB(self.0.zip_map(&other.0, |s, o| s.union(o)))
+		AABB(self.0.zip_map(&other.0, |s, o| s.intersection(o)))
 	}
 
 	/// Returns whether `self` has any overlap with `other`.

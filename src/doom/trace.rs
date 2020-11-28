@@ -49,8 +49,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 		let mut trace_fraction = 1.0;
 		let mut trace_collision = None;
 
-		let end_bbox = start_bbox.offset(move_step);
-		let move_bbox = start_bbox.union(&end_bbox);
+		let move_bbox = start_bbox.extend(move_step);
 		let move_bbox2 = AABB2::from(&move_bbox);
 
 		self.map.traverse_nodes(
@@ -219,8 +218,10 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 			},
 		);
 
-		self.quadtree
-			.traverse_nodes(&move_bbox2, &mut |entities: &[Entity]| {
+		self.quadtree.traverse_nodes(
+			&start_bbox.into(),
+			move_step.fixed_resize(0.0),
+			&mut |entities: &[Entity]| {
 				for &entity in entities {
 					let (transform, box_collider) =
 						match <(&Transform, &BoxCollider)>::query().get(self.world, entity) {
@@ -264,7 +265,8 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						}
 					}
 				}
-			});
+			},
+		);
 
 		EntityTrace {
 			fraction: trace_fraction,
@@ -282,8 +284,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 		let mut trace_touched: SmallVec<[Entity; 4]> = SmallVec::new();
 
 		let start_bbox_zero = AABB3::from_point(start_bbox.middle());
-		let end_bbox = start_bbox.offset(move_step);
-		let move_bbox = start_bbox.union(&end_bbox);
+		let move_bbox = start_bbox.extend(move_step);
 		let move_bbox2 = AABB2::from(&move_bbox);
 
 		self.map.traverse_nodes(
@@ -346,8 +347,10 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 			},
 		);
 
-		self.quadtree
-			.traverse_nodes(&move_bbox2, &mut |entities: &[Entity]| {
+		self.quadtree.traverse_nodes(
+			&start_bbox.into(),
+			move_step.fixed_resize(0.0),
+			&mut |entities: &[Entity]| {
 				for &entity in entities {
 					let (transform, box_collider) =
 						match <(&Transform, &BoxCollider)>::query().get(self.world, entity) {
@@ -382,7 +385,8 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						trace_touched.push(entity);
 					}
 				}
-			});
+			},
+		);
 
 		trace_touched
 	}
