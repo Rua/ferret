@@ -20,7 +20,10 @@ pub struct PresentTarget {
 }
 
 impl PresentTarget {
-	pub fn new(surface: Arc<Surface<Window>>, device: Arc<Device>) -> anyhow::Result<PresentTarget> {
+	pub fn new(
+		surface: Arc<Surface<Window>>,
+		device: Arc<Device>,
+	) -> anyhow::Result<PresentTarget> {
 		let params =
 			choose_swapchain_params(&device, &surface, surface.window().inner_size().into())?;
 		log::debug!("Creating swapchain: {:?}", params);
@@ -34,6 +37,7 @@ impl PresentTarget {
 			params.dimensions,
 			1,
 			ImageUsage {
+				color_attachment: true,
 				transfer_destination: true,
 				..ImageUsage::none()
 			},
@@ -70,6 +74,7 @@ impl PresentTarget {
 			params.dimensions,
 			1,
 			ImageUsage {
+				color_attachment: true,
 				transfer_destination: true,
 				..ImageUsage::none()
 			},
