@@ -260,7 +260,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 							trace_collision = Some(EntityTraceCollision {
 								entity,
 								normal,
-								step_z: Some(other_bbox[2].max + DISTANCE_EPSILON),
+								step_z: None,
 							});
 						}
 					}
