@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		frame::{FrameRng, FrameState},
-		geometry::{angles_to_axes, Angle, AABB2, AABB3},
+		geometry::{angles_to_axes, Angle, Line3, AABB2, AABB3},
 		quadtree::Quadtree,
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
 		time::Timer,
@@ -260,9 +260,9 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 
 						let direction = angles_to_axes(rotation)[0];
 						let trace = tracer.trace(
-							&AABB3::from_point(position),
+							&AABB3::from_point(Vector3::zeros()),
 							SolidType::PROJECTILE,
-							direction * line_attack.distance,
+							Line3::new(position, direction * line_attack.distance),
 						);
 
 						// Hit something!
@@ -276,13 +276,13 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 								Damage {
 									damage,
 									source_entity: target,
-									direction: trace.move_step,
+									direction: trace.move_step.dir,
 								},
 							));
 
 							// Spawn particles
 							let mut particle_transform = Transform {
-								position: position + trace.move_step,
+								position: trace.move_step.end_point(),
 								rotation: Vector3::zeros(),
 							};
 

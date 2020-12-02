@@ -1,6 +1,6 @@
 use crate::{
 	common::{
-		geometry::{Interval, Plane3, AABB2, AABB3},
+		geometry::{Interval, Line3, Plane3, AABB2, AABB3},
 		quadtree::Quadtree,
 	},
 	doom::{
@@ -26,7 +26,7 @@ pub struct EntityTracer<'a, W: EntityStore> {
 #[derive(Clone, Debug)]
 pub struct EntityTrace {
 	pub fraction: f32,
-	pub move_step: Vector3<f32>,
+	pub move_step: Line3,
 	pub collision: Option<EntityTraceCollision>,
 }
 
@@ -40,22 +40,18 @@ pub struct EntityTraceCollision {
 const EXTRA_HEADROOM: f32 = 0.1;
 
 impl<'a, W: EntityStore> EntityTracer<'a, W> {
-	pub fn trace(
-		&self,
-		start_bbox: &AABB3,
-		solid_type: SolidType,
-		move_step: Vector3<f32>,
-	) -> EntityTrace {
+	pub fn trace(&self, bbox: &AABB3, solid_type: SolidType, move_step: Line3) -> EntityTrace {
 		let mut trace_fraction = 1.0;
 		let mut trace_collision = None;
 
-		let move_bbox = start_bbox.extend(move_step);
+		let start_bbox = bbox.offset(move_step.point);
+		let move_bbox = start_bbox.extend(move_step.dir);
 		let move_bbox2 = AABB2::from(&move_bbox);
 
 		self.map.traverse_nodes(
 			NodeChild::Node(0),
-			&start_bbox.into(),
-			move_step.fixed_resize(0.0),
+			&(&start_bbox).into(),
+			move_step.dir.fixed_resize(0.0),
 			&mut |node: NodeChild| {
 				let linedefs = match node {
 					NodeChild::Subsector(index) => &self.map.subsectors[index].linedefs,
@@ -119,7 +115,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 							let iter = linedef.collision_planes.iter().chain(z_planes.iter());
 
 							if let Some((fraction, normal)) =
-								trace_planes(start_bbox, move_step, iter)
+								trace_planes(&start_bbox, move_step.dir, iter)
 							{
 								if fraction < trace_fraction
 										// Wall takes priority over other vertical surfaces
@@ -157,7 +153,8 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						];
 						let iter = linedef.collision_planes.iter().chain(z_planes.iter());
 
-						if let Some((fraction, normal)) = trace_planes(start_bbox, move_step, iter)
+						if let Some((fraction, normal)) =
+							trace_planes(&start_bbox, move_step.dir, iter)
 						{
 							if fraction < trace_fraction
 								// Wall takes priority over other vertical surfaces
@@ -198,7 +195,8 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						];
 						let iter = subsector.collision_planes.iter().chain(z_planes.iter());
 
-						if let Some((fraction, normal)) = trace_planes(start_bbox, move_step, iter)
+						if let Some((fraction, normal)) =
+							trace_planes(&start_bbox, move_step.dir, iter)
 						{
 							if fraction < trace_fraction
 									// Flat takes priority over other horizontal surfaces
@@ -219,8 +217,8 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 		);
 
 		self.quadtree.traverse_nodes(
-			&start_bbox.into(),
-			move_step.fixed_resize(0.0),
+			&(&start_bbox).into(),
+			move_step.dir.fixed_resize(0.0),
 			&mut |entities: &[Entity]| {
 				for &entity in entities {
 					let (transform, box_collider) =
@@ -238,7 +236,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 							.offset(transform.position);
 
 					// Don't collide against self
-					if start_bbox == &other_bbox {
+					if start_bbox == other_bbox {
 						continue;
 					}
 
@@ -253,7 +251,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						.collect::<Vec<_>>(); // TODO make this not allocate
 
 					if let Some((fraction, normal)) =
-						trace_planes(start_bbox, move_step, other_planes.iter())
+						trace_planes(&start_bbox, move_step.dir, other_planes.iter())
 					{
 						if fraction < trace_fraction {
 							trace_fraction = fraction;
@@ -270,27 +268,28 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 
 		EntityTrace {
 			fraction: trace_fraction,
-			move_step: move_step * trace_fraction,
+			move_step: Line3::new(move_step.point, move_step.dir * trace_fraction),
 			collision: trace_collision,
 		}
 	}
 
 	pub fn trace_nonsolid(
 		&self,
-		start_bbox: &AABB3,
+		bbox: &AABB3,
 		solid_type: SolidType,
-		move_step: Vector3<f32>,
+		move_step: Line3,
 	) -> SmallVec<[Entity; 4]> {
 		let mut trace_touched: SmallVec<[Entity; 4]> = SmallVec::new();
 
-		let start_bbox_zero = AABB3::from_point(start_bbox.middle());
-		let move_bbox = start_bbox.extend(move_step);
+		let start_bbox = bbox.offset(move_step.point);
+		let move_bbox = start_bbox.extend(move_step.dir);
 		let move_bbox2 = AABB2::from(&move_bbox);
+		let start_bbox_zero = AABB3::from_point(move_step.point);
 
 		self.map.traverse_nodes(
 			NodeChild::Node(0),
-			&start_bbox.into(),
-			move_step.fixed_resize(0.0),
+			&(&start_bbox).into(),
+			move_step.dir.fixed_resize(0.0),
 			&mut |node: NodeChild| {
 				let linedefs = match node {
 					NodeChild::Subsector(index) => &self.map.subsectors[index].linedefs,
@@ -339,7 +338,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 
 						// Non-solid linedefs use the zero bbox, because they are only touched
 						// if the midpoint of the entity touches
-						if trace_planes(&start_bbox_zero, move_step, iter).is_some() {
+						if trace_planes(&start_bbox_zero, move_step.dir, iter).is_some() {
 							trace_touched.push(linedef_dynamic.entity);
 						}
 					}
@@ -348,8 +347,8 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 		);
 
 		self.quadtree.traverse_nodes(
-			&start_bbox.into(),
-			move_step.fixed_resize(0.0),
+			&(&start_bbox).into(),
+			move_step.dir.fixed_resize(0.0),
 			&mut |entities: &[Entity]| {
 				for &entity in entities {
 					let (transform, box_collider) =
@@ -367,7 +366,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 							.offset(transform.position);
 
 					// Don't collide against self
-					if start_bbox == &other_bbox {
+					if start_bbox == other_bbox {
 						continue;
 					}
 
@@ -381,7 +380,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						.map(|p| CollisionPlane(*p, true))
 						.collect::<Vec<_>>(); // TODO make this not allocate
 
-					if trace_planes(start_bbox, move_step, other_planes.iter()).is_some() {
+					if trace_planes(&start_bbox, move_step.dir, other_planes.iter()).is_some() {
 						trace_touched.push(entity);
 					}
 				}
@@ -445,8 +444,8 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 		for (&entity, transform, box_collider) in
 			<(Entity, &Transform, &BoxCollider)>::query().iter(self.world)
 		{
-			let start_bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height)
-				.offset(transform.position);
+			let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
+			let start_bbox = bbox.offset(transform.position);
 			let start_bbox2 = AABB2::from(&start_bbox);
 
 			for subsector in subsectors.clone().filter(|s| start_bbox2.overlaps(&s.bbox)) {
@@ -455,13 +454,11 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 				if let Some((hit_fraction, _)) = trace_planes(&start_bbox, -move_step3, iter) {
 					if hit_fraction < 1.0 {
 						let remainder = 1.0 - hit_fraction;
-						let entity_move_step = remainder * move_step3;
+						let entity_move_step =
+							Line3::new(transform.position, remainder * move_step3);
 
-						let trace = entity_tracer.trace(
-							&start_bbox,
-							box_collider.solid_type,
-							entity_move_step,
-						);
+						let trace =
+							entity_tracer.trace(&bbox, box_collider.solid_type, entity_move_step);
 						let total_fraction = hit_fraction + remainder * trace.fraction;
 
 						if total_fraction < trace_fraction {

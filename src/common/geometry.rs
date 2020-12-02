@@ -34,7 +34,6 @@ where
 	/// Constructs a new `Line` from a start point and a direction vector.
 	#[inline]
 	pub fn new(point: VectorN<f32, D>, dir: VectorN<f32, D>) -> Line<D> {
-		debug_assert!(!dir.is_zero());
 		Line { point, dir }
 	}
 
@@ -45,6 +44,12 @@ where
 			point: self.point + self.dir,
 			dir: -self.dir,
 		}
+	}
+
+	/// Returns the end point of the line segment, `self.point` + `self.dir`.
+	#[inline]
+	pub fn end_point(&self) -> VectorN<f32, D> {
+		self.point + self.dir
 	}
 }
 

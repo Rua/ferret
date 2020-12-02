@@ -321,7 +321,7 @@ pub fn spawn_map_entities(
 				for sidedef in linedef.sidedefs.iter().flatten() {
 					if sidedef.sector_index == i {
 						bbox.add_point(linedef.line.point);
-						bbox.add_point(linedef.line.point + linedef.line.dir);
+						bbox.add_point(linedef.line.end_point());
 					}
 				}
 			}

@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		frame::FrameState,
-		geometry::{Line2, AABB3},
+		geometry::{Line2, Line3, AABB3},
 		input::{Bindings, InputState},
 		quadtree::Quadtree,
 		spawn::SpawnMergerHandlerSet,
@@ -162,12 +162,12 @@ pub fn player_move_system(_resources: &mut Resources) -> impl Runnable {
 				let map_dynamic = queries.1.iter(world).next().unwrap();
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 
-				let (start_bbox, solid_type) = {
+				let (bbox, solid_type, position) = {
 					let (transform, box_collider) = queries.2.get(world, client_entity).unwrap();
 					(
-						AABB3::from_radius_height(box_collider.radius, box_collider.height)
-							.offset(transform.position),
+						AABB3::from_radius_height(box_collider.radius, box_collider.height),
 						box_collider.solid_type,
+						transform.position,
 					)
 				};
 
@@ -178,7 +178,11 @@ pub fn player_move_system(_resources: &mut Resources) -> impl Runnable {
 					world,
 				};
 
-				let trace = tracer.trace(&start_bbox, solid_type, Vector3::new(0.0, 0.0, -0.25));
+				let trace = tracer.trace(
+					&bbox,
+					solid_type,
+					Line3::new(position, Vector3::new(0.0, 0.0, -0.25)),
+				);
 
 				if trace.collision.is_none() {
 					// Player is not on ground

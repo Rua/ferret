@@ -146,8 +146,8 @@ pub fn make_meshes(
 
 			// Swap the vertices if we're on the left side of the linedef
 			let linedef_vertices = match side {
-				Side::Right => [linedef.line.point, linedef.line.point + linedef.line.dir],
-				Side::Left => [linedef.line.point + linedef.line.dir, linedef.line.point],
+				Side::Right => [linedef.line.point, linedef.line.end_point()],
+				Side::Left => [linedef.line.end_point(), linedef.line.point],
 			};
 
 			// Two-sided or one-sided sidedef?

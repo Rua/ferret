@@ -147,7 +147,7 @@ pub fn build_map(
 
 	for linedef in &linedefs {
 		bbox.add_point(linedef.line.point);
-		bbox.add_point(linedef.line.point + linedef.line.dir);
+		bbox.add_point(linedef.line.end_point());
 	}
 
 	Ok(Map {
@@ -1071,7 +1071,7 @@ fn rebuild_segs(segs: &mut Vec<Seg>, planes: &[Plane2]) -> anyhow::Result<()> {
 
 	// Add seg end points
 	for seg in segs.iter() {
-		let point = seg.line.point + seg.line.dir;
+		let point = seg.line.end_point();
 
 		// Point must not be on an existing point
 		let points_check = |(other, _): &(Vector2<f32>, _)| (other - point).norm() >= 0.01;
@@ -1149,7 +1149,7 @@ fn rebuild_segs(segs: &mut Vec<Seg>, planes: &[Plane2]) -> anyhow::Result<()> {
 
 		segs.push({
 			if let Some(seg) = seg {
-				//assert_eq!(seg.line.point + seg.line.dir, *next);
+				//assert_eq!(seg.line.end_point(), *next);
 				seg
 			} else {
 				let line = Line2::new(point, next - point);
