@@ -48,11 +48,8 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 		let move_bbox = start_bbox.extend(move_step.dir);
 		let move_bbox2 = AABB2::from(&move_bbox);
 
-		self.map.traverse_nodes(
-			NodeChild::Node(0),
-			&(&start_bbox).into(),
-			move_step.dir.fixed_resize(0.0),
-			&mut |node: NodeChild| {
+		self.map
+			.traverse_nodes(&bbox, &move_step, |node: NodeChild| -> Vector3<f32> {
 				let linedefs = match node {
 					NodeChild::Subsector(index) => &self.map.subsectors[index].linedefs,
 					NodeChild::Node(index) => &self.map.nodes[index].linedefs,
@@ -174,47 +171,46 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 				if let NodeChild::Subsector(subsector_index) = node {
 					let subsector = &self.map.subsectors[subsector_index];
 
-					if !move_bbox2.overlaps(&subsector.bbox) {
-						return;
-					}
+					if move_bbox2.overlaps(&subsector.bbox) {
+						let sector_dynamic = &self.map_dynamic.sectors[subsector.sector_index];
 
-					let sector_dynamic = &self.map_dynamic.sectors[subsector.sector_index];
-
-					for (distance, normal) in ArrayVec::from([
-						(
-							-(sector_dynamic.interval.max + EXTRA_HEADROOM),
-							Vector3::new(0.0, 0.0, -1.0),
-						),
-						(sector_dynamic.interval.min, Vector3::new(0.0, 0.0, 1.0)),
-					])
-					.into_iter()
-					{
-						let z_planes = [
-							CollisionPlane(Plane3::new(normal, distance), true),
-							CollisionPlane(Plane3::new(-normal, -distance), false),
-						];
-						let iter = subsector.collision_planes.iter().chain(z_planes.iter());
-
-						if let Some((fraction, normal)) =
-							trace_planes(&start_bbox, move_step.dir, iter)
+						for (distance, normal) in ArrayVec::from([
+							(
+								-(sector_dynamic.interval.max + EXTRA_HEADROOM),
+								Vector3::new(0.0, 0.0, -1.0),
+							),
+							(sector_dynamic.interval.min, Vector3::new(0.0, 0.0, 1.0)),
+						])
+						.into_iter()
 						{
-							if fraction < trace_fraction
+							let z_planes = [
+								CollisionPlane(Plane3::new(normal, distance), true),
+								CollisionPlane(Plane3::new(-normal, -distance), false),
+							];
+							let iter = subsector.collision_planes.iter().chain(z_planes.iter());
+
+							if let Some((fraction, normal)) =
+								trace_planes(&start_bbox, move_step.dir, iter)
+							{
+								if fraction < trace_fraction
 									// Flat takes priority over other horizontal surfaces
 									|| fraction == trace_fraction
 										&& normal[0] == 0.0 && normal[1] == 0.0
-							{
-								trace_fraction = fraction;
-								trace_collision = Some(EntityTraceCollision {
-									entity: sector_dynamic.entity,
-									normal,
-									step_z: None,
-								});
+								{
+									trace_fraction = fraction;
+									trace_collision = Some(EntityTraceCollision {
+										entity: sector_dynamic.entity,
+										normal,
+										step_z: None,
+									});
+								}
 							}
 						}
 					}
 				}
-			},
-		);
+
+				move_step.dir * trace_fraction
+			});
 
 		self.quadtree.traverse_nodes(
 			&(&start_bbox).into(),
@@ -286,11 +282,8 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 		let move_bbox2 = AABB2::from(&move_bbox);
 		let start_bbox_zero = AABB3::from_point(move_step.point);
 
-		self.map.traverse_nodes(
-			NodeChild::Node(0),
-			&(&start_bbox).into(),
-			move_step.dir.fixed_resize(0.0),
-			&mut |node: NodeChild| {
+		self.map
+			.traverse_nodes(&bbox, &move_step, |node: NodeChild| -> Vector3<f32> {
 				let linedefs = match node {
 					NodeChild::Subsector(index) => &self.map.subsectors[index].linedefs,
 					NodeChild::Node(index) => &self.map.nodes[index].linedefs,
@@ -343,8 +336,9 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						}
 					}
 				}
-			},
-		);
+
+				move_step.dir
+			});
 
 		self.quadtree.traverse_nodes(
 			&(&start_bbox).into(),

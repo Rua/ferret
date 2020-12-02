@@ -143,6 +143,17 @@ pub enum Side {
 	Left = 1,
 }
 
+impl From<bool> for Side {
+	#[inline]
+	fn from(value: bool) -> Side {
+		if value {
+			Side::Left
+		} else {
+			Side::Right
+		}
+	}
+}
+
 impl std::ops::Not for Side {
 	type Output = Side;
 

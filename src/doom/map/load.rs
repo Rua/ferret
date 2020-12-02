@@ -1179,7 +1179,7 @@ fn intersect_line_plane(line: &Line2, plane: &Plane2) -> Option<f32> {
 fn intersect_planes(plane1: &Plane2, plane2: &Plane2) -> Option<nalgebra::Vector2<f32>> {
 	let denom = plane1.normal.perp(&plane2.normal);
 
-	if denom.abs() == 0.010 {
+	if denom.abs() < 0.01 {
 		return None;
 	}
 

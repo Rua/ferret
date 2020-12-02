@@ -5,7 +5,7 @@ pub mod textures;
 use crate::{
 	common::{
 		assets::AssetHandle,
-		geometry::{Angle, Interval, Line2, Plane2, Side, AABB2},
+		geometry::{Angle, Interval, Line2, Line3, Plane2, Side, AABB2, AABB3},
 		time::Timer,
 	},
 	doom::{
@@ -18,7 +18,7 @@ use crate::{
 use bitflags::bitflags;
 use fnv::FnvHashMap;
 use legion::Entity;
-use nalgebra::Vector2;
+use nalgebra::{Vector2, Vector3};
 use serde::Deserialize;
 use std::{fmt::Debug, time::Duration};
 
@@ -194,59 +194,77 @@ impl Map {
 		}
 	}
 
-	pub fn traverse_nodes<F: FnMut(NodeChild)>(
+	pub fn traverse_nodes<F>(&self, bbox: &AABB3, move_step: &Line3, mut func: F)
+	where
+		F: FnMut(NodeChild) -> Vector3<f32>,
+	{
+		self.traverse_nodes_r(
+			NodeChild::Node(0),
+			&bbox.into(),
+			move_step.into(),
+			&mut func,
+		);
+	}
+
+	pub fn traverse_nodes_r<F>(
 		&self,
 		node: NodeChild,
-		start_bbox: &AABB2,
-		move_step: Vector2<f32>,
+		bbox: &AABB2,
+		mut move_step: Line2,
 		func: &mut F,
-	) {
-		func(node);
+	) -> Vector2<f32>
+	where
+		F: FnMut(NodeChild) -> Vector3<f32>,
+	{
+		move_step.dir = func(node).fixed_resize(0.0);
 
 		if let NodeChild::Node(index) = node {
 			let node = &self.nodes[index];
-			let move_step_normal = move_step.dot(&node.plane.normal);
 
-			let move_interval = if start_bbox.is_point() {
-				let start = start_bbox.min().dot(&node.plane.normal);
-				let end = start + move_step_normal;
-				Interval::empty().add_point(start).add_point(end)
+			// Calculate the bounding box's min and max distances from the plane
+			let start_interval = if bbox.is_point() {
+				Interval::from_point(bbox.min().dot(&node.plane.normal))
 			} else {
 				let points = [
-					Vector2::new(start_bbox[0].min, start_bbox[1].min),
-					Vector2::new(start_bbox[0].min, start_bbox[1].max),
-					Vector2::new(start_bbox[0].max, start_bbox[1].min),
-					Vector2::new(start_bbox[0].max, start_bbox[1].max),
+					Vector2::new(bbox[0].min, bbox[1].min),
+					Vector2::new(bbox[0].min, bbox[1].max),
+					Vector2::new(bbox[0].max, bbox[1].min),
+					Vector2::new(bbox[0].max, bbox[1].max),
 				];
-				points
-					.iter()
-					.copied()
-					.fold(Interval::empty(), |i, p| {
-						i.add_point(p.dot(&node.plane.normal))
-					})
-					.extend(move_step_normal)
+				points.iter().copied().fold(Interval::empty(), |i, p| {
+					i.add_point(p.dot(&node.plane.normal))
+				})
+			}
+			.offset(move_step.point.dot(&node.plane.normal));
+
+			// Start with the side that the start point is on
+			let sides = if move_step.point.dot(&node.plane.normal) >= 0.0 {
+				[Side::Right, Side::Left]
+			} else {
+				[Side::Left, Side::Right]
 			};
 
-			let direction = move_interval.direction_from(node.plane.distance);
+			for &side in sides.iter() {
+				let move_interval = start_interval.extend(move_step.dir.dot(&node.plane.normal));
+				let direction = move_interval.direction_from(node.plane.distance);
 
-			if direction >= 0.0 {
-				self.traverse_nodes(
-					node.child_indices[Side::Right as usize],
-					start_bbox,
-					move_step,
-					func,
-				);
-			}
+				let test = match side {
+					Side::Right => direction >= 0.0,
+					Side::Left => direction <= 0.0,
+				};
 
-			if direction <= 0.0 {
-				self.traverse_nodes(
-					node.child_indices[Side::Left as usize],
-					start_bbox,
-					move_step,
-					func,
-				);
+				if test {
+					move_step.dir = self.traverse_nodes_r(
+						node.child_indices[side as usize],
+						bbox,
+						move_step,
+						func,
+					);
+				}
 			}
 		}
+
+		move_step.dir
 	}
 
 	pub fn lowest_neighbour_floor(&self, map_dynamic: &MapDynamic, sector_index: usize) -> f32 {
