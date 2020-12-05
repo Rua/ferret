@@ -5,7 +5,7 @@ pub mod textures;
 use crate::{
 	common::{
 		assets::AssetHandle,
-		geometry::{Angle, Interval, Line2, Line3, Plane2, Side, AABB2, AABB3},
+		geometry::{Angle, Interval, Line2, Plane2, Side, AABB2},
 		time::Timer,
 	},
 	doom::{
@@ -18,7 +18,7 @@ use crate::{
 use bitflags::bitflags;
 use fnv::FnvHashMap;
 use legion::Entity;
-use nalgebra::{Vector2, Vector3};
+use nalgebra::Vector2;
 use serde::Deserialize;
 use std::{fmt::Debug, time::Duration};
 
@@ -194,16 +194,11 @@ impl Map {
 		}
 	}
 
-	pub fn traverse_nodes<F>(&self, bbox: &AABB3, move_step: &Line3, mut func: F)
+	pub fn traverse_nodes<F>(&self, bbox: AABB2, move_step: Line2, mut func: F)
 	where
-		F: FnMut(NodeChild) -> Vector3<f32>,
+		F: FnMut(NodeChild) -> Vector2<f32>,
 	{
-		self.traverse_nodes_r(
-			NodeChild::Node(0),
-			&bbox.into(),
-			move_step.into(),
-			&mut func,
-		);
+		self.traverse_nodes_r(NodeChild::Node(0), &bbox, move_step, &mut func);
 	}
 
 	pub fn traverse_nodes_r<F>(
@@ -214,9 +209,9 @@ impl Map {
 		func: &mut F,
 	) -> Vector2<f32>
 	where
-		F: FnMut(NodeChild) -> Vector3<f32>,
+		F: FnMut(NodeChild) -> Vector2<f32>,
 	{
-		move_step.dir = func(node).fixed_resize(0.0);
+		move_step.dir = func(node);
 
 		if let NodeChild::Node(index) = node {
 			let node = &self.nodes[index];
@@ -238,19 +233,17 @@ impl Map {
 			.offset(move_step.point.dot(&node.plane.normal));
 
 			// Start with the side that the start point is on
-			let sides = if move_step.point.dot(&node.plane.normal) >= 0.0 {
-				[Side::Right, Side::Left]
-			} else {
-				[Side::Left, Side::Right]
-			};
+			let point_side = move_step.point.dot(&node.plane.normal) < 0.0;
+			let sides = [point_side, !point_side];
 
 			for &side in sides.iter() {
-				let move_interval = start_interval.extend(move_step.dir.dot(&node.plane.normal));
-				let direction = move_interval.direction_from(node.plane.distance);
+				let direction = start_interval
+					.extend(move_step.dir.dot(&node.plane.normal))
+					.direction_from(node.plane.distance);
 
 				let test = match side {
-					Side::Right => direction >= 0.0,
-					Side::Left => direction <= 0.0,
+					false => direction >= 0.0,
+					true => direction <= 0.0,
 				};
 
 				if test {

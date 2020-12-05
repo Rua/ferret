@@ -1,4 +1,4 @@
-use crate::common::geometry::{Interval, AABB2};
+use crate::common::geometry::{Interval, Line2, AABB2};
 use fnv::FnvHashMap;
 use legion::Entity;
 use nalgebra::Vector2;
@@ -192,54 +192,65 @@ impl Quadtree {
 	}
 
 	#[inline]
-	pub fn traverse_nodes<F: FnMut(&[Entity])>(
-		&self,
-		start_bbox: &AABB2,
-		move_step: Vector2<f32>,
-		func: &mut F,
-	) {
-		self.traverse_nodes_r(0, start_bbox, move_step, func);
+	pub fn traverse_nodes<F>(&self, bbox: AABB2, move_step: Line2, func: &mut F)
+	where
+		F: FnMut(&[Entity]) -> Vector2<f32>,
+	{
+		self.traverse_nodes_r(0, &bbox, move_step, func);
 	}
 
-	fn traverse_nodes_r<F: FnMut(&[Entity])>(
+	fn traverse_nodes_r<F>(
 		&self,
 		index: usize,
-		start_bbox: &AABB2,
-		move_step: Vector2<f32>,
+		bbox: &AABB2,
+		mut move_step: Line2,
 		func: &mut F,
-	) {
+	) -> Vector2<f32>
+	where
+		F: FnMut(&[Entity]) -> Vector2<f32>,
+	{
 		if !self.nodes[index].entities.is_empty() {
-			func(&self.nodes[index].entities);
+			move_step.dir = func(&self.nodes[index].entities);
 		}
 
 		if let Some((middle, child_nodes)) = self.nodes[index].children {
-			let direction: Vector2<f32> = middle.zip_zip_map(
-				&start_bbox.vector(),
-				&move_step,
-				|middle, start_bbox, move_step| start_bbox.extend(move_step).direction_from(middle),
-			);
+			let start_interval = bbox.offset(move_step.point);
 
-			if direction[0] <= 0.0 && direction[1] <= 0.0 {
-				self.traverse_nodes_r(child_nodes[0][0], start_bbox, move_step, func);
-			}
+			// Start with the side that the start point is on
+			let point_side = middle.zip_map(&move_step.point, |middle, point| point >= middle);
+			let sides = [
+				Vector2::new(point_side[0], point_side[1]),
+				Vector2::new(point_side[0], !point_side[1]),
+				Vector2::new(!point_side[0], point_side[1]),
+				Vector2::new(!point_side[0], !point_side[1]),
+			];
 
-			if direction[0] <= 0.0 && direction[1] >= 0.0 {
-				self.traverse_nodes_r(child_nodes[0][1], start_bbox, move_step, func);
-			}
+			for side in sides.iter() {
+				let test = start_interval
+					.extend(move_step.dir)
+					.direction_from(middle)
+					.zip_map(&side, |direction, side| match side {
+						true => direction >= 0.0,
+						false => direction <= 0.0,
+					});
 
-			if direction[0] >= 0.0 && direction[1] <= 0.0 {
-				self.traverse_nodes_r(child_nodes[1][0], start_bbox, move_step, func);
-			}
-
-			if direction[0] >= 0.0 && direction[1] >= 0.0 {
-				self.traverse_nodes_r(child_nodes[1][1], start_bbox, move_step, func);
+				if test[0] && test[1] {
+					move_step.dir = self.traverse_nodes_r(
+						child_nodes[side[0] as usize][side[1] as usize],
+						bbox,
+						move_step,
+						func,
+					);
+				}
 			}
 		}
+
+		move_step.dir
 	}
 }
 
 #[derive(Clone, Debug)]
-pub struct QuadtreeNode {
+struct QuadtreeNode {
 	entities: Vec<Entity>,
 	num_descendants: usize,
 	bbox: AABB2,

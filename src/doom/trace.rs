@@ -1,6 +1,6 @@
 use crate::{
 	common::{
-		geometry::{Interval, Line3, Plane3, AABB2, AABB3},
+		geometry::{Interval, Line2, Line3, Plane3, AABB2, AABB3},
 		quadtree::Quadtree,
 	},
 	doom::{
@@ -13,7 +13,7 @@ use arrayvec::ArrayVec;
 
 use lazy_static::lazy_static;
 use legion::{Entity, EntityStore, IntoQuery};
-use nalgebra::Vector3;
+use nalgebra::{Vector2, Vector3};
 use smallvec::SmallVec;
 
 pub struct EntityTracer<'a, W: EntityStore> {
@@ -46,10 +46,12 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 
 		let start_bbox = bbox.offset(move_step.point);
 		let move_bbox = start_bbox.extend(move_step.dir);
-		let move_bbox2 = AABB2::from(&move_bbox);
+		let move_bbox2 = AABB2::from(move_bbox);
 
-		self.map
-			.traverse_nodes(&bbox, &move_step, |node: NodeChild| -> Vector3<f32> {
+		self.map.traverse_nodes(
+			AABB2::from(*bbox),
+			Line2::from(move_step),
+			|node: NodeChild| -> Vector2<f32> {
 				let linedefs = match node {
 					NodeChild::Subsector(index) => &self.map.subsectors[index].linedefs,
 					NodeChild::Node(index) => &self.map.nodes[index].linedefs,
@@ -209,13 +211,14 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 					}
 				}
 
-				move_step.dir * trace_fraction
-			});
+				(move_step.dir * trace_fraction).fixed_resize(0.0)
+			},
+		);
 
 		self.quadtree.traverse_nodes(
-			&(&start_bbox).into(),
-			move_step.dir.fixed_resize(0.0),
-			&mut |entities: &[Entity]| {
+			AABB2::from(*bbox),
+			Line2::from(move_step),
+			&mut |entities: &[Entity]| -> Vector2<f32> {
 				for &entity in entities {
 					let (transform, box_collider) =
 						match <(&Transform, &BoxCollider)>::query().get(self.world, entity) {
@@ -259,6 +262,8 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						}
 					}
 				}
+
+				(move_step.dir * trace_fraction).fixed_resize(0.0)
 			},
 		);
 
@@ -279,11 +284,13 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 
 		let start_bbox = bbox.offset(move_step.point);
 		let move_bbox = start_bbox.extend(move_step.dir);
-		let move_bbox2 = AABB2::from(&move_bbox);
+		let move_bbox2 = AABB2::from(move_bbox);
 		let start_bbox_zero = AABB3::from_point(move_step.point);
 
-		self.map
-			.traverse_nodes(&bbox, &move_step, |node: NodeChild| -> Vector3<f32> {
+		self.map.traverse_nodes(
+			AABB2::from(*bbox),
+			Line2::from(move_step),
+			|node: NodeChild| -> Vector2<f32> {
 				let linedefs = match node {
 					NodeChild::Subsector(index) => &self.map.subsectors[index].linedefs,
 					NodeChild::Node(index) => &self.map.nodes[index].linedefs,
@@ -337,13 +344,14 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 					}
 				}
 
-				move_step.dir
-			});
+				move_step.dir.fixed_resize(0.0)
+			},
+		);
 
 		self.quadtree.traverse_nodes(
-			&(&start_bbox).into(),
-			move_step.dir.fixed_resize(0.0),
-			&mut |entities: &[Entity]| {
+			AABB2::from(*bbox),
+			Line2::from(move_step),
+			&mut |entities: &[Entity]| -> Vector2<f32> {
 				for &entity in entities {
 					let (transform, box_collider) =
 						match <(&Transform, &BoxCollider)>::query().get(self.world, entity) {
@@ -378,6 +386,8 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						trace_touched.push(entity);
 					}
 				}
+
+				move_step.dir.fixed_resize(0.0)
 			},
 		);
 
@@ -440,7 +450,7 @@ impl<'a, W: EntityStore> SectorTracer<'a, W> {
 		{
 			let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
 			let start_bbox = bbox.offset(transform.position);
-			let start_bbox2 = AABB2::from(&start_bbox);
+			let start_bbox2 = AABB2::from(start_bbox);
 
 			for subsector in subsectors.clone().filter(|s| start_bbox2.overlaps(&s.bbox)) {
 				let iter = subsector.collision_planes.iter().chain(z_planes.iter());

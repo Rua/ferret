@@ -67,7 +67,7 @@ pub fn spawn_entity(
 			<(Entity, &BoxCollider, &Transform)>::query().get(world, entity)
 		{
 			let bbox = AABB3::from_radius_height(box_collider.radius, box_collider.height);
-			quadtree.insert(entity, &AABB2::from(&bbox.offset(transform.position)));
+			quadtree.insert(entity, &AABB2::from(bbox.offset(transform.position)));
 		}
 	}
 

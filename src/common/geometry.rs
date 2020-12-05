@@ -83,9 +83,9 @@ impl Line2 {
 }
 
 /// Constructs a 2D `Line` from a 3D `Line` by discarding the third coordinate.
-impl From<&Line3> for Line2 {
+impl From<Line3> for Line2 {
 	#[inline]
-	fn from(line: &Line3) -> Line2 {
+	fn from(line: Line3) -> Line2 {
 		Line2::new(
 			Vector2::new(line.point[0], line.point[1]),
 			Vector2::new(line.dir[0], line.dir[1]),
@@ -358,7 +358,7 @@ impl std::fmt::Display for Interval {
 /// so many of the methods on `AABB` map straightforwardly to an equivalent on `Interval`.
 ///
 /// [`AABB2`] and [`AABB3`] are type aliases for bounding boxes in 2D and 3D space, respectively.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct AABB<D>(VectorN<Interval, D>)
 where
 	D: DimName,
@@ -599,9 +599,9 @@ impl AABB2 {
 }
 
 /// Constructs a 2D `AABB` from a 3D `AABB` by discarding the third axis.
-impl From<&AABB3> for AABB2 {
+impl From<AABB3> for AABB2 {
 	#[inline]
-	fn from(bbox: &AABB3) -> AABB2 {
+	fn from(bbox: AABB3) -> AABB2 {
 		AABB(Vector2::new(bbox.0[0], bbox.0[1]))
 	}
 }

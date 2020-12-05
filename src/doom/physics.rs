@@ -234,7 +234,7 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 					}
 
 					// Set new position and velocity
-					quadtree.insert(entity, &AABB2::from(&bbox.offset(transform.position)));
+					quadtree.insert(entity, &AABB2::from(bbox.offset(transform.position)));
 				}
 
 				let (transform_mut, physics_mut) = queries.3.get_mut(&mut world, entity).unwrap();

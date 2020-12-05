@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		frame::{FrameRng, FrameState},
-		geometry::{angles_to_axes, Angle, Line3, AABB2, AABB3},
+		geometry::{angles_to_axes, Angle, Line2, Line3, AABB2, AABB3},
 		quadtree::Quadtree,
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
 		time::Timer,
@@ -427,8 +427,8 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 				let query = &mut queries.2;
 
 				quadtree.traverse_nodes(
-					&AABB2::from_radius(radius_attack.radius).offset(midpoint.fixed_resize(0.0)),
-					Vector2::zeros(),
+					AABB2::from_radius(radius_attack.radius),
+					Line2::new(midpoint.fixed_resize(0.0), Vector2::zeros()),
 					&mut |entities: &[Entity]| {
 						for &entity in entities {
 							let (box_collider, transform) = match query.get(world, entity) {
@@ -463,6 +463,8 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 								},
 							));
 						}
+
+						Vector2::zeros()
 					},
 				);
 			}
