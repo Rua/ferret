@@ -407,24 +407,34 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<RadiusAttack>();
 
 	SystemBuilder::new("radius_attack")
+		.read_resource::<AssetStorage>()
 		.read_resource::<Quadtree>()
+		.with_query(<&MapDynamic>::query())
 		.with_query(<(Entity, &Entity, &RadiusAttack)>::query())
-		.with_query(<(Option<&Owner>, &Transform)>::query())
+		.with_query(<(Option<&BoxCollider>, Option<&Owner>, &Transform)>::query())
 		.with_query(<(&BoxCollider, &Transform)>::query())
 		.build(move |command_buffer, world, resources, queries| {
-			let quadtree = resources;
+			let (asset_storage, quadtree) = resources;
+			let map_dynamic = queries.0.iter(world).next().unwrap();
+			let map = asset_storage.get(&map_dynamic.map).unwrap();
 
-			for (&entity, &target, radius_attack) in queries.0.iter(world) {
+			for (&entity, &target, radius_attack) in queries.1.iter(world) {
 				command_buffer.remove(entity);
 
-				let (source_entity, midpoint) = match queries.1.get(world, target) {
-					Ok((owner, transform)) => {
-						(owner.map(|o| o.0).unwrap_or(target), transform.position)
+				let (source_entity, midpoint) = match queries.2.get(world, target) {
+					Ok((box_collider, owner, transform)) => {
+						let mut midpoint = transform.position;
+
+						if let Some(box_collider) = box_collider {
+							midpoint[2] += box_collider.height * 0.75;
+						}
+
+						(owner.map(|o| o.0).unwrap_or(target), midpoint)
 					}
 					Err(_) => continue,
 				};
 
-				let query = &mut queries.2;
+				let query = &mut queries.3;
 
 				quadtree.traverse_nodes(
 					AABB2::from_radius(radius_attack.radius),
@@ -449,7 +459,16 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 								continue;
 							}
 
-							// TODO check for line-of-sight
+							let tracer = EntityTracer {
+								map,
+								map_dynamic,
+								quadtree: &quadtree,
+								world,
+							};
+
+							if !tracer.can_see(midpoint, entity) {
+								continue;
+							}
 
 							// Apply the damage
 							let scale = 1.0 - dist_sq.sqrt() / radius_attack.radius;

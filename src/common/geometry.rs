@@ -65,6 +65,27 @@ impl Line2 {
 	/// * `self.point + tuple.0 * self.dir`
 	/// * `other.point + tuple.1 * other.dir`
 	#[inline]
+	pub fn point_side(&self, point: Vector2<f32>) -> Option<Side> {
+		let diff = point - self.point;
+		let left = self.dir[1] * diff[0];
+		let right = self.dir[0] * diff[1];
+
+		if left > right {
+			Some(Side::Right)
+		} else if left < right {
+			Some(Side::Left)
+		} else {
+			None
+		}
+	}
+
+	#[inline]
+	pub fn intersects(&self, other: &Line2) -> bool {
+		!(self.point_side(other.point) == self.point_side(other.point + other.dir)
+			|| other.point_side(self.point) == other.point_side(self.point + self.dir))
+	}
+
+	#[inline]
 	pub fn intersect(&self, other: &Line2) -> Option<(f32, f32)> {
 		let normal = Vector2::new(other.dir[1], -other.dir[0]).normalize();
 		let denom = self.dir.dot(&normal);
@@ -86,10 +107,7 @@ impl Line2 {
 impl From<Line3> for Line2 {
 	#[inline]
 	fn from(line: Line3) -> Line2 {
-		Line2::new(
-			Vector2::new(line.point[0], line.point[1]),
-			Vector2::new(line.dir[0], line.dir[1]),
-		)
+		Line2::new(line.point.fixed_resize(0.0), line.dir.fixed_resize(0.0))
 	}
 }
 

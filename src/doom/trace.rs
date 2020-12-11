@@ -393,6 +393,86 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 
 		trace_touched
 	}
+
+	pub fn can_see(&self, point: Vector3<f32>, entity: Entity) -> bool {
+		let (transform, box_collider) =
+			match <(&Transform, &BoxCollider)>::query().get(self.world, entity) {
+				Ok(x) => x,
+				_ => return false,
+			};
+		let move_step = Line3::new(point, transform.position - point);
+		let move_step2 = Line2::from(move_step);
+
+		let mut slope = Interval::new(move_step.dir[2], move_step.dir[2] + box_collider.height);
+		let mut ret = true;
+
+		self.map.traverse_nodes(
+			AABB2::from_point(Vector2::zeros()),
+			Line2::from(move_step),
+			|node: NodeChild| -> Vector2<f32> {
+				let linedefs = match node {
+					NodeChild::Subsector(index) => &self.map.subsectors[index].linedefs,
+					NodeChild::Node(index) => &self.map.nodes[index].linedefs,
+				};
+
+				for linedef_index in linedefs.iter().copied() {
+					let linedef = &self.map.linedefs[linedef_index];
+
+					if !move_step2.intersects(&linedef.line) {
+						continue;
+					}
+
+					if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
+						let front_interval =
+							&self.map_dynamic.sectors[front_sidedef.sector_index].interval;
+						let back_interval =
+							&self.map_dynamic.sectors[back_sidedef.sector_index].interval;
+						let intersection = front_interval
+							.intersection(*back_interval)
+							.offset(-move_step.point[2]);
+
+						if intersection.is_empty() {
+							// Walls fully block sight
+							ret = false;
+							break;
+						}
+
+						let fraction = {
+							let denom = move_step2.dir.dot(&linedef.normal);
+
+							if denom == 0.0 {
+								0.0
+							} else {
+								(linedef.line.point - move_step2.point).dot(&linedef.normal) / denom
+							}
+						};
+
+						assert!(fraction >= 0.0 && fraction <= 1.0);
+
+						// Scale by fraction because nearer objects take up more vertical space
+						slope = slope.intersection(Interval::new(
+							intersection.min / fraction,
+							intersection.max / fraction,
+						));
+
+						if slope.is_empty() {
+							// Gap does not overlap
+							ret = false;
+							break;
+						}
+					} else if let [Some(_), None] = &linedef.sidedefs {
+						// Can't see through a onesided linedef
+						ret = false;
+						break;
+					}
+				}
+
+				move_step2.dir
+			},
+		);
+
+		ret
+	}
 }
 
 pub struct SectorTracer<'a, W: EntityStore> {
