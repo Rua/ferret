@@ -239,7 +239,7 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 						position[2] += box_collider.height * 0.5 + 8.0;
 					}
 
-					let ignore = Some(owner.map_or(entity, |&Owner(owner)| owner));
+					let ignore = Some(owner.map_or(target, |&Owner(owner)| owner));
 
 					for _ in 0..line_attack.count {
 						let mut rotation = transform.rotation;
