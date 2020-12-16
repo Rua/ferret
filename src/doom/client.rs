@@ -18,7 +18,7 @@ use crate::{
 		physics::{BoxCollider, Physics, TouchEvent},
 		plat::PlatSwitchUse,
 		sound::{Sound, StartSound},
-		state::weapon::WeaponState,
+		state::weapon::{Owner, WeaponState},
 		template::WeaponTemplate,
 		trace::EntityTracer,
 	},
@@ -130,7 +130,7 @@ pub fn player_move_system(_resources: &mut Resources) -> impl Runnable {
 		.read_resource::<Quadtree>()
 		.with_query(<&mut Transform>::query())
 		.with_query(<&MapDynamic>::query())
-		.with_query(<(&Transform, &BoxCollider)>::query())
+		.with_query(<(&BoxCollider, Option<&Owner>, &Transform)>::query())
 		.with_query(<(&Transform, &mut Physics)>::query())
 		.read_component::<BoxCollider>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
@@ -162,10 +162,12 @@ pub fn player_move_system(_resources: &mut Resources) -> impl Runnable {
 				let map_dynamic = queries.1.iter(world).next().unwrap();
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 
-				let (bbox, solid_type, position) = {
-					let (transform, box_collider) = queries.2.get(world, client_entity).unwrap();
+				let (bbox, ignore, solid_type, position) = {
+					let (box_collider, owner, transform) =
+						queries.2.get(world, client_entity).unwrap();
 					(
 						AABB3::from_radius_height(box_collider.radius, box_collider.height),
+						Some(owner.map_or(client_entity, |&Owner(owner)| owner)),
 						box_collider.solid_type,
 						transform.position,
 					)
@@ -181,6 +183,7 @@ pub fn player_move_system(_resources: &mut Resources) -> impl Runnable {
 				let trace = tracer.trace(
 					&bbox,
 					solid_type,
+					ignore,
 					Line3::new(position, Vector3::new(0.0, 0.0, -0.25)),
 				);
 

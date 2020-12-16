@@ -202,7 +202,7 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<AssetStorage>()
 		.read_resource::<Quadtree>()
 		.with_query(<(Entity, &Entity, &LineAttack)>::query())
-		.with_query(<(Option<&BoxCollider>, &Transform, &WeaponState)>::query())
+		.with_query(<(Option<&BoxCollider>, Option<&Owner>, &Transform, &WeaponState)>::query())
 		.with_query(<&mut FrameRng>::query())
 		.with_query(<&MapDynamic>::query())
 		.with_query(<(
@@ -219,7 +219,7 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 			for (&entity, &target, line_attack) in queries.0.iter(&world) {
 				command_buffer.remove(entity);
 
-				if let (Ok((box_collider, transform, weapon_state)), Ok(frame_rng)) = (
+				if let (Ok((box_collider, owner, transform, weapon_state)), Ok(frame_rng)) = (
 					queries.1.get(&world, target),
 					queries.2.get_mut(&mut world2, target),
 				) {
@@ -238,6 +238,8 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 					if let Some(box_collider) = box_collider {
 						position[2] += box_collider.height * 0.5 + 8.0;
 					}
+
+					let ignore = Some(owner.map_or(entity, |&Owner(owner)| owner));
 
 					for _ in 0..line_attack.count {
 						let mut rotation = transform.rotation;
@@ -262,6 +264,7 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 						let trace = tracer.trace(
 							&AABB3::from_point(Vector3::zeros()),
 							SolidType::PROJECTILE,
+							ignore,
 							Line3::new(position, direction * line_attack.distance),
 						);
 

@@ -11,6 +11,7 @@ use crate::{
 		data::{FRICTION, GRAVITY},
 		map::MapDynamic,
 		spawn::spawn_helper,
+		state::weapon::Owner,
 		template::EntityTemplateRef,
 		trace::EntityTracer,
 	},
@@ -137,7 +138,7 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 			<(Entity, &Transform)>::query()
 				.filter(component::<BoxCollider>() & component::<Physics>()),
 		)
-		.with_query(<(&Transform, &Physics, &BoxCollider)>::query())
+		.with_query(<(&BoxCollider, Option<&Owner>, &Physics, &Transform)>::query())
 		.with_query(<(&mut Transform, &mut Physics)>::query())
 		.with_query(<(&EntityTemplateRef, &Touchable)>::query())
 		.read_component::<BoxCollider>() // used by EntityTracer
@@ -152,9 +153,10 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 			let entities: Vec<Entity> = queries.1.iter(&world).map(|(e, _)| *e).collect();
 
 			for entity in entities {
-				let (&(mut transform), &(mut physics), box_collider) =
+				let (box_collider, owner, &(mut physics), &(mut transform)) =
 					queries.2.get_mut(&mut world, entity).unwrap();
 
+				let ignore = Some(owner.map_or(entity, |&Owner(owner)| owner));
 				let bbox = { AABB3::from_radius_height(box_collider.radius, box_collider.height) };
 				let solid_type = box_collider.solid_type;
 
@@ -173,6 +175,7 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 					let trace = tracer.trace(
 						&bbox,
 						solid_type,
+						ignore,
 						Line3::new(transform.position, Vector3::new(0.0, 0.0, -0.25)),
 					);
 
@@ -218,6 +221,7 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 							entity,
 							&bbox,
 							solid_type,
+							ignore,
 							frame_state.delta_time,
 						),
 						CollisionResponse::StepSlide => step_slide_move(
@@ -229,6 +233,7 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 							entity,
 							&bbox,
 							solid_type,
+							ignore,
 							frame_state.delta_time,
 						),
 					}
@@ -291,11 +296,13 @@ fn simple_move<W: EntityStore>(
 	entity: Entity,
 	bbox: &AABB3,
 	solid_type: SolidType,
+	ignore: Option<Entity>,
 	time_left: Duration,
 ) {
 	let trace = tracer.trace(
 		&bbox,
 		solid_type,
+		ignore,
 		Line3::new(*position, *velocity * time_left.as_secs_f32()),
 	);
 
@@ -350,6 +357,7 @@ fn step_slide_move<W: EntityStore>(
 	entity: Entity,
 	bbox: &AABB3,
 	solid_type: SolidType,
+	ignore: Option<Entity>,
 	mut time_left: Duration,
 ) {
 	let original_velocity = *velocity;
@@ -361,6 +369,7 @@ fn step_slide_move<W: EntityStore>(
 		let trace = tracer.trace(
 			&bbox,
 			solid_type,
+			ignore,
 			Line3::new(*position, *velocity * time_left.as_secs_f32()),
 		);
 
@@ -396,6 +405,7 @@ fn step_slide_move<W: EntityStore>(
 				let trace = tracer.trace(
 					&bbox,
 					solid_type,
+					ignore,
 					Line3::new(*position, Vector3::new(0.0, 0.0, height)),
 				);
 
