@@ -133,6 +133,7 @@ pub fn player_move_system(_resources: &mut Resources) -> impl Runnable {
 		.with_query(<(&BoxCollider, Option<&Owner>, &Transform)>::query())
 		.with_query(<(&Transform, &mut Physics)>::query())
 		.read_component::<BoxCollider>() // used by EntityTracer
+		.read_component::<Owner>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
 		.build(move |_command_buffer, world, resources, queries| {
 			let (asset_storage, client, frame_state, quadtree) = resources;

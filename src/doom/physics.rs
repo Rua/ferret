@@ -142,6 +142,7 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 		.with_query(<(&mut Transform, &mut Physics)>::query())
 		.with_query(<(&EntityTemplateRef, &Touchable)>::query())
 		.read_component::<BoxCollider>() // used by EntityTracer
+		.read_component::<Owner>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
 		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, frame_state, quadtree, step_event_channel) = resources;

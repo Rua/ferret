@@ -211,6 +211,7 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 			Option<&SectorRef>,
 		)>::query())
 		.read_component::<BoxCollider>() // used by EntityTracer
+		.read_component::<Owner>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
 		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, quadtree) = resources;
