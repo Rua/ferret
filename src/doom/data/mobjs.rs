@@ -1,6 +1,6 @@
 #![allow(unused_variables)]
 use crate::{
-	common::{assets::AssetStorage, frame::FrameRngDef},
+	common::{assets::AssetStorage, frame::FrameRngDef, geometry::Angle},
 	doom::{
 		camera::{Camera, MovementBob},
 		client::{PlayerTouch, User},
@@ -18,7 +18,7 @@ use crate::{
 				NextState, NextStateRandomTimeDef, RemoveEntity, SetBlocksTypes, SetEntitySprite,
 				SetSolidType, StateDef,
 			},
-			weapon::{OwnerDef, ProjectileTouch, RadiusAttack, WeaponStateDef},
+			weapon::{OwnerDef, ProjectileTouch, RadiusAttack, SprayAttack, WeaponStateDef},
 			EntityDef, StateName,
 		},
 		template::{EntityTemplate, EntityTemplateRefDef, EntityTypeId},
@@ -12142,6 +12142,19 @@ pub fn load(resources: &mut Resources) {
 							frame: 2,
 							full_bright: true,
 						}),
+					));
+					world.push((
+						EntityDef,
+						SprayAttack {
+							count: 40,
+							damage_range: (15..=120).into(),
+							damage_multiplier: 1.0,
+							distance: 1024.0,
+							spread: Vector2::new(
+								Angle::from_units(1.0 / 8.0),
+								Angle::from_units(1.0 / 10.0),
+							),
+						},
 					));
 					world
 				},

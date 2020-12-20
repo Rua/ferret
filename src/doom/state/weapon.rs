@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		frame::{FrameRng, FrameState},
-		geometry::{angles_to_axes, Angle, Line2, Line3, AABB2, AABB3},
+		geometry::{angles_to_axes, Angle, Interval, Line2, Line3, AABB2, AABB3},
 		quadtree::Quadtree,
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
 		time::Timer,
@@ -433,7 +433,7 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 							midpoint[2] += box_collider.height * 0.75;
 						}
 
-						(owner.map(|o| o.0).unwrap_or(target), midpoint)
+						(owner.map_or(target, |o| o.0), midpoint)
 					}
 					Err(_) => continue,
 				};
@@ -591,6 +591,120 @@ pub fn spawn_projectile(resources: &mut Resources) -> impl Runnable {
 			command_buffer.exec_mut(move |_world, resources| {
 				resources.remove::<SpawnContext<Owner>>();
 			})
+		})
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct SprayAttack {
+	pub count: usize,
+	pub damage_range: Uniform<u32>,
+	pub damage_multiplier: f32,
+	pub distance: f32,
+	pub spread: Vector2<Angle>,
+}
+
+pub fn spray_attack(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<SprayAttack>();
+
+	SystemBuilder::new("spray_attack")
+		.read_resource::<AssetStorage>()
+		.read_resource::<Quadtree>()
+		.with_query(<&MapDynamic>::query())
+		.with_query(<(Entity, &Entity, &SprayAttack)>::query())
+		.with_query(<&Owner>::query())
+		.with_query(<(Option<&BoxCollider>, &Transform)>::query())
+		.with_query(<&mut FrameRng>::query())
+		.read_component::<BoxCollider>() // used by EntityTracer
+		.read_component::<Owner>() // used by EntityTracer
+		.read_component::<Transform>() // used by EntityTracer
+		.build(move |command_buffer, world, resources, queries| {
+			let (asset_storage, quadtree) = resources;
+			let (mut world4, world) = world.split_for_query(&queries.4);
+
+			let map_dynamic = queries.0.iter(&world).next().unwrap();
+			let map = asset_storage.get(&map_dynamic.map).unwrap();
+
+			for (&entity, &target, spray_attack) in queries.1.iter(&world) {
+				command_buffer.remove(entity);
+
+				let owner = queries.2.get(&world, target).map_or(target, |o| o.0);
+
+				let (midpoint, angle, frame_rng) = match (
+					queries.3.get(&world, owner),
+					queries.4.get_mut(&mut world4, owner),
+				) {
+					(Ok((box_collider, transform)), Ok(frame_rng)) => {
+						let mut midpoint = transform.position;
+
+						if let Some(box_collider) = box_collider {
+							midpoint[2] += box_collider.height + 8.0;
+						}
+
+						(midpoint, transform.rotation[2], frame_rng)
+					}
+					_ => continue,
+				};
+
+				assert!(spray_attack.count >= 2);
+				let step = 2.0 / (spray_attack.count - 1) as f64;
+
+				for i in 0..spray_attack.count {
+					let angle = angle + spray_attack.spread[0] * (i as f64 * step - 1.0);
+					let move_step = Line3::new(
+						midpoint,
+						spray_attack.distance
+							* Vector3::new(angle.cos() as f32, angle.sin() as f32, 0.0),
+					);
+
+					let tracer = EntityTracer {
+						map,
+						map_dynamic,
+						quadtree: &quadtree,
+						world: &world,
+					};
+
+					let trace = tracer.closest_visible_target(Some(owner), move_step);
+
+					// Hit something!
+					if let Some(collision) = trace.collision {
+						// Apply the damage
+						let damage = spray_attack.damage_multiplier
+							* frame_rng.sample(spray_attack.damage_range) as f32;
+
+						command_buffer.push((
+							collision.entity,
+							Damage {
+								damage,
+								source_entity: target,
+								direction: trace.move_step.dir,
+							},
+						));
+
+						if let Ok((box_collider, transform)) =
+							queries.3.get(&world, collision.entity)
+						{
+							// Spawn particles
+							let mut particle_transform = Transform {
+								position: transform.position,
+								rotation: Vector3::zeros(),
+							};
+
+							if let Some(box_collider) = box_collider {
+								particle_transform.position[2] += box_collider.height / 4.0;
+							}
+
+							let handle = asset_storage
+								.handle_for("extrabfg")
+								.expect("Damage particle template is not present");
+
+							command_buffer.exec_mut(move |world, resources| {
+								spawn_entity(world, resources, &handle, particle_transform);
+							});
+						}
+					}
+				}
+			}
 		})
 }
 

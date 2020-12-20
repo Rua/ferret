@@ -511,6 +511,91 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 
 		ret
 	}
+
+	pub fn closest_visible_target(&self, ignore: Option<Entity>, move_step: Line3) -> EntityTrace {
+		let mut trace_fraction = 1.0;
+		let mut trace_collision = None;
+
+		let start_bbox = AABB3::from_point(move_step.point);
+		let move_bbox = start_bbox.extend(move_step.dir);
+		let move_bbox2 = AABB2::from(move_bbox);
+		let move_step2 = Line2::from(move_step);
+
+		self.quadtree.traverse_nodes(
+			AABB2::from_point(Vector2::zeros()),
+			move_step2,
+			&mut |entities: &[Entity]| -> Vector2<f32> {
+				for &entity in entities {
+					if trace_fraction <= 0.0 {
+						break;
+					}
+
+					let (box_collider, owner, transform) =
+						match <(&BoxCollider, Option<&Owner>, &Transform)>::query()
+							.get(self.world, entity)
+						{
+							Ok(x) => x,
+							_ => continue,
+						};
+
+					if let Some(ignore) = ignore {
+						// Don't collide against self
+						if entity == ignore {
+							continue;
+						}
+
+						if let Some(&Owner(owner)) = owner {
+							// Don't collide against entities owned by self
+							if owner == ignore {
+								continue;
+							}
+						}
+					}
+
+					if !box_collider.blocks_types.blocks(SolidType::PROJECTILE) {
+						continue;
+					}
+
+					let other_bbox = AABB2::from_radius(box_collider.radius)
+						.offset(transform.position.fixed_resize(0.0));
+
+					if !move_bbox2.overlaps(&other_bbox) {
+						continue;
+					}
+
+					let other_planes = other_bbox
+						.planes()
+						.iter()
+						.map(|p| CollisionPlane(*p, true))
+						.collect::<Vec<_>>(); // TODO make this not allocate
+
+					match trace_planes(&start_bbox, move_step.dir, other_planes.iter()) {
+						TraceResult::Touched { fraction, normal } if fraction < trace_fraction => {
+							trace_fraction = fraction;
+							trace_collision = Some(EntityTraceCollision {
+								entity,
+								normal,
+								step_z: None,
+							});
+						}
+						TraceResult::Inside => {
+							trace_fraction = 0.0;
+							trace_collision = None;
+						}
+						_ => (),
+					}
+				}
+
+				(move_step.dir * trace_fraction).fixed_resize(0.0)
+			},
+		);
+
+		EntityTrace {
+			fraction: trace_fraction,
+			move_step: Line3::new(move_step.point, move_step.dir * trace_fraction),
+			collision: trace_collision,
+		}
+	}
 }
 
 pub struct SectorTracer<'a, W: EntityStore> {

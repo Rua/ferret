@@ -11,6 +11,7 @@ use crate::{
 		map::{MapDynamic, SectorRef},
 		physics::BoxCollider,
 		sound::{Sound, StartSound},
+		state::weapon::Owner,
 		trace::SectorTracer,
 	},
 };
@@ -65,6 +66,7 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 		.with_query(<(Entity, &SectorRef, &mut FloorMove)>::query())
 		.with_query(<(Entity, &SectorRef, &mut CeilingMove)>::query())
 		.read_component::<BoxCollider>() // used by SectorTracer
+		.read_component::<Owner>() // used by SectorTracer
 		.read_component::<Transform>() // used by SectorTracer
 		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, frame_state, quadtree, sector_move_event_channel) = resources;

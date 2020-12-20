@@ -12,6 +12,7 @@ use crate::{
 		physics::{BoxCollider, TouchEvent, Touchable},
 		sectormove::{FloorMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
 		sound::{Sound, StartSound},
+		state::weapon::Owner,
 		switch::{SwitchActive, SwitchParams},
 	},
 };
@@ -73,6 +74,7 @@ pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<EventChannel<SectorMoveEvent>>()
 		.with_query(<(Entity, &mut FloorMove, &mut PlatActive)>::query())
 		.read_component::<BoxCollider>() // used by SectorTracer
+		.read_component::<Owner>() // used by SectorTracer
 		.read_component::<Transform>() // used by SectorTracer
 		.build(move |command_buffer, world, resources, query| {
 			let (frame_state, sector_move_event_channel) = resources;

@@ -828,6 +828,22 @@ impl std::ops::SubAssign<i32> for Angle {
 	}
 }
 
+impl std::ops::Mul<f64> for Angle {
+	type Output = Self;
+
+	#[inline]
+	fn mul(self, other: f64) -> Self {
+		Self((self.0 as f64 * other) as i32)
+	}
+}
+
+impl std::ops::MulAssign<f64> for Angle {
+	#[inline]
+	fn mul_assign(&mut self, other: f64) {
+		*self = *self * other
+	}
+}
+
 /// Converts a system of rotations to three unit vectors.
 pub fn angles_to_axes(angles: Vector3<Angle>) -> [Vector3<f32>; 3] {
 	let sin = angles.map(Angle::sin);
