@@ -23,7 +23,7 @@ use std::{
 use winit::{
 	event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent},
 	event_loop::{ControlFlow, EventLoop},
-	platform::desktop::EventLoopExtDesktop,
+	platform::run_return::EventLoopExtRunReturn,
 };
 
 fn main() -> anyhow::Result<()> {

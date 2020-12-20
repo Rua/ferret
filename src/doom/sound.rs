@@ -116,7 +116,7 @@ pub fn start_sound_system(resources: &mut Resources) -> impl Runnable {
 				let index = match sound.sounds.len() {
 					0 => continue,
 					1 => 0,
-					len => rng.gen_range(0, len),
+					len => rng.gen_range(0..len),
 				};
 				let raw_sound = asset_storage.get(&sound.sounds[index]).unwrap();
 

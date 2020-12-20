@@ -98,7 +98,7 @@ use relative_path::RelativePath;
 use std::{path::PathBuf, time::Instant};
 use vulkano::{
 	format::Format,
-	image::{Dimensions, ImmutableImage},
+	image::{Dimensions, ImmutableImage, MipmapsCount},
 	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
 };
 
@@ -406,6 +406,7 @@ pub fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> any
 					width: image_data.size[0] as u32,
 					height: image_data.size[1] as u32,
 				},
+				MipmapsCount::One,
 				Format::R8G8B8A8Unorm,
 				render_context.queues().graphics.clone(),
 			)?;

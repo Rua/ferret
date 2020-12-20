@@ -250,14 +250,14 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 						if !line_attack.accurate_until_refire || weapon_state.inaccurate {
 							if !line_attack.spread[0].is_zero() {
 								rotation[2] +=
-									frame_rng.gen_range(0, line_attack.spread[0].0) -
-									frame_rng.gen_range(0, line_attack.spread[0].0);
+									frame_rng.gen_range(0..line_attack.spread[0].0) -
+									frame_rng.gen_range(0..line_attack.spread[0].0);
 							}
 
 							if !line_attack.spread[1].is_zero() {
 								rotation[1] +=
-									frame_rng.gen_range(0, line_attack.spread[1].0) -
-									frame_rng.gen_range(0, line_attack.spread[1].0);
+									frame_rng.gen_range(0..line_attack.spread[1].0) -
+									frame_rng.gen_range(0..line_attack.spread[1].0);
 							}
 						}
 
