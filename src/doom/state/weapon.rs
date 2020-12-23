@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		frame::{FrameRng, FrameState},
-		geometry::{angles_to_axes, Angle, Interval, Line2, Line3, AABB2, AABB3},
+		geometry::{angles_to_axes, Angle, Line2, Line3, AABB2, AABB3},
 		quadtree::Quadtree,
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
 		time::Timer,
@@ -12,7 +12,7 @@ use crate::{
 		client::Client,
 		components::Transform,
 		draw::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
-		health::Damage,
+		health::{Damage, Health},
 		map::{LinedefRef, MapDynamic, SectorRef},
 		physics::{BoxCollider, DamageParticle, SolidType, TouchEvent},
 		sound::{Sound, StartSound},
@@ -463,14 +463,14 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 								continue;
 							}
 
-							let tracer = EntityTracer {
-								map,
-								map_dynamic,
-								quadtree: &quadtree,
-								world,
-							};
-
-							if !tracer.can_see(midpoint, entity) {
+							if map
+								.visible_interval(
+									map_dynamic,
+									Line3::new(midpoint, transform.position - midpoint),
+									box_collider.height,
+								)
+								.is_empty()
+							{
 								continue;
 							}
 
@@ -616,6 +616,7 @@ pub fn spray_attack(resources: &mut Resources) -> impl Runnable {
 		.with_query(<(Option<&BoxCollider>, &Transform)>::query())
 		.with_query(<&mut FrameRng>::query())
 		.read_component::<BoxCollider>() // used by EntityTracer
+		.read_component::<Health>() // used by EntityTracer
 		.read_component::<Owner>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
 		.build(move |command_buffer, world, resources, queries| {
@@ -694,6 +695,7 @@ pub fn spray_attack(resources: &mut Resources) -> impl Runnable {
 								particle_transform.position[2] += box_collider.height / 4.0;
 							}
 
+							// TODO make particle customisable
 							let handle = asset_storage
 								.handle_for("extrabfg")
 								.expect("Damage particle template is not present");

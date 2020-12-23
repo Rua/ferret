@@ -5,7 +5,7 @@ pub mod textures;
 use crate::{
 	common::{
 		assets::AssetHandle,
-		geometry::{Angle, Interval, Line2, Plane2, Side, AABB2},
+		geometry::{Angle, Interval, Line2, Line3, Plane2, Side, AABB2},
 		time::Timer,
 	},
 	doom::{
@@ -258,6 +258,82 @@ impl Map {
 		}
 
 		move_step.dir
+	}
+
+	pub fn visible_interval(
+		&self,
+		map_dynamic: &MapDynamic,
+		move_step: Line3,
+		height: f32,
+	) -> Interval {
+		let move_step2 = Line2::from(move_step);
+		let mut ret = Interval::new(move_step.dir[2], move_step.dir[2] + height);
+
+		self.traverse_nodes(
+			AABB2::from_point(Vector2::zeros()),
+			move_step2,
+			|node: NodeChild| -> Vector2<f32> {
+				let linedefs = match node {
+					NodeChild::Subsector(index) => &self.subsectors[index].linedefs,
+					NodeChild::Node(index) => &self.nodes[index].linedefs,
+				};
+
+				for linedef_index in linedefs.iter().copied() {
+					let linedef = &self.linedefs[linedef_index];
+
+					if !move_step2.intersects(&linedef.line) {
+						continue;
+					}
+
+					if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
+						let front_interval =
+							&map_dynamic.sectors[front_sidedef.sector_index].interval;
+						let back_interval =
+							&map_dynamic.sectors[back_sidedef.sector_index].interval;
+						let intersection = front_interval
+							.intersection(*back_interval)
+							.offset(-move_step.point[2]);
+
+						if intersection.is_empty() {
+							// Walls fully block sight
+							ret = Interval::empty();
+							return Vector2::zeros();
+						}
+
+						let fraction = {
+							let denom = move_step2.dir.dot(&linedef.normal);
+
+							if denom == 0.0 {
+								0.0
+							} else {
+								(linedef.line.point - move_step2.point).dot(&linedef.normal) / denom
+							}
+						};
+
+						assert!(fraction >= 0.0 && fraction <= 1.0);
+
+						// Scale by fraction because nearer objects take up more vertical space
+						ret = ret.intersection(Interval::new(
+							intersection.min / fraction,
+							intersection.max / fraction,
+						));
+
+						if ret.is_empty() {
+							// Gap does not overlap
+							return Vector2::zeros();
+						}
+					} else if let [Some(_), None] = &linedef.sidedefs {
+						// Can't see through a onesided linedef
+						ret = Interval::empty();
+						return Vector2::zeros();
+					}
+				}
+
+				move_step2.dir
+			},
+		);
+
+		ret
 	}
 
 	pub fn lowest_neighbour_floor(&self, map_dynamic: &MapDynamic, sector_index: usize) -> f32 {

@@ -5,6 +5,7 @@ use crate::{
 	},
 	doom::{
 		components::Transform,
+		health::Health,
 		map::{Map, MapDynamic, NodeChild, Subsector},
 		physics::{BoxCollider, SolidBits, SolidType, DISTANCE_EPSILON},
 		state::weapon::Owner,
@@ -13,7 +14,7 @@ use crate::{
 use arrayvec::ArrayVec;
 
 use lazy_static::lazy_static;
-use legion::{Entity, EntityStore, IntoQuery};
+use legion::{component, Entity, EntityStore, IntoQuery};
 use nalgebra::{Vector2, Vector3};
 use smallvec::SmallVec;
 
@@ -432,106 +433,32 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 		trace_touched
 	}
 
-	pub fn can_see(&self, point: Vector3<f32>, entity: Entity) -> bool {
-		let (transform, box_collider) =
-			match <(&Transform, &BoxCollider)>::query().get(self.world, entity) {
-				Ok(x) => x,
-				_ => return false,
-			};
-		let move_step = Line3::new(point, transform.position - point);
-		let move_step2 = Line2::from(move_step);
-
-		let mut slope = Interval::new(move_step.dir[2], move_step.dir[2] + box_collider.height);
-		let mut ret = true;
-
-		self.map.traverse_nodes(
-			AABB2::from_point(Vector2::zeros()),
-			Line2::from(move_step),
-			|node: NodeChild| -> Vector2<f32> {
-				let linedefs = match node {
-					NodeChild::Subsector(index) => &self.map.subsectors[index].linedefs,
-					NodeChild::Node(index) => &self.map.nodes[index].linedefs,
-				};
-
-				for linedef_index in linedefs.iter().copied() {
-					let linedef = &self.map.linedefs[linedef_index];
-
-					if !move_step2.intersects(&linedef.line) {
-						continue;
-					}
-
-					if let [Some(front_sidedef), Some(back_sidedef)] = &linedef.sidedefs {
-						let front_interval =
-							&self.map_dynamic.sectors[front_sidedef.sector_index].interval;
-						let back_interval =
-							&self.map_dynamic.sectors[back_sidedef.sector_index].interval;
-						let intersection = front_interval
-							.intersection(*back_interval)
-							.offset(-move_step.point[2]);
-
-						if intersection.is_empty() {
-							// Walls fully block sight
-							ret = false;
-							break;
-						}
-
-						let fraction = {
-							let denom = move_step2.dir.dot(&linedef.normal);
-
-							if denom == 0.0 {
-								0.0
-							} else {
-								(linedef.line.point - move_step2.point).dot(&linedef.normal) / denom
-							}
-						};
-
-						assert!(fraction >= 0.0 && fraction <= 1.0);
-
-						// Scale by fraction because nearer objects take up more vertical space
-						slope = slope.intersection(Interval::new(
-							intersection.min / fraction,
-							intersection.max / fraction,
-						));
-
-						if slope.is_empty() {
-							// Gap does not overlap
-							ret = false;
-							break;
-						}
-					} else if let [Some(_), None] = &linedef.sidedefs {
-						// Can't see through a onesided linedef
-						ret = false;
-						break;
-					}
-				}
-
-				move_step2.dir
-			},
-		);
-
-		ret
-	}
-
 	pub fn closest_visible_target(&self, ignore: Option<Entity>, move_step: Line3) -> EntityTrace {
-		let mut trace_fraction = 1.0;
-		let mut trace_collision = None;
+		let mut trace = EntityTrace {
+			fraction: 1.0,
+			move_step,
+			collision: None,
+		};
 
-		let start_bbox = AABB3::from_point(move_step.point);
-		let move_bbox = start_bbox.extend(move_step.dir);
-		let move_bbox2 = AABB2::from(move_bbox);
+		// Aim forward by default
+		trace.move_step.dir[2] = 0.0;
+
 		let move_step2 = Line2::from(move_step);
+		let start_bbox = AABB3::from_point(move_step.point);
+		let move_bbox2 = AABB2::from_point(move_step2.point).extend(move_step2.dir);
 
 		self.quadtree.traverse_nodes(
 			AABB2::from_point(Vector2::zeros()),
 			move_step2,
 			&mut |entities: &[Entity]| -> Vector2<f32> {
 				for &entity in entities {
-					if trace_fraction <= 0.0 {
+					if trace.fraction <= 0.0 {
 						break;
 					}
 
 					let (box_collider, owner, transform) =
 						match <(&BoxCollider, Option<&Owner>, &Transform)>::query()
+							.filter(component::<Health>())
 							.get(self.world, entity)
 						{
 							Ok(x) => x,
@@ -570,31 +497,42 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						.collect::<Vec<_>>(); // TODO make this not allocate
 
 					match trace_planes(&start_bbox, move_step.dir, other_planes.iter()) {
-						TraceResult::Touched { fraction, normal } if fraction < trace_fraction => {
-							trace_fraction = fraction;
-							trace_collision = Some(EntityTraceCollision {
-								entity,
-								normal,
-								step_z: None,
-							});
+						TraceResult::Touched { fraction, normal } if fraction < trace.fraction => {
+							let mut move_step =
+								Line3::new(move_step.point, move_step.dir * fraction);
+							move_step.dir[2] = transform.position[2] - move_step.point[2];
+
+							let visible_interval = self.map.visible_interval(
+								self.map_dynamic,
+								move_step,
+								box_collider.height,
+							);
+
+							if !visible_interval.is_empty() {
+								trace.fraction = fraction;
+								trace.move_step = move_step;
+								trace.move_step.dir[2] = visible_interval.middle();
+								trace.collision = Some(EntityTraceCollision {
+									entity,
+									normal,
+									step_z: None,
+								});
+							}
 						}
 						TraceResult::Inside => {
-							trace_fraction = 0.0;
-							trace_collision = None;
+							trace.fraction = 0.0;
+							trace.move_step.dir = Vector3::zeros();
+							trace.collision = None;
 						}
 						_ => (),
 					}
 				}
 
-				(move_step.dir * trace_fraction).fixed_resize(0.0)
+				move_step2.dir * trace.fraction
 			},
 		);
 
-		EntityTrace {
-			fraction: trace_fraction,
-			move_step: Line3::new(move_step.point, move_step.dir * trace_fraction),
-			collision: trace_collision,
-		}
+		trace
 	}
 }
 
