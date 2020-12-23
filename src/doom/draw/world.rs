@@ -80,9 +80,11 @@ pub fn draw_world(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 						rotation,
 					},
 				) = query.get(world, client.entity.unwrap()).unwrap();
+				let mut extra_light = 0.0;
 
 				if let Some(camera) = camera {
 					position += camera.base + camera.offset;
+					extra_light = camera.extra_light;
 				}
 
 				let view =
@@ -112,6 +114,7 @@ pub fn draw_world(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 									proj: proj.into(),
 									view: view.into(),
 									billboard: billboard.into(),
+									extra_light,
 								})
 								.context("Couldn't create buffer")?,
 						)

@@ -6,8 +6,9 @@ use crate::{
 		sound::StartSound,
 		state::{
 			weapon::{
-				LineAttack, NextWeaponState, SetWeaponSprite, SetWeaponState, SpawnProjectile,
-				WeaponPosition, WeaponReFire, WeaponReady, WeaponSpriteSlot, WeaponSpriteSlotDef,
+				ExtraLight, LineAttack, NextWeaponState, SetWeaponSprite, SetWeaponState,
+				SpawnProjectile, WeaponPosition, WeaponReFire, WeaponReady, WeaponSpriteSlot,
+				WeaponSpriteSlotDef,
 			},
 			EntityDef, StateName,
 		},
@@ -485,6 +486,11 @@ pub fn load(resources: &mut Resources) {
 							full_bright: true,
 						})),
 					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0625),
+					));
 					world
 				},
 				{
@@ -493,6 +499,11 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						WeaponSpriteSlotDef,
 						SetWeaponSprite(None),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0),
 					));
 					world
 				},
@@ -840,6 +851,11 @@ pub fn load(resources: &mut Resources) {
 							full_bright: true,
 						})),
 					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0625),
+					));
 					world
 				},
 				{
@@ -861,6 +877,11 @@ pub fn load(resources: &mut Resources) {
 							full_bright: true,
 						})),
 					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.125),
+					));
 					world
 				},
 				{
@@ -869,6 +890,11 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						WeaponSpriteSlotDef,
 						SetWeaponSprite(None),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0),
 					));
 					world
 				},
@@ -1118,6 +1144,11 @@ pub fn load(resources: &mut Resources) {
 							full_bright: true,
 						})),
 					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0625),
+					));
 					world
 				},
 				{
@@ -1126,6 +1157,11 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						WeaponSpriteSlotDef,
 						SetWeaponSprite(None),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0),
 					));
 					world
 				},
@@ -1150,6 +1186,11 @@ pub fn load(resources: &mut Resources) {
 							full_bright: true,
 						})),
 					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.125),
+					));
 					world
 				},
 				{
@@ -1158,6 +1199,11 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						WeaponSpriteSlotDef,
 						SetWeaponSprite(None),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0),
 					));
 					world
 				},
@@ -1361,6 +1407,11 @@ pub fn load(resources: &mut Resources) {
 							full_bright: true,
 						})),
 					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0625),
+					));
 					world
 				},
 				{
@@ -1403,6 +1454,11 @@ pub fn load(resources: &mut Resources) {
 							full_bright: true,
 						})),
 					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.125),
+					));
 					world
 				},
 				{
@@ -1424,6 +1480,11 @@ pub fn load(resources: &mut Resources) {
 							full_bright: true,
 						})),
 					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.125),
+					));
 					world
 				},
 				{
@@ -1432,6 +1493,11 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						WeaponSpriteSlotDef,
 						SetWeaponSprite(None),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0),
 					));
 					world
 				},
@@ -1885,6 +1951,11 @@ pub fn load(resources: &mut Resources) {
 							full_bright: true,
 						})),
 					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0625),
+					));
 					world
 				},
 				{
@@ -1893,6 +1964,11 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						WeaponSpriteSlotDef,
 						SetWeaponSprite(None),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0),
 					));
 					world
 				},
@@ -1917,6 +1993,11 @@ pub fn load(resources: &mut Resources) {
 							full_bright: true,
 						})),
 					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0625),
+					));
 					world
 				},
 				{
@@ -1925,6 +2006,11 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						WeaponSpriteSlotDef,
 						SetWeaponSprite(None),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0),
 					));
 					world
 				},
@@ -2154,6 +2240,11 @@ pub fn load(resources: &mut Resources) {
 							full_bright: true,
 						})),
 					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0625),
+					));
 					world
 				},
 				{
@@ -2175,6 +2266,11 @@ pub fn load(resources: &mut Resources) {
 							full_bright: true,
 						})),
 					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.125),
+					));
 					world
 				},
 				{
@@ -2183,6 +2279,11 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						WeaponSpriteSlotDef,
 						SetWeaponSprite(None),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0),
 					));
 					world
 				},
@@ -2570,6 +2671,11 @@ pub fn load(resources: &mut Resources) {
 							full_bright: true,
 						})),
 					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0625),
+					));
 					world
 				},
 				{
@@ -2591,6 +2697,11 @@ pub fn load(resources: &mut Resources) {
 							full_bright: true,
 						})),
 					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.125),
+					));
 					world
 				},
 				{
@@ -2599,6 +2710,11 @@ pub fn load(resources: &mut Resources) {
 						EntityDef,
 						WeaponSpriteSlotDef,
 						SetWeaponSprite(None),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0),
 					));
 					world
 				},

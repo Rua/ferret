@@ -139,6 +139,7 @@ pub fn load(resources: &mut Resources) {
 					deviation_position: 0.0,
 					deviation_velocity: 0.0,
 					impact_sound: asset_storage.load("dsoof.sound"),
+					extra_light: 0.0,
 				},
 				EntityTemplateRefDef,
 				FrameRngDef,

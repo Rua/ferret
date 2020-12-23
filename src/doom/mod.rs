@@ -78,9 +78,9 @@ use crate::{
 			},
 			state,
 			weapon::{
-				line_attack, next_weapon_state, projectile_touch, radius_attack, set_weapon_sprite,
-				set_weapon_state, spawn_projectile, spray_attack, weapon_position, weapon_ready,
-				weapon_refire,
+				extra_light, line_attack, next_weapon_state, projectile_touch, radius_attack,
+				set_weapon_sprite, set_weapon_state, spawn_projectile, spray_attack,
+				weapon_position, weapon_ready, weapon_refire,
 			},
 		},
 		switch::switch_active_system,
@@ -258,6 +258,7 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 		.add_thread_local(apply_damage(resources)).flush()
 		.add_thread_local_fn({
 			let actions = Schedule::builder()
+				.add_system(extra_light(resources))
 				.add_system(next_entity_state(resources))
 				.add_system(remove_entity(resources))
 				.add_system(set_blocks_types(resources))

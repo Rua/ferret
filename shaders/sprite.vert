@@ -4,6 +4,7 @@ layout(set = 0, binding = 0) uniform Matrices {
 	mat4 proj;
 	mat4 view;
 	mat4 billboard;
+	float extra_light;
 };
 
 layout(set = 1, binding = 0) uniform sampler2D texture_sampler;
@@ -33,5 +34,5 @@ void main() {
 	gl_Position = proj * view * in_transform * billboard * vert;
 
 	frag_texture_coord.x *= in_flip;
-	frag_light_level = in_light_level;
+	frag_light_level = in_light_level + extra_light;
 }

@@ -25,6 +25,7 @@ pub struct Camera {
 	pub deviation_position: f32,
 	pub deviation_velocity: f32,
 	pub impact_sound: AssetHandle<Sound>,
+	pub extra_light: f32,
 }
 
 pub fn camera_system(resources: &mut Resources) -> impl Runnable {

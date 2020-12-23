@@ -148,6 +148,29 @@ pub fn weapon_state(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ExtraLight(pub f32);
+
+pub fn extra_light(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<ExtraLight>();
+
+	SystemBuilder::new("extra_light")
+		.with_query(<(Entity, &Entity, &ExtraLight)>::query())
+		.with_query(<&mut Camera>::query())
+		.build(move |command_buffer, world, _resources, queries| {
+			let (world0, mut world) = world.split_for_query(&queries.0);
+
+			for (&entity, &target, &ExtraLight(extra_light)) in queries.0.iter(&world0) {
+				command_buffer.remove(entity);
+
+				if let Ok(camera) = queries.1.get_mut(&mut world, target) {
+					camera.extra_light = extra_light;
+				}
+			}
+		})
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct NextWeaponState {
 	pub time: Duration,
