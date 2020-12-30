@@ -11,6 +11,7 @@ use byteorder::{ReadBytesExt, LE};
 use fnv::FnvHashMap;
 use nalgebra::Vector2;
 use relative_path::RelativePath;
+use serde::{Deserialize, Serialize};
 use std::io::{Cursor, Read, Seek, SeekFrom};
 
 pub fn import_flat(
@@ -182,7 +183,7 @@ pub fn import_textures(
 	))
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum TextureType {
 	Normal(AssetHandle<Image>),
 	Sky,

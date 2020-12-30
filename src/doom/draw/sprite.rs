@@ -18,6 +18,7 @@ use legion::{
 	Entity, IntoQuery, Read, Resources, SystemBuilder,
 };
 use nalgebra::{Matrix4, Vector2};
+use serde::{Deserialize, Serialize};
 use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
@@ -29,7 +30,7 @@ use vulkano::{
 	sampler::Sampler,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SpriteRender {
 	pub sprite: AssetHandle<Sprite>,
 	pub frame: usize,

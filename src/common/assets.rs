@@ -4,8 +4,14 @@ use derivative::Derivative;
 use downcast_rs::{impl_downcast, DowncastSync};
 use fnv::FnvHashMap;
 use relative_path::RelativePath;
+use scoped_tls_hkt::scoped_thread_local;
+use serde::{
+	de::{Deserialize, Deserializer, Visitor},
+	ser::{Serialize, Serializer},
+};
 use std::{
 	any::{Any, TypeId},
+	borrow::Cow,
 	clone::Clone,
 	marker::PhantomData,
 	sync::{Arc, Weak},
@@ -113,6 +119,20 @@ impl AssetStorage {
 	pub fn handle_for<A: Asset>(&self, name: &str) -> Option<AssetHandle<A>> {
 		let storage = storage::<A>(&self.storages);
 		storage.names.get(name).and_then(WeakHandle::upgrade)
+	}
+
+	/// Returns the name associated with the given handle,
+	/// or `None` if it does not exist in the storage or has no name.
+	#[inline]
+	pub fn name_for<A: Asset>(&self, handle: &AssetHandle<A>) -> Option<&str> {
+		let storage = storage::<A>(&self.storages);
+		storage.names.iter().find_map(|(k, v)| {
+			if v.upgrade().expect("name refers to deleted asset").id() == handle.id() {
+				Some(k.as_str())
+			} else {
+				None
+			}
+		})
 	}
 
 	/// Inserts the given `asset` into the storage, returning a new handle for it.
@@ -330,5 +350,48 @@ impl HandleAllocator {
 			id: Arc::new(id),
 			marker: PhantomData,
 		}
+	}
+}
+
+scoped_thread_local!(pub static mut SERDE_CONTEXT: AssetStorage);
+
+impl<A: Asset> Serialize for AssetHandle<A> {
+	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+		SERDE_CONTEXT.with(|asset_storage| {
+			let name = asset_storage.name_for(self).expect("asset has no name");
+			serializer.serialize_str(name)
+		})
+	}
+}
+
+impl<'de, A: Asset> Deserialize<'de> for AssetHandle<A> {
+	fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<AssetHandle<A>, D::Error> {
+		SERDE_CONTEXT.with(|asset_storage| {
+			let name = deserializer.deserialize_str(AssetVisitor)?;
+			let handle = asset_storage.load(&name);
+			Ok(handle)
+		})
+	}
+}
+
+struct AssetVisitor;
+
+impl<'de> Visitor<'de> for AssetVisitor {
+	type Value = Cow<'de, str>;
+
+	fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		formatter.write_str("a string")
+	}
+
+	fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<Self::Value, E> {
+		Ok(Cow::Owned(v.to_owned()))
+	}
+
+	fn visit_borrowed_str<E: serde::de::Error>(self, v: &'de str) -> Result<Self::Value, E> {
+		Ok(Cow::Borrowed(v))
+	}
+
+	fn visit_string<E: serde::de::Error>(self, v: String) -> Result<Self::Value, E> {
+		Ok(Cow::Owned(v))
 	}
 }

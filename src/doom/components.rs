@@ -9,13 +9,14 @@ use crate::{
 use legion::{systems::ResourceSet, Read, Resources};
 use nalgebra::Vector3;
 use rand::{distributions::Uniform, Rng};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct SpawnPoint {
 	pub player_num: usize,
 }
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
 pub struct Transform {
 	pub position: Vector3<f32>,
 	pub rotation: Vector3<Angle>,

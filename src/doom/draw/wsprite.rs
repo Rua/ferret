@@ -22,6 +22,7 @@ use legion::{
 	IntoQuery, Read, Resources, SystemBuilder,
 };
 use nalgebra::{Vector2, Vector3};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
@@ -32,7 +33,7 @@ use vulkano::{
 	sampler::Sampler,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct WeaponSpriteRender {
 	pub position: Vector2<f32>,
 	pub slots: [Option<SpriteRender>; 2],

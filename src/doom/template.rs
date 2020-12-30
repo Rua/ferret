@@ -6,6 +6,7 @@ use crate::{
 	doom::state::StateName,
 };
 use legion::{systems::ResourceSet, Read, Resources, World};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, Default)]
@@ -24,7 +25,7 @@ pub enum EntityTypeId {
 	Thing(u16),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntityTemplateRef(pub AssetHandle<EntityTemplate>);
 
 #[derive(Clone, Copy, Debug, Default)]

@@ -28,7 +28,7 @@ pub mod wad;
 
 use crate::{
 	common::{
-		assets::{AssetHandle, AssetStorage, ImportData},
+		assets::{AssetHandle, AssetStorage, ImportData, SERDE_CONTEXT},
 		frame::frame_state_system,
 		quadtree::Quadtree,
 		spawn::SpawnMergerHandlerSet,
@@ -93,7 +93,7 @@ use crate::{
 use anyhow::{bail, Context};
 use clap::ArgMatches;
 use crossbeam_channel::Sender;
-use legion::{systems::ResourceSet, Read, Resources, Schedule, World, Write};
+use legion::{systems::ResourceSet, Read, Registry, Resources, Schedule, World, Write};
 use nalgebra::Vector2;
 use relative_path::RelativePath;
 use std::{path::PathBuf, time::Instant};
@@ -189,15 +189,29 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 
 	// Component types
 	{
-		let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+		let (mut handler_set, mut registry) =
+			<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+
+		registry.register::<SpawnPoint>("SpawnPoint".into());
 		handler_set.register_clone::<SpawnPoint>();
+
+		registry.register::<Transform>("Transform".into());
 		handler_set.register_spawn::<TransformDef, Transform>();
 		handler_set.register_spawn::<RandomTransformDef, Transform>();
+
+		registry.register::<EntityTemplateRef>("EntityTemplateRef".into());
 		handler_set.register_spawn::<EntityTemplateRefDef, EntityTemplateRef>();
-		handler_set.register_clone::<LinedefRef>();
+
+		registry.register::<MapDynamic>("MapDynamic".into());
 		handler_set.register_clone::<MapDynamic>();
+		registry.register::<LinedefRef>("LinedefRef".into());
+		handler_set.register_clone::<LinedefRef>();
+		registry.register::<SectorRef>("SectorRefRef".into());
 		handler_set.register_clone::<SectorRef>();
+
+		registry.register::<SpriteRender>("SpriteRender".into());
 		handler_set.register_clone::<SpriteRender>();
+		registry.register::<WeaponSpriteRender>("WeaponSpriteRender".into());
 		handler_set.register_clone::<WeaponSpriteRender>();
 	}
 
@@ -441,6 +455,22 @@ pub fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> any
 		"Loading took {} s",
 		(Instant::now() - start_time).as_secs_f32()
 	);
+
+	Ok(())
+}
+
+pub fn save_game(_name: &str, world: &World, resources: &mut Resources) -> anyhow::Result<()> {
+	let (registry, mut asset_storage) =
+		<(Read<Registry<String>>, Write<AssetStorage>)>::fetch_mut(resources);
+
+	let serializable_world = world.as_serializable(legion::component::<Transform>(), &*registry);
+	let output = SERDE_CONTEXT
+		.set(&mut asset_storage, || {
+			serde_json::to_string_pretty(&serializable_world)
+		})
+		.context("Could not serialize world")?;
+
+	println!("{}", output);
 
 	Ok(())
 }

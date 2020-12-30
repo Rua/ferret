@@ -19,7 +19,7 @@ use bitflags::bitflags;
 use fnv::FnvHashMap;
 use legion::Entity;
 use nalgebra::Vector2;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, time::Duration};
 
 #[derive(Debug)]
@@ -34,7 +34,7 @@ pub struct Map {
 	pub switches: FnvHashMap<AssetHandle<Image>, AssetHandle<Image>>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MapDynamic {
 	pub anim_states: FnvHashMap<AssetHandle<Image>, AnimState>,
 	pub map: AssetHandle<Map>,
@@ -48,7 +48,7 @@ pub struct Anim {
 	pub frame_time: Duration,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct AnimState {
 	pub frame: usize,
 	pub timer: Timer,
@@ -85,7 +85,7 @@ pub struct Linedef {
 	pub sidedefs: [Option<Sidedef>; 2],
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LinedefDynamic {
 	pub entity: Entity,
 	pub sidedefs: [Option<SidedefDynamic>; 2],
@@ -106,12 +106,12 @@ pub enum SidedefSlot {
 	Middle = 2,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SidedefDynamic {
 	pub textures: [TextureType; 3],
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LinedefRef {
 	pub map_entity: Entity,
 	pub index: usize,
@@ -165,14 +165,14 @@ pub enum SectorSlot {
 	Ceiling = 1,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SectorDynamic {
 	pub entity: Entity,
 	pub light_level: f32,
 	pub interval: Interval,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct SectorRef {
 	pub map_entity: Entity,
 	pub index: usize,

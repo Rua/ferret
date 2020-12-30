@@ -5,6 +5,7 @@ use nalgebra::{
 	VectorN, U2, U3,
 };
 use num_traits::identities::Zero;
+use serde::{Deserialize, Serialize};
 
 /// A line segment between two points, represented as a start point and a direction vector.
 ///
@@ -187,7 +188,7 @@ impl std::ops::Not for Side {
 /// An interval between two points on the real numbers line.
 /// * If `min == max`, it represents a single point.
 /// * If `min > max`, it represents an empty interval, containing no points.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Interval {
 	pub min: f32,
 	pub max: f32,
@@ -665,7 +666,9 @@ impl AABB3 {
 ///
 /// The maximum representable range is [-180°, 180°) or [-π, π),
 /// addition, subtraction and negation will wrap around if they overflow.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[repr(transparent)]
+#[serde(transparent)]
 pub struct Angle(pub i32);
 
 const MAX_AS_F64: f64 = 0x1_0000_0000u64 as f64;

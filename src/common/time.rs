@@ -1,7 +1,8 @@
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// A timer that elapses at the specified time
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Timer {
 	target_time: Duration,
 	wait_time: Duration,

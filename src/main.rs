@@ -13,7 +13,9 @@ use crate::common::{
 use anyhow::Context;
 use clap::{App, Arg};
 use crossbeam_channel::Sender;
-use legion::{systems::ResourceSet, Read, Resources, World, Write};
+use legion::{
+	serialize::UnknownType, systems::ResourceSet, Read, Registry, Resources, World, Write,
+};
 use nalgebra::Vector2;
 use rand::SeedableRng;
 use std::{
@@ -94,6 +96,10 @@ fn main() -> anyhow::Result<()> {
 	let mut handler_set = SpawnMergerHandlerSet::new();
 	handler_set.register_spawn::<FrameRngDef, FrameRng>();
 	resources.insert(handler_set);
+
+	let mut registry = Registry::<String>::default();
+	registry.on_unknown(UnknownType::Ignore);
+	resources.insert(registry);
 
 	doom::init_resources(&mut resources, &arg_matches)?;
 
@@ -252,8 +258,9 @@ fn main() -> anyhow::Result<()> {
 			// Split further into subcommands
 			for args in tokens.split(|tok| tok == ";") {
 				match args[0].as_str() {
-					"map" => doom::load_map(&format!("{}", args[1]), &mut world, &mut resources)?,
+					"map" => doom::load_map(&args[1], &mut world, &mut resources)?,
 					"quit" => should_quit = true,
+					"save" => doom::save_game(&args[1], &mut world, &mut resources)?,
 					_ => log::error!("Unknown command: {}", args[0]),
 				}
 			}
