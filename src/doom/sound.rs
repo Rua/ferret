@@ -12,7 +12,7 @@ use byteorder::{ReadBytesExt, LE};
 use crossbeam_channel::Sender;
 use legion::{
 	systems::{ResourceSet, Runnable},
-	Entity, IntoQuery, Registry, Resources, SystemBuilder, Write,
+	Entity, IntoQuery, Resources, SystemBuilder, Write,
 };
 use nalgebra::Vector2;
 use rand::{Rng, SeedableRng};
@@ -88,13 +88,13 @@ pub struct StartSound(pub AssetHandle<Sound>);
 #[derive(Clone, Debug)]
 pub struct SoundPlaying {
 	pub controller: SoundController,
+	pub entity: Option<Entity>,
 }
 
 type SoundSender = Sender<Box<dyn Source<Item = f32> + Send>>;
 
 pub fn start_sound_system(resources: &mut Resources) -> impl Runnable {
-	let (mut handler_set, mut registry) =
-		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_clone::<StartSound>();
 	let mut rng = Pcg64Mcg::from_entropy();
 
@@ -102,17 +102,18 @@ pub fn start_sound_system(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
 		.read_resource::<SoundSender>()
+		.write_resource::<Vec<SoundPlaying>>()
 		.with_query(<&Transform>::query())
-		.with_query(<(Entity, &Entity, &StartSound)>::query())
-		.with_query(<(&Transform, Option<&mut SoundPlaying>)>::query())
+		.with_query(<(Entity, Option<&Entity>, &StartSound)>::query())
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, client, sound_sender) = resources;
+			let (asset_storage, client, sound_sender, sounds_playing) = resources;
 			let client_transform = *queries.0.get(world, client.entity.unwrap()).unwrap();
 			let (world1, mut world) = world.split_for_query(&queries.1);
 
-			for (&entity, &target, start_sound) in queries.1.iter(&world1) {
+			for (&entity, target, start_sound) in queries.1.iter(&world1) {
 				command_buffer.remove(entity);
 
+				// Create new sound controller
 				let sound = asset_storage.get(&start_sound.0).unwrap();
 				let index = match sound.sounds.len() {
 					0 => continue,
@@ -120,50 +121,63 @@ pub fn start_sound_system(resources: &mut Resources) -> impl Runnable {
 					len => rng.gen_range(0..len),
 				};
 				let raw_sound = asset_storage.get(&sound.sounds[index]).unwrap();
-
 				let (controller, source) = SoundController::new(SoundSource::new(&raw_sound));
-				let (transform, sound_playing) = queries.2.get_mut(&mut world, target).unwrap();
+				let sound_playing = SoundPlaying {
+					controller,
+					entity: target.copied(),
+				};
 
-				// Set distance falloff and stereo panning
-				let volumes = calculate_volumes(&client_transform, transform);
-				controller.set_volumes(volumes.into());
+				if let Some(entity) = sound_playing.entity {
+					// Stop old sound on this entity, if any
+					if let Some(i) = sounds_playing
+						.iter()
+						.position(|old| old.entity == Some(entity))
+					{
+						let old = sounds_playing.swap_remove(i);
+						old.controller.stop();
+					}
 
-				// Stop old sound on this entity, if any
-				if let Some(mut sound_playing) = sound_playing {
-					sound_playing.controller.stop();
-					sound_playing.controller = controller;
-				} else {
-					command_buffer.add_component(target, SoundPlaying { controller });
+					// Set distance falloff and stereo panning
+					if let Ok(transform) = queries.0.get_mut(&mut world, entity) {
+						let volumes = calculate_volumes(&client_transform, transform);
+						sound_playing.controller.set_volumes(volumes.into());
+					}
 				}
 
+				sounds_playing.push(sound_playing);
 				sound_sender.send(Box::from(source.convert_samples())).ok();
 			}
 		})
 }
 
 pub fn sound_playing_system(resources: &mut Resources) -> impl Runnable {
-	let (mut handler_set, mut registry) =
-		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
-	handler_set.register_clone::<SoundPlaying>();
+	let sounds_playing: Vec<SoundPlaying> = Vec::new();
+	resources.insert(sounds_playing);
 
 	SystemBuilder::new("sound_playing_system")
 		.read_resource::<Client>()
+		.write_resource::<Vec<SoundPlaying>>()
 		.with_query(<&Transform>::query())
-		.with_query(<(Entity, &Transform, &mut SoundPlaying)>::query())
-		.build(move |command_buffer, world, resources, queries| {
-			let client = resources;
-			let client_transform = *queries.0.get(world, client.entity.unwrap()).unwrap();
+		.build(move |_command_buffer, world, resources, query| {
+			let (client, sounds_playing) = resources;
+			let client_transform = *query.get(world, client.entity.unwrap()).unwrap();
 
-			for (&entity, transform, sound_playing) in queries.1.iter_mut(world) {
+			sounds_playing.retain(|sound_playing| {
 				if sound_playing.controller.is_done() {
-					command_buffer.remove_component::<SoundPlaying>(entity);
-					continue;
+					return false;
 				}
 
-				// Set distance falloff and stereo panning
-				let volumes = calculate_volumes(&client_transform, transform);
-				sound_playing.controller.set_volumes(volumes.into());
-			}
+				// Set distance falloff and stereo panning, if attached to an entity
+				if let Some(transform) = sound_playing
+					.entity
+					.and_then(|entity| query.get(world, entity).ok())
+				{
+					let volumes = calculate_volumes(&client_transform, transform);
+					sound_playing.controller.set_volumes(volumes.into());
+				}
+
+				true
+			});
 		})
 }
 
