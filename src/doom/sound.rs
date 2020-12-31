@@ -12,7 +12,7 @@ use byteorder::{ReadBytesExt, LE};
 use crossbeam_channel::Sender;
 use legion::{
 	systems::{ResourceSet, Runnable},
-	Entity, IntoQuery, Resources, SystemBuilder, Write,
+	Entity, IntoQuery, Registry, Resources, SystemBuilder, Write,
 };
 use nalgebra::Vector2;
 use rand::{Rng, SeedableRng};
@@ -93,7 +93,8 @@ pub struct SoundPlaying {
 type SoundSender = Sender<Box<dyn Source<Item = f32> + Send>>;
 
 pub fn start_sound_system(resources: &mut Resources) -> impl Runnable {
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 	handler_set.register_clone::<StartSound>();
 	let mut rng = Pcg64Mcg::from_entropy();
 
@@ -141,7 +142,8 @@ pub fn start_sound_system(resources: &mut Resources) -> impl Runnable {
 }
 
 pub fn sound_playing_system(resources: &mut Resources) -> impl Runnable {
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 	handler_set.register_clone::<SoundPlaying>();
 
 	SystemBuilder::new("sound_playing_system")

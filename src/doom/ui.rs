@@ -1,8 +1,9 @@
 use crate::{common::assets::AssetHandle, doom::image::Image};
 use derivative::Derivative;
 use nalgebra::Vector2;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
 pub struct UiTransform {
 	pub position: Vector2<f32>,
 	pub depth: f32,
@@ -11,11 +12,12 @@ pub struct UiTransform {
 	pub stretch: [bool; 2],
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UiImage {
 	pub image: AssetHandle<Image>,
 }
 
-#[derive(Clone, Copy, Debug, Derivative)]
+#[derive(Clone, Copy, Debug, Derivative, Serialize, Deserialize)]
 #[derivative(Default)]
 pub enum UiAlignment {
 	#[derivative(Default)]

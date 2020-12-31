@@ -86,14 +86,14 @@ use crate::{
 		switch::switch_active_system,
 		template::{EntityTemplate, EntityTemplateRef, EntityTemplateRefDef, WeaponTemplate},
 		texture::{texture_animation_system, texture_scroll_system},
-		ui::UiParams,
+		ui::{UiImage, UiParams, UiTransform},
 		wad::WadLoader,
 	},
 };
 use anyhow::{bail, Context};
 use clap::ArgMatches;
 use crossbeam_channel::Sender;
-use legion::{systems::ResourceSet, Read, Registry, Resources, Schedule, World, Write};
+use legion::{component, systems::ResourceSet, Read, Registry, Resources, Schedule, World, Write};
 use nalgebra::Vector2;
 use relative_path::RelativePath;
 use std::{path::PathBuf, time::Instant};
@@ -204,15 +204,22 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 
 		registry.register::<MapDynamic>("MapDynamic".into());
 		handler_set.register_clone::<MapDynamic>();
+
 		registry.register::<LinedefRef>("LinedefRef".into());
 		handler_set.register_clone::<LinedefRef>();
-		registry.register::<SectorRef>("SectorRefRef".into());
+
+		registry.register::<SectorRef>("SectorRef".into());
 		handler_set.register_clone::<SectorRef>();
 
 		registry.register::<SpriteRender>("SpriteRender".into());
 		handler_set.register_clone::<SpriteRender>();
+
 		registry.register::<WeaponSpriteRender>("WeaponSpriteRender".into());
 		handler_set.register_clone::<WeaponSpriteRender>();
+
+		handler_set.register_clone::<UiTransform>();
+
+		handler_set.register_clone::<UiImage>();
 	}
 
 	// Select map
@@ -232,9 +239,10 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 			bail!("No default map is known for this IWAD. Try specifying one with the \"-m\" option.")
 		}*/
 	};
-	<Read<Sender<String>>>::fetch(resources)
-		.send(format!("map {}", map))
-		.ok();
+
+	let command_sender = <Read<Sender<String>>>::fetch(resources);
+	command_sender.send(format!("map {}", map)).ok();
+	command_sender.send("save foo".into()).ok();
 
 	Ok(())
 }
@@ -463,7 +471,11 @@ pub fn save_game(_name: &str, world: &World, resources: &mut Resources) -> anyho
 	let (registry, mut asset_storage) =
 		<(Read<Registry<String>>, Write<AssetStorage>)>::fetch_mut(resources);
 
-	let serializable_world = world.as_serializable(legion::component::<Transform>(), &*registry);
+	let filter = component::<Transform>()
+		| component::<MapDynamic>()
+		| component::<LinedefRef>()
+		| component::<SectorRef>();
+	let serializable_world = world.as_serializable(filter, &*registry);
 	let output = SERDE_CONTEXT
 		.set(&mut asset_storage, || {
 			serde_json::to_string_pretty(&serializable_world)

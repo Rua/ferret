@@ -18,17 +18,18 @@ use crate::{
 use legion::{
 	systems::{ResourceSet, Runnable},
 	world::SubWorld,
-	Entity, IntoQuery, Resources, SystemBuilder, Write,
+	Entity, IntoQuery, Registry, Resources, SystemBuilder, Write,
 };
+use serde::{Deserialize, Serialize};
 use shrev::EventChannel;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FloorMove(pub SectorMove);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CeilingMove(pub SectorMove);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SectorMove {
 	pub velocity: f32,
 	pub target: f32,
@@ -52,8 +53,13 @@ pub enum SectorMoveEventType {
 pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 	resources.insert(EventChannel::<SectorMoveEvent>::new());
 
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+
+	registry.register::<CeilingMove>("CeilingMove".into());
 	handler_set.register_clone::<CeilingMove>();
+
+	registry.register::<FloorMove>("FloorMove".into());
 	handler_set.register_clone::<FloorMove>();
 
 	SystemBuilder::new("sector_move_system")

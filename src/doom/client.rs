@@ -25,9 +25,10 @@ use crate::{
 };
 use legion::{
 	systems::{ResourceSet, Runnable},
-	Entity, EntityStore, IntoQuery, Resources, SystemBuilder, Write,
+	Entity, EntityStore, IntoQuery, Registry, Resources, SystemBuilder, Write,
 };
 use nalgebra::{Vector2, Vector3};
+use serde::{Deserialize, Serialize};
 use shrev::EventChannel;
 
 #[derive(Default)]
@@ -210,11 +211,34 @@ pub fn player_move_system(_resources: &mut Resources) -> impl Runnable {
 		})
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct User {
+	pub error_sound: AssetHandle<Sound>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum UseAction {
+	DoorUse(DoorUse),
+	DoorSwitchUse(DoorSwitchUse),
+	FloorSwitchUse(FloorSwitchUse),
+	PlatSwitchUse(PlatSwitchUse),
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct UseEvent {
+	pub linedef_entity: Entity,
+}
+
 pub fn player_use_system(resources: &mut Resources) -> impl Runnable {
 	resources.insert(EventChannel::<UseEvent>::new());
 
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+
+	registry.register::<UseAction>("UseAction".into());
 	handler_set.register_clone::<UseAction>();
+
+	registry.register::<User>("User".into());
 	handler_set.register_clone::<User>();
 
 	SystemBuilder::new("player_use_system")
@@ -357,22 +381,4 @@ pub fn player_touch(resources: &mut Resources) -> impl Runnable {
 				}
 			}
 		})
-}
-
-#[derive(Clone, Debug)]
-pub struct User {
-	pub error_sound: AssetHandle<Sound>,
-}
-
-#[derive(Clone, Debug)]
-pub enum UseAction {
-	DoorUse(DoorUse),
-	DoorSwitchUse(DoorSwitchUse),
-	FloorSwitchUse(FloorSwitchUse),
-	PlatSwitchUse(PlatSwitchUse),
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct UseEvent {
-	pub linedef_entity: Entity,
 }

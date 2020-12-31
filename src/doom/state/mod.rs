@@ -7,6 +7,7 @@ use crate::{
 };
 use arrayvec::ArrayString;
 use legion::{systems::ResourceSet, Entity, Read, Resources, Schedule, World, Write};
+use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicBool, Ordering};
 
 pub type StateName = ArrayString<[u8; 16]>;
@@ -14,13 +15,13 @@ pub type StateName = ArrayString<[u8; 16]>;
 pub mod entity;
 pub mod weapon;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct State {
 	pub timer: Timer,
 	pub action: StateAction,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum StateAction {
 	Set((StateName, usize)),
 	Wait((StateName, usize)),

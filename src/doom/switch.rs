@@ -13,17 +13,18 @@ use crate::{
 };
 use legion::{
 	systems::{CommandBuffer, ResourceSet, Runnable},
-	Entity, IntoQuery, Resources, SystemBuilder, Write,
+	Entity, IntoQuery, Registry, Resources, SystemBuilder, Write,
 };
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SwitchParams {
 	pub sound: Option<AssetHandle<Sound>>,
 	pub retrigger_time: Option<Duration>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SwitchActive {
 	pub sound: Option<AssetHandle<Sound>>,
 	pub texture: AssetHandle<Image>,
@@ -32,7 +33,10 @@ pub struct SwitchActive {
 }
 
 pub fn switch_active_system(resources: &mut Resources) -> impl Runnable {
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+
+	registry.register::<SwitchActive>("SwitchActive".into());
 	handler_set.register_clone::<SwitchActive>();
 
 	SystemBuilder::new("switch_active_system")

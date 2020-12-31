@@ -135,25 +135,14 @@ impl AssetStorage {
 		})
 	}
 
-	/// Inserts the given `asset` into the storage, returning a new handle for it.
-	#[inline]
-	pub fn insert<A: Asset>(&mut self, asset: A) -> AssetHandle<A> {
-		let handle = self.handle_allocator.allocate();
-		let storage = storage_mut::<A>(&mut self.storages);
-		storage.assets.insert(handle.id(), asset);
-		storage.handles.push(handle.clone());
-		handle
-	}
-
 	/// Inserts the given `asset` into the storage, assigning it the given `name`, and
 	/// returning a new handle for it.
 	#[inline]
-	pub fn insert_with_name<A: Asset>(&mut self, name: &str, asset: A) -> AssetHandle<A> {
+	pub fn insert<A: Asset>(&mut self, name: &str, asset: A) -> AssetHandle<A> {
 		let storage = storage_mut::<A>(&mut self.storages);
-		match storage.names.get(name).and_then(WeakHandle::upgrade) {
-			Some(handle) => {
-				storage.assets.insert(handle.id(), asset);
-				handle
+		match storage.names.get(name) {
+			Some(_) => {
+				panic!("Asset already exists with name \"{}\"", name);
 			}
 			None => {
 				let handle = {

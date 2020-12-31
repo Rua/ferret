@@ -49,7 +49,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("spawn1", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Thing(2)),
@@ -66,7 +66,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("spawn2", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Thing(3)),
@@ -83,7 +83,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("spawn3", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Thing(4)),
@@ -100,7 +100,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("spawn4", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Thing(11)),
@@ -116,7 +116,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("spawndm", template);
 
 	let template = EntityTemplate {
 		name: Some("player"),
@@ -662,7 +662,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("player", template);
+	asset_storage.insert("player", template);
 
 	let template = EntityTemplate {
 		name: Some("possessed"),
@@ -1354,7 +1354,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("possessed", template);
+	asset_storage.insert("possessed", template);
 
 	let template = EntityTemplate {
 		name: Some("shotguy"),
@@ -2065,7 +2065,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("shotguy", template);
+	asset_storage.insert("shotguy", template);
 
 	let template = EntityTemplate {
 		name: Some("smoke"),
@@ -2211,7 +2211,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("smoke", template);
+	asset_storage.insert("smoke", template);
 
 	let template = EntityTemplate {
 		name: Some("troop"),
@@ -2962,7 +2962,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("troop", template);
+	asset_storage.insert("troop", template);
 
 	let template = EntityTemplate {
 		name: Some("sergeant"),
@@ -3537,7 +3537,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("sergeant", template);
+	asset_storage.insert("sergeant", template);
 
 	let template = EntityTemplate {
 		name: Some("shadows"),
@@ -4112,7 +4112,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("shadows", template);
+	asset_storage.insert("shadows", template);
 
 	let template = EntityTemplate {
 		name: Some("bruiser"),
@@ -4784,7 +4784,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("bruiser", template);
+	asset_storage.insert("bruiser", template);
 
 	let template = EntityTemplate {
 		name: Some("bruisershot"),
@@ -4976,7 +4976,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("bruisershot", template);
+	asset_storage.insert("bruisershot", template);
 
 	let template = EntityTemplate {
 		name: Some("barrel"),
@@ -5177,7 +5177,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("barrel", template);
+	asset_storage.insert("barrel", template);
 
 	let template = EntityTemplate {
 		name: Some("troopshot"),
@@ -5369,7 +5369,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("troopshot", template);
+	asset_storage.insert("troopshot", template);
 
 	let template = EntityTemplate {
 		name: Some("headshot"),
@@ -5561,7 +5561,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("headshot", template);
+	asset_storage.insert("headshot", template);
 
 	let template = EntityTemplate {
 		name: Some("rocket"),
@@ -5741,7 +5741,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("rocket", template);
+	asset_storage.insert("rocket", template);
 
 	let template = EntityTemplate {
 		name: Some("arachplaz"),
@@ -5971,7 +5971,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("arachplaz", template);
+	asset_storage.insert("arachplaz", template);
 
 	let template = EntityTemplate {
 		name: Some("puff1"),
@@ -6098,7 +6098,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("puff1", template);
+	asset_storage.insert("puff1", template);
 
 	let template = EntityTemplate {
 		name: Some("puff3"),
@@ -6187,7 +6187,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("puff3", template);
+	asset_storage.insert("puff3", template);
 
 	let template = EntityTemplate {
 		name: Some("blood1"),
@@ -6293,7 +6293,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("blood1", template);
+	asset_storage.insert("blood1", template);
 
 	let template = EntityTemplate {
 		name: Some("blood2"),
@@ -6380,7 +6380,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("blood2", template);
+	asset_storage.insert("blood2", template);
 
 	let template = EntityTemplate {
 		name: Some("blood3"),
@@ -6448,7 +6448,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("blood3", template);
+	asset_storage.insert("blood3", template);
 
 	let template = EntityTemplate {
 		name: Some("tfog"),
@@ -6727,7 +6727,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("tfog", template);
+	asset_storage.insert("tfog", template);
 
 	let template = EntityTemplate {
 		name: Some("ifog"),
@@ -6911,7 +6911,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("ifog", template);
+	asset_storage.insert("ifog", template);
 
 	let template = EntityTemplate {
 		name: Some("teleportman"),
@@ -6942,7 +6942,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("teleportman", template);
+	asset_storage.insert("teleportman", template);
 
 	let template = EntityTemplate {
 		name: Some("misc0"),
@@ -7023,7 +7023,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc0", template);
+	asset_storage.insert("misc0", template);
 
 	let template = EntityTemplate {
 		name: Some("misc1"),
@@ -7104,7 +7104,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc1", template);
+	asset_storage.insert("misc1", template);
 
 	let template = EntityTemplate {
 		name: Some("misc2"),
@@ -7261,7 +7261,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc2", template);
+	asset_storage.insert("misc2", template);
 
 	let template = EntityTemplate {
 		name: Some("misc3"),
@@ -7418,7 +7418,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc3", template);
+	asset_storage.insert("misc3", template);
 
 	let template = EntityTemplate {
 		name: Some("misc4"),
@@ -7499,7 +7499,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc4", template);
+	asset_storage.insert("misc4", template);
 
 	let template = EntityTemplate {
 		name: Some("misc5"),
@@ -7580,7 +7580,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc5", template);
+	asset_storage.insert("misc5", template);
 
 	let template = EntityTemplate {
 		name: Some("misc6"),
@@ -7661,7 +7661,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc6", template);
+	asset_storage.insert("misc6", template);
 
 	let template = EntityTemplate {
 		name: Some("misc10"),
@@ -7716,7 +7716,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc10", template);
+	asset_storage.insert("misc10", template);
 
 	let template = EntityTemplate {
 		name: Some("misc11"),
@@ -7771,7 +7771,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc11", template);
+	asset_storage.insert("misc11", template);
 
 	let template = EntityTemplate {
 		name: Some("misc12"),
@@ -7928,7 +7928,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc12", template);
+	asset_storage.insert("misc12", template);
 
 	let template = EntityTemplate {
 		name: Some("ins"),
@@ -8047,7 +8047,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("ins", template);
+	asset_storage.insert("ins", template);
 
 	let template = EntityTemplate {
 		name: Some("misc14"),
@@ -8102,7 +8102,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc14", template);
+	asset_storage.insert("misc14", template);
 
 	let template = EntityTemplate {
 		name: Some("misc15"),
@@ -8259,7 +8259,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc15", template);
+	asset_storage.insert("misc15", template);
 
 	let template = EntityTemplate {
 		name: Some("misc16"),
@@ -8340,7 +8340,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc16", template);
+	asset_storage.insert("misc16", template);
 
 	let template = EntityTemplate {
 		name: Some("clip"),
@@ -8395,7 +8395,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("clip", template);
+	asset_storage.insert("clip", template);
 
 	let template = EntityTemplate {
 		name: Some("misc17"),
@@ -8450,7 +8450,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc17", template);
+	asset_storage.insert("misc17", template);
 
 	let template = EntityTemplate {
 		name: Some("misc18"),
@@ -8505,7 +8505,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc18", template);
+	asset_storage.insert("misc18", template);
 
 	let template = EntityTemplate {
 		name: Some("misc19"),
@@ -8560,7 +8560,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc19", template);
+	asset_storage.insert("misc19", template);
 
 	let template = EntityTemplate {
 		name: Some("misc22"),
@@ -8615,7 +8615,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc22", template);
+	asset_storage.insert("misc22", template);
 
 	let template = EntityTemplate {
 		name: Some("misc23"),
@@ -8670,7 +8670,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc23", template);
+	asset_storage.insert("misc23", template);
 
 	let template = EntityTemplate {
 		name: Some("misc24"),
@@ -8725,7 +8725,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc24", template);
+	asset_storage.insert("misc24", template);
 
 	let template = EntityTemplate {
 		name: Some("chaingun"),
@@ -8780,7 +8780,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("chaingun", template);
+	asset_storage.insert("chaingun", template);
 
 	let template = EntityTemplate {
 		name: Some("misc26"),
@@ -8835,7 +8835,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc26", template);
+	asset_storage.insert("misc26", template);
 
 	let template = EntityTemplate {
 		name: Some("misc27"),
@@ -8890,7 +8890,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc27", template);
+	asset_storage.insert("misc27", template);
 
 	let template = EntityTemplate {
 		name: Some("shotgun"),
@@ -8945,7 +8945,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("shotgun", template);
+	asset_storage.insert("shotgun", template);
 
 	let template = EntityTemplate {
 		name: Some("misc31"),
@@ -9000,7 +9000,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc31", template);
+	asset_storage.insert("misc31", template);
 
 	let template = EntityTemplate {
 		name: Some("misc43"),
@@ -9119,7 +9119,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc43", template);
+	asset_storage.insert("misc43", template);
 
 	let template = EntityTemplate {
 		name: Some("misc48"),
@@ -9174,7 +9174,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc48", template);
+	asset_storage.insert("misc48", template);
 
 	let template = EntityTemplate {
 		name: Some("misc49"),
@@ -9229,7 +9229,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc49", template);
+	asset_storage.insert("misc49", template);
 
 	let template = EntityTemplate {
 		name: Some("misc50"),
@@ -9284,7 +9284,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc50", template);
+	asset_storage.insert("misc50", template);
 
 	let template = EntityTemplate {
 		name: Some("misc62"),
@@ -9339,7 +9339,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc62", template);
+	asset_storage.insert("misc62", template);
 
 	let template = EntityTemplate {
 		name: Some("misc63"),
@@ -9394,7 +9394,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc63", template);
+	asset_storage.insert("misc63", template);
 
 	let template = EntityTemplate {
 		name: Some("misc64"),
@@ -9449,7 +9449,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc64", template);
+	asset_storage.insert("misc64", template);
 
 	let template = EntityTemplate {
 		name: Some("misc66"),
@@ -9504,7 +9504,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc66", template);
+	asset_storage.insert("misc66", template);
 
 	let template = EntityTemplate {
 		name: Some("misc67"),
@@ -9559,7 +9559,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc67", template);
+	asset_storage.insert("misc67", template);
 
 	let template = EntityTemplate {
 		name: Some("misc68"),
@@ -9614,7 +9614,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc68", template);
+	asset_storage.insert("misc68", template);
 
 	let template = EntityTemplate {
 		name: Some("misc69"),
@@ -9669,7 +9669,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc69", template);
+	asset_storage.insert("misc69", template);
 
 	let template = EntityTemplate {
 		name: Some("misc71"),
@@ -9724,7 +9724,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc71", template);
+	asset_storage.insert("misc71", template);
 
 	if wad_mode < WadMode::Doom1 {
 		return;
@@ -10170,7 +10170,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("head", template);
+	asset_storage.insert("head", template);
 
 	let template = EntityTemplate {
 		name: Some("skull"),
@@ -10549,7 +10549,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("skull", template);
+	asset_storage.insert("skull", template);
 
 	let template = EntityTemplate {
 		name: Some("spider"),
@@ -11198,7 +11198,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("spider", template);
+	asset_storage.insert("spider", template);
 
 	let template = EntityTemplate {
 		name: Some("cyborg"),
@@ -11771,7 +11771,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("cyborg", template);
+	asset_storage.insert("cyborg", template);
 
 	let template = EntityTemplate {
 		name: Some("plasma"),
@@ -12001,7 +12001,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("plasma", template);
+	asset_storage.insert("plasma", template);
 
 	let template = EntityTemplate {
 		name: Some("bfg"),
@@ -12240,7 +12240,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("bfg", template);
+	asset_storage.insert("bfg", template);
 
 	let template = EntityTemplate {
 		name: Some("extrabfg"),
@@ -12367,7 +12367,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("extrabfg", template);
+	asset_storage.insert("extrabfg", template);
 
 	let template = EntityTemplate {
 		name: Some("misc7"),
@@ -12448,7 +12448,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc7", template);
+	asset_storage.insert("misc7", template);
 
 	let template = EntityTemplate {
 		name: Some("misc8"),
@@ -12529,7 +12529,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc8", template);
+	asset_storage.insert("misc8", template);
 
 	let template = EntityTemplate {
 		name: Some("misc9"),
@@ -12610,7 +12610,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc9", template);
+	asset_storage.insert("misc9", template);
 
 	let template = EntityTemplate {
 		name: Some("inv"),
@@ -12729,7 +12729,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("inv", template);
+	asset_storage.insert("inv", template);
 
 	let template = EntityTemplate {
 		name: Some("misc13"),
@@ -12784,7 +12784,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc13", template);
+	asset_storage.insert("misc13", template);
 
 	let template = EntityTemplate {
 		name: Some("misc20"),
@@ -12839,7 +12839,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc20", template);
+	asset_storage.insert("misc20", template);
 
 	let template = EntityTemplate {
 		name: Some("misc21"),
@@ -12894,7 +12894,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc21", template);
+	asset_storage.insert("misc21", template);
 
 	let template = EntityTemplate {
 		name: Some("misc25"),
@@ -12949,7 +12949,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc25", template);
+	asset_storage.insert("misc25", template);
 
 	let template = EntityTemplate {
 		name: Some("misc28"),
@@ -13004,7 +13004,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc28", template);
+	asset_storage.insert("misc28", template);
 
 	let template = EntityTemplate {
 		name: Some("misc32"),
@@ -13059,7 +13059,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc32", template);
+	asset_storage.insert("misc32", template);
 
 	let template = EntityTemplate {
 		name: Some("misc33"),
@@ -13114,7 +13114,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc33", template);
+	asset_storage.insert("misc33", template);
 
 	let template = EntityTemplate {
 		name: Some("misc34"),
@@ -13169,7 +13169,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc34", template);
+	asset_storage.insert("misc34", template);
 
 	let template = EntityTemplate {
 		name: Some("misc35"),
@@ -13224,7 +13224,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc35", template);
+	asset_storage.insert("misc35", template);
 
 	let template = EntityTemplate {
 		name: Some("misc36"),
@@ -13279,7 +13279,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc36", template);
+	asset_storage.insert("misc36", template);
 
 	let template = EntityTemplate {
 		name: Some("misc37"),
@@ -13360,7 +13360,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc37", template);
+	asset_storage.insert("misc37", template);
 
 	let template = EntityTemplate {
 		name: Some("misc38"),
@@ -13479,7 +13479,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc38", template);
+	asset_storage.insert("misc38", template);
 
 	let template = EntityTemplate {
 		name: Some("misc39"),
@@ -13579,7 +13579,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc39", template);
+	asset_storage.insert("misc39", template);
 
 	let template = EntityTemplate {
 		name: Some("misc40"),
@@ -13634,7 +13634,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc40", template);
+	asset_storage.insert("misc40", template);
 
 	let template = EntityTemplate {
 		name: Some("misc41"),
@@ -13753,7 +13753,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc41", template);
+	asset_storage.insert("misc41", template);
 
 	let template = EntityTemplate {
 		name: Some("misc42"),
@@ -13872,7 +13872,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc42", template);
+	asset_storage.insert("misc42", template);
 
 	let template = EntityTemplate {
 		name: Some("misc44"),
@@ -13991,7 +13991,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc44", template);
+	asset_storage.insert("misc44", template);
 
 	let template = EntityTemplate {
 		name: Some("misc45"),
@@ -14110,7 +14110,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc45", template);
+	asset_storage.insert("misc45", template);
 
 	let template = EntityTemplate {
 		name: Some("misc46"),
@@ -14229,7 +14229,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc46", template);
+	asset_storage.insert("misc46", template);
 
 	let template = EntityTemplate {
 		name: Some("misc47"),
@@ -14284,7 +14284,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc47", template);
+	asset_storage.insert("misc47", template);
 
 	let template = EntityTemplate {
 		name: Some("misc51"),
@@ -14403,7 +14403,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc51", template);
+	asset_storage.insert("misc51", template);
 
 	let template = EntityTemplate {
 		name: Some("misc52"),
@@ -14458,7 +14458,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc52", template);
+	asset_storage.insert("misc52", template);
 
 	let template = EntityTemplate {
 		name: Some("misc53"),
@@ -14513,7 +14513,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc53", template);
+	asset_storage.insert("misc53", template);
 
 	let template = EntityTemplate {
 		name: Some("misc54"),
@@ -14568,7 +14568,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc54", template);
+	asset_storage.insert("misc54", template);
 
 	let template = EntityTemplate {
 		name: Some("misc55"),
@@ -14623,7 +14623,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc55", template);
+	asset_storage.insert("misc55", template);
 
 	let template = EntityTemplate {
 		name: Some("misc56"),
@@ -14678,7 +14678,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc56", template);
+	asset_storage.insert("misc56", template);
 
 	let template = EntityTemplate {
 		name: Some("misc57"),
@@ -14733,7 +14733,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc57", template);
+	asset_storage.insert("misc57", template);
 
 	let template = EntityTemplate {
 		name: Some("misc58"),
@@ -14788,7 +14788,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc58", template);
+	asset_storage.insert("misc58", template);
 
 	let template = EntityTemplate {
 		name: Some("misc59"),
@@ -14843,7 +14843,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc59", template);
+	asset_storage.insert("misc59", template);
 
 	let template = EntityTemplate {
 		name: Some("misc60"),
@@ -14962,7 +14962,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc60", template);
+	asset_storage.insert("misc60", template);
 
 	let template = EntityTemplate {
 		name: Some("misc61"),
@@ -15017,7 +15017,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc61", template);
+	asset_storage.insert("misc61", template);
 
 	let template = EntityTemplate {
 		name: Some("misc65"),
@@ -15087,7 +15087,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc65", template);
+	asset_storage.insert("misc65", template);
 
 	let template = EntityTemplate {
 		name: Some("misc70"),
@@ -15142,7 +15142,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc70", template);
+	asset_storage.insert("misc70", template);
 
 	let template = EntityTemplate {
 		name: Some("misc72"),
@@ -15197,7 +15197,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc72", template);
+	asset_storage.insert("misc72", template);
 
 	let template = EntityTemplate {
 		name: Some("misc73"),
@@ -15278,7 +15278,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc73", template);
+	asset_storage.insert("misc73", template);
 
 	let template = EntityTemplate {
 		name: Some("misc74"),
@@ -15333,7 +15333,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc74", template);
+	asset_storage.insert("misc74", template);
 
 	let template = EntityTemplate {
 		name: Some("misc75"),
@@ -15414,7 +15414,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc75", template);
+	asset_storage.insert("misc75", template);
 
 	let template = EntityTemplate {
 		name: Some("misc76"),
@@ -15469,7 +15469,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc76", template);
+	asset_storage.insert("misc76", template);
 
 	let template = EntityTemplate {
 		name: Some("misc77"),
@@ -15569,7 +15569,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc77", template);
+	asset_storage.insert("misc77", template);
 
 	if wad_mode < WadMode::Doom2 {
 		return;
@@ -16336,7 +16336,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("vile", template);
+	asset_storage.insert("vile", template);
 
 	let template = EntityTemplate {
 		name: Some("fire"),
@@ -16957,7 +16957,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("fire", template);
+	asset_storage.insert("fire", template);
 
 	let template = EntityTemplate {
 		name: Some("undead"),
@@ -17705,7 +17705,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("undead", template);
+	asset_storage.insert("undead", template);
 
 	let template = EntityTemplate {
 		name: Some("tracer"),
@@ -17897,7 +17897,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("tracer", template);
+	asset_storage.insert("tracer", template);
 
 	let template = EntityTemplate {
 		name: Some("fatso"),
@@ -18795,7 +18795,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("fatso", template);
+	asset_storage.insert("fatso", template);
 
 	let template = EntityTemplate {
 		name: Some("fatshot"),
@@ -18987,7 +18987,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("fatshot", template);
+	asset_storage.insert("fatshot", template);
 
 	let template = EntityTemplate {
 		name: Some("chainguy"),
@@ -19736,7 +19736,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("chainguy", template);
+	asset_storage.insert("chainguy", template);
 
 	let template = EntityTemplate {
 		name: Some("knight"),
@@ -20408,7 +20408,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("knight", template);
+	asset_storage.insert("knight", template);
 
 	let template = EntityTemplate {
 		name: Some("baby"),
@@ -21135,7 +21135,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("baby", template);
+	asset_storage.insert("baby", template);
 
 	let template = EntityTemplate {
 		name: Some("pain"),
@@ -21683,7 +21683,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("pain", template);
+	asset_storage.insert("pain", template);
 
 	let template = EntityTemplate {
 		name: Some("wolfss"),
@@ -22451,7 +22451,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("wolfss", template);
+	asset_storage.insert("wolfss", template);
 
 	let template = EntityTemplate {
 		name: Some("keen"),
@@ -22781,7 +22781,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("keen", template);
+	asset_storage.insert("keen", template);
 
 	let template = EntityTemplate {
 		name: Some("bossbrain"),
@@ -22940,7 +22940,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("bossbrain", template);
+	asset_storage.insert("bossbrain", template);
 
 	let template = EntityTemplate {
 		name: Some("bossspit"),
@@ -23042,7 +23042,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("bossspit", template);
+	asset_storage.insert("bossspit", template);
 
 	let template = EntityTemplate {
 		name: Some("bosstarget"),
@@ -23073,7 +23073,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("bosstarget", template);
+	asset_storage.insert("bosstarget", template);
 
 	let template = EntityTemplate {
 		name: Some("spawnshot"),
@@ -23228,7 +23228,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("spawnshot", template);
+	asset_storage.insert("spawnshot", template);
 
 	let template = EntityTemplate {
 		name: Some("spawnfire"),
@@ -23431,7 +23431,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("spawnfire", template);
+	asset_storage.insert("spawnfire", template);
 
 	let template = EntityTemplate {
 		name: Some("mega"),
@@ -23550,7 +23550,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("mega", template);
+	asset_storage.insert("mega", template);
 
 	let template = EntityTemplate {
 		name: Some("supershotgun"),
@@ -23605,7 +23605,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("supershotgun", template);
+	asset_storage.insert("supershotgun", template);
 
 	let template = EntityTemplate {
 		name: Some("misc29"),
@@ -23724,7 +23724,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc29", template);
+	asset_storage.insert("misc29", template);
 
 	let template = EntityTemplate {
 		name: Some("misc30"),
@@ -23843,7 +23843,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc30", template);
+	asset_storage.insert("misc30", template);
 
 	let template = EntityTemplate {
 		name: Some("misc78"),
@@ -23898,7 +23898,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc78", template);
+	asset_storage.insert("misc78", template);
 
 	let template = EntityTemplate {
 		name: Some("misc79"),
@@ -23953,7 +23953,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc79", template);
+	asset_storage.insert("misc79", template);
 
 	let template = EntityTemplate {
 		name: Some("misc80"),
@@ -24008,7 +24008,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc80", template);
+	asset_storage.insert("misc80", template);
 
 	let template = EntityTemplate {
 		name: Some("misc81"),
@@ -24063,7 +24063,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc81", template);
+	asset_storage.insert("misc81", template);
 
 	let template = EntityTemplate {
 		name: Some("misc82"),
@@ -24118,7 +24118,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc82", template);
+	asset_storage.insert("misc82", template);
 
 	let template = EntityTemplate {
 		name: Some("misc83"),
@@ -24173,7 +24173,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc83", template);
+	asset_storage.insert("misc83", template);
 
 	let template = EntityTemplate {
 		name: Some("misc84"),
@@ -24228,7 +24228,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc84", template);
+	asset_storage.insert("misc84", template);
 
 	let template = EntityTemplate {
 		name: Some("misc85"),
@@ -24283,7 +24283,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc85", template);
+	asset_storage.insert("misc85", template);
 
 	let template = EntityTemplate {
 		name: Some("misc86"),
@@ -24338,5 +24338,5 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert_with_name("misc86", template);
+	asset_storage.insert("misc86", template);
 }

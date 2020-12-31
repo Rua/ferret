@@ -17,17 +17,18 @@ use crate::{
 use legion::{
 	component,
 	systems::{CommandBuffer, ResourceSet, Runnable},
-	Entity, EntityStore, IntoQuery, Resources, SystemBuilder, Write,
+	Entity, EntityStore, IntoQuery, Registry, Resources, SystemBuilder, Write,
 };
+use serde::{Deserialize, Serialize};
 use shrev::EventChannel;
 use std::time::Duration;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FloorActive {
 	pub finish_sound: Option<AssetHandle<Sound>>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FloorParams {
 	pub speed: f32,
 	pub target_height_base: FloorTargetHeight,
@@ -37,7 +38,7 @@ pub struct FloorParams {
 	pub finish_sound: Option<AssetHandle<Sound>>,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum FloorTargetHeight {
 	Current,
 	LowestNeighbourFloor,
@@ -47,12 +48,15 @@ pub enum FloorTargetHeight {
 }
 
 pub fn floor_active_system(resources: &mut Resources) -> impl Runnable {
-	let (mut handler_set, mut sector_move_event_channel) = <(
+	let (mut handler_set, mut registry, mut sector_move_event_channel) = <(
 		Write<SpawnMergerHandlerSet>,
+		Write<Registry<String>>,
 		Write<EventChannel<SectorMoveEvent>>,
 	)>::fetch_mut(resources);
 
+	registry.register::<FloorActive>("FloorActive".into());
 	handler_set.register_clone::<FloorActive>();
+
 	let mut sector_move_event_reader = sector_move_event_channel.register_reader();
 
 	SystemBuilder::new("floor_active_system")
@@ -93,7 +97,7 @@ pub fn floor_active_system(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FloorSwitchUse {
 	pub params: FloorParams,
 	pub switch_params: SwitchParams,
@@ -160,14 +164,17 @@ pub fn floor_switch_system(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FloorLinedefTouch {
 	pub params: FloorParams,
 	pub retrigger: bool,
 }
 
 pub fn floor_linedef_touch(resources: &mut Resources) -> impl Runnable {
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+
+	registry.register::<FloorLinedefTouch>("FloorLinedefTouch".into());
 	handler_set.register_clone::<FloorLinedefTouch>();
 
 	SystemBuilder::new("floor_linedef_touch")

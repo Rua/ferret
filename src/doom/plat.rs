@@ -19,12 +19,13 @@ use crate::{
 use legion::{
 	component,
 	systems::{CommandBuffer, ResourceSet, Runnable},
-	Entity, EntityStore, IntoQuery, Resources, SystemBuilder, Write,
+	Entity, EntityStore, IntoQuery, Registry, Resources, SystemBuilder, Write,
 };
+use serde::{Deserialize, Serialize};
 use shrev::EventChannel;
 use std::time::Duration;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlatActive {
 	pub speed: f32,
 	pub wait_timer: Timer,
@@ -37,7 +38,7 @@ pub struct PlatActive {
 	pub high_height: f32,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlatParams {
 	pub speed: f32,
 	pub wait_time: Duration,
@@ -54,19 +55,22 @@ pub struct PlatParams {
 	pub high_height_offset: f32,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum PlatTargetHeight {
 	Current,
 	LowestNeighbourFloor,
 }
 
 pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
-	let (mut handler_set, mut sector_move_event_channel) = <(
+	let (mut handler_set, mut registry, mut sector_move_event_channel) = <(
 		Write<SpawnMergerHandlerSet>,
+		Write<Registry<String>>,
 		Write<EventChannel<SectorMoveEvent>>,
 	)>::fetch_mut(resources);
 
+	registry.register::<PlatActive>("PlatActive".into());
 	handler_set.register_clone::<PlatActive>();
+
 	let mut sector_move_event_reader = sector_move_event_channel.register_reader();
 
 	SystemBuilder::new("plat_active_system")
@@ -151,7 +155,7 @@ pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlatSwitchUse {
 	pub params: PlatParams,
 	pub switch_params: SwitchParams,
@@ -218,14 +222,17 @@ pub fn plat_switch_system(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlatLinedefTouch {
 	pub params: PlatParams,
 	pub retrigger: bool,
 }
 
 pub fn plat_linedef_touch(resources: &mut Resources) -> impl Runnable {
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+
+	registry.register::<PlatLinedefTouch>("PlatLinedefTouch".into());
 	handler_set.register_clone::<PlatLinedefTouch>();
 
 	SystemBuilder::new("plat_linedef_touch")

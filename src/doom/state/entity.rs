@@ -16,7 +16,7 @@ use crate::{
 use legion::{
 	component,
 	systems::{ResourceSet, Runnable},
-	Entity, IntoQuery, Read, Resources, SystemBuilder, Write,
+	Entity, IntoQuery, Read, Registry, Resources, SystemBuilder, Write,
 };
 use rand::{distributions::Uniform, Rng};
 use std::{sync::atomic::Ordering, time::Duration};
@@ -48,8 +48,11 @@ impl SpawnFrom<StateDef> for State {
 }
 
 pub fn entity_state(resources: &mut Resources) -> impl Runnable {
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+
 	handler_set.register_spawn::<StateDef, State>();
+	registry.register::<State>("State".into());
 
 	SystemBuilder::new("set_entity_state")
 		.read_resource::<FrameState>()

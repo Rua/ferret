@@ -12,13 +12,81 @@ use crate::{
 };
 use legion::{
 	systems::{ResourceSet, Runnable},
-	IntoQuery, Read, Resources, SystemBuilder, Write,
+	IntoQuery, Read, Registry, Resources, SystemBuilder, Write,
 };
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct LightFlash {
+	pub flash_type: LightFlashType,
+	pub on_time: Duration,
+	pub off_time: Duration,
+	pub timer: Timer,
+	pub state: bool,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct LightFlashDef {
+	pub flash_type: LightFlashType,
+	pub on_time: Duration,
+	pub off_time: Duration,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum LightFlashType {
+	Broken,
+	Strobe,
+	StrobeUnSync(Duration),
+}
+
+impl Default for LightFlashType {
+	fn default() -> LightFlashType {
+		LightFlashType::Broken
+	}
+}
+
+impl SpawnFrom<LightFlashDef> for LightFlash {
+	fn spawn(
+		component: &LightFlashDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> LightFlash {
+		let frame_state = <Read<FrameState>>::fetch(resources);
+		let mut rng = frame_state.rng.lock().unwrap();
+
+		let LightFlashDef {
+			mut flash_type,
+			on_time,
+			off_time,
+		} = component.clone();
+
+		let time = match flash_type {
+			LightFlashType::Broken => on_time * (rng.gen::<bool>() as u32) + FRAME_TIME,
+			LightFlashType::Strobe => on_time,
+			LightFlashType::StrobeUnSync(time) => time.mul_f64(rng.gen::<f64>()) + FRAME_TIME,
+		};
+
+		if let LightFlashType::StrobeUnSync(_) = flash_type {
+			flash_type = LightFlashType::Strobe;
+		}
+
+		LightFlash {
+			flash_type,
+			on_time,
+			off_time,
+			timer: Timer::new(frame_state.time, time),
+			state: true,
+		}
+	}
+}
+
 pub fn light_flash_system(resources: &mut Resources) -> impl Runnable {
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+
+	registry.register::<LightFlash>("LightFlash".into());
 	handler_set.register_spawn::<LightFlashDef, LightFlash>();
 
 	SystemBuilder::new("light_flash_system")
@@ -84,72 +152,17 @@ pub fn light_flash_system(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct LightFlash {
-	pub flash_type: LightFlashType,
-	pub on_time: Duration,
-	pub off_time: Duration,
-	pub timer: Timer,
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
+pub struct LightGlow {
+	pub speed: f32,
 	pub state: bool,
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct LightFlashDef {
-	pub flash_type: LightFlashType,
-	pub on_time: Duration,
-	pub off_time: Duration,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum LightFlashType {
-	Broken,
-	Strobe,
-	StrobeUnSync(Duration),
-}
-
-impl Default for LightFlashType {
-	fn default() -> LightFlashType {
-		LightFlashType::Broken
-	}
-}
-
-impl SpawnFrom<LightFlashDef> for LightFlash {
-	fn spawn(
-		component: &LightFlashDef,
-		_accessor: ComponentAccessor,
-		resources: &Resources,
-	) -> LightFlash {
-		let frame_state = <Read<FrameState>>::fetch(resources);
-		let mut rng = frame_state.rng.lock().unwrap();
-
-		let LightFlashDef {
-			mut flash_type,
-			on_time,
-			off_time,
-		} = component.clone();
-
-		let time = match flash_type {
-			LightFlashType::Broken => on_time * (rng.gen::<bool>() as u32) + FRAME_TIME,
-			LightFlashType::Strobe => on_time,
-			LightFlashType::StrobeUnSync(time) => time.mul_f64(rng.gen::<f64>()) + FRAME_TIME,
-		};
-
-		if let LightFlashType::StrobeUnSync(_) = flash_type {
-			flash_type = LightFlashType::Strobe;
-		}
-
-		LightFlash {
-			flash_type,
-			on_time,
-			off_time,
-			timer: Timer::new(frame_state.time, time),
-			state: true,
-		}
-	}
-}
-
 pub fn light_glow_system(resources: &mut Resources) -> impl Runnable {
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+
+	registry.register::<LightGlow>("LightGlow".into());
 	handler_set.register_clone::<LightGlow>();
 
 	SystemBuilder::new("light_glow_system")
@@ -196,10 +209,4 @@ pub fn light_glow_system(resources: &mut Resources) -> impl Runnable {
 				}
 			}
 		})
-}
-
-#[derive(Clone, Copy, Debug, Default)]
-pub struct LightGlow {
-	pub speed: f32,
-	pub state: bool,
 }

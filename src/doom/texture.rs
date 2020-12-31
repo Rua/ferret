@@ -4,9 +4,10 @@ use crate::{
 };
 use legion::{
 	systems::{ResourceSet, Runnable},
-	IntoQuery, Resources, SystemBuilder, Write,
+	IntoQuery, Registry, Resources, SystemBuilder, Write,
 };
 use nalgebra::Vector2;
+use serde::{Deserialize, Serialize};
 
 pub fn texture_animation_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("texture_animation_system")
@@ -29,13 +30,16 @@ pub fn texture_animation_system(_resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct TextureScroll {
 	pub speed: Vector2<f32>,
 }
 
 pub fn texture_scroll_system(resources: &mut Resources) -> impl Runnable {
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+
+	registry.register::<TextureScroll>("TextureScroll".into());
 	handler_set.register_clone::<TextureScroll>();
 
 	SystemBuilder::new("texture_scroll_system")

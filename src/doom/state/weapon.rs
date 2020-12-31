@@ -25,11 +25,12 @@ use crate::{
 use legion::{
 	component,
 	systems::{ResourceSet, Runnable},
-	Entity, IntoQuery, Read, Resources, SystemBuilder, Write,
+	Entity, IntoQuery, Read, Registry, Resources, SystemBuilder, Write,
 };
 use nalgebra::{Vector2, Vector3};
 use num_traits::Zero;
 use rand::{distributions::Uniform, Rng};
+use serde::{Deserialize, Serialize};
 use std::{sync::atomic::Ordering, time::Duration};
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -45,7 +46,7 @@ impl SpawnFrom<WeaponSpriteSlotDef> for WeaponSpriteSlot {
 	}
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct WeaponState {
 	pub slots: [State; 2],
 	pub current: AssetHandle<WeaponTemplate>,
@@ -94,8 +95,12 @@ impl SpawnFrom<WeaponStateDef> for WeaponState {
 }
 
 pub fn weapon_state(resources: &mut Resources) -> impl Runnable {
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+
+	registry.register::<WeaponState>("WeaponState".into());
 	handler_set.register_spawn::<WeaponStateDef, WeaponState>();
+
 	handler_set.register_clone::<WeaponSpriteSlot>();
 	handler_set.register_spawn::<WeaponSpriteSlotDef, WeaponSpriteSlot>();
 
@@ -564,7 +569,7 @@ pub fn set_weapon_state(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Owner(pub Entity);
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -580,8 +585,12 @@ impl SpawnFrom<OwnerDef> for Owner {
 pub struct SpawnProjectile(pub String);
 
 pub fn spawn_projectile(resources: &mut Resources) -> impl Runnable {
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+
+	registry.register::<Owner>("Owner".into());
 	handler_set.register_spawn::<OwnerDef, Owner>();
+
 	handler_set.register_clone::<SpawnProjectile>();
 
 	SystemBuilder::new("spawn_projectile")

@@ -99,7 +99,7 @@ pub struct Sidedef {
 	pub sector_index: usize,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum SidedefSlot {
 	Top = 0,
 	Bottom = 1,

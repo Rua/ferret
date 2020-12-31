@@ -20,16 +20,18 @@ use bitflags::bitflags;
 use legion::{
 	component,
 	systems::{ResourceSet, Runnable},
-	Entity, EntityStore, IntoQuery, Read, Resources, SystemBuilder, Write,
+	Entity, EntityStore, IntoQuery, Read, Registry, Resources, SystemBuilder, Write,
 };
 use nalgebra::Vector3;
 use num_traits::Zero;
+use serde::{Deserialize, Serialize};
 use shrev::EventChannel;
 use smallvec::SmallVec;
 use std::time::Duration;
 
 bitflags! {
 	/// What solid types an entity will block movement for.
+	#[derive(Serialize, Deserialize)]
 	pub struct SolidBits: u8 {
 		const PLAYER = 0b1;
 		const MONSTER = 0b10;
@@ -39,7 +41,7 @@ bitflags! {
 }
 
 /// What type of solid an entity is.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[repr(u8)]
 pub enum SolidType {
 	PLAYER = SolidBits::PLAYER.bits(),
@@ -57,7 +59,7 @@ impl SolidBits {
 }
 
 /// Component for entities that can be collided with, optionally blocking movement.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct BoxCollider {
 	pub height: f32,
 	pub radius: f32,
@@ -66,14 +68,14 @@ pub struct BoxCollider {
 	pub damage_particle: DamageParticle,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum DamageParticle {
 	Blood,
 	Puff,
 }
 
 /// Component for entities that can move and be pushed around.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Physics {
 	pub collision_response: CollisionResponse,
 	pub gravity: bool,
@@ -82,7 +84,7 @@ pub struct Physics {
 }
 
 /// How the entity responds to colliding with something.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum CollisionResponse {
 	Stop,
 	StepSlide,
@@ -97,6 +99,9 @@ pub struct PhysicsDef {
 	pub mass: f32,
 	pub speed: f32,
 }
+
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
+pub struct Touchable;
 
 impl SpawnFrom<PhysicsDef> for Physics {
 	fn spawn(component: &PhysicsDef, _accessor: ComponentAccessor, resources: &Resources) -> Self {
@@ -121,12 +126,19 @@ impl SpawnFrom<PhysicsDef> for Physics {
 pub fn physics(resources: &mut Resources) -> impl Runnable {
 	resources.insert(EventChannel::<StepEvent>::new());
 
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+
+	registry.register::<BoxCollider>("BoxCollider".into());
 	handler_set.register_clone::<BoxCollider>();
-	handler_set.register_clone::<Touchable>();
-	handler_set.register_spawn::<TouchEventDef, TouchEvent>();
+
+	registry.register::<Physics>("Physics".into());
 	handler_set.register_clone::<Physics>();
 	handler_set.register_spawn::<PhysicsDef, Physics>();
+
+	registry.register::<Touchable>("Touchable".into());
+	handler_set.register_clone::<Touchable>();
+	handler_set.register_spawn::<TouchEventDef, TouchEvent>();
 
 	SystemBuilder::new("physics")
 		.read_resource::<AssetStorage>()
@@ -463,9 +475,6 @@ fn step_slide_move<W: EntityStore>(
 }
 
 pub const DISTANCE_EPSILON: f32 = 0.03125;
-
-#[derive(Clone, Copy, Debug, Default)]
-pub struct Touchable;
 
 #[derive(Clone, Copy, Debug)]
 pub struct TouchEvent {

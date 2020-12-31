@@ -13,9 +13,7 @@ use crate::common::{
 use anyhow::Context;
 use clap::{App, Arg};
 use crossbeam_channel::Sender;
-use legion::{
-	serialize::UnknownType, systems::ResourceSet, Read, Registry, Resources, World, Write,
-};
+use legion::{systems::ResourceSet, Read, Registry, Resources, World, Write};
 use nalgebra::Vector2;
 use rand::SeedableRng;
 use std::{
@@ -98,7 +96,7 @@ fn main() -> anyhow::Result<()> {
 	resources.insert(handler_set);
 
 	let mut registry = Registry::<String>::default();
-	registry.on_unknown(UnknownType::Ignore);
+	registry.register::<FrameRng>("FrameRng".into());
 	resources.insert(registry);
 
 	doom::init_resources(&mut resources, &arg_matches)?;

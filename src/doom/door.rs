@@ -18,12 +18,13 @@ use crate::{
 use legion::{
 	component,
 	systems::{CommandBuffer, ResourceSet, Runnable},
-	Entity, EntityStore, IntoQuery, Resources, SystemBuilder, Write,
+	Entity, EntityStore, IntoQuery, Registry, Resources, SystemBuilder, Write,
 };
+use serde::{Deserialize, Serialize};
 use shrev::EventChannel;
 use std::time::Duration;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DoorActive {
 	pub state: DoorState,
 	pub end_state: DoorState,
@@ -38,7 +39,7 @@ pub struct DoorActive {
 	pub close_height: f32,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DoorState {
 	Closed,
 	Opening,
@@ -46,7 +47,7 @@ pub enum DoorState {
 	Closing,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DoorParams {
 	pub start_state: DoorState,
 	pub end_state: DoorState,
@@ -59,12 +60,15 @@ pub struct DoorParams {
 }
 
 pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
-	let (mut handler_set, mut sector_move_event_channel) = <(
+	let (mut handler_set, mut registry, mut sector_move_event_channel) = <(
 		Write<SpawnMergerHandlerSet>,
+		Write<Registry<String>>,
 		Write<EventChannel<SectorMoveEvent>>,
 	)>::fetch_mut(resources);
 
+	registry.register::<DoorActive>("DoorActive".into());
 	handler_set.register_clone::<DoorActive>();
+
 	let mut sector_move_event_reader = sector_move_event_channel.register_reader();
 
 	SystemBuilder::new("door_active_system")
@@ -156,7 +160,7 @@ pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DoorUse {
 	pub params: DoorParams,
 	pub retrigger: bool,
@@ -239,7 +243,7 @@ pub fn door_use_system(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DoorSwitchUse {
 	pub params: DoorParams,
 	pub switch_params: SwitchParams,
@@ -306,14 +310,17 @@ pub fn door_switch_system(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DoorLinedefTouch {
 	pub params: DoorParams,
 	pub retrigger: bool,
 }
 
 pub fn door_linedef_touch(resources: &mut Resources) -> impl Runnable {
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+
+	registry.register::<DoorLinedefTouch>("DoorLinedefTouch".into());
 	handler_set.register_clone::<DoorLinedefTouch>();
 
 	SystemBuilder::new("door_linedef_touch")

@@ -13,13 +13,14 @@ use crate::{
 };
 use legion::{
 	systems::{ResourceSet, Runnable},
-	Entity, IntoQuery, Resources, SystemBuilder, Write,
+	Entity, IntoQuery, Registry, Resources, SystemBuilder, Write,
 };
 use nalgebra::Vector3;
 use num_traits::Zero;
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Health {
 	pub current: f32,
 	pub max: f32,
@@ -50,8 +51,12 @@ pub struct Damage {
 }
 
 pub fn apply_damage(resources: &mut Resources) -> impl Runnable {
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+
 	handler_set.register_clone::<Damage>();
+
+	registry.register::<Health>("Health".into());
 	handler_set.register_spawn::<HealthDef, Health>();
 
 	SystemBuilder::new("apply_damage")

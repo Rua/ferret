@@ -48,7 +48,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef1", template);
 
 	// Retrigger, slow
 	// TODO blue key
@@ -75,7 +75,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef26", template);
 
 	// Retrigger, slow
 	// TODO red key
@@ -102,7 +102,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef28", template);
 
 	// Retrigger, slow
 	// TODO yellow key
@@ -129,7 +129,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef27", template);
 
 	// Retrigger, fast
 	let template = EntityTemplate {
@@ -155,7 +155,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef117", template);
 
 	/*
 		Push doors, open only
@@ -185,7 +185,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef31", template);
 
 	// No retrigger, slow
 	// TODO blue key
@@ -212,7 +212,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef32", template);
 
 	// No retrigger, slow
 	// TODO red key
@@ -239,7 +239,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef33", template);
 
 	// No retrigger, slow
 	// TODO yellow key
@@ -266,7 +266,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef34", template);
 
 	// No retrigger, fast
 	let template = EntityTemplate {
@@ -292,7 +292,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef118", template);
 
 	/*
 		Switch doors, open-close
@@ -325,7 +325,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef63", template);
 
 	// Retrigger, fast
 	let template = EntityTemplate {
@@ -354,7 +354,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef114", template);
 
 	// No retrigger, slow
 	let template = EntityTemplate {
@@ -383,7 +383,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef29", template);
 
 	// No retrigger, fast
 	let template = EntityTemplate {
@@ -412,7 +412,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef111", template);
 
 	/*
 		Switch doors, open only
@@ -445,7 +445,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef61", template);
 
 	// Retrigger, fast
 	let template = EntityTemplate {
@@ -474,7 +474,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef115", template);
 
 	// Retrigger, fast
 	// TODO blue key
@@ -504,7 +504,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef99", template);
 
 	// Retrigger, fast
 	// TODO red key
@@ -534,7 +534,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef134", template);
 
 	// Retrigger, fast
 	// TODO yellow key
@@ -564,7 +564,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef136", template);
 
 	// No retrigger, slow
 	let template = EntityTemplate {
@@ -593,7 +593,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef103", template);
 
 	// No retrigger, fast
 	let template = EntityTemplate {
@@ -622,7 +622,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef112", template);
 
 	// No retrigger, fast
 	// TODO blue key
@@ -652,7 +652,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef133", template);
 
 	// No retrigger, fast
 	// TODO red key
@@ -682,7 +682,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef135", template);
 
 	// No retrigger, fast
 	// TODO yellow key
@@ -712,7 +712,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef137", template);
 
 	/*
 		Switch doors, close only
@@ -745,7 +745,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef42", template);
 
 	// Retrigger, fast
 	let template = EntityTemplate {
@@ -774,7 +774,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef116", template);
 
 	// No retrigger, slow
 	let template = EntityTemplate {
@@ -803,7 +803,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef113", template);
 
 	// No retrigger, fast
 	let template = EntityTemplate {
@@ -832,7 +832,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef50", template);
 
 	/*
 		Linedef touch doors, open-close
@@ -868,7 +868,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef90", template);
 
 	// Retrigger, fast
 	let template = EntityTemplate {
@@ -900,7 +900,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef105", template);
 
 	// No retrigger, slow
 	let template = EntityTemplate {
@@ -932,7 +932,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef4", template);
 
 	// No retrigger, fast
 	let template = EntityTemplate {
@@ -964,7 +964,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef108", template);
 
 	/*
 		Linedef touch doors, open only
@@ -1000,7 +1000,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef86", template);
 
 	// Retrigger, fast
 	let template = EntityTemplate {
@@ -1032,7 +1032,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef106", template);
 
 	// No retrigger, slow
 	let template = EntityTemplate {
@@ -1064,7 +1064,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef2", template);
 
 	// No retrigger, fast
 	let template = EntityTemplate {
@@ -1096,7 +1096,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef109", template);
 
 	/*
 		Linedef touch doors, close only
@@ -1132,7 +1132,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef75", template);
 
 	// Retrigger, fast
 	let template = EntityTemplate {
@@ -1164,7 +1164,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef107", template);
 
 	// No retrigger, slow
 	let template = EntityTemplate {
@@ -1196,7 +1196,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef3", template);
 
 	// No retrigger, fast
 	let template = EntityTemplate {
@@ -1228,7 +1228,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef110", template);
 
 	/*
 		Linedef touch doors, close-open
@@ -1264,7 +1264,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef76", template);
 
 	// No retrigger, slow
 	let template = EntityTemplate {
@@ -1296,7 +1296,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef16", template);
 
 	/*
 		Switch floors, current height
@@ -1327,7 +1327,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef140", template);
 
 	/*
 		Switch floors, lowest neighbour floor
@@ -1358,7 +1358,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef60", template);
 
 	// No retrigger, slow, offset 0
 	let template = EntityTemplate {
@@ -1385,7 +1385,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef23", template);
 
 	/*
 		Switch floors, lowest neighbour floor above
@@ -1416,7 +1416,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef69", template);
 
 	// No retrigger, slow, offset 0
 	let template = EntityTemplate {
@@ -1443,7 +1443,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef18", template);
 
 	// Retrigger, fast, offset 0
 	let template = EntityTemplate {
@@ -1470,7 +1470,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef132", template);
 
 	// No retrigger, fast, offset 0
 	let template = EntityTemplate {
@@ -1497,7 +1497,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef131", template);
 
 	/*
 		Switch floors, lowest neighbour ceiling
@@ -1528,7 +1528,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef64", template);
 
 	// No retrigger, slow, offset 0
 	let template = EntityTemplate {
@@ -1555,7 +1555,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef101", template);
 
 	// Retrigger, slow, offset -8
 	// TODO crush
@@ -1583,7 +1583,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef65", template);
 
 	// No retrigger, slow, offset -8
 	// TODO crush
@@ -1611,7 +1611,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef55", template);
 
 	/*
 		Switch floors, highest neighbour floor
@@ -1642,7 +1642,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef45", template);
 
 	// No retrigger, slow, offset 0
 	let template = EntityTemplate {
@@ -1669,7 +1669,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef102", template);
 
 	// Retrigger, fast, offset +8
 	let template = EntityTemplate {
@@ -1696,7 +1696,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef70", template);
 
 	// No retrigger, fast, offset +8
 	let template = EntityTemplate {
@@ -1723,7 +1723,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef71", template);
 
 	/*
 		Linedef touch floors, current height
@@ -1757,7 +1757,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef92", template);
 
 	// No retrigger, slow, offset 24
 	let template = EntityTemplate {
@@ -1787,7 +1787,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef58", template);
 
 	// Retrigger, slow, offset 24
 	// TODO change type
@@ -1818,7 +1818,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef93", template);
 
 	// No retrigger, slow, offset 24
 	// TODO change type
@@ -1849,7 +1849,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef59", template);
 
 	/*
 		Linedef touch floors, lowest neighbour floor
@@ -1883,7 +1883,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef82", template);
 
 	// No retrigger, slow, offset 0
 	let template = EntityTemplate {
@@ -1913,7 +1913,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef38", template);
 
 	// Retrigger, slow, offset 0
 	// TODO type change
@@ -1944,7 +1944,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef84", template);
 
 	// No retrigger, slow, offset 0
 	// TODO type change
@@ -1975,7 +1975,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef37", template);
 
 	/*
 		Linedef touch floors, lowest neighbour floor above
@@ -2009,7 +2009,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef128", template);
 
 	// No retrigger, slow, offset 0
 	let template = EntityTemplate {
@@ -2039,7 +2039,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef119", template);
 
 	// Retrigger, fast, offset 0
 	let template = EntityTemplate {
@@ -2069,7 +2069,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef129", template);
 
 	// No retrigger, fast, offset 0
 	let template = EntityTemplate {
@@ -2099,7 +2099,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef130", template);
 
 	/*
 		Linedef touch floors, lowest neighbour ceiling
@@ -2133,7 +2133,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef91", template);
 
 	// No retrigger, slow, offset 0
 	let template = EntityTemplate {
@@ -2163,7 +2163,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef5", template);
 
 	// Retrigger, slow, offset -8
 	// TODO crush
@@ -2194,7 +2194,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef94", template);
 
 	// No retrigger, slow, offset -8
 	// TODO crush
@@ -2225,7 +2225,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef56", template);
 
 	/*
 		Linedef touch floors, highest neighbour floor
@@ -2259,7 +2259,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef83", template);
 
 	// No retrigger, slow, offset 0
 	let template = EntityTemplate {
@@ -2289,7 +2289,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef19", template);
 
 	// Retrigger, fast, offset +8
 	let template = EntityTemplate {
@@ -2319,7 +2319,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef98", template);
 
 	// No retrigger, fast, offset +8
 	let template = EntityTemplate {
@@ -2349,7 +2349,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef36", template);
 
 	/*
 		Switch plats, current - lowest neighbour floor
@@ -2387,7 +2387,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef62", template);
 
 	// Retrigger, fast
 	let template = EntityTemplate {
@@ -2421,7 +2421,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef123", template);
 
 	// No retrigger, slow
 	let template = EntityTemplate {
@@ -2455,7 +2455,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef21", template);
 
 	// No retrigger, fast
 	let template = EntityTemplate {
@@ -2489,7 +2489,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef122", template);
 
 	/*
 		Linedef touch plats, current - lowest neighbour floor
@@ -2530,7 +2530,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef88", template);
 
 	// Retrigger, fast
 	let template = EntityTemplate {
@@ -2567,7 +2567,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef120", template);
 
 	// No retrigger, slow
 	let template = EntityTemplate {
@@ -2604,7 +2604,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef10", template);
 
 	// No retrigger, fast
 	let template = EntityTemplate {
@@ -2641,7 +2641,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef121", template);
 
 	/*
 		Other
@@ -2651,139 +2651,139 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(6)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef6", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(7)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef7", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(8)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef8", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(9)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef9", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(11)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef11", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(12)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef12", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(13)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef13", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(14)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef14", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(15)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef15", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(17)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef17", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(20)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef20", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(22)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef22", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(24)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef24", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(25)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef25", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(30)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef30", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(35)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef35", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(39)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef39", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(40)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef40", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(41)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef41", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(43)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef43", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(44)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef44", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(46)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef46", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(47)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef47", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(48)),
@@ -2798,185 +2798,185 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef48", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(49)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef49", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(51)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef51", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(52)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef52", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(53)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef53", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(54)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef54", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(57)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef57", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(66)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef66", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(67)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef67", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(68)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef68", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(72)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef72", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(73)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef73", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(74)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef74", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(77)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef77", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(79)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef79", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(80)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef80", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(81)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef81", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(87)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef87", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(89)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef89", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(95)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef95", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(96)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef96", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(97)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef97", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(100)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef100", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(104)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef104", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(124)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef124", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(125)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef125", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(126)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef126", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(127)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef127", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(138)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef138", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(139)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef139", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(141)),
 		.. EntityTemplate::default()
 	};
-	asset_storage.insert(template);
+	asset_storage.insert("linedef141", template);
 }

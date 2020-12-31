@@ -10,13 +10,14 @@ use crate::{
 };
 use legion::{
 	systems::{ResourceSet, Runnable},
-	IntoQuery, Resources, SystemBuilder, Write,
+	IntoQuery, Registry, Resources, SystemBuilder, Write,
 };
 use nalgebra::{Vector2, Vector3};
+use serde::{Deserialize, Serialize};
 use shrev::EventChannel;
 use std::time::Duration;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Camera {
 	pub base: Vector3<f32>,
 	pub offset: Vector3<f32>,
@@ -29,10 +30,15 @@ pub struct Camera {
 }
 
 pub fn camera_system(resources: &mut Resources) -> impl Runnable {
-	let (mut handler_set, mut step_event_channel) =
-		<(Write<SpawnMergerHandlerSet>, Write<EventChannel<StepEvent>>)>::fetch_mut(resources);
+	let (mut handler_set, mut registry, mut step_event_channel) = <(
+		Write<SpawnMergerHandlerSet>,
+		Write<Registry<String>>,
+		Write<EventChannel<StepEvent>>,
+	)>::fetch_mut(resources);
 
+	registry.register::<Camera>("Camera".into());
 	handler_set.register_clone::<Camera>();
+
 	let mut step_event_reader = step_event_channel.register_reader();
 
 	SystemBuilder::new("camera_system")
@@ -84,17 +90,18 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MovementBob {
 	pub amplitude: f32,
 	pub max: f32,
 }
 
 pub fn movement_bob_system(resources: &mut Resources) -> impl Runnable {
-	resources
-		.get_mut::<SpawnMergerHandlerSet>()
-		.expect("Required resource not present")
-		.register_clone::<MovementBob>();
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
+
+	registry.register::<MovementBob>("MovementBob".into());
+	handler_set.register_clone::<MovementBob>();
 
 	SystemBuilder::new("movement_bob_system")
 		.with_query(<(&Physics, &mut MovementBob)>::query())

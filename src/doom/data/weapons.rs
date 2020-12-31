@@ -252,7 +252,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. WeaponTemplate::default()
 	};
-	asset_storage.insert_with_name("fist", template);
+	asset_storage.insert("fist", template);
 
 	let template = WeaponTemplate {
 		name: Some("pistol"),
@@ -512,7 +512,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. WeaponTemplate::default()
 	};
-	asset_storage.insert_with_name("pistol", template);
+	asset_storage.insert("pistol", template);
 
 	let template = WeaponTemplate {
 		name: Some("shotgun"),
@@ -903,7 +903,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. WeaponTemplate::default()
 	};
-	asset_storage.insert_with_name("shotgun", template);
+	asset_storage.insert("shotgun", template);
 
 	let template = WeaponTemplate {
 		name: Some("chaingun"),
@@ -1212,7 +1212,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. WeaponTemplate::default()
 	};
-	asset_storage.insert_with_name("chaingun", template);
+	asset_storage.insert("chaingun", template);
 
 	let template = WeaponTemplate {
 		name: Some("missile"),
@@ -1506,7 +1506,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. WeaponTemplate::default()
 	};
-	asset_storage.insert_with_name("missile", template);
+	asset_storage.insert("missile", template);
 
 	let template = WeaponTemplate {
 		name: Some("chainsaw"),
@@ -1773,7 +1773,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. WeaponTemplate::default()
 	};
-	asset_storage.insert_with_name("chainsaw", template);
+	asset_storage.insert("chainsaw", template);
 
 	if wad_mode < WadMode::Doom1 {
 		return;
@@ -2019,7 +2019,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. WeaponTemplate::default()
 	};
-	asset_storage.insert_with_name("plasma", template);
+	asset_storage.insert("plasma", template);
 
 	let template = WeaponTemplate {
 		name: Some("bfg"),
@@ -2292,7 +2292,7 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. WeaponTemplate::default()
 	};
-	asset_storage.insert_with_name("bfg", template);
+	asset_storage.insert("bfg", template);
 
 	if wad_mode < WadMode::Doom2 {
 		return;
@@ -2723,5 +2723,5 @@ pub fn load(resources: &mut Resources) {
 		},
 		.. WeaponTemplate::default()
 	};
-	asset_storage.insert_with_name("supershotgun", template);
+	asset_storage.insert("supershotgun", template);
 }
