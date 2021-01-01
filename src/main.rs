@@ -258,7 +258,7 @@ fn main() -> anyhow::Result<()> {
 				match args[0].as_str() {
 					"map" => doom::load_map(&args[1], &mut world, &mut resources)?,
 					"quit" => should_quit = true,
-					"save" => doom::save_game(&args[1], &mut world, &mut resources)?,
+					"save" => doom::save_game(&args[1], &mut world, &mut resources),
 					_ => log::error!("Unknown command: {}", args[0]),
 				}
 			}

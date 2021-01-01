@@ -96,7 +96,7 @@ use crossbeam_channel::Sender;
 use legion::{component, systems::ResourceSet, Read, Registry, Resources, Schedule, World, Write};
 use nalgebra::Vector2;
 use relative_path::RelativePath;
-use std::{path::PathBuf, time::Instant};
+use std::{fs::File, path::PathBuf, time::Instant};
 use vulkano::{
 	format::Format,
 	image::{Dimensions, ImmutableImage, MipmapsCount},
@@ -467,22 +467,29 @@ pub fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> any
 	Ok(())
 }
 
-pub fn save_game(_name: &str, world: &World, resources: &mut Resources) -> anyhow::Result<()> {
+pub fn save_game(name: &str, world: &mut World, resources: &mut Resources) {
 	let (registry, mut asset_storage) =
 		<(Read<Registry<String>>, Write<AssetStorage>)>::fetch_mut(resources);
+
+	let name = format!("{}.sav", name);
+	log::info!("Saving game to \"{}\"...", name);
 
 	let filter = component::<Transform>()
 		| component::<MapDynamic>()
 		| component::<LinedefRef>()
 		| component::<SectorRef>();
-	let serializable_world = world.as_serializable(filter, &*registry);
-	let output = SERDE_CONTEXT
-		.set(&mut asset_storage, || {
-			serde_json::to_string_pretty(&serializable_world)
-		})
-		.context("Could not serialize world")?;
 
-	println!("{}", output);
+	let result = SERDE_CONTEXT.set(&mut asset_storage, || -> anyhow::Result<()> {
+		let serializable_world = world.as_serializable(filter, &*registry);
+		let mut file = File::create(&name)
+			.with_context(|| format!("Couldn't open \"{}\" for writing", name))?;
+		rmp_serde::encode::write(&mut file, &serializable_world)
+			.context("Couldn't serialize world")?;
+		Ok(())
+	});
 
-	Ok(())
+	match result {
+		Ok(_) => log::info!("Save complete."),
+		Err(err) => log::error!("{:?}", err),
+	}
 }

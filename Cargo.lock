@@ -769,6 +769,7 @@ dependencies = [
  "rand_pcg",
  "regex",
  "relative-path",
+ "rmp-serde",
  "rodio",
  "scoped-tls-hkt",
  "serde",
@@ -1765,6 +1766,25 @@ name = "rle-decode-fast"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cabe4fa914dec5870285fa7f71f602645da47c486e68486d2b4ceb4a343e90ac"
+
+[[package]]
+name = "rmp"
+version = "0.8.9"
+source = "git+https://github.com/rua/msgpack-rust?branch=serde-128bit#40430250764a86c6b789d803e575278f9a0a5040"
+dependencies = [
+ "byteorder",
+ "num-traits",
+]
+
+[[package]]
+name = "rmp-serde"
+version = "0.15.0"
+source = "git+https://github.com/rua/msgpack-rust?branch=serde-128bit#40430250764a86c6b789d803e575278f9a0a5040"
+dependencies = [
+ "byteorder",
+ "rmp",
+ "serde",
+]
 
 [[package]]
 name = "rodio"
