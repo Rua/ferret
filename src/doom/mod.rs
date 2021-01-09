@@ -28,8 +28,8 @@ pub mod wad;
 
 use crate::{
 	common::{
-		assets::{AssetHandle, AssetStorage, ImportData, SERDE_CONTEXT},
-		frame::frame_state_system,
+		assets::{AssetHandle, AssetStorage, ImportData, ASSET_SERIALIZER},
+		frame::{frame_state_system, FrameState},
 		quadtree::Quadtree,
 		spawn::SpawnMergerHandlerSet,
 		video::{AsBytes, DrawTarget, RenderContext},
@@ -93,10 +93,21 @@ use crate::{
 use anyhow::{bail, Context};
 use clap::ArgMatches;
 use crossbeam_channel::Sender;
-use legion::{component, systems::ResourceSet, Read, Registry, Resources, Schedule, World, Write};
+use legion::{
+	component,
+	serialize::{Canon, ENTITY_SERIALIZER},
+	systems::ResourceSet,
+	Read, Registry, Resources, Schedule, World, Write,
+};
 use nalgebra::Vector2;
 use relative_path::RelativePath;
-use std::{fs::File, path::PathBuf, time::Instant};
+use serde::{Deserialize, Serialize};
+use std::{
+	fs::File,
+	io::{BufWriter, Write as IOWrite},
+	path::PathBuf,
+	time::{Duration, Instant},
+};
 use vulkano::{
 	format::Format,
 	image::{Dimensions, ImmutableImage, MipmapsCount},
@@ -467,9 +478,20 @@ pub fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> any
 	Ok(())
 }
 
+#[derive(Serialize, Deserialize)]
+struct SavedResources {
+	client: Client,
+	time: Duration,
+}
+
 pub fn save_game(name: &str, world: &mut World, resources: &mut Resources) {
-	let (registry, mut asset_storage) =
-		<(Read<Registry<String>>, Write<AssetStorage>)>::fetch_mut(resources);
+	let (canon, client, frame_state, registry, mut asset_storage) = <(
+		Read<Canon>,
+		Read<Client>,
+		Read<FrameState>,
+		Read<Registry<String>>,
+		Write<AssetStorage>,
+	)>::fetch_mut(resources);
 
 	let name = format!("{}.sav", name);
 	log::info!("Saving game to \"{}\"...", name);
@@ -479,12 +501,27 @@ pub fn save_game(name: &str, world: &mut World, resources: &mut Resources) {
 		| component::<LinedefRef>()
 		| component::<SectorRef>();
 
-	let result = SERDE_CONTEXT.set(&mut asset_storage, || -> anyhow::Result<()> {
-		let serializable_world = world.as_serializable(filter, &*registry);
-		let mut file = File::create(&name)
-			.with_context(|| format!("Couldn't open \"{}\" for writing", name))?;
+	let result = ASSET_SERIALIZER.set(&mut asset_storage, || -> anyhow::Result<()> {
+		let mut file = BufWriter::new(
+			File::create(&name)
+				.with_context(|| format!("Couldn't open \"{}\" for writing", name))?,
+		);
+
+		let saved_resources = SavedResources {
+			client: client.clone(),
+			time: frame_state.time,
+		};
+
+		ENTITY_SERIALIZER
+			.set(&*canon, || {
+				rmp_serde::encode::write(&mut file, &saved_resources)
+			})
+			.context("Couldn't serialize resources")?;
+
+		let serializable_world = world.as_serializable(filter, &*registry, &*canon);
 		rmp_serde::encode::write(&mut file, &serializable_world)
 			.context("Couldn't serialize world")?;
+		file.flush().context("Couldn't flush file")?;
 		Ok(())
 	});
 

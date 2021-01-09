@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum BoolInput {
 	Attack,
@@ -20,7 +22,7 @@ pub enum FloatInput {
 	Yaw,
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct UserCommand {
 	pub attack: bool,
 	pub weapon: Option<String>,

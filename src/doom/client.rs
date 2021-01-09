@@ -31,7 +31,7 @@ use nalgebra::{Vector2, Vector3};
 use serde::{Deserialize, Serialize};
 use shrev::EventChannel;
 
-#[derive(Default)]
+#[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Client {
 	pub entity: Option<Entity>,
 	pub command: UserCommand,

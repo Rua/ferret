@@ -1029,7 +1029,7 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 [[package]]
 name = "legion"
 version = "0.3.1"
-source = "git+https://github.com/amethyst/legion#724420a86c6d1b7614231bc21d0f62d4ced7e665"
+source = "git+https://github.com/rua/legion?branch=serde-rearrange#bd6ae24aa186d9e2f8ece55f61cb1a8ce6611943"
 dependencies = [
  "bit-set",
  "derivative",
@@ -1038,6 +1038,7 @@ dependencies = [
  "itertools",
  "parking_lot",
  "paste",
+ "scoped-tls-hkt",
  "serde",
  "smallvec",
  "thiserror",
@@ -1770,7 +1771,8 @@ checksum = "cabe4fa914dec5870285fa7f71f602645da47c486e68486d2b4ceb4a343e90ac"
 [[package]]
 name = "rmp"
 version = "0.8.9"
-source = "git+https://github.com/rua/msgpack-rust?branch=serde-128bit#40430250764a86c6b789d803e575278f9a0a5040"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f10b46df14cf1ee1ac7baa4d2fbc2c52c0622a4b82fa8740e37bc452ac0184f"
 dependencies = [
  "byteorder",
  "num-traits",
@@ -1778,8 +1780,9 @@ dependencies = [
 
 [[package]]
 name = "rmp-serde"
-version = "0.15.0"
-source = "git+https://github.com/rua/msgpack-rust?branch=serde-128bit#40430250764a86c6b789d803e575278f9a0a5040"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f74489002493a9984ee753ebd049552a1c82f0740e347ee9fc57c907fb19f83"
 dependencies = [
  "byteorder",
  "rmp",

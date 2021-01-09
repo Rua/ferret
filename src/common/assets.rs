@@ -342,11 +342,11 @@ impl HandleAllocator {
 	}
 }
 
-scoped_thread_local!(pub static mut SERDE_CONTEXT: AssetStorage);
+scoped_thread_local!(pub static mut ASSET_SERIALIZER: AssetStorage);
 
 impl<A: Asset> Serialize for AssetHandle<A> {
 	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-		SERDE_CONTEXT.with(|asset_storage| {
+		ASSET_SERIALIZER.with(|asset_storage| {
 			let name = asset_storage.name_for(self).expect("asset has no name");
 			serializer.serialize_str(name)
 		})
@@ -355,7 +355,7 @@ impl<A: Asset> Serialize for AssetHandle<A> {
 
 impl<'de, A: Asset> Deserialize<'de> for AssetHandle<A> {
 	fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<AssetHandle<A>, D::Error> {
-		SERDE_CONTEXT.with(|asset_storage| {
+		ASSET_SERIALIZER.with(|asset_storage| {
 			let name = deserializer.deserialize_str(AssetVisitor)?;
 			let handle = asset_storage.load(&name);
 			Ok(handle)
