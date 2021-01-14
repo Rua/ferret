@@ -1,7 +1,6 @@
 use crate::{
 	common::{
 		assets::AssetStorage,
-		frame::FrameRng,
 		spawn::{ComponentAccessor, SpawnFrom, SpawnMergerHandlerSet},
 	},
 	doom::{
@@ -17,7 +16,7 @@ use legion::{
 };
 use nalgebra::Vector3;
 use num_traits::Zero;
-use rand::Rng;
+use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -64,7 +63,6 @@ pub fn apply_damage(resources: &mut Resources) -> impl Runnable {
 		.with_query(<(Entity, &Entity, &Damage)>::query())
 		.with_query(<(
 			&EntityTemplateRef,
-			&mut FrameRng,
 			&mut Health,
 			Option<&mut Physics>,
 			Option<&mut State>,
@@ -76,7 +74,7 @@ pub fn apply_damage(resources: &mut Resources) -> impl Runnable {
 			for (&entity, &target, &damage) in queries.0.iter(&world0) {
 				command_buffer.remove(entity);
 
-				if let Ok((template_ref, frame_rng, health, physics, state)) =
+				if let Ok((template_ref, health, physics, state)) =
 					queries.1.get_mut(&mut world, target)
 				{
 					// Apply damage
@@ -99,7 +97,7 @@ pub fn apply_damage(resources: &mut Resources) -> impl Runnable {
 							// Sometimes push the other direction for low damage
 							if health.current < 0.0
 								&& damage.damage < 40.0 && damage.direction[2] > 64.0
-								&& frame_rng.gen_bool(0.5)
+								&& thread_rng().gen_bool(0.5)
 							{
 								direction = -direction;
 								thrust *= 4.0;
@@ -128,7 +126,7 @@ pub fn apply_damage(resources: &mut Resources) -> impl Runnable {
 							}
 						} else {
 							if template.states.contains_key("pain")
-								&& frame_rng.gen_bool(health.pain_chance as f64)
+								&& thread_rng().gen_bool(health.pain_chance as f64)
 							{
 								let new = (StateName::from("pain").unwrap(), 0);
 								state.action = StateAction::Set(new);

@@ -5,7 +5,7 @@ mod doom;
 
 use crate::common::{
 	assets::AssetStorage,
-	frame::{FrameRng, FrameRngDef, FrameState},
+	frame::FrameState,
 	input::InputState,
 	spawn::SpawnMergerHandlerSet,
 	video::{DrawTarget, PresentTarget, RenderContext},
@@ -15,11 +15,7 @@ use clap::{App, Arg};
 use crossbeam_channel::Sender;
 use legion::{serialize::Canon, systems::ResourceSet, Read, Registry, Resources, World, Write};
 use nalgebra::Vector2;
-use rand::SeedableRng;
-use std::{
-	sync::Mutex,
-	time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 use winit::{
 	event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent},
 	event_loop::{ControlFlow, EventLoop},
@@ -87,18 +83,11 @@ fn main() -> anyhow::Result<()> {
 	let frame_state = FrameState {
 		delta_time: doom::data::FRAME_TIME,
 		time: Duration::default(),
-		rng: Mutex::new(FrameRng::from_entropy()),
 	};
 	resources.insert(frame_state);
 
-	let mut handler_set = SpawnMergerHandlerSet::new();
-	handler_set.register_spawn::<FrameRngDef, FrameRng>();
-	resources.insert(handler_set);
-
-	let mut registry = Registry::<String>::default();
-	registry.register::<FrameRng>("FrameRng".into());
-	resources.insert(registry);
-
+	resources.insert(SpawnMergerHandlerSet::new());
+	resources.insert(Registry::<String>::default());
 	resources.insert(Canon::default());
 
 	doom::init_resources(&mut resources, &arg_matches)?;

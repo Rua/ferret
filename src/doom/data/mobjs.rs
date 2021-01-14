@@ -1,6 +1,6 @@
 #![allow(unused_variables)]
 use crate::{
-	common::{assets::AssetStorage, frame::FrameRngDef, geometry::Angle},
+	common::{assets::AssetStorage, geometry::Angle},
 	doom::{
 		camera::{Camera, MovementBob},
 		client::{PlayerTouch, User},
@@ -142,7 +142,6 @@ pub fn load(resources: &mut Resources) {
 					extra_light: 0.0,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 100.0,
 					pain_chance: 0.99609375,
@@ -678,7 +677,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 20.0,
 					pain_chance: 0.78125,
@@ -1370,7 +1368,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 30.0,
 					pain_chance: 0.6640625,
@@ -2081,7 +2078,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -2227,7 +2223,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 60.0,
 					pain_chance: 0.78125,
@@ -2978,7 +2973,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 150.0,
 					pain_chance: 0.703125,
@@ -3553,7 +3547,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 150.0,
 					pain_chance: 0.703125,
@@ -4128,7 +4121,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 1000.0,
 					pain_chance: 0.1953125,
@@ -4800,7 +4792,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
@@ -4992,7 +4983,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Puff,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 20.0,
 					pain_chance: 0.0,
@@ -5193,7 +5183,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
@@ -5385,7 +5374,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
@@ -5577,7 +5565,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
@@ -5757,7 +5744,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
@@ -5987,7 +5973,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -6114,7 +6099,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -6203,7 +6187,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				Physics {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -6309,7 +6292,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				Physics {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -6396,7 +6378,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				Physics {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -6464,7 +6445,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -6743,7 +6723,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -6927,7 +6906,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -6958,7 +6936,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -7039,7 +7016,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -7120,7 +7096,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -7277,7 +7252,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -7434,7 +7408,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -7515,7 +7488,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -7596,7 +7568,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -7677,7 +7648,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -7732,7 +7702,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -7787,7 +7756,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -7944,7 +7912,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -8063,7 +8030,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -8118,7 +8084,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -8275,7 +8240,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -8356,7 +8320,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -8411,7 +8374,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -8466,7 +8428,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -8521,7 +8482,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -8576,7 +8536,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -8631,7 +8590,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -8686,7 +8644,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -8741,7 +8698,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -8796,7 +8752,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -8851,7 +8806,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -8906,7 +8860,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -8961,7 +8914,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -9016,7 +8968,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -9135,7 +9086,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -9190,7 +9140,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -9245,7 +9194,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -9300,7 +9248,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -9355,7 +9302,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -9410,7 +9356,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -9465,7 +9410,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -9520,7 +9464,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -9575,7 +9518,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -9630,7 +9572,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -9685,7 +9626,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -9744,7 +9684,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 400.0,
 					pain_chance: 0.5,
@@ -10186,7 +10125,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 100.0,
 					pain_chance: 1.0,
@@ -10565,7 +10503,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 3000.0,
 					pain_chance: 0.15625,
@@ -11214,7 +11151,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 4000.0,
 					pain_chance: 0.078125,
@@ -11787,7 +11723,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
@@ -12017,7 +11952,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
@@ -12256,7 +12190,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -12383,7 +12316,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -12464,7 +12396,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -12545,7 +12476,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -12626,7 +12556,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -12745,7 +12674,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -12800,7 +12728,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -12855,7 +12782,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -12910,7 +12836,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -12965,7 +12890,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -13020,7 +12944,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -13075,7 +12998,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -13130,7 +13052,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -13185,7 +13106,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -13240,7 +13160,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -13295,7 +13214,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -13376,7 +13294,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -13495,7 +13412,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -13595,7 +13511,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -13650,7 +13565,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -13769,7 +13683,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -13888,7 +13801,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -14007,7 +13919,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -14126,7 +14037,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -14245,7 +14155,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -14300,7 +14209,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -14419,7 +14327,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -14474,7 +14381,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -14529,7 +14435,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -14584,7 +14489,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -14639,7 +14543,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -14694,7 +14597,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -14749,7 +14651,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -14804,7 +14705,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -14859,7 +14759,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -14978,7 +14877,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -15033,7 +14931,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -15103,7 +15000,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -15158,7 +15054,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -15213,7 +15108,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -15294,7 +15188,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -15349,7 +15242,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -15430,7 +15322,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -15485,7 +15376,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -15589,7 +15479,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 700.0,
 					pain_chance: 0.0390625,
@@ -16352,7 +16241,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -16973,7 +16861,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 300.0,
 					pain_chance: 0.390625,
@@ -17721,7 +17608,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
@@ -17913,7 +17799,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 600.0,
 					pain_chance: 0.3125,
@@ -18811,7 +18696,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
@@ -19003,7 +18887,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 70.0,
 					pain_chance: 0.6640625,
@@ -19752,7 +19635,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 500.0,
 					pain_chance: 0.1953125,
@@ -20424,7 +20306,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 500.0,
 					pain_chance: 0.5,
@@ -21151,7 +21032,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 400.0,
 					pain_chance: 0.5,
@@ -21699,7 +21579,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 50.0,
 					pain_chance: 0.6640625,
@@ -22467,7 +22346,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 100.0,
 					pain_chance: 1.0,
@@ -22797,7 +22675,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				HealthDef {
 					max: 250.0,
 					pain_chance: 0.99609375,
@@ -22956,7 +22833,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -23058,7 +22934,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -23089,7 +22964,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				OwnerDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
@@ -23244,7 +23118,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -23447,7 +23320,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -23566,7 +23438,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -23621,7 +23492,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -23740,7 +23610,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -23859,7 +23728,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -23914,7 +23782,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -23969,7 +23836,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -24024,7 +23890,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -24079,7 +23944,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -24134,7 +23998,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: false,
@@ -24189,7 +24052,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -24244,7 +24106,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,
@@ -24299,7 +24160,6 @@ pub fn load(resources: &mut Resources) {
 					damage_particle: DamageParticle::Blood,
 				},
 				EntityTemplateRefDef,
-				FrameRngDef,
 				PhysicsDef {
 					collision_response: CollisionResponse::Stop,
 					gravity: true,

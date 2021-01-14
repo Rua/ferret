@@ -1,7 +1,7 @@
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
-		frame::{FrameRng, FrameState},
+		frame::FrameState,
 		geometry::{angles_to_axes, Angle, Line2, Line3, AABB2, AABB3},
 		quadtree::Quadtree,
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
@@ -29,7 +29,7 @@ use legion::{
 };
 use nalgebra::{Vector2, Vector3};
 use num_traits::Zero;
-use rand::{distributions::Uniform, Rng};
+use rand::{distributions::Uniform, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use std::{sync::atomic::Ordering, time::Duration};
 
@@ -231,7 +231,6 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<Quadtree>()
 		.with_query(<(Entity, &Entity, &LineAttack)>::query())
 		.with_query(<(Option<&BoxCollider>, Option<&Owner>, &Transform, &WeaponState)>::query())
-		.with_query(<&mut FrameRng>::query())
 		.with_query(<&MapDynamic>::query())
 		.with_query(<(
 			Option<&BoxCollider>,
@@ -243,23 +242,21 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 		.read_component::<Transform>() // used by EntityTracer
 		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, quadtree) = resources;
-			let (mut world2, world) = world.split_for_query(&queries.2);
 
-			for (&entity, &target, line_attack) in queries.0.iter(&world) {
+			for (&entity, &target, line_attack) in queries.0.iter(world) {
 				command_buffer.remove(entity);
 
-				if let (Ok((box_collider, owner, transform, weapon_state)), Ok(frame_rng)) = (
-					queries.1.get(&world, target),
-					queries.2.get_mut(&mut world2, target),
-				) {
-					let map_dynamic = queries.3.iter(&world).next().unwrap();
+				if let Ok((box_collider, owner, transform, weapon_state)) =
+					queries.1.get(world, target)
+				 {
+					let map_dynamic = queries.2.iter(world).next().unwrap();
 					let map = asset_storage.get(&map_dynamic.map).unwrap();
 
 					let tracer = EntityTracer {
 						map,
 						map_dynamic,
 						quadtree: &quadtree,
-						world: &world,
+						world,
 					};
 
 					let mut position = transform.position;
@@ -278,14 +275,14 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 						if !line_attack.accurate_until_refire || weapon_state.inaccurate {
 							if !line_attack.spread[0].is_zero() {
 								rotation[2] +=
-									frame_rng.gen_range(0..line_attack.spread[0].0) -
-									frame_rng.gen_range(0..line_attack.spread[0].0);
+									thread_rng().gen_range(0..line_attack.spread[0].0) -
+									thread_rng().gen_range(0..line_attack.spread[0].0);
 							}
 
 							if !line_attack.spread[1].is_zero() {
 								rotation[1] +=
-									frame_rng.gen_range(0..line_attack.spread[1].0) -
-									frame_rng.gen_range(0..line_attack.spread[1].0);
+									thread_rng().gen_range(0..line_attack.spread[1].0) -
+									thread_rng().gen_range(0..line_attack.spread[1].0);
 							}
 						}
 
@@ -301,7 +298,7 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 						if let Some(collision) = trace.collision {
 							// Apply the damage
 							let damage = line_attack.damage_multiplier
-								* frame_rng.sample(line_attack.damage_range) as f32;
+								* thread_rng().sample(line_attack.damage_range) as f32;
 
 							command_buffer.push((
 								collision.entity,
@@ -318,7 +315,7 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 								rotation: Vector3::zeros(),
 							};
 
-							let particle = match queries.4.get(&world, collision.entity) {
+							let particle = match queries.3.get(world, collision.entity) {
 								Ok((Some(box_collider), None, None)) => {
 									// Hit a mobj
 									particle_transform.position -= direction * 10.0;
@@ -395,7 +392,7 @@ pub fn projectile_touch(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("projectile_touch")
 		.with_query(<(Entity, &TouchEvent, &ProjectileTouch)>::query())
-		.with_query(<(&mut FrameRng, &Owner, &mut State)>::query())
+		.with_query(<(&Owner, &mut State)>::query())
 		.build(move |command_buffer, world, _resources, queries| {
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
@@ -403,7 +400,7 @@ pub fn projectile_touch(resources: &mut Resources) -> impl Runnable {
 				command_buffer.remove(entity);
 
 				if let Some(collision) = touch_event.collision {
-					if let Ok((frame_rng, &Owner(source_entity), state)) =
+					if let Ok((&Owner(source_entity), state)) =
 						queries.1.get_mut(&mut world, touch_event.entity)
 					{
 						// Kill the projectile entity
@@ -412,7 +409,7 @@ pub fn projectile_touch(resources: &mut Resources) -> impl Runnable {
 
 						// Apply the damage to the other entity
 						let damage = projectile_touch.damage_multiplier
-							* frame_rng.sample(projectile_touch.damage_range) as f32;
+							* thread_rng().sample(projectile_touch.damage_range) as f32;
 
 						command_buffer.push((
 							touch_event.other,
@@ -646,35 +643,30 @@ pub fn spray_attack(resources: &mut Resources) -> impl Runnable {
 		.with_query(<(Entity, &Entity, &SprayAttack)>::query())
 		.with_query(<&Owner>::query())
 		.with_query(<(Option<&BoxCollider>, &Transform)>::query())
-		.with_query(<&mut FrameRng>::query())
 		.read_component::<BoxCollider>() // used by EntityTracer
 		.read_component::<Health>() // used by EntityTracer
 		.read_component::<Owner>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
 		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, quadtree) = resources;
-			let (mut world4, world) = world.split_for_query(&queries.4);
 
-			let map_dynamic = queries.0.iter(&world).next().unwrap();
+			let map_dynamic = queries.0.iter(world).next().unwrap();
 			let map = asset_storage.get(&map_dynamic.map).unwrap();
 
-			for (&entity, &target, spray_attack) in queries.1.iter(&world) {
+			for (&entity, &target, spray_attack) in queries.1.iter(world) {
 				command_buffer.remove(entity);
 
-				let owner = queries.2.get(&world, target).map_or(target, |o| o.0);
+				let owner = queries.2.get(world, target).map_or(target, |o| o.0);
 
-				let (midpoint, angle, frame_rng) = match (
-					queries.3.get(&world, owner),
-					queries.4.get_mut(&mut world4, owner),
-				) {
-					(Ok((box_collider, transform)), Ok(frame_rng)) => {
+				let (midpoint, angle) = match queries.3.get(world, owner) {
+					Ok((box_collider, transform)) => {
 						let mut midpoint = transform.position;
 
 						if let Some(box_collider) = box_collider {
 							midpoint[2] += box_collider.height + 8.0;
 						}
 
-						(midpoint, transform.rotation[2], frame_rng)
+						(midpoint, transform.rotation[2])
 					}
 					_ => continue,
 				};
@@ -694,7 +686,7 @@ pub fn spray_attack(resources: &mut Resources) -> impl Runnable {
 						map,
 						map_dynamic,
 						quadtree: &quadtree,
-						world: &world,
+						world,
 					};
 
 					let trace = tracer.closest_visible_target(Some(owner), move_step);
@@ -703,7 +695,7 @@ pub fn spray_attack(resources: &mut Resources) -> impl Runnable {
 					if let Some(collision) = trace.collision {
 						// Apply the damage
 						let damage = spray_attack.damage_multiplier
-							* frame_rng.sample(spray_attack.damage_range) as f32;
+							* thread_rng().sample(spray_attack.damage_range) as f32;
 
 						command_buffer.push((
 							collision.entity,
@@ -715,7 +707,7 @@ pub fn spray_attack(resources: &mut Resources) -> impl Runnable {
 						));
 
 						if let Ok((box_collider, transform)) =
-							queries.3.get(&world, collision.entity)
+							queries.3.get(world, collision.entity)
 						{
 							// Spawn particles
 							let mut particle_transform = Transform {

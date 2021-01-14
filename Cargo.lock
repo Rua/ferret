@@ -766,7 +766,6 @@ dependencies = [
  "nalgebra",
  "num-traits",
  "rand 0.8.0",
- "rand_pcg",
  "regex",
  "relative-path",
  "rmp-serde",
@@ -1690,16 +1689,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3190ef7066a446f2e7f42e239d161e905420ccab01eb967c9eb27d21b2322a73"
 dependencies = [
  "rand_core 0.6.0",
-]
-
-[[package]]
-name = "rand_pcg"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7de198537002b913568a3847e53535ace266f93526caf5c360ec41d72c5787f0"
-dependencies = [
- "rand_core 0.6.0",
- "serde",
 ]
 
 [[package]]

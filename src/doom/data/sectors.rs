@@ -1,5 +1,5 @@
 use crate::{
-	common::{assets::AssetStorage, frame::FrameRngDef},
+	common::assets::AssetStorage,
 	doom::{
 		data::{FRAME_RATE, FRAME_TIME},
 		light::{LightFlashDef, LightFlashType, LightGlow},
@@ -18,7 +18,6 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
-				FrameRngDef,
 				LightFlashDef {
 					flash_type: LightFlashType::Broken,
 					off_time: 8 * FRAME_TIME,
@@ -37,7 +36,6 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
-				FrameRngDef,
 				LightFlashDef {
 					flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
 					off_time: 15 * FRAME_TIME,
@@ -56,7 +54,6 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
-				FrameRngDef,
 				LightFlashDef {
 					flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
 					off_time: 35 * FRAME_TIME,
@@ -75,7 +72,6 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
-				FrameRngDef,
 				LightFlashDef {
 					flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
 					off_time: 15 * FRAME_TIME,
@@ -146,7 +142,6 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
-				FrameRngDef,
 				LightFlashDef {
 					flash_type: LightFlashType::Strobe,
 					off_time: 35 * FRAME_TIME,
@@ -165,7 +160,6 @@ pub fn load(resources: &mut Resources) {
 		world: {
 			let mut world = World::default();
 			world.push((
-				FrameRngDef,
 				LightFlashDef {
 					flash_type: LightFlashType::Strobe,
 					off_time: 15 * FRAME_TIME,

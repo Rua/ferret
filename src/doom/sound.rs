@@ -15,8 +15,7 @@ use legion::{
 	Entity, IntoQuery, Resources, SystemBuilder, Write,
 };
 use nalgebra::Vector2;
-use rand::{Rng, SeedableRng};
-use rand_pcg::Pcg64Mcg;
+use rand::{thread_rng, Rng};
 use relative_path::RelativePath;
 use rodio::Source;
 use std::io::{Cursor, Read as IoRead};
@@ -96,7 +95,6 @@ type SoundSender = Sender<Box<dyn Source<Item = f32> + Send>>;
 pub fn start_sound_system(resources: &mut Resources) -> impl Runnable {
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
 	handler_set.register_clone::<StartSound>();
-	let mut rng = Pcg64Mcg::from_entropy();
 
 	SystemBuilder::new("start_sound_system")
 		.read_resource::<AssetStorage>()
@@ -118,7 +116,7 @@ pub fn start_sound_system(resources: &mut Resources) -> impl Runnable {
 				let index = match sound.sounds.len() {
 					0 => continue,
 					1 => 0,
-					len => rng.gen_range(0..len),
+					len => thread_rng().gen_range(0..len),
 				};
 				let raw_sound = asset_storage.get(&sound.sounds[index]).unwrap();
 				let (controller, source) = SoundController::new(SoundSource::new(&raw_sound));

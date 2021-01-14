@@ -1,6 +1,5 @@
 use crate::{
 	common::{
-		frame::FrameState,
 		geometry::{Angle, Interval},
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom},
 	},
@@ -8,7 +7,7 @@ use crate::{
 };
 use legion::{systems::ResourceSet, Read, Resources};
 use nalgebra::Vector3;
-use rand::{distributions::Uniform, Rng};
+use rand::{distributions::Uniform, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -59,11 +58,9 @@ impl SpawnFrom<RandomTransformDef> for Transform {
 		_accessor: ComponentAccessor,
 		resources: &Resources,
 	) -> Self {
-		let (transform, frame_state) =
-			<(Read<SpawnContext<Transform>>, Read<FrameState>)>::fetch(resources);
-		let mut rng = frame_state.rng.lock().unwrap();
+		let transform = <Read<SpawnContext<Transform>>>::fetch(resources);
 		let mut transform = transform.0;
-		let offset = Vector3::from_iterator(component.0.iter().map(|u| rng.sample(u)));
+		let offset = Vector3::from_iterator(component.0.iter().map(|u| thread_rng().sample(u)));
 		transform.position += offset;
 		transform
 	}

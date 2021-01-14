@@ -1,7 +1,7 @@
 use crate::{
 	common::{
 		assets::AssetStorage,
-		frame::{FrameRng, FrameState},
+		frame::FrameState,
 		spawn::{ComponentAccessor, SpawnFrom, SpawnMergerHandlerSet},
 		time::Timer,
 	},
@@ -14,7 +14,7 @@ use legion::{
 	systems::{ResourceSet, Runnable},
 	IntoQuery, Read, Registry, Resources, SystemBuilder, Write,
 };
-use rand::Rng;
+use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -54,7 +54,6 @@ impl SpawnFrom<LightFlashDef> for LightFlash {
 		resources: &Resources,
 	) -> LightFlash {
 		let frame_state = <Read<FrameState>>::fetch(resources);
-		let mut rng = frame_state.rng.lock().unwrap();
 
 		let LightFlashDef {
 			mut flash_type,
@@ -63,9 +62,11 @@ impl SpawnFrom<LightFlashDef> for LightFlash {
 		} = component.clone();
 
 		let time = match flash_type {
-			LightFlashType::Broken => on_time * (rng.gen::<bool>() as u32) + FRAME_TIME,
+			LightFlashType::Broken => on_time * (thread_rng().gen::<bool>() as u32) + FRAME_TIME,
 			LightFlashType::Strobe => on_time,
-			LightFlashType::StrobeUnSync(time) => time.mul_f64(rng.gen::<f64>()) + FRAME_TIME,
+			LightFlashType::StrobeUnSync(time) => {
+				time.mul_f64(thread_rng().gen::<f64>()) + FRAME_TIME
+			}
 		};
 
 		if let LightFlashType::StrobeUnSync(_) = flash_type {
@@ -92,13 +93,13 @@ pub fn light_flash_system(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("light_flash_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<FrameState>()
-		.with_query(<(&SectorRef, &mut FrameRng, &mut LightFlash)>::query())
+		.with_query(<(&SectorRef, &mut LightFlash)>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.build(move |_command_buffer, world, resources, queries| {
 			let (asset_storage, frame_state) = resources;
 			let (mut world0, mut world) = world.split_for_query(&queries.0);
 
-			for (sector_ref, rng, mut light_flash) in queries.0.iter_mut(&mut world0) {
+			for (sector_ref, mut light_flash) in queries.0.iter_mut(&mut world0) {
 				let map_dynamic = queries
 					.1
 					.get_mut(&mut world, sector_ref.map_entity)
@@ -123,10 +124,11 @@ pub fn light_flash_system(resources: &mut Resources) -> impl Runnable {
 						LightFlashType::Broken => {
 							if light_flash.state {
 								sector_dynamic.light_level = max_light;
-								light_flash.on_time * (rng.gen::<bool>() as u32) + FRAME_TIME
+								light_flash.on_time * (thread_rng().gen::<bool>() as u32)
+									+ FRAME_TIME
 							} else {
 								sector_dynamic.light_level = min_light;
-								light_flash.off_time.mul_f64(rng.gen::<f64>()) + FRAME_TIME
+								light_flash.off_time.mul_f64(thread_rng().gen::<f64>()) + FRAME_TIME
 							}
 						}
 						LightFlashType::Strobe => {

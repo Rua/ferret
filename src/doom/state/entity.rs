@@ -18,7 +18,7 @@ use legion::{
 	systems::{ResourceSet, Runnable},
 	Entity, IntoQuery, Read, Registry, Resources, SystemBuilder, Write,
 };
-use rand::{distributions::Uniform, Rng};
+use rand::{distributions::Uniform, thread_rng, Rng};
 use std::{sync::atomic::Ordering, time::Duration};
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -111,13 +111,10 @@ impl SpawnFrom<NextStateRandomTimeDef> for NextState {
 	fn spawn(
 		component: &NextStateRandomTimeDef,
 		_accessor: ComponentAccessor,
-		resources: &Resources,
+		_resources: &Resources,
 	) -> Self {
-		let frame_state = <Read<FrameState>>::fetch(resources);
-		let mut rng = frame_state.rng.lock().unwrap();
-
 		NextState {
-			time: rng.sample(component.time),
+			time: thread_rng().sample(component.time),
 			state: component.state,
 		}
 	}
