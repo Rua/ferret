@@ -29,10 +29,10 @@ pub mod wad;
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage, ImportData, ASSET_SERIALIZER},
-		frame::{frame_state_system, FrameState},
 		geometry::AABB2,
 		quadtree::Quadtree,
 		spawn::SpawnMergerHandlerSet,
+		time::{increment_game_time, DeltaTime, GameTime},
 		video::{AsBytes, DrawTarget, RenderContext},
 	},
 	doom::{
@@ -107,7 +107,7 @@ use std::{
 	fs::File,
 	io::{BufReader, BufWriter, Write as IOWrite},
 	path::PathBuf,
-	time::{Duration, Instant},
+	time::Instant,
 };
 use vulkano::{
 	format::Format,
@@ -141,6 +141,8 @@ pub fn import(
 }
 
 pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> anyhow::Result<()> {
+	resources.insert(DeltaTime(FRAME_TIME));
+
 	let dimensions = <Read<DrawTarget>>::fetch(resources).dimensions();
 	resources.insert(UiParams::new(dimensions));
 
@@ -317,7 +319,7 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 
 			state(resources, actions)
 		})
-		.add_thread_local(frame_state_system(FRAME_TIME)).flush()
+		.add_thread_local(increment_game_time()).flush()
 		.build())
 }
 
@@ -406,6 +408,7 @@ pub fn clear_game(world: &mut World, resources: &mut Resources) {
 	let mut command_buffer = CommandBuffer::new(world);
 	command_buffer.exec_mut(|_, resources| {
 		resources.remove::<Client>();
+		resources.remove::<GameTime>();
 		resources.remove::<Quadtree>();
 	});
 	for &entity in <Entity>::query().filter(game_entities!()).iter(world) {
@@ -441,6 +444,7 @@ pub fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> any
 	log::info!("Starting map {}...", name);
 	let name_lower = name.to_ascii_lowercase();
 	let start_time = Instant::now();
+	resources.insert(GameTime::default());
 
 	log::info!("Loading map...");
 	let map_handle: AssetHandle<Map> = {
@@ -524,24 +528,24 @@ pub fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> any
 #[derive(Serialize, Deserialize)]
 struct SavedResources {
 	client: Client,
-	time: Duration,
+	game_time: GameTime,
 }
 
 pub fn save_game(name: &str, world: &mut World, resources: &mut Resources) {
 	let name = format!("{}.sav", name);
 	log::info!("Saving game to \"{}\"...", name);
 
-	let (canon, client, frame_state, registry, mut asset_storage) = <(
+	let (canon, client, game_time, registry, mut asset_storage) = <(
 		Read<Canon>,
 		Read<Client>,
-		Read<FrameState>,
+		Read<GameTime>,
 		Read<Registry<String>>,
 		Write<AssetStorage>,
 	)>::fetch_mut(resources);
 
 	let saved_resources = SavedResources {
 		client: client.clone(),
-		time: frame_state.time,
+		game_time: *game_time,
 	};
 
 	let result = ASSET_SERIALIZER.set(&mut asset_storage, || -> anyhow::Result<()> {
@@ -599,12 +603,10 @@ pub fn load_game(name: &str, world: &mut World, resources: &mut Resources) {
 	match result {
 		Ok(saved_resources) => {
 			resources.insert(saved_resources.client);
+			resources.insert(saved_resources.game_time);
 
 			let quadtree = create_quadtree(world, resources);
 			resources.insert(quadtree);
-
-			let mut frame_state = <Write<FrameState>>::fetch_mut(resources);
-			frame_state.time = saved_resources.time;
 
 			log::info!("Load complete.");
 		}

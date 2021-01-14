@@ -1,9 +1,8 @@
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
-		frame::FrameState,
 		spawn::SpawnMergerHandlerSet,
-		time::Timer,
+		time::{GameTime, Timer},
 	},
 	doom::{
 		client::{UseAction, UseEvent},
@@ -74,14 +73,14 @@ pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
 	let mut sector_move_event_reader = sector_move_event_channel.register_reader();
 
 	SystemBuilder::new("plat_active_system")
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.read_resource::<EventChannel<SectorMoveEvent>>()
 		.with_query(<(Entity, &mut FloorMove, &mut PlatActive)>::query())
 		.read_component::<BoxCollider>() // used by SectorTracer
 		.read_component::<Owner>() // used by SectorTracer
 		.read_component::<Transform>() // used by SectorTracer
 		.build(move |command_buffer, world, resources, query| {
-			let (frame_state, sector_move_event_channel) = resources;
+			let (game_time, sector_move_event_channel) = resources;
 
 			for (&entity, floor_move, plat_active) in query.iter_mut(world) {
 				let sector_move = &mut floor_move.0;
@@ -90,7 +89,7 @@ pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
 					continue;
 				}
 
-				if plat_active.wait_timer.is_elapsed(frame_state.time) {
+				if plat_active.wait_timer.is_elapsed(**game_time) {
 					if let Some(sound) = &plat_active.start_sound {
 						command_buffer.push((entity, StartSound(sound.clone())));
 					}
@@ -147,7 +146,7 @@ pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
 							command_buffer.remove_component::<FloorMove>(event.entity);
 							command_buffer.remove_component::<PlatActive>(event.entity);
 						} else {
-							plat_active.wait_timer.restart(frame_state.time);
+							plat_active.wait_timer.restart(**game_time);
 						}
 					}
 				}
@@ -170,12 +169,12 @@ pub fn plat_switch_system(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("plat_switch_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<EventChannel<UseEvent>>()
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.with_query(<(&LinedefRef, &UseAction)>::query().filter(!component::<SwitchActive>()))
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<PlatActive>() // used by activate_with_tag
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, use_event_channel, frame_state) = resources;
+			let (asset_storage, use_event_channel, game_time) = resources;
 			let (mut world1, world) = world.split_for_query(&queries.1);
 
 			for use_event in use_event_channel.read(&mut use_event_reader) {
@@ -197,7 +196,7 @@ pub fn plat_switch_system(resources: &mut Resources) -> impl Runnable {
 				let activated = activate_with_tag(
 					&plat_switch_use.params,
 					command_buffer,
-					frame_state,
+					**game_time,
 					linedef.sector_tag,
 					&world,
 					map,
@@ -208,7 +207,7 @@ pub fn plat_switch_system(resources: &mut Resources) -> impl Runnable {
 					crate::doom::switch::activate(
 						&plat_switch_use.switch_params,
 						command_buffer,
-						frame_state,
+						**game_time,
 						linedef_ref.index,
 						map,
 						map_dynamic,
@@ -237,13 +236,13 @@ pub fn plat_linedef_touch(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("plat_linedef_touch")
 		.read_resource::<AssetStorage>()
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.with_query(<(Entity, &TouchEvent, &PlatLinedefTouch)>::query())
 		.with_query(<&LinedefRef>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<PlatActive>() // used by activate_with_tag
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, frame_state) = resources;
+			let (asset_storage, game_time) = resources;
 
 			let (world0, mut world) = world.split_for_query(&queries.0);
 			let (mut world1, mut world) = world.split_for_query(&queries.1);
@@ -267,7 +266,7 @@ pub fn plat_linedef_touch(resources: &mut Resources) -> impl Runnable {
 					if activate_with_tag(
 						&plat_linedef_touch.params,
 						command_buffer,
-						frame_state,
+						**game_time,
 						linedef.sector_tag,
 						&world,
 						map,
@@ -285,7 +284,7 @@ pub fn plat_linedef_touch(resources: &mut Resources) -> impl Runnable {
 fn activate(
 	params: &PlatParams,
 	command_buffer: &mut CommandBuffer,
-	frame_state: &FrameState,
+	game_time: GameTime,
 	sector_index: usize,
 	map: &Map,
 	map_dynamic: &MapDynamic,
@@ -312,7 +311,7 @@ fn activate(
 			velocity: 0.0,
 			target: sector_dynamic.interval.min,
 			sound: params.move_sound.clone(),
-			sound_timer: Timer::new(frame_state.time, params.move_sound_time),
+			sound_timer: Timer::new(game_time, params.move_sound_time),
 		}),
 	);
 
@@ -320,7 +319,7 @@ fn activate(
 		sector_dynamic.entity,
 		PlatActive {
 			speed: params.speed,
-			wait_timer: Timer::new_elapsed(frame_state.time, params.wait_time),
+			wait_timer: Timer::new_elapsed(game_time, params.wait_time),
 			can_reverse: params.can_reverse,
 
 			start_sound: params.start_sound.clone(),
@@ -335,7 +334,7 @@ fn activate(
 fn activate_with_tag<W: EntityStore>(
 	params: &PlatParams,
 	command_buffer: &mut CommandBuffer,
-	frame_state: &FrameState,
+	game_time: GameTime,
 	sector_tag: u16,
 	world: &W,
 	map: &Map,
@@ -365,7 +364,7 @@ fn activate_with_tag<W: EntityStore>(
 		activate(
 			params,
 			command_buffer,
-			frame_state,
+			game_time,
 			sector_index,
 			map,
 			map_dynamic,

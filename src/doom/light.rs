@@ -1,9 +1,8 @@
 use crate::{
 	common::{
 		assets::AssetStorage,
-		frame::FrameState,
 		spawn::{ComponentAccessor, SpawnFrom, SpawnMergerHandlerSet},
-		time::Timer,
+		time::{DeltaTime, GameTime, Timer},
 	},
 	doom::{
 		data::FRAME_TIME,
@@ -53,7 +52,7 @@ impl SpawnFrom<LightFlashDef> for LightFlash {
 		_accessor: ComponentAccessor,
 		resources: &Resources,
 	) -> LightFlash {
-		let frame_state = <Read<FrameState>>::fetch(resources);
+		let game_time = <Read<GameTime>>::fetch(resources);
 
 		let LightFlashDef {
 			mut flash_type,
@@ -77,7 +76,7 @@ impl SpawnFrom<LightFlashDef> for LightFlash {
 			flash_type,
 			on_time,
 			off_time,
-			timer: Timer::new(frame_state.time, time),
+			timer: Timer::new(*game_time, time),
 			state: true,
 		}
 	}
@@ -92,11 +91,11 @@ pub fn light_flash_system(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("light_flash_system")
 		.read_resource::<AssetStorage>()
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.with_query(<(&SectorRef, &mut LightFlash)>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.build(move |_command_buffer, world, resources, queries| {
-			let (asset_storage, frame_state) = resources;
+			let (asset_storage, game_time) = resources;
 			let (mut world0, mut world) = world.split_for_query(&queries.0);
 
 			for (sector_ref, mut light_flash) in queries.0.iter_mut(&mut world0) {
@@ -106,7 +105,7 @@ pub fn light_flash_system(resources: &mut Resources) -> impl Runnable {
 					.unwrap();
 				let sector_dynamic = &mut map_dynamic.sectors[sector_ref.index];
 
-				if light_flash.timer.is_elapsed(frame_state.time) {
+				if light_flash.timer.is_elapsed(**game_time) {
 					light_flash.state = !light_flash.state;
 					let map = asset_storage.get(&map_dynamic.map).unwrap();
 					let sector = &map.sectors[sector_ref.index];
@@ -148,7 +147,7 @@ pub fn light_flash_system(resources: &mut Resources) -> impl Runnable {
 						LightFlashType::StrobeUnSync(_) => unreachable!(),
 					};
 
-					light_flash.timer.restart_with(frame_state.time, new_time);
+					light_flash.timer.restart_with(**game_time, new_time);
 				}
 			}
 		})
@@ -169,11 +168,11 @@ pub fn light_glow_system(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("light_glow_system")
 		.read_resource::<AssetStorage>()
-		.read_resource::<FrameState>()
+		.read_resource::<DeltaTime>()
 		.with_query(<(&SectorRef, &mut LightGlow)>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.build(move |_command_buffer, world, resources, queries| {
-			let (asset_storage, frame_state) = resources;
+			let (asset_storage, delta_time) = resources;
 			let (mut world0, mut world) = world.split_for_query(&queries.0);
 
 			for (sector_ref, mut light_glow) in queries.0.iter_mut(&mut world0) {
@@ -185,7 +184,7 @@ pub fn light_glow_system(resources: &mut Resources) -> impl Runnable {
 
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 				let sector = &map.sectors[sector_ref.index];
-				let speed = light_glow.speed * frame_state.delta_time.as_secs_f32();
+				let speed = light_glow.speed * delta_time.0.as_secs_f32();
 
 				if light_glow.state {
 					sector_dynamic.light_level += speed;

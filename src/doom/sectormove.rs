@@ -1,10 +1,9 @@
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
-		frame::FrameState,
 		quadtree::Quadtree,
 		spawn::SpawnMergerHandlerSet,
-		time::Timer,
+		time::{DeltaTime, GameTime, Timer},
 	},
 	doom::{
 		components::Transform,
@@ -64,7 +63,8 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("sector_move_system")
 		.read_resource::<AssetStorage>()
-		.read_resource::<FrameState>()
+		.read_resource::<DeltaTime>()
+		.read_resource::<GameTime>()
 		.read_resource::<Quadtree>()
 		.write_resource::<EventChannel<SectorMoveEvent>>()
 		.with_query(<&mut MapDynamic>::query())
@@ -75,7 +75,8 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 		.read_component::<Owner>() // used by SectorTracer
 		.read_component::<Transform>() // used by SectorTracer
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, frame_state, quadtree, sector_move_event_channel) = resources;
+			let (asset_storage, delta_time, game_time, quadtree, sector_move_event_channel) =
+				resources;
 
 			// TODO check if this is still needed with new Rust versions
 			let query0 = &mut queries.0;
@@ -94,17 +95,15 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 				let sector = &map.sectors[sector_ref.index];
 				let mut event_type = None;
 
-				if sector_move.sound_timer.is_elapsed(frame_state.time)
-					&& sector_move.sound.is_some()
-				{
-					sector_move.sound_timer.restart(frame_state.time);
+				if sector_move.sound_timer.is_elapsed(**game_time) && sector_move.sound.is_some() {
+					sector_move.sound_timer.restart(**game_time);
 					command_buffer.push((
 						entity,
 						StartSound(sector_move.sound.as_ref().unwrap().clone()),
 					));
 				}
 
-				let mut move_step = sector_move.velocity * frame_state.delta_time.as_secs_f32();
+				let mut move_step = sector_move.velocity * delta_time.0.as_secs_f32();
 
 				let current_height = if normal == 1.0 {
 					map_dynamic.sectors[sector_ref.index].interval.min

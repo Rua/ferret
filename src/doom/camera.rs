@@ -1,6 +1,9 @@
 use crate::{
 	common::{
-		assets::AssetHandle, frame::FrameState, geometry::Angle, spawn::SpawnMergerHandlerSet,
+		assets::AssetHandle,
+		geometry::Angle,
+		spawn::SpawnMergerHandlerSet,
+		time::{DeltaTime, GameTime},
 	},
 	doom::{
 		data::FRAME_RATE,
@@ -42,12 +45,13 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 	let mut step_event_reader = step_event_channel.register_reader();
 
 	SystemBuilder::new("camera_system")
-		.read_resource::<FrameState>()
+		.read_resource::<DeltaTime>()
+		.read_resource::<GameTime>()
 		.read_resource::<EventChannel<StepEvent>>()
 		.with_query(<&mut Camera>::query())
 		.with_query(<(&MovementBob, &mut Camera)>::query())
 		.build(move |_command_buffer, world, resources, queries| {
-			let (frame_state, step_event_channel) = resources;
+			let (delta_time, game_time, step_event_channel) = resources;
 
 			// Entity stepping up
 			for step_event in step_event_channel.read(&mut step_event_reader) {
@@ -62,9 +66,8 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 				if camera.deviation_position != 0.0 || camera.deviation_velocity != 0.0 {
 					const DEVIATION_ACCEL: f32 = 0.25 * FRAME_RATE * FRAME_RATE;
 					camera.deviation_position +=
-						camera.deviation_velocity * frame_state.delta_time.as_secs_f32();
-					camera.deviation_velocity +=
-						DEVIATION_ACCEL * frame_state.delta_time.as_secs_f32();
+						camera.deviation_velocity * delta_time.0.as_secs_f32();
+					camera.deviation_velocity += DEVIATION_ACCEL * delta_time.0.as_secs_f32();
 
 					if camera.deviation_position > 0.0 {
 						// Hit the top
@@ -81,9 +84,8 @@ pub fn camera_system(resources: &mut Resources) -> impl Runnable {
 				}
 
 				// Set camera position
-				let angle = Angle::from_units(
-					frame_state.time.as_secs_f64() / camera.bob_period.as_secs_f64(),
-				); // TODO replace with div_duration_f64 once it's stable
+				let angle =
+					Angle::from_units(game_time.0.as_secs_f64() / camera.bob_period.as_secs_f64()); // TODO replace with div_duration_f64 once it's stable
 				let bob = movement_bob.amplitude * 0.5 * angle.sin() as f32;
 				camera.offset[2] = camera.deviation_position + bob;
 			}

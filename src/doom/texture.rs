@@ -1,5 +1,9 @@
 use crate::{
-	common::{assets::AssetStorage, frame::FrameState, spawn::SpawnMergerHandlerSet},
+	common::{
+		assets::AssetStorage,
+		spawn::SpawnMergerHandlerSet,
+		time::{DeltaTime, GameTime},
+	},
 	doom::map::{LinedefRef, MapDynamic},
 };
 use legion::{
@@ -12,18 +16,18 @@ use serde::{Deserialize, Serialize};
 pub fn texture_animation_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("texture_animation_system")
 		.read_resource::<AssetStorage>()
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.with_query(<&mut MapDynamic>::query())
 		.build(move |_command_buffer, world, resources, query| {
-			let (asset_storage, frame_state) = resources;
+			let (asset_storage, game_time) = resources;
 
 			for map_dynamic in query.iter_mut(world) {
 				for (handle, anim_state) in map_dynamic.anim_states.iter_mut() {
-					if anim_state.timer.is_elapsed(frame_state.time) {
+					if anim_state.timer.is_elapsed(**game_time) {
 						let map = asset_storage.get(&map_dynamic.map).unwrap();
 						let anim = &map.anims[handle];
 						anim_state.frame = (anim_state.frame + 1) % anim.frames.len();
-						anim_state.timer.restart(frame_state.time);
+						anim_state.timer.restart(**game_time);
 					}
 				}
 			}
@@ -43,10 +47,10 @@ pub fn texture_scroll_system(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<TextureScroll>();
 
 	SystemBuilder::new("texture_scroll_system")
-		.read_resource::<FrameState>()
+		.read_resource::<DeltaTime>()
 		.with_query(<(&LinedefRef, &TextureScroll)>::query())
 		.with_query(<&mut MapDynamic>::query())
-		.build(move |_command_buffer, world, frame_state, queries| {
+		.build(move |_command_buffer, world, delta_time, queries| {
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
 			// Scroll textures
@@ -56,8 +60,7 @@ pub fn texture_scroll_system(resources: &mut Resources) -> impl Runnable {
 					.get_mut(&mut world, linedef_ref.map_entity)
 					.unwrap();
 				let linedef_dynamic = &mut map_dynamic.linedefs[linedef_ref.index];
-				linedef_dynamic.texture_offset +=
-					texture_scroll.speed * frame_state.delta_time.as_secs_f32();
+				linedef_dynamic.texture_offset += texture_scroll.speed * delta_time.0.as_secs_f32();
 			}
 		})
 }

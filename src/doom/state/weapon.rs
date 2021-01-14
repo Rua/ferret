@@ -1,11 +1,10 @@
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
-		frame::FrameState,
 		geometry::{angles_to_axes, Angle, Line2, Line3, AABB2, AABB3},
 		quadtree::Quadtree,
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
-		time::Timer,
+		time::{GameTime, Timer},
 	},
 	doom::{
 		camera::{Camera, MovementBob},
@@ -69,8 +68,7 @@ impl SpawnFrom<WeaponStateDef> for WeaponState {
 		_accessor: ComponentAccessor,
 		resources: &Resources,
 	) -> WeaponState {
-		let (asset_storage, frame_state) =
-			<(Read<AssetStorage>, Read<FrameState>)>::fetch(resources);
+		let (asset_storage, game_time) = <(Read<AssetStorage>, Read<GameTime>)>::fetch(resources);
 
 		let current = asset_storage
 			.handle_for::<WeaponTemplate>("pistol")
@@ -79,11 +77,11 @@ impl SpawnFrom<WeaponStateDef> for WeaponState {
 		WeaponState {
 			slots: [
 				State {
-					timer: Timer::new_elapsed(frame_state.time, Duration::default()),
+					timer: Timer::new_elapsed(*game_time, Duration::default()),
 					action: StateAction::Set((StateName::from("up").unwrap(), 0)),
 				},
 				State {
-					timer: Timer::new_elapsed(frame_state.time, Duration::default()),
+					timer: Timer::new_elapsed(*game_time, Duration::default()),
 					action: StateAction::None,
 				},
 			],
@@ -107,18 +105,18 @@ pub fn weapon_state(resources: &mut Resources) -> impl Runnable {
 	const SLOTS: [WeaponSpriteSlot; 2] = [WeaponSpriteSlot::Weapon, WeaponSpriteSlot::Flash];
 
 	SystemBuilder::new("weapon_state")
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.read_resource::<StateSystemsRun>()
 		.with_query(<(Entity, &mut WeaponState)>::query())
 		.build(move |command_buffer, world, resources, query| {
-			let (frame_state, state_systems_run) = resources;
+			let (game_time, state_systems_run) = resources;
 
 			for (&entity, weapon_state) in query.iter_mut(world) {
 				for slot in SLOTS.iter().copied() {
 					let state = &mut weapon_state.slots[slot as usize];
 
 					if let StateAction::Wait(state_name) = state.action {
-						if state.timer.is_elapsed(frame_state.time) {
+						if state.timer.is_elapsed(**game_time) {
 							state.action = StateAction::Set(state_name);
 						}
 					}
@@ -187,11 +185,11 @@ pub fn next_weapon_state(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<NextWeaponState>();
 
 	SystemBuilder::new("next_weapon_state")
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.with_query(<(Entity, &Entity, &WeaponSpriteSlot, &NextWeaponState)>::query())
 		.with_query(<&mut WeaponState>::query())
 		.build(move |command_buffer, world, resources, queries| {
-			let frame_state = resources;
+			let game_time = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
 			for (&entity, &target, &slot, next_state) in queries.0.iter(&world0) {
@@ -201,7 +199,7 @@ pub fn next_weapon_state(resources: &mut Resources) -> impl Runnable {
 					let state = &mut weapon_state.slots[slot as usize];
 
 					if let StateAction::None = state.action {
-						state.timer.restart_with(frame_state.time, next_state.time);
+						state.timer.restart_with(**game_time, next_state.time);
 						state.action = StateAction::Wait(next_state.state);
 					}
 				}
@@ -749,7 +747,7 @@ pub fn weapon_position(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<WeaponPosition>();
 
 	SystemBuilder::new("weapon_position")
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.with_query(<(Entity, &Entity, &WeaponSpriteSlot, &WeaponPosition)>::query())
 		.with_query(
 			<(
@@ -761,7 +759,7 @@ pub fn weapon_position(resources: &mut Resources) -> impl Runnable {
 			.filter(component::<WeaponState>()),
 		)
 		.build(move |command_buffer, world, resources, queries| {
-			let frame_state = resources;
+			let game_time = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
 			for (&entity, &target, &slot, weapon_position) in queries.0.iter(&world0) {
@@ -775,8 +773,7 @@ pub fn weapon_position(resources: &mut Resources) -> impl Runnable {
 					match weapon_position {
 						WeaponPosition::Bob => {
 							let mut angle = Angle::from_units(
-								frame_state.time.as_secs_f64()
-									/ camera.weapon_bob_period.as_secs_f64(),
+								game_time.0.as_secs_f64() / camera.weapon_bob_period.as_secs_f64(),
 							);
 							weapon_sprite_render.position[0] =
 								movement_bob.amplitude * angle.cos() as f32;

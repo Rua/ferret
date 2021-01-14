@@ -5,7 +5,6 @@ mod doom;
 
 use crate::common::{
 	assets::AssetStorage,
-	frame::FrameState,
 	input::InputState,
 	spawn::SpawnMergerHandlerSet,
 	video::{DrawTarget, PresentTarget, RenderContext},
@@ -79,13 +78,6 @@ fn main() -> anyhow::Result<()> {
 
 	resources.insert(common::sound::init()?);
 	resources.insert(InputState::new());
-
-	let frame_state = FrameState {
-		delta_time: doom::data::FRAME_TIME,
-		time: Duration::default(),
-	};
-	resources.insert(frame_state);
-
 	resources.insert(SpawnMergerHandlerSet::new());
 	resources.insert(Registry::<String>::default());
 	resources.insert(Canon::default());

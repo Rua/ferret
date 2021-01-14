@@ -1,9 +1,8 @@
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
-		frame::FrameState,
 		spawn::SpawnMergerHandlerSet,
-		time::Timer,
+		time::{GameTime, Timer},
 	},
 	doom::{
 		image::Image,
@@ -41,16 +40,16 @@ pub fn switch_active_system(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("switch_active_system")
 		.read_resource::<AssetStorage>()
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.with_query(<(Entity, &LinedefRef, &mut SwitchActive)>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, frame_state) = resources;
+			let (asset_storage, game_time) = resources;
 
 			let (mut world0, mut world) = world.split_for_query(&queries.0);
 
 			for (&entity, linedef_ref, switch_active) in queries.0.iter_mut(&mut world0) {
-				if switch_active.timer.is_elapsed(frame_state.time) {
+				if switch_active.timer.is_elapsed(**game_time) {
 					let map_dynamic = queries
 						.1
 						.get_mut(&mut world, linedef_ref.map_entity)
@@ -78,7 +77,7 @@ pub fn switch_active_system(resources: &mut Resources) -> impl Runnable {
 pub fn activate(
 	params: &SwitchParams,
 	command_buffer: &mut CommandBuffer,
-	frame_state: &FrameState,
+	game_time: GameTime,
 	linedef_index: usize,
 	map: &Map,
 	map_dynamic: &mut MapDynamic,
@@ -110,7 +109,7 @@ pub fn activate(
 							sound: params.sound.clone(),
 							texture: old,
 							texture_slot: slot,
-							timer: Timer::new(frame_state.time, time_left),
+							timer: Timer::new(game_time, time_left),
 						},
 					);
 				}

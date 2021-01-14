@@ -1,11 +1,10 @@
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
-		frame::FrameState,
 		geometry::{Interval, AABB2, AABB3},
 		quadtree::Quadtree,
 		spawn::{SpawnContext, SpawnMerger, SpawnMergerHandlerSet},
-		time::Timer,
+		time::{GameTime, Timer},
 	},
 	doom::{
 		components::{SpawnPoint, Transform},
@@ -171,9 +170,9 @@ pub fn spawn_map_entities(
 	let mut command_buffer = CommandBuffer::new(world);
 
 	{
-		let (asset_storage, frame_state, handler_set) = <(
+		let (asset_storage, game_time, handler_set) = <(
 			Read<AssetStorage>,
-			Read<FrameState>,
+			Read<GameTime>,
 			Read<SpawnMergerHandlerSet>,
 		)>::fetch(resources);
 		let mut merger = SpawnMerger::new(&handler_set, &resources);
@@ -190,7 +189,7 @@ pub fn spawn_map_entities(
 					k.clone(),
 					AnimState {
 						frame: 0,
-						timer: Timer::new(frame_state.time, v.frame_time),
+						timer: Timer::new(*game_time, v.frame_time),
 					},
 				)
 			})

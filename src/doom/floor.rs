@@ -1,9 +1,8 @@
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
-		frame::FrameState,
 		spawn::SpawnMergerHandlerSet,
-		time::Timer,
+		time::{GameTime, Timer},
 	},
 	doom::{
 		client::{UseAction, UseEvent},
@@ -112,12 +111,12 @@ pub fn floor_switch_system(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("floor_switch_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<EventChannel<UseEvent>>()
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.with_query(<(&LinedefRef, &UseAction)>::query().filter(!component::<SwitchActive>()))
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<FloorActive>() // used by activate_with_tag
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, use_event_channel, frame_state) = resources;
+			let (asset_storage, use_event_channel, game_time) = resources;
 			let (mut world1, world) = world.split_for_query(&queries.1);
 
 			for use_event in use_event_channel.read(&mut use_event_reader) {
@@ -139,7 +138,7 @@ pub fn floor_switch_system(resources: &mut Resources) -> impl Runnable {
 				let activated = activate_with_tag(
 					&floor_switch_use.params,
 					command_buffer,
-					frame_state,
+					**game_time,
 					linedef.sector_tag,
 					&world,
 					map,
@@ -150,7 +149,7 @@ pub fn floor_switch_system(resources: &mut Resources) -> impl Runnable {
 					crate::doom::switch::activate(
 						&floor_switch_use.switch_params,
 						command_buffer,
-						frame_state,
+						**game_time,
 						linedef_ref.index,
 						map,
 						map_dynamic,
@@ -179,13 +178,13 @@ pub fn floor_linedef_touch(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("floor_linedef_touch")
 		.read_resource::<AssetStorage>()
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.with_query(<(Entity, &TouchEvent, &FloorLinedefTouch)>::query())
 		.with_query(<&LinedefRef>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<FloorActive>() // used by activate_with_tag
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, frame_state) = resources;
+			let (asset_storage, game_time) = resources;
 
 			let (world0, mut world) = world.split_for_query(&queries.0);
 			let (mut world1, mut world) = world.split_for_query(&queries.1);
@@ -209,7 +208,7 @@ pub fn floor_linedef_touch(resources: &mut Resources) -> impl Runnable {
 					if activate_with_tag(
 						&floor_linedef_touch.params,
 						command_buffer,
-						frame_state,
+						**game_time,
 						linedef.sector_tag,
 						&world,
 						map,
@@ -227,7 +226,7 @@ pub fn floor_linedef_touch(resources: &mut Resources) -> impl Runnable {
 fn activate(
 	params: &FloorParams,
 	command_buffer: &mut CommandBuffer,
-	frame_state: &FrameState,
+	game_time: GameTime,
 	sector_index: usize,
 	map: &Map,
 	map_dynamic: &MapDynamic,
@@ -275,7 +274,7 @@ fn activate(
 			velocity: direction * params.speed,
 			target,
 			sound: params.move_sound.clone(),
-			sound_timer: Timer::new_elapsed(frame_state.time, params.move_sound_time),
+			sound_timer: Timer::new_elapsed(game_time, params.move_sound_time),
 		}),
 	);
 
@@ -290,7 +289,7 @@ fn activate(
 fn activate_with_tag<W: EntityStore>(
 	params: &FloorParams,
 	command_buffer: &mut CommandBuffer,
-	frame_state: &FrameState,
+	game_time: GameTime,
 	sector_tag: u16,
 	world: &W,
 	map: &Map,
@@ -320,7 +319,7 @@ fn activate_with_tag<W: EntityStore>(
 		activate(
 			params,
 			command_buffer,
-			frame_state,
+			game_time,
 			sector_index,
 			map,
 			map_dynamic,

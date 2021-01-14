@@ -1,9 +1,8 @@
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
-		frame::FrameState,
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
-		time::Timer,
+		time::{GameTime, Timer},
 	},
 	doom::{
 		draw::sprite::SpriteRender,
@@ -26,9 +25,9 @@ pub struct StateDef;
 
 impl SpawnFrom<StateDef> for State {
 	fn spawn(_component: &StateDef, _accessor: ComponentAccessor, resources: &Resources) -> Self {
-		let (asset_storage, frame_state, template_handle) = <(
+		let (asset_storage, game_time, template_handle) = <(
 			Read<AssetStorage>,
-			Read<FrameState>,
+			Read<GameTime>,
 			Read<SpawnContext<AssetHandle<EntityTemplate>>>,
 		)>::fetch(resources);
 		let template = asset_storage.get(&template_handle.0).unwrap();
@@ -41,7 +40,7 @@ impl SpawnFrom<StateDef> for State {
 			.expect("Entity template has no spawn state");
 
 		State {
-			timer: Timer::new_elapsed(frame_state.time, Duration::default()),
+			timer: Timer::new_elapsed(*game_time, Duration::default()),
 			action: StateAction::Set(spawn_state_name),
 		}
 	}
@@ -55,15 +54,15 @@ pub fn entity_state(resources: &mut Resources) -> impl Runnable {
 	registry.register::<State>("State".into());
 
 	SystemBuilder::new("set_entity_state")
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.read_resource::<StateSystemsRun>()
 		.with_query(<(Entity, &EntityTemplateRef, &mut State)>::query())
 		.build(move |command_buffer, world, resources, query| {
-			let (frame_state, state_systems_run) = resources;
+			let (game_time, state_systems_run) = resources;
 
 			for (&entity, template_ref, state) in query.iter_mut(world) {
 				if let StateAction::Wait(state_name) = state.action {
-					if state.timer.is_elapsed(frame_state.time) {
+					if state.timer.is_elapsed(**game_time) {
 						state.action = StateAction::Set(state_name);
 					}
 				}
@@ -126,11 +125,11 @@ pub fn next_entity_state(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_spawn::<NextStateRandomTimeDef, NextState>();
 
 	SystemBuilder::new("next_entity_state")
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.with_query(<(Entity, &Entity, &NextState)>::query())
 		.with_query(<&mut State>::query())
 		.build(move |command_buffer, world, resources, queries| {
-			let frame_state = resources;
+			let game_time = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
 			for (&entity, &target, next_state) in queries.0.iter(&world0) {
@@ -138,7 +137,7 @@ pub fn next_entity_state(resources: &mut Resources) -> impl Runnable {
 
 				if let Ok(state) = queries.1.get_mut(&mut world, target) {
 					if let StateAction::None = state.action {
-						state.timer.restart_with(frame_state.time, next_state.time);
+						state.timer.restart_with(**game_time, next_state.time);
 						state.action = StateAction::Wait(next_state.state);
 					}
 				}

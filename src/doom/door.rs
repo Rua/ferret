@@ -1,10 +1,9 @@
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
-		frame::FrameState,
 		geometry::Side,
 		spawn::SpawnMergerHandlerSet,
-		time::Timer,
+		time::{GameTime, Timer},
 	},
 	doom::{
 		client::{UseAction, UseEvent},
@@ -72,11 +71,11 @@ pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
 	let mut sector_move_event_reader = sector_move_event_channel.register_reader();
 
 	SystemBuilder::new("door_active_system")
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.read_resource::<EventChannel<SectorMoveEvent>>()
 		.with_query(<(Entity, &mut CeilingMove, &mut DoorActive)>::query())
 		.build(move |command_buffer, world, resources, query| {
-			let (frame_state, sector_move_event_channel) = resources;
+			let (game_time, sector_move_event_channel) = resources;
 
 			for (&entity, ceiling_move, mut door_active) in query.iter_mut(world) {
 				let sector_move = &mut ceiling_move.0;
@@ -85,7 +84,7 @@ pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
 					continue;
 				}
 
-				if door_active.wait_timer.is_elapsed(frame_state.time) {
+				if door_active.wait_timer.is_elapsed(**game_time) {
 					let sound = if sector_move.target == door_active.close_height {
 						door_active.state = DoorState::Opening;
 						sector_move.velocity = door_active.speed;
@@ -152,7 +151,7 @@ pub fn door_active_system(resources: &mut Resources) -> impl Runnable {
 							command_buffer.remove_component::<CeilingMove>(event.entity);
 							command_buffer.remove_component::<DoorActive>(event.entity);
 						} else {
-							door_active.wait_timer.restart(frame_state.time);
+							door_active.wait_timer.restart(**game_time);
 						}
 					}
 				}
@@ -175,12 +174,12 @@ pub fn door_use_system(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("door_use_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<EventChannel<UseEvent>>()
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.with_query(<(&LinedefRef, &UseAction)>::query())
 		.with_query(<&MapDynamic>::query())
 		.with_query(<(&mut CeilingMove, &mut DoorActive)>::query())
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, use_event_channel, frame_state) = resources;
+			let (asset_storage, use_event_channel, game_time) = resources;
 			let (mut world2, world) = world.split_for_query(&queries.2);
 
 			for use_event in use_event_channel.read(&mut use_event_reader) {
@@ -211,7 +210,7 @@ pub fn door_use_system(resources: &mut Resources) -> impl Runnable {
 					let sector_move = &mut ceiling_move.0;
 
 					if door_use.params.can_reverse {
-						door_active.wait_timer.set_target(frame_state.time);
+						door_active.wait_timer.set_target(**game_time);
 						sector_move.velocity = 0.0;
 
 						if sector_move.velocity < 0.0
@@ -229,7 +228,7 @@ pub fn door_use_system(resources: &mut Resources) -> impl Runnable {
 					activate(
 						&door_use.params,
 						command_buffer,
-						frame_state,
+						**game_time,
 						sector_index,
 						&map,
 						&map_dynamic,
@@ -258,12 +257,12 @@ pub fn door_switch_system(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("door_switch_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<EventChannel<UseEvent>>()
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.with_query(<(&LinedefRef, &UseAction)>::query().filter(!component::<SwitchActive>()))
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<DoorActive>() // used by activate_with_tag
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, use_event_channel, frame_state) = resources;
+			let (asset_storage, use_event_channel, game_time) = resources;
 			let (mut world1, world) = world.split_for_query(&queries.1);
 
 			for use_event in use_event_channel.read(&mut use_event_reader) {
@@ -285,7 +284,7 @@ pub fn door_switch_system(resources: &mut Resources) -> impl Runnable {
 				let activated = activate_with_tag(
 					&door_switch_use.params,
 					command_buffer,
-					frame_state,
+					**game_time,
 					linedef.sector_tag,
 					&world,
 					map,
@@ -296,7 +295,7 @@ pub fn door_switch_system(resources: &mut Resources) -> impl Runnable {
 					crate::doom::switch::activate(
 						&door_switch_use.switch_params,
 						command_buffer,
-						frame_state,
+						**game_time,
 						linedef_ref.index,
 						map,
 						map_dynamic,
@@ -325,13 +324,13 @@ pub fn door_linedef_touch(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("door_linedef_touch")
 		.read_resource::<AssetStorage>()
-		.read_resource::<FrameState>()
+		.read_resource::<GameTime>()
 		.with_query(<(Entity, &TouchEvent, &DoorLinedefTouch)>::query())
 		.with_query(<&LinedefRef>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<DoorActive>() // used by activate_with_tag
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, frame_state) = resources;
+			let (asset_storage, game_time) = resources;
 
 			let (world0, mut world) = world.split_for_query(&queries.0);
 			let (mut world1, mut world) = world.split_for_query(&queries.1);
@@ -355,7 +354,7 @@ pub fn door_linedef_touch(resources: &mut Resources) -> impl Runnable {
 					if activate_with_tag(
 						&door_linedef_touch.params,
 						command_buffer,
-						frame_state,
+						**game_time,
 						linedef.sector_tag,
 						&world,
 						map,
@@ -373,7 +372,7 @@ pub fn door_linedef_touch(resources: &mut Resources) -> impl Runnable {
 fn activate(
 	params: &DoorParams,
 	command_buffer: &mut CommandBuffer,
-	frame_state: &FrameState,
+	game_time: GameTime,
 	sector_index: usize,
 	map: &Map,
 	map_dynamic: &MapDynamic,
@@ -394,7 +393,7 @@ fn activate(
 			velocity: 0.0,
 			target: sector_dynamic.interval.max,
 			sound: None,
-			sound_timer: Timer::new_elapsed(frame_state.time, Duration::default()),
+			sound_timer: Timer::new_elapsed(game_time, Duration::default()),
 		}),
 	);
 
@@ -404,7 +403,7 @@ fn activate(
 			state: params.start_state,
 			end_state: params.end_state,
 			speed: params.speed,
-			wait_timer: Timer::new_elapsed(frame_state.time, params.wait_time),
+			wait_timer: Timer::new_elapsed(game_time, params.wait_time),
 			can_reverse: params.can_reverse,
 
 			open_sound: params.open_sound.clone(),
@@ -419,7 +418,7 @@ fn activate(
 fn activate_with_tag<W: EntityStore>(
 	params: &DoorParams,
 	command_buffer: &mut CommandBuffer,
-	frame_state: &FrameState,
+	game_time: GameTime,
 	sector_tag: u16,
 	world: &W,
 	map: &Map,
@@ -449,7 +448,7 @@ fn activate_with_tag<W: EntityStore>(
 		activate(
 			params,
 			command_buffer,
-			frame_state,
+			game_time,
 			sector_index,
 			map,
 			map_dynamic,

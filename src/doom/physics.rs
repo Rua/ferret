@@ -1,10 +1,10 @@
 use crate::{
 	common::{
 		assets::AssetStorage,
-		frame::FrameState,
 		geometry::{angles_to_axes, Line3, AABB2, AABB3},
 		quadtree::Quadtree,
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
+		time::DeltaTime,
 	},
 	doom::{
 		components::Transform,
@@ -142,7 +142,7 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("physics")
 		.read_resource::<AssetStorage>()
-		.read_resource::<FrameState>()
+		.read_resource::<DeltaTime>()
 		.write_resource::<Quadtree>()
 		.write_resource::<EventChannel<StepEvent>>()
 		.with_query(<&MapDynamic>::query())
@@ -157,7 +157,7 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 		.read_component::<Owner>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, frame_state, quadtree, step_event_channel) = resources;
+			let (asset_storage, delta_time, quadtree, step_event_channel) = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 			let map_dynamic = queries.0.iter(&world0).next().unwrap();
 			let map = asset_storage.get(&map_dynamic.map).unwrap();
@@ -197,7 +197,7 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 						if let Some(collision) = trace.collision {
 							// Entity is on ground, apply friction
 							// TODO make this work with any ground normal
-							let factor = FRICTION.powf(frame_state.delta_time.as_secs_f32());
+							let factor = FRICTION.powf(delta_time.0.as_secs_f32());
 							physics.velocity[0] *= factor;
 							physics.velocity[1] *= factor;
 
@@ -209,7 +209,7 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 							});
 						} else {
 							// Entity isn't on ground, apply gravity
-							physics.velocity[2] -= GRAVITY * frame_state.delta_time.as_secs_f32();
+							physics.velocity[2] -= GRAVITY * delta_time.0.as_secs_f32();
 						}
 					}
 				}
@@ -235,7 +235,7 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 							&bbox,
 							solid_type,
 							ignore,
-							frame_state.delta_time,
+							delta_time.0,
 						),
 						CollisionResponse::StepSlide => step_slide_move(
 							&tracer,
@@ -247,7 +247,7 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 							&bbox,
 							solid_type,
 							ignore,
-							frame_state.delta_time,
+							delta_time.0,
 						),
 					}
 

@@ -1,11 +1,11 @@
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
-		frame::FrameState,
 		geometry::{Line2, Line3, AABB3},
 		input::{Bindings, InputState},
 		quadtree::Quadtree,
 		spawn::SpawnMergerHandlerSet,
+		time::DeltaTime,
 	},
 	doom::{
 		camera::Camera,
@@ -127,7 +127,7 @@ pub fn player_move_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("player_move_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
-		.read_resource::<FrameState>()
+		.read_resource::<DeltaTime>()
 		.read_resource::<Quadtree>()
 		.with_query(<&mut Transform>::query())
 		.with_query(<&MapDynamic>::query())
@@ -137,7 +137,7 @@ pub fn player_move_system(_resources: &mut Resources) -> impl Runnable {
 		.read_component::<Owner>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
 		.build(move |_command_buffer, world, resources, queries| {
-			let (asset_storage, client, frame_state, quadtree) = resources;
+			let (asset_storage, client, delta_time, quadtree) = resources;
 
 			let client_entity = match client.entity {
 				Some(e) => e,
@@ -203,8 +203,8 @@ pub fn player_move_system(_resources: &mut Resources) -> impl Runnable {
 
 				let angles = Vector3::new(0.into(), 0.into(), transform.rotation[2]);
 				let axes = crate::common::geometry::angles_to_axes(angles);
-				let accel = (axes[0] * move_dir[0] + axes[1] * move_dir[1])
-					* frame_state.delta_time.as_secs_f32();
+				let accel =
+					(axes[0] * move_dir[0] + axes[1] * move_dir[1]) * delta_time.0.as_secs_f32();
 
 				physics.velocity += accel;
 			}
