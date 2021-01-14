@@ -30,6 +30,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage, ImportData, ASSET_SERIALIZER},
 		frame::{frame_state_system, FrameState},
+		geometry::AABB2,
 		quadtree::Quadtree,
 		spawn::SpawnMergerHandlerSet,
 		video::{AsBytes, DrawTarget, RenderContext},
@@ -63,7 +64,7 @@ use crate::{
 			},
 			LinedefRef, Map, MapDynamic, SectorRef,
 		},
-		physics::physics,
+		physics::{physics, BoxCollider},
 		plat::{plat_active_system, plat_linedef_touch, plat_switch_system},
 		sectormove::sector_move_system,
 		sound::{
@@ -96,15 +97,15 @@ use crossbeam_channel::Sender;
 use legion::{
 	component,
 	serialize::{Canon, ENTITY_SERIALIZER},
-	systems::ResourceSet,
-	Read, Registry, Resources, Schedule, World, Write,
+	systems::{CommandBuffer, ResourceSet},
+	Entity, IntoQuery, Read, Registry, Resources, Schedule, World, Write,
 };
 use nalgebra::Vector2;
 use relative_path::RelativePath;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeSeed, Deserialize, Serialize};
 use std::{
 	fs::File,
-	io::{BufWriter, Write as IOWrite},
+	io::{BufReader, BufWriter, Write as IOWrite},
 	path::PathBuf,
 	time::{Duration, Instant},
 };
@@ -162,7 +163,6 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 	);
 
 	resources.insert(data::get_bindings());
-	resources.insert(Client::default());
 
 	let mut loader = WadLoader::new();
 	load_wads(&mut loader, &arg_matches)?;
@@ -232,6 +232,12 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 
 		handler_set.register_clone::<UiImage>();
 	}
+
+	log::info!("Loading entity data...");
+	data::mobjs::load(resources);
+	data::weapons::load(resources);
+	data::sectors::load(resources);
+	data::linedefs::load(resources);
 
 	// Select map
 	let map = if let Some(map) = arg_matches.value_of("map") {
@@ -386,30 +392,65 @@ fn load_wads(loader: &mut WadLoader, arg_matches: &ArgMatches) -> anyhow::Result
 	Ok(())
 }
 
+macro_rules! game_entities {
+	() => {
+		component::<Transform>()
+			| component::<MapDynamic>()
+			| component::<LinedefRef>()
+			| component::<SectorRef>()
+	};
+}
+
+pub fn clear_game(world: &mut World, resources: &mut Resources) {
+	log::info!("Clearing game...");
+	let mut command_buffer = CommandBuffer::new(world);
+	command_buffer.exec_mut(|_, resources| {
+		resources.remove::<Client>();
+		resources.remove::<Quadtree>();
+	});
+	for &entity in <Entity>::query().filter(game_entities!()).iter(world) {
+		command_buffer.remove(entity);
+	}
+	command_buffer.flush(world, resources);
+}
+
+pub fn create_quadtree(world: &World, resources: &Resources) -> Quadtree {
+	let asset_storage = <Read<AssetStorage>>::fetch(resources);
+	let map_dynamic = <&MapDynamic>::query()
+		.iter(world)
+		.next()
+		.expect("No MapDynamic entity found");
+	let map = asset_storage.get(&map_dynamic.map).unwrap();
+	let mut quadtree = Quadtree::new(map.bbox);
+
+	for (&entity, box_collider, transform) in
+		<(Entity, &BoxCollider, &Transform)>::query().iter(world)
+	{
+		quadtree.insert(
+			entity,
+			&AABB2::from_radius(box_collider.radius).offset(transform.position.fixed_resize(0.0)),
+		);
+	}
+
+	quadtree
+}
+
 pub fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow::Result<()> {
+	clear_game(world, resources);
+
 	log::info!("Starting map {}...", name);
 	let name_lower = name.to_ascii_lowercase();
 	let start_time = Instant::now();
-
-	log::info!("Loading entity data...");
-	data::mobjs::load(resources);
-	data::weapons::load(resources);
-	data::sectors::load(resources);
-	data::linedefs::load(resources);
 
 	log::info!("Loading map...");
 	let map_handle: AssetHandle<Map> = {
 		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
 		asset_storage.load(&format!("{}.map", name_lower))
 	};
+	spawn::spawn_map_entities(world, resources, &map_handle)?;
 
-	// Create quadtree
-	let bbox = {
-		let asset_storage = <Read<AssetStorage>>::fetch(resources);
-		let map = asset_storage.get(&map_handle).unwrap();
-		map.bbox.clone()
-	};
-	resources.insert(Quadtree::new(bbox));
+	let quadtree = create_quadtree(world, resources);
+	resources.insert(quadtree);
 
 	log::info!("Processing assets...");
 	{
@@ -463,12 +504,14 @@ pub fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> any
 				.load(&RelativePath::new(&name_lower).with_extension("things"))?,
 		)?
 	};
-	spawn::spawn_map_entities(world, resources, &map_handle)?;
 	spawn::spawn_things(things, world, resources)?;
 
 	// Spawn player
 	let entity = spawn::spawn_player(world, resources, 1)?;
-	<Write<Client>>::fetch_mut(resources).entity = Some(entity);
+	resources.insert(Client {
+		entity: Some(entity),
+		..Client::default()
+	});
 
 	log::debug!(
 		"Loading took {} s",
@@ -485,6 +528,9 @@ struct SavedResources {
 }
 
 pub fn save_game(name: &str, world: &mut World, resources: &mut Resources) {
+	let name = format!("{}.sav", name);
+	log::info!("Saving game to \"{}\"...", name);
+
 	let (canon, client, frame_state, registry, mut asset_storage) = <(
 		Read<Canon>,
 		Read<Client>,
@@ -493,40 +539,75 @@ pub fn save_game(name: &str, world: &mut World, resources: &mut Resources) {
 		Write<AssetStorage>,
 	)>::fetch_mut(resources);
 
-	let name = format!("{}.sav", name);
-	log::info!("Saving game to \"{}\"...", name);
-
-	let filter = component::<Transform>()
-		| component::<MapDynamic>()
-		| component::<LinedefRef>()
-		| component::<SectorRef>();
+	let saved_resources = SavedResources {
+		client: client.clone(),
+		time: frame_state.time,
+	};
 
 	let result = ASSET_SERIALIZER.set(&mut asset_storage, || -> anyhow::Result<()> {
 		let mut file = BufWriter::new(
 			File::create(&name)
 				.with_context(|| format!("Couldn't open \"{}\" for writing", name))?,
 		);
-
-		let saved_resources = SavedResources {
-			client: client.clone(),
-			time: frame_state.time,
-		};
+		let mut serializer = rmp_serde::encode::Serializer::new(&mut file);
 
 		ENTITY_SERIALIZER
-			.set(&*canon, || {
-				rmp_serde::encode::write(&mut file, &saved_resources)
-			})
+			.set(&*canon, || saved_resources.serialize(&mut serializer))
 			.context("Couldn't serialize resources")?;
-
-		let serializable_world = world.as_serializable(filter, &*registry, &*canon);
-		rmp_serde::encode::write(&mut file, &serializable_world)
+		world
+			.as_serializable(game_entities!(), &*registry, &*canon)
+			.serialize(&mut serializer)
 			.context("Couldn't serialize world")?;
+
 		file.flush().context("Couldn't flush file")?;
 		Ok(())
 	});
 
 	match result {
 		Ok(_) => log::info!("Save complete."),
+		Err(err) => log::error!("{:?}", err),
+	}
+}
+
+pub fn load_game(name: &str, world: &mut World, resources: &mut Resources) {
+	clear_game(world, resources);
+
+	let name = format!("{}.sav", name);
+	log::info!("Loading game from \"{}\"...", name);
+
+	let result = {
+		let (canon, registry, mut asset_storage) =
+			<(Read<Canon>, Read<Registry<String>>, Write<AssetStorage>)>::fetch_mut(resources);
+
+		ASSET_SERIALIZER.set(&mut asset_storage, || -> anyhow::Result<_> {
+			let mut file = BufReader::new(
+				File::open(&name)
+					.with_context(|| format!("Couldn't open \"{}\" for reading", name))?,
+			);
+			let mut deserializer = rmp_serde::decode::Deserializer::new(&mut file);
+			let saved_resources = ENTITY_SERIALIZER
+				.set(&*canon, || SavedResources::deserialize(&mut deserializer))
+				.context("Couldn't deserialize resources")?;
+			registry
+				.as_deserialize_into_world(world, &*canon)
+				.deserialize(&mut deserializer)
+				.context("Couldn't deserialize world")?;
+			Ok(saved_resources)
+		})
+	};
+
+	match result {
+		Ok(saved_resources) => {
+			resources.insert(saved_resources.client);
+
+			let quadtree = create_quadtree(world, resources);
+			resources.insert(quadtree);
+
+			let mut frame_state = <Write<FrameState>>::fetch_mut(resources);
+			frame_state.time = saved_resources.time;
+
+			log::info!("Load complete.");
+		}
 		Err(err) => log::error!("{:?}", err),
 	}
 }
