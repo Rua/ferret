@@ -438,7 +438,7 @@ pub fn create_quadtree(world: &World, resources: &Resources) -> Quadtree {
 	quadtree
 }
 
-pub fn load_map(name: &str, world: &mut World, resources: &mut Resources) -> anyhow::Result<()> {
+pub fn new_game(name: &str, world: &mut World, resources: &mut Resources) -> anyhow::Result<()> {
 	clear_game(world, resources);
 
 	log::info!("Starting map {}...", name);
@@ -532,6 +532,11 @@ struct SavedResources {
 }
 
 pub fn save_game(name: &str, world: &mut World, resources: &mut Resources) {
+	if !resources.contains::<GameTime>() {
+		log::error!("Can't save game, not currently in a game.");
+		return;
+	}
+
 	let name = format!("{}.sav", name);
 	log::info!("Saving game to \"{}\"...", name);
 
