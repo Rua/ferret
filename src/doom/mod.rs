@@ -43,7 +43,7 @@ use crate::{
 		},
 		components::{RandomTransformDef, SpawnPoint, Transform, TransformDef},
 		data::FRAME_TIME,
-		door::{door_active_system, door_linedef_touch, door_switch_system, door_use_system},
+		door::{door_active, door_linedef_touch, door_switch_use, door_use},
 		draw::{
 			finish_draw,
 			map::draw_map,
@@ -53,7 +53,7 @@ use crate::{
 			world::draw_world,
 			wsprite::{draw_weapon_sprites, WeaponSpriteRender},
 		},
-		floor::{floor_active_system, floor_linedef_touch, floor_switch_system},
+		floor::{floor_active, floor_linedef_touch, floor_switch_use},
 		health::apply_damage,
 		image::{import_palette, import_patch, Image, ImageData, Palette},
 		light::{light_flash_system, light_glow_system},
@@ -65,7 +65,7 @@ use crate::{
 			LinedefRef, Map, MapDynamic, SectorRef,
 		},
 		physics::{physics, BoxCollider},
-		plat::{plat_active_system, plat_linedef_touch, plat_switch_system},
+		plat::{plat_active, plat_linedef_touch, plat_switch_use},
 		sectormove::sector_move_system,
 		sound::{
 			import_raw_sound, import_sound, sound_playing_system, start_sound_system, RawSound,
@@ -260,7 +260,7 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 	};
 
 	let command_sender = <Read<Sender<String>>>::fetch(resources);
-	command_sender.send(format!("map {}", map)).ok();
+	command_sender.send(format!("new {}", map)).ok();
 	command_sender.send("save foo".into()).ok();
 
 	Ok(())
@@ -283,14 +283,14 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 
 		.add_thread_local(movement_bob_system(resources)).flush()
 		.add_thread_local(camera_system(resources)).flush()
-		.add_thread_local(door_use_system(resources)).flush()
-		.add_thread_local(door_switch_system(resources)).flush()
-		.add_thread_local(floor_switch_system(resources)).flush()
-		.add_thread_local(plat_switch_system(resources)).flush()
+		.add_thread_local(door_use(resources)).flush()
+		.add_thread_local(door_switch_use(resources)).flush()
+		.add_thread_local(floor_switch_use(resources)).flush()
+		.add_thread_local(plat_switch_use(resources)).flush()
 		.add_thread_local(sector_move_system(resources)).flush()
-		.add_thread_local(door_active_system(resources)).flush()
-		.add_thread_local(floor_active_system(resources)).flush()
-		.add_thread_local(plat_active_system(resources)).flush()
+		.add_thread_local(door_active(resources)).flush()
+		.add_thread_local(floor_active(resources)).flush()
+		.add_thread_local(plat_active(resources)).flush()
 		.add_thread_local(light_flash_system(resources)).flush()
 		.add_thread_local(light_glow_system(resources)).flush()
 		.add_thread_local(switch_active_system(resources)).flush()

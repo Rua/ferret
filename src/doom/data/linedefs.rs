@@ -1,7 +1,7 @@
 use crate::{
 	common::assets::AssetStorage,
 	doom::{
-		client::UseAction,
+		client::{Usable, UseEventDef},
 		data::{FRAME_RATE, FRAME_TIME},
 		door::{DoorLinedefTouch, DoorParams, DoorState, DoorSwitchUse, DoorUse},
 		floor::{FloorLinedefTouch, FloorParams, FloorSwitchUse, FloorTargetHeight},
@@ -29,8 +29,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(1)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorUse(DoorUse {
+				UseEventDef,
+				DoorUse {
 					retrigger: true,
 					params: DoorParams {
 						start_state: DoorState::Closed,
@@ -42,7 +48,7 @@ pub fn load(resources: &mut Resources) {
 						open_sound: Some(asset_storage.load("dsdoropn.sound")),
 						close_sound: Some(asset_storage.load("dsdorcls.sound")),
 					}
-				}),
+				},
 			));
 			world
 		},
@@ -56,8 +62,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(26)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorUse(DoorUse {
+				UseEventDef,
+				DoorUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Closed,
@@ -69,7 +81,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsdorcls.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -83,8 +95,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(28)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorUse(DoorUse {
+				UseEventDef,
+				DoorUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Closed,
@@ -96,7 +114,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsdorcls.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -110,8 +128,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(27)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorUse(DoorUse {
+				UseEventDef,
+				DoorUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Closed,
@@ -123,7 +147,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsdorcls.sound")),
 					},
 					retrigger: true,
-				}),
+				},
 			));
 			world
 		},
@@ -136,20 +160,25 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(117)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-			UseAction::DoorUse(DoorUse {
-			params: DoorParams {
-					start_state: DoorState::Closed,
-					end_state: DoorState::Closed,
-					speed: 8.0 * FRAME_RATE,
-					wait_time: 150 * FRAME_TIME,
-					can_reverse: true,
+				DoorUse {
+					params: DoorParams {
+						start_state: DoorState::Closed,
+						end_state: DoorState::Closed,
+						speed: 8.0 * FRAME_RATE,
+						wait_time: 150 * FRAME_TIME,
+						can_reverse: true,
 
-					open_sound: Some(asset_storage.load("dsbdopn.sound")),
-					close_sound: Some(asset_storage.load("dsbdcls.sound")),
-			},
-			retrigger: true,
-			}),
+						open_sound: Some(asset_storage.load("dsbdopn.sound")),
+						close_sound: Some(asset_storage.load("dsbdcls.sound")),
+					},
+					retrigger: true,
+				},
 			));
 			world
 		},
@@ -166,8 +195,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(31)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorUse(DoorUse {
+				UseEventDef,
+				DoorUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -179,7 +214,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsdorcls.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -193,8 +228,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(32)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorUse(DoorUse {
+				UseEventDef,
+				DoorUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -206,7 +247,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsdorcls.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -220,8 +261,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(33)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorUse(DoorUse {
+				UseEventDef,
+				DoorUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -233,7 +280,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsdorcls.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -247,8 +294,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(34)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorUse(DoorUse {
+				UseEventDef,
+				DoorUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -260,7 +313,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsdorcls.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -273,8 +326,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(118)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorUse(DoorUse {
+				UseEventDef,
+				DoorUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -286,7 +345,7 @@ pub fn load(resources: &mut Resources) {
 						close_sound: Some(asset_storage.load("dsbdcls.sound")),
 					},
 					retrigger: false,
-				}),
+				},
 			));
 			world
 		},
@@ -303,8 +362,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(63)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Closed,
@@ -319,7 +384,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -332,8 +397,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(114)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Closed,
@@ -348,7 +419,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -361,8 +432,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(29)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Closed,
@@ -377,7 +454,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -390,8 +467,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(111)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Closed,
@@ -406,7 +489,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -423,8 +506,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(61)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -439,7 +528,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -452,8 +541,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(115)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -468,7 +563,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -482,8 +577,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(99)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -498,7 +599,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -512,8 +613,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(134)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -528,7 +635,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -542,8 +649,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(136)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -558,7 +671,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -571,8 +684,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(103)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -587,7 +706,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -600,8 +719,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(112)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -616,7 +741,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -630,8 +755,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(133)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -646,7 +777,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -660,8 +791,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(135)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -676,7 +813,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -690,8 +827,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(137)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
@@ -706,7 +849,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -723,8 +866,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(42)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Open,
 						end_state: DoorState::Closed,
@@ -739,7 +888,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -752,8 +901,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(116)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Open,
 						end_state: DoorState::Closed,
@@ -768,7 +923,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -781,8 +936,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(113)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Open,
 						end_state: DoorState::Closed,
@@ -797,7 +958,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -810,8 +971,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(50)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::DoorSwitchUse(DoorSwitchUse {
+				UseEventDef,
+				DoorSwitchUse {
 					params: DoorParams {
 						start_state: DoorState::Open,
 						end_state: DoorState::Closed,
@@ -826,7 +993,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -1307,8 +1474,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(140)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::FloorSwitchUse(FloorSwitchUse {
+				UseEventDef,
+				FloorSwitchUse {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::Current,
@@ -1321,7 +1494,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -1338,8 +1511,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(60)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::FloorSwitchUse(FloorSwitchUse {
+				UseEventDef,
+				FloorSwitchUse {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourFloor,
@@ -1352,7 +1531,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -1365,8 +1544,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(23)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::FloorSwitchUse(FloorSwitchUse {
+				UseEventDef,
+				FloorSwitchUse {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourFloor,
@@ -1379,7 +1564,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -1396,8 +1581,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(69)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::FloorSwitchUse(FloorSwitchUse {
+				UseEventDef,
+				FloorSwitchUse {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
@@ -1410,7 +1601,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -1423,8 +1614,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(18)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::FloorSwitchUse(FloorSwitchUse {
+				UseEventDef,
+				FloorSwitchUse {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
@@ -1437,7 +1634,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -1450,8 +1647,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(132)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::FloorSwitchUse(FloorSwitchUse {
+				UseEventDef,
+				FloorSwitchUse {
 					params: FloorParams {
 						speed: 4.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
@@ -1464,7 +1667,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -1477,8 +1680,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(131)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::FloorSwitchUse(FloorSwitchUse {
+				UseEventDef,
+				FloorSwitchUse {
 					params: FloorParams {
 						speed: 4.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourFloorAbove,
@@ -1491,7 +1700,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -1508,8 +1717,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(64)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::FloorSwitchUse(FloorSwitchUse {
+				UseEventDef,
+				FloorSwitchUse {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
@@ -1522,7 +1737,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -1535,8 +1750,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(101)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::FloorSwitchUse(FloorSwitchUse {
+				UseEventDef,
+				FloorSwitchUse {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
@@ -1549,7 +1770,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -1563,8 +1784,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(65)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::FloorSwitchUse(FloorSwitchUse {
+				UseEventDef,
+				FloorSwitchUse {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
@@ -1577,7 +1804,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -1591,8 +1818,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(55)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::FloorSwitchUse(FloorSwitchUse {
+				UseEventDef,
+				FloorSwitchUse {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::LowestNeighbourCeiling,
@@ -1605,7 +1838,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -1622,8 +1855,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(45)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::FloorSwitchUse(FloorSwitchUse {
+				UseEventDef,
+				FloorSwitchUse {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::HighestNeighbourFloor,
@@ -1636,7 +1875,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -1649,8 +1888,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(102)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::FloorSwitchUse(FloorSwitchUse {
+				UseEventDef,
+				FloorSwitchUse {
 					params: FloorParams {
 						speed: 1.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::HighestNeighbourFloor,
@@ -1663,7 +1908,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -1676,8 +1921,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(70)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::FloorSwitchUse(FloorSwitchUse {
+				UseEventDef,
+				FloorSwitchUse {
 					params: FloorParams {
 						speed: 4.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::HighestNeighbourFloor,
@@ -1690,7 +1941,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -1703,8 +1954,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(71)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::FloorSwitchUse(FloorSwitchUse {
+				UseEventDef,
+				FloorSwitchUse {
 					params: FloorParams {
 						speed: 4.0 * FRAME_RATE,
 						target_height_base: FloorTargetHeight::HighestNeighbourFloor,
@@ -1717,7 +1974,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -2360,8 +2617,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(62)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::PlatSwitchUse(PlatSwitchUse {
+				UseEventDef,
+				PlatSwitchUse {
 					params: PlatParams {
 						speed: 4.0 * FRAME_RATE,
 						wait_time: 105 * FRAME_TIME,
@@ -2381,7 +2644,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -2394,8 +2657,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(123)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::PlatSwitchUse(PlatSwitchUse {
+				UseEventDef,
+				PlatSwitchUse {
 					params: PlatParams {
 						speed: 8.0 * FRAME_RATE,
 						wait_time: 105 * FRAME_TIME,
@@ -2415,7 +2684,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: Some(35 * FRAME_TIME),
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -2428,8 +2697,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(21)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::PlatSwitchUse(PlatSwitchUse {
+				UseEventDef,
+				PlatSwitchUse {
 					params: PlatParams {
 						speed: 4.0 * FRAME_RATE,
 						wait_time: 105 * FRAME_TIME,
@@ -2449,7 +2724,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},
@@ -2462,8 +2737,14 @@ pub fn load(resources: &mut Resources) {
 		type_id: Some(EntityTypeId::Linedef(122)),
 		world: {
 			let mut world = World::default();
+			world.push((Usable,));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
 			world.push((
-				UseAction::PlatSwitchUse(PlatSwitchUse {
+				UseEventDef,
+				PlatSwitchUse {
 					params: PlatParams {
 						speed: 8.0 * FRAME_RATE,
 						wait_time: 105 * FRAME_TIME,
@@ -2483,7 +2764,7 @@ pub fn load(resources: &mut Resources) {
 						sound: Some(asset_storage.load("dsswtchn.sound")),
 						retrigger_time: None,
 					},
-				}),
+				},
 			));
 			world
 		},

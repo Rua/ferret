@@ -15,6 +15,7 @@ pub struct EntityTemplate {
 	pub type_id: Option<EntityTypeId>,
 	pub world: World,
 	pub touch: World,
+	pub r#use: World,
 	pub states: HashMap<StateName, Vec<World>>,
 }
 

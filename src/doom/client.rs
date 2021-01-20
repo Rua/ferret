@@ -4,32 +4,29 @@ use crate::{
 		geometry::{Line2, Line3, AABB3},
 		input::{Bindings, InputState},
 		quadtree::Quadtree,
-		spawn::SpawnMergerHandlerSet,
+		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
 		time::DeltaTime,
 	},
 	doom::{
 		camera::Camera,
 		components::Transform,
 		data::{FORWARD_ACCEL, FRAME_RATE, STRAFE_ACCEL},
-		door::{DoorSwitchUse, DoorUse},
-		floor::FloorSwitchUse,
 		input::{BoolInput, FloatInput, UserCommand},
 		map::MapDynamic,
 		physics::{BoxCollider, Physics, TouchEvent},
-		plat::PlatSwitchUse,
 		sound::{Sound, StartSound},
+		spawn::spawn_helper,
 		state::weapon::{Owner, WeaponState},
-		template::WeaponTemplate,
+		template::{EntityTemplateRef, WeaponTemplate},
 		trace::EntityTracer,
 	},
 };
 use legion::{
 	systems::{ResourceSet, Runnable},
-	Entity, EntityStore, IntoQuery, Registry, Resources, SystemBuilder, Write,
+	Entity, IntoQuery, Read, Registry, Resources, SystemBuilder, Write,
 };
 use nalgebra::{Vector2, Vector3};
 use serde::{Deserialize, Serialize};
-use shrev::EventChannel;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Client {
@@ -216,40 +213,47 @@ pub struct User {
 	pub error_sound: AssetHandle<Sound>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum UseAction {
-	DoorUse(DoorUse),
-	DoorSwitchUse(DoorSwitchUse),
-	FloorSwitchUse(FloorSwitchUse),
-	PlatSwitchUse(PlatSwitchUse),
-}
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
+pub struct Usable;
 
 #[derive(Clone, Copy, Debug)]
 pub struct UseEvent {
-	pub linedef_entity: Entity,
+	pub entity: Entity,
+	pub other: Entity,
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct UseEventDef;
+
+impl SpawnFrom<UseEventDef> for UseEvent {
+	fn spawn(
+		_component: &UseEventDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> Self {
+		<Read<SpawnContext<UseEvent>>>::fetch(resources).0
+	}
 }
 
 pub fn player_use_system(resources: &mut Resources) -> impl Runnable {
-	resources.insert(EventChannel::<UseEvent>::new());
-
 	let (mut handler_set, mut registry) =
 		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
-
-	registry.register::<UseAction>("UseAction".into());
-	handler_set.register_clone::<UseAction>();
 
 	registry.register::<User>("User".into());
 	handler_set.register_clone::<User>();
 
+	registry.register::<Usable>("Usable".into());
+	handler_set.register_clone::<Usable>();
+	handler_set.register_spawn::<UseEventDef, UseEvent>();
+
 	SystemBuilder::new("player_use_system")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
-		.write_resource::<EventChannel<UseEvent>>()
 		.with_query(<(&Transform, &User)>::query())
 		.with_query(<&MapDynamic>::query())
-		.read_component::<UseAction>()
+		.with_query(<(&EntityTemplateRef, &Usable)>::query())
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, client, use_event_channel) = resources;
+			let (asset_storage, client) = resources;
 
 			if let Some(entity) = client.entity {
 				if client.command.r#use && !client.previous_command.r#use {
@@ -274,11 +278,8 @@ pub fn player_use_system(resources: &mut Resources) -> impl Runnable {
 							if linedef_p >= 0.0 && linedef_p <= 1.0 && use_p >= 0.0 && use_p < pmax
 							{
 								// Always hit a usable linedef
-								if world
-									.entry_ref(map_dynamic.linedefs[i].entity)
-									.unwrap()
-									.get_component::<UseAction>()
-									.is_ok()
+								if let Ok((_, Usable)) =
+									queries.2.get(world, map_dynamic.linedefs[i].entity)
 								{
 									pmax = use_p;
 									closest_linedef = Some(i);
@@ -305,13 +306,18 @@ pub fn player_use_system(resources: &mut Resources) -> impl Runnable {
 
 						let linedef_entity = map_dynamic.linedefs[linedef_index].entity;
 
-						if world
-							.entry_ref(linedef_entity)
-							.unwrap()
-							.get_component::<UseAction>()
-							.is_ok()
-						{
-							use_event_channel.single_write(UseEvent { linedef_entity });
+						if let Ok((template_ref, Usable)) = queries.2.get(world, linedef_entity) {
+							let use_event = UseEvent {
+								entity: linedef_entity,
+								other: entity,
+							};
+							let handle = template_ref.0.clone();
+							command_buffer.exec_mut(move |world, resources| {
+								resources.insert(SpawnContext(use_event));
+								let asset_storage = <Read<AssetStorage>>::fetch(resources);
+								let use_world = &asset_storage.get(&handle).unwrap().r#use;
+								spawn_helper(&use_world, world, resources);
+							});
 						} else {
 							command_buffer.push((entity, StartSound(user.error_sound.clone())));
 						}
@@ -326,7 +332,6 @@ pub fn player_weapon_system(_resources: &mut Resources) -> impl Runnable {
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
 		.with_query(<&mut WeaponState>::query())
-		.read_component::<UseAction>()
 		.build(move |_command_buffer, world, resources, query| {
 			let (asset_storage, client) = resources;
 

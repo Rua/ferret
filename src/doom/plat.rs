@@ -5,7 +5,7 @@ use crate::{
 		time::{GameTime, Timer},
 	},
 	doom::{
-		client::{UseAction, UseEvent},
+		client::{Usable, UseEvent},
 		components::Transform,
 		map::{LinedefRef, Map, MapDynamic},
 		physics::{BoxCollider, TouchEvent, Touchable},
@@ -60,7 +60,7 @@ pub enum PlatTargetHeight {
 	LowestNeighbourFloor,
 }
 
-pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
+pub fn plat_active(resources: &mut Resources) -> impl Runnable {
 	let (mut handler_set, mut registry, mut sector_move_event_channel) = <(
 		Write<SpawnMergerHandlerSet>,
 		Write<Registry<String>>,
@@ -72,7 +72,7 @@ pub fn plat_active_system(resources: &mut Resources) -> impl Runnable {
 
 	let mut sector_move_event_reader = sector_move_event_channel.register_reader();
 
-	SystemBuilder::new("plat_active_system")
+	SystemBuilder::new("plat_active")
 		.read_resource::<GameTime>()
 		.read_resource::<EventChannel<SectorMoveEvent>>()
 		.with_query(<(Entity, &mut FloorMove, &mut PlatActive)>::query())
@@ -160,61 +160,58 @@ pub struct PlatSwitchUse {
 	pub switch_params: SwitchParams,
 }
 
-pub fn plat_switch_system(resources: &mut Resources) -> impl Runnable {
-	let mut use_event_reader = resources
-		.get_mut::<EventChannel<UseEvent>>()
-		.unwrap()
-		.register_reader();
+pub fn plat_switch_use(resources: &mut Resources) -> impl Runnable {
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 
-	SystemBuilder::new("plat_switch_system")
+	registry.register::<PlatSwitchUse>("PlatSwitchUse".into());
+	handler_set.register_clone::<PlatSwitchUse>();
+
+	SystemBuilder::new("plat_switch_use")
 		.read_resource::<AssetStorage>()
-		.read_resource::<EventChannel<UseEvent>>()
 		.read_resource::<GameTime>()
-		.with_query(<(&LinedefRef, &UseAction)>::query().filter(!component::<SwitchActive>()))
+		.with_query(<(Entity, &UseEvent, &PlatSwitchUse)>::query())
+		.with_query(<&LinedefRef>::query().filter(!component::<SwitchActive>()))
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<PlatActive>() // used by activate_with_tag
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, use_event_channel, game_time) = resources;
-			let (mut world1, world) = world.split_for_query(&queries.1);
+			let (asset_storage, game_time) = resources;
+			let (mut world2, world) = world.split_for_query(&queries.2);
 
-			for use_event in use_event_channel.read(&mut use_event_reader) {
-				let (linedef_ref, plat_switch_use) =
-					match queries.0.get(&world, use_event.linedef_entity) {
-						Ok((linedef_ref, UseAction::PlatSwitchUse(plat_switch_use))) => {
-							(linedef_ref, plat_switch_use)
-						}
-						_ => continue,
-					};
+			for (&entity, use_event, plat_switch_use) in queries.0.iter(&world) {
+				command_buffer.remove(entity);
 
-				let map_dynamic = queries
-					.1
-					.get_mut(&mut world1, linedef_ref.map_entity)
-					.unwrap();
-				let map = asset_storage.get(&map_dynamic.map).unwrap();
-				let linedef = &map.linedefs[linedef_ref.index];
+				if let Ok(linedef_ref) = queries.1.get(&world, use_event.entity) {
+					let map_dynamic = queries
+						.2
+						.get_mut(&mut world2, linedef_ref.map_entity)
+						.unwrap();
+					let map = asset_storage.get(&map_dynamic.map).unwrap();
+					let linedef = &map.linedefs[linedef_ref.index];
 
-				let activated = activate_with_tag(
-					&plat_switch_use.params,
-					command_buffer,
-					**game_time,
-					linedef.sector_tag,
-					&world,
-					map,
-					map_dynamic,
-				);
-
-				if activated {
-					crate::doom::switch::activate(
-						&plat_switch_use.switch_params,
+					let activated = activate_with_tag(
+						&plat_switch_use.params,
 						command_buffer,
 						**game_time,
-						linedef_ref.index,
+						linedef.sector_tag,
+						&world,
 						map,
 						map_dynamic,
 					);
 
-					if plat_switch_use.switch_params.retrigger_time.is_none() {
-						command_buffer.remove_component::<UseAction>(use_event.linedef_entity);
+					if activated {
+						crate::doom::switch::activate(
+							&plat_switch_use.switch_params,
+							command_buffer,
+							**game_time,
+							linedef_ref.index,
+							map,
+							map_dynamic,
+						);
+
+						if plat_switch_use.switch_params.retrigger_time.is_none() {
+							command_buffer.remove_component::<Usable>(use_event.entity);
+						}
 					}
 				}
 			}
@@ -243,19 +240,16 @@ pub fn plat_linedef_touch(resources: &mut Resources) -> impl Runnable {
 		.read_component::<PlatActive>() // used by activate_with_tag
 		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, game_time) = resources;
-
-			let (world0, mut world) = world.split_for_query(&queries.0);
-			let (mut world1, mut world) = world.split_for_query(&queries.1);
 			let (mut world2, world) = world.split_for_query(&queries.2);
 
-			for (&entity, touch_event, plat_linedef_touch) in queries.0.iter(&world0) {
+			for (&entity, touch_event, plat_linedef_touch) in queries.0.iter(&world) {
 				command_buffer.remove(entity);
 
 				if touch_event.collision.is_some() {
 					continue;
 				}
 
-				if let Ok(linedef_ref) = queries.1.get_mut(&mut world1, touch_event.entity) {
+				if let Ok(linedef_ref) = queries.1.get(&world, touch_event.entity) {
 					let map_dynamic = queries
 						.2
 						.get_mut(&mut world2, linedef_ref.map_entity)

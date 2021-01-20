@@ -100,9 +100,6 @@ pub struct PhysicsDef {
 	pub speed: f32,
 }
 
-#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
-pub struct Touchable;
-
 impl SpawnFrom<PhysicsDef> for Physics {
 	fn spawn(component: &PhysicsDef, _accessor: ComponentAccessor, resources: &Resources) -> Self {
 		assert_ne!(component.mass, 0.0);
@@ -475,6 +472,9 @@ fn step_slide_move<W: EntityStore>(
 }
 
 pub const DISTANCE_EPSILON: f32 = 0.03125;
+
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
+pub struct Touchable;
 
 #[derive(Clone, Copy, Debug)]
 pub struct TouchEvent {
