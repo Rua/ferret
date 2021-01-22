@@ -239,6 +239,7 @@ fn main() -> anyhow::Result<()> {
 			// Split further into subcommands
 			for args in tokens.split(|tok| tok == ";") {
 				match args[0].as_str() {
+					"change" => doom::change_map(&args[1], &mut world, &mut resources)?,
 					"load" => doom::load_game(&args[1], &mut world, &mut resources),
 					"new" => doom::new_game(&args[1], &mut world, &mut resources)?,
 					"quit" => should_quit = true,

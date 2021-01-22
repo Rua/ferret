@@ -8,6 +8,7 @@ use crate::{
 	},
 	doom::{
 		components::{SpawnPoint, Transform},
+		exit::NextMap,
 		map::{
 			AnimState, LinedefDynamic, LinedefRef, Map, MapDynamic, SectorDynamic, SectorRef,
 			SidedefDynamic, Thing, ThingFlags,
@@ -168,6 +169,7 @@ pub fn spawn_map_entities(
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
 	let mut command_buffer = CommandBuffer::new(world);
+	resources.insert(SpawnContext(NextMap("e1m2".into())));
 
 	{
 		let (asset_storage, game_time, handler_set) = <(
@@ -339,6 +341,7 @@ pub fn spawn_map_entities(
 		command_buffer.add_component(map_entity, map_dynamic);
 	}
 
+	resources.remove::<SpawnContext<NextMap>>();
 	command_buffer.flush(world, resources);
 	Ok(())
 }

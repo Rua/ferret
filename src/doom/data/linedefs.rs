@@ -4,6 +4,7 @@ use crate::{
 		client::{Usable, UseEventDef},
 		data::{FRAME_RATE, FRAME_TIME},
 		door::{DoorLinedefTouch, DoorParams, DoorState, DoorSwitchUse, DoorUse},
+		exit::{ExitSwitchUse, NextMapDef},
 		floor::{FloorLinedefTouch, FloorParams, FloorSwitchUse, FloorTargetHeight},
 		physics::{TouchEventDef, Touchable},
 		plat::{PlatLinedefTouch, PlatParams, PlatSwitchUse, PlatTargetHeight},
@@ -2929,6 +2930,33 @@ pub fn load(resources: &mut Resources) {
 	*/
 
 	let template = EntityTemplate {
+		type_id: Some(EntityTypeId::Linedef(11)),
+		world: {
+			let mut world = World::default();
+			world.push((
+				NextMapDef,
+				Usable,
+			));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
+			world.push((
+				UseEventDef,
+				ExitSwitchUse {
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchx.sound")),
+						retrigger_time: None,
+					},
+				},
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	};
+	asset_storage.insert("linedef11", template);
+
+	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(6)),
 		.. EntityTemplate::default()
 	};
@@ -2951,12 +2979,6 @@ pub fn load(resources: &mut Resources) {
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert("linedef9", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(11)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef11", template);
 
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Linedef(12)),

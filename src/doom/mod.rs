@@ -6,6 +6,7 @@ pub mod components;
 pub mod data;
 pub mod door;
 pub mod draw;
+pub mod exit;
 pub mod floor;
 pub mod health;
 pub mod image;
@@ -53,6 +54,7 @@ use crate::{
 			world::draw_world,
 			wsprite::{draw_weapon_sprites, WeaponSpriteRender},
 		},
+		exit::exit_switch_use,
 		floor::{floor_active, floor_linedef_touch, floor_switch_use},
 		health::apply_damage,
 		image::{import_palette, import_patch, Image, ImageData, Palette},
@@ -285,6 +287,7 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 		.add_thread_local(camera_system(resources)).flush()
 		.add_thread_local(door_use(resources)).flush()
 		.add_thread_local(door_switch_use(resources)).flush()
+		.add_thread_local(exit_switch_use(resources)).flush()
 		.add_thread_local(floor_switch_use(resources)).flush()
 		.add_thread_local(plat_switch_use(resources)).flush()
 		.add_thread_local(sector_move_system(resources)).flush()
@@ -438,18 +441,18 @@ pub fn create_quadtree(world: &World, resources: &Resources) -> Quadtree {
 	quadtree
 }
 
-pub fn new_game(name: &str, world: &mut World, resources: &mut Resources) -> anyhow::Result<()> {
+pub fn new_game(map: &str, world: &mut World, resources: &mut Resources) -> anyhow::Result<()> {
 	clear_game(world, resources);
 
-	log::info!("Starting map {}...", name);
-	let name_lower = name.to_ascii_lowercase();
+	log::info!("Starting map {}...", map);
+	let map_lower = map.to_ascii_lowercase();
 	let start_time = Instant::now();
 	resources.insert(GameTime::default());
 
 	log::info!("Loading map...");
 	let map_handle: AssetHandle<Map> = {
 		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-		asset_storage.load(&format!("{}.map", name_lower))
+		asset_storage.load(&format!("{}.map", map_lower))
 	};
 	spawn::spawn_map_entities(world, resources, &map_handle)?;
 
@@ -505,7 +508,7 @@ pub fn new_game(name: &str, world: &mut World, resources: &mut Resources) -> any
 		map::load::build_things(
 			&asset_storage
 				.source()
-				.load(&RelativePath::new(&name_lower).with_extension("things"))?,
+				.load(&RelativePath::new(&map_lower).with_extension("things"))?,
 		)?
 	};
 	spawn::spawn_things(things, world, resources)?;
@@ -523,6 +526,11 @@ pub fn new_game(name: &str, world: &mut World, resources: &mut Resources) -> any
 	);
 
 	Ok(())
+}
+
+pub fn change_map(map: &str, world: &mut World, resources: &mut Resources) -> anyhow::Result<()> {
+	// TODO continue existing game
+	new_game(map, world, resources)
 }
 
 #[derive(Serialize, Deserialize)]
