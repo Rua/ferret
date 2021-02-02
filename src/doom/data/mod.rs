@@ -1,5 +1,6 @@
 pub mod anims;
 mod bindings;
+pub mod iwads;
 pub mod linedefs;
 pub mod mobjs;
 pub mod sectors;

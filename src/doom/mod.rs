@@ -43,7 +43,7 @@ use crate::{
 			player_weapon_system, Client,
 		},
 		components::{RandomTransformDef, SpawnPoint, Transform, TransformDef},
-		data::FRAME_TIME,
+		data::{iwads::IWADINFO, FRAME_TIME},
 		door::{door_active, door_linedef_touch, door_switch_use, door_use},
 		draw::{
 			finish_draw,
@@ -90,7 +90,7 @@ use crate::{
 		template::{EntityTemplate, EntityTemplateRef, EntityTemplateRefDef, WeaponTemplate},
 		texture::{texture_animation_system, texture_scroll_system},
 		ui::{UiImage, UiParams, UiTransform},
-		wad::WadLoader,
+		wad::{IWADInfo, WadLoader},
 	},
 };
 use anyhow::{bail, Context};
@@ -108,7 +108,7 @@ use serde::{de::DeserializeSeed, Deserialize, Serialize};
 use std::{
 	fs::File,
 	io::{BufReader, BufWriter, Write as IOWrite},
-	path::PathBuf,
+	path::Path,
 	time::Instant,
 };
 use vulkano::{
@@ -168,27 +168,8 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 
 	resources.insert(data::get_bindings());
 
-	let mut loader = WadLoader::new();
-	load_wads(&mut loader, &arg_matches)?;
-
-	let wad_mode = match loader
-		.wads()
-		.next()
-		.unwrap()
-		.file_name()
-		.unwrap()
-		.to_str()
-		.unwrap()
-	{
-		"doom1.wad" => WadMode::Doom1SW,
-		"doom.wad" | "doomu.wad" => WadMode::Doom1,
-		"doom2.wad" | "tnt.wad" | "plutonia.wad" => WadMode::Doom2,
-		x => bail!("The IWAD \"{}\" is not recognised", x),
-	};
-	resources.insert(wad_mode);
-
 	// Asset types
-	let mut asset_storage = AssetStorage::new(import, loader);
+	let mut asset_storage = AssetStorage::new(import, WadLoader::new());
 	asset_storage.add_storage::<EntityTemplate>(false);
 	asset_storage.add_storage::<WeaponTemplate>(false);
 	asset_storage.add_storage::<Image>(true);
@@ -237,28 +218,24 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 		handler_set.register_clone::<UiImage>();
 	}
 
-	log::info!("Loading entity data...");
-	data::mobjs::load(resources);
-	data::weapons::load(resources);
-	data::sectors::load(resources);
-	data::linedefs::load(resources);
+	// Load IWAD and PWADs
+	load_wads(resources, &arg_matches)?;
+
+	// Execute load functions
+	{
+		let (iwad_info, mut asset_storage) =
+			<(Read<IWADInfo>, Write<AssetStorage>)>::fetch_mut(resources);
+
+		for load_fn in iwad_info.load_fns {
+			load_fn(&mut asset_storage);
+		}
+	}
 
 	// Select map
 	let map = if let Some(map) = arg_matches.value_of("map") {
 		map
 	} else {
-		match *<Read<WadMode>>::fetch(resources) {
-			WadMode::Doom1SW | WadMode::Doom1 => "E1M1",
-			WadMode::Doom2 => "MAP01",
-		}
-
-		/*if wad == "doom.wad" || wad == "doom1.wad" || wad == "doomu.wad" {
-			"E1M1"
-		} else if wad == "doom2.wad" || wad == "tnt.wad" || wad == "plutonia.wad" {
-			"MAP01"
-		} else {
-			bail!("No default map is known for this IWAD. Try specifying one with the \"-m\" option.")
-		}*/
+		<Read<IWADInfo>>::fetch(resources).map
 	};
 
 	let command_sender = <Read<Sender<String>>>::fetch(resources);
@@ -346,50 +323,70 @@ pub fn init_sound_systems(resources: &mut Resources) -> anyhow::Result<Schedule>
 		.build())
 }
 
-#[derive(Clone, Copy, Debug, PartialOrd, Ord, PartialEq, Eq)]
-pub enum WadMode {
-	Doom1SW,
-	Doom1,
-	Doom2,
-}
-
-fn load_wads(loader: &mut WadLoader, arg_matches: &ArgMatches) -> anyhow::Result<()> {
-	let mut wads = Vec::new();
-	const IWADS: [&str; 6] = ["doom2", "plutonia", "tnt", "doomu", "doom", "doom1"];
-
-	let iwad = if let Some(iwad) = arg_matches.value_of("iwad") {
-		PathBuf::from(iwad)
-	} else if let Some(iwad) = IWADS
+fn load_wads(resources: &mut Resources, arg_matches: &ArgMatches) -> anyhow::Result<()> {
+	// Determine IWAD
+	let mut iter = IWADINFO
 		.iter()
-		.map(|p| PathBuf::from(format!("{}.wad", p)))
-		.find(|p| p.is_file())
-	{
-		iwad
+		.enumerate()
+		.flat_map(|(i, info)| info.files.iter().map(move |file| (i, *file)));
+
+	let (index, iwad_path) = if let Some(iwad) = arg_matches.value_of("iwad") {
+		let iwad_path = Path::new(iwad);
+		let iwad_file: &str = iwad_path
+			.file_name()
+			.with_context(|| format!("IWAD path \"{}\" does not contain a file name.", iwad))?
+			.to_str()
+			.unwrap();
+
+		if let Some((index, _)) = iter.find(|(_, file)| *file == iwad_file) {
+			(index, iwad_path)
+		} else {
+			bail!("IWAD \"{}\" is not a recognised game IWAD.", iwad);
+		}
 	} else {
-		bail!("No iwad file found. Try specifying one with the \"-i\" command line option.")
+		iter.map(|(i, file)| (i, Path::new(file)))
+			.find(|(_, file)| file.is_file())
+			.with_context(|| {
+				format!("No recognised game IWAD found. Try specifying one with the \"-i\" command line option.")
+			})?
 	};
 
-	wads.push(iwad);
+	resources.insert(IWADINFO[index].clone());
 
-	if let Some(iter) = arg_matches.values_of("PWADS") {
-		wads.extend(iter.map(PathBuf::from));
-	}
+	// Add IWAD and PWADs to loader
+	{
+		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
+		let loader = asset_storage
+			.source_mut()
+			.downcast_mut::<WadLoader>()
+			.expect("AssetStorage source was not of type WadLoader");
 
-	for path in wads {
-		loader
-			.add(&path)
-			.context(format!("Couldn't load {}", path.display()))?;
+		let mut add_with_gwa = |path: &Path| -> anyhow::Result<()> {
+			loader
+				.add(&path)
+				.context(format!("Couldn't load WAD \"{}\"", path.display()))?;
 
-		// Try to load the .gwa file as well if present
-		if let Some(extension) = path.extension() {
-			if extension == "wad" {
-				let path = path.with_extension("gwa");
+			// Try to load the .gwa file as well if present
+			if let Some(extension) = path.extension() {
+				if extension == "wad" {
+					let path = path.with_extension("gwa");
 
-				if path.is_file() {
-					loader
-						.add(&path)
-						.context(format!("Couldn't load {}", path.display()))?;
+					if path.is_file() {
+						loader
+							.add(&path)
+							.context(format!("Couldn't load WAD \"{}\"", path.display()))?;
+					}
 				}
+			}
+
+			Ok(())
+		};
+
+		add_with_gwa(iwad_path)?;
+
+		if let Some(iter) = arg_matches.values_of("PWADS") {
+			for pwad in iter.map(Path::new) {
+				add_with_gwa(pwad)?;
 			}
 		}
 	}

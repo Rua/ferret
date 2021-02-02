@@ -31,7 +31,7 @@ impl_downcast!(sync ImportData);
 impl<T: DowncastSync> ImportData for T {}
 
 /// Types that can load raw asset data from a path.
-pub trait DataSource: Send + Sync + 'static {
+pub trait DataSource: DowncastSync {
 	/// Loads the asset at the given `path`, and returns the bytes loaded.
 	fn load(&self, path: &RelativePath) -> anyhow::Result<Vec<u8>>;
 
@@ -41,6 +41,7 @@ pub trait DataSource: Send + Sync + 'static {
 	/// Returns an iterator that yields all the available asset names.
 	fn names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a>;
 }
+impl_downcast!(sync DataSource);
 
 /// Loads assets and allows them to be retrieved.
 pub struct AssetStorage {
@@ -77,6 +78,12 @@ impl AssetStorage {
 	#[inline]
 	pub fn source(&self) -> &dyn DataSource {
 		&*self.source
+	}
+
+	/// Returns a mutable reference to the source that the `AssetStorage` was constructed with.
+	#[inline]
+	pub fn source_mut(&mut self) -> &mut dyn DataSource {
+		&mut *self.source
 	}
 
 	/// Adds a storage for the given asset type.

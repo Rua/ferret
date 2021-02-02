@@ -6,12 +6,10 @@ use crate::{
 		template::{EntityTemplate, EntityTypeId},
 	},
 };
-use legion::{systems::ResourceSet, Resources, World, Write};
+use legion::World;
 
 #[rustfmt::skip]
-pub fn load(resources: &mut Resources) {
-	let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-
+pub fn load(asset_storage: &mut AssetStorage) {
 	// Blink random
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Sector(1)),

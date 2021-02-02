@@ -22,18 +22,14 @@ use crate::{
 			EntityDef, StateName,
 		},
 		template::{EntityTemplate, EntityTemplateRefDef, EntityTypeId},
-		WadMode,
 	},
 };
-use legion::{systems::ResourceSet, Read, Resources, World, Write};
+use legion::World;
 use nalgebra::{Vector2, Vector3};
 use std::{collections::HashMap, default::Default};
 
 #[rustfmt::skip]
-pub fn load(resources: &mut Resources) {
-	let (wad_mode, mut asset_storage) = <(Read<WadMode>, Write<AssetStorage>)>::fetch_mut(resources);
-	let wad_mode = *wad_mode;
-
+pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 	let template = EntityTemplate {
 		type_id: Some(EntityTypeId::Thing(1)),
 		world: {
@@ -9665,11 +9661,10 @@ pub fn load(resources: &mut Resources) {
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert("misc71", template);
+}
 
-	if wad_mode < WadMode::Doom1 {
-		return;
-	}
-
+#[rustfmt::skip]
+pub fn load_doom1(asset_storage: &mut AssetStorage) {
 	let template = EntityTemplate {
 		name: Some("head"),
 		type_id: Some(EntityTypeId::Thing(3005)),
@@ -15460,11 +15455,10 @@ pub fn load(resources: &mut Resources) {
 		.. EntityTemplate::default()
 	};
 	asset_storage.insert("misc77", template);
+}
 
-	if wad_mode < WadMode::Doom2 {
-		return;
-	}
-
+#[rustfmt::skip]
+pub fn load_doom2(asset_storage: &mut AssetStorage) {
 	let template = EntityTemplate {
 		name: Some("vile"),
 		type_id: Some(EntityTypeId::Thing(64)),

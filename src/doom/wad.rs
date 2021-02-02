@@ -1,4 +1,4 @@
-use crate::common::assets::DataSource;
+use crate::common::assets::{AssetStorage, DataSource};
 use anyhow::{bail, ensure};
 use arrayvec::ArrayString;
 use byteorder::{ReadBytesExt, LE};
@@ -77,9 +77,9 @@ impl WadLoader {
 		Ok(())
 	}
 
-	pub fn wads(&self) -> impl Iterator<Item = &Path> {
+	/*pub fn wads(&self) -> impl Iterator<Item = &Path> {
 		self.wads.iter().map(PathBuf::as_path)
-	}
+	}*/
 
 	fn index_for_name(&self, path: &RelativePath) -> anyhow::Result<usize> {
 		let lump_name = path.file_stem().unwrap();
@@ -162,4 +162,11 @@ pub fn read_string<R: Read>(reader: &mut R) -> anyhow::Result<ArrayString<[u8; 8
 		ArrayString::from(std::str::from_utf8(&mut buf)?.trim_end_matches('\0')).unwrap();
 	string.make_ascii_lowercase();
 	Ok(string)
+}
+
+#[derive(Clone, Copy)]
+pub struct IWADInfo {
+	pub files: &'static [&'static str],
+	pub load_fns: &'static [fn(&mut AssetStorage)],
+	pub map: &'static str,
 }

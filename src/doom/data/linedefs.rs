@@ -13,14 +13,12 @@ use crate::{
 		texture::TextureScroll,
 	},
 };
-use legion::{systems::ResourceSet, Resources, World, Write};
+use legion::World;
 use nalgebra::Vector2;
 use std::time::Duration;
 
 #[rustfmt::skip]
-pub fn load(resources: &mut Resources) {
-	let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-
+pub fn load(asset_storage: &mut AssetStorage) {
 	/*
 		Push doors, open-close
 	*/
