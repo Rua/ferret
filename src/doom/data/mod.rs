@@ -9,7 +9,7 @@ pub mod weapons;
 
 pub use bindings::get_bindings;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use std::time::Duration;
 
 pub const FRAME_RATE: f32 = 35.0;
@@ -20,6 +20,4 @@ pub const STRAFE_ACCEL: f32 = (40.0 * 2048.0 / 65536.0) * FRAME_RATE * FRAME_RAT
 
 pub const GRAVITY: f32 = 1.0 * FRAME_RATE * FRAME_RATE;
 
-lazy_static! {
-	pub static ref FRICTION: f32 = 0.90625f32.powf(FRAME_RATE);
-}
+pub static FRICTION: Lazy<f32> = Lazy::new(|| 0.90625f32.powf(FRAME_RATE));

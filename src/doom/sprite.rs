@@ -3,7 +3,7 @@ use crate::{
 	doom::image::Image,
 };
 use anyhow::{bail, Context};
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 use relative_path::RelativePath;
 
@@ -33,9 +33,8 @@ pub fn import_sprite(
 	path: &RelativePath,
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Box<dyn ImportData>> {
-	lazy_static! {
-		static ref SPRITENAME: Regex = Regex::new(r#"^....[a-z][0-9](?:[a-z][0-9])?$"#).unwrap();
-	}
+	static SPRITENAME: Lazy<Regex> =
+		Lazy::new(|| Regex::new(r#"^....[a-z][0-9](?:[a-z][0-9])?$"#).unwrap());
 
 	let stem = path.file_stem().context("Empty file name")?;
 

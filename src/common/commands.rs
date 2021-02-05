@@ -1,6 +1,6 @@
 use anyhow::{bail, Context};
 use crossbeam_channel::{Receiver, Sender};
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
 use std::{io::BufRead, thread::Builder};
 
@@ -90,28 +90,27 @@ impl<T> Command<T> {
 }*/
 
 pub fn tokenize(mut text: &str) -> anyhow::Result<Vec<String>> {
-	lazy_static! {
-		// Whitespace, except newlines
-		static ref RE_SPACE    : Regex = Regex::new(r#"^[^\S\n]+"#).unwrap();
+	// Whitespace, except newlines
+	static RE_SPACE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^[^\S\n]+"#).unwrap());
 
-		// C identifier or number literal
-		static ref RE_UNQUOTED : Regex = Regex::new(r#"^[+-]?[.0-9A-Za-z_]+"#).unwrap();
+	// C identifier or number literal
+	static RE_UNQUOTED: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^[+-]?[.0-9A-Za-z_]+"#).unwrap());
 
-		// Quoted string, with escapes
-		static ref RE_QUOTED   : Regex = Regex::new(r#"^"(?:[^"\\]*(?:\\.)?)*""#).unwrap();
+	// Quoted string, with escapes
+	static RE_QUOTED: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^"(?:[^"\\]*(?:\\.)?)*""#).unwrap());
 
-		// Newline or semicolon, also eats any whitespace and separators that follow
-		static ref RE_SEPARATOR: Regex = Regex::new(r#"^[\n;][\s;]*"#).unwrap();
+	// Newline or semicolon, also eats any whitespace and separators that follow
+	static RE_SEPARATOR: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^[\n;][\s;]*"#).unwrap());
 
-		// Line comment, starts with // or #
-		static ref RE_CMT_LINE : Regex = Regex::new(r#"^(?://|#)[^\n]*(?:\n|$)"#).unwrap();
+	// Line comment, starts with // or #
+	static RE_CMT_LINE: Lazy<Regex> =
+		Lazy::new(|| Regex::new(r#"^(?://|#)[^\n]*(?:\n|$)"#).unwrap());
 
-		// Block comment, matches lazily with *? so that it stops at the first "*/"
-		static ref RE_CMT_BLOCK: Regex = Regex::new(r#"^/\*.*?\*/"#).unwrap();
+	// Block comment, matches lazily with *? so that it stops at the first "*/"
+	static RE_CMT_BLOCK: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^/\*.*?\*/"#).unwrap());
 
-		// Escape sequence in quoted string
-		static ref RE_ESCAPE   : Regex = Regex::new(r#"\\[\\"]"#).unwrap();
-	}
+	// Escape sequence in quoted string
+	static RE_ESCAPE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\\[\\"]"#).unwrap());
 
 	let mut tokens = Vec::new();
 

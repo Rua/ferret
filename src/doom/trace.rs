@@ -12,8 +12,6 @@ use crate::{
 	},
 };
 use arrayvec::ArrayVec;
-
-use lazy_static::lazy_static;
 use legion::{component, Entity, EntityStore, IntoQuery};
 use nalgebra::{Vector2, Vector3};
 use smallvec::SmallVec;
@@ -712,13 +710,4 @@ fn trace_planes<'a>(
 	} else {
 		TraceResult::None
 	}
-}
-
-lazy_static! {
-	static ref BBOX_NORMALS: [Vector3<f32>; 4] = [
-		Vector3::new(1.0, 0.0, 0.0),   // right
-		Vector3::new(0.0, 1.0, 0.0),   // up
-		Vector3::new(-1.0, 0.0, 0.0),  // left
-		Vector3::new(0.0, -1.0, 0.0),  // down
-	];
 }
