@@ -161,6 +161,7 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 							vec![Arc::new(instance_buffer)],
 							draw_context.descriptor_sets.clone(),
 							(),
+							std::iter::empty(),
 						)
 						.context("Couldn't issue draw to command buffer")?;
 				}

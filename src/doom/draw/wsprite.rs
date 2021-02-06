@@ -176,6 +176,7 @@ pub fn draw_weapon_sprites(resources: &mut Resources) -> anyhow::Result<impl Run
 							vec![Arc::new(instance_buffer)],
 							draw_context.descriptor_sets.clone(),
 							(),
+							std::iter::empty(),
 						)
 						.context("Couldn't issue draw to command buffer")?;
 				}

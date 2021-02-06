@@ -154,6 +154,7 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 								index_buffer,
 								draw_context.descriptor_sets.clone(),
 								(),
+								std::iter::empty(),
 							)
 							.context("Couldn't issue draw to command buffer")?;
 					}
@@ -196,6 +197,7 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 								index_buffer,
 								draw_context.descriptor_sets.clone(),
 								(),
+								std::iter::empty(),
 							)
 							.context("Couldn't issue draw to command buffer")?;
 					}
@@ -236,6 +238,7 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 							index_buffer,
 							draw_context.descriptor_sets.clone(),
 							(),
+							std::iter::empty(),
 						)
 						.context("Couldn't issue draw to command buffer")?;
 				}
