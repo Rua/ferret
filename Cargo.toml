@@ -20,21 +20,21 @@ fnv = "1.0"
 legion = {git = "https://github.com/rua/legion", default-features = false, features = ["extended-tuple-impls", "serialize"], branch = "serde-rearrange"}
 log = {version = "0.4", features = ["std"]}
 nalgebra = {version = "0.24", features = ["serde-serialize"]}
-num-traits = "0.2.11"
+num-traits = "0.2"
 once_cell = "1.5"
 rand = "0.8"
 regex = "1.3"
 relative-path = "1.3"
 rmp-serde = {version = "0.15", features = ["serde128"]}
-rodio = {version = "0.13.0", default-features = false}
-scoped-tls-hkt = "0.1.2"
+rodio = {version = "0.13", default-features = false}
+scoped-tls-hkt = "0.1"
 serde = {version = "1.0", features = ["derive"]}
 serde_json = "1.0"
 shrev = "1.1"
 smallvec = "1.6"
-vulkano = "0.20"
-vulkano-shaders = "0.20"
-vulkano-win = "0.20"
+vulkano = {git = "https://github.com/vulkano-rs/vulkano"}
+vulkano-shaders = {git = "https://github.com/vulkano-rs/vulkano"}
+vulkano-win = {git = "https://github.com/vulkano-rs/vulkano"}
 winit = "0.24"
 
 [profile.dev]
