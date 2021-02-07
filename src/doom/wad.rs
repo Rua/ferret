@@ -1,4 +1,4 @@
-use crate::common::assets::{AssetStorage, DataSource};
+use crate::common::assets::DataSource;
 use anyhow::{bail, ensure};
 use arrayvec::ArrayString;
 use byteorder::{ReadBytesExt, LE};
@@ -167,6 +167,5 @@ pub fn read_string<R: Read>(reader: &mut R) -> anyhow::Result<ArrayString<[u8; 8
 #[derive(Clone, Copy)]
 pub struct IWADInfo {
 	pub files: &'static [&'static str],
-	pub load_fns: &'static [fn(&mut AssetStorage)],
 	pub map: &'static str,
 }

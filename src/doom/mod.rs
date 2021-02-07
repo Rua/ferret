@@ -64,7 +64,7 @@ use crate::{
 			textures::{
 				import_flat, import_pnames, import_textures, import_wall, PNames, Textures,
 			},
-			LinedefRef, Map, MapDynamic, SectorRef,
+			LinedefRef, LinedefRefDef, Map, MapDynamic, SectorRef, SectorRefDef,
 		},
 		physics::{physics, BoxCollider},
 		plat::{plat_active, plat_linedef_touch, plat_switch_use},
@@ -87,7 +87,10 @@ use crate::{
 			},
 		},
 		switch::switch_active_system,
-		template::{EntityTemplate, EntityTemplateRef, EntityTemplateRefDef, WeaponTemplate},
+		template::{
+			import_entity, import_weapon, EntityTemplate, EntityTemplateRef, EntityTemplateRefDef,
+			WeaponTemplate,
+		},
 		texture::{texture_animation_system, texture_scroll_system},
 		ui::{UiImage, UiParams, UiTransform},
 		wad::{IWADInfo, WadLoader},
@@ -122,6 +125,7 @@ pub fn import(
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Box<dyn ImportData>> {
 	let function = match path.extension() {
+		Some("entity") => import_entity,
 		Some("flat") => import_flat,
 		Some("map") => import_map,
 		Some("palette") => import_palette,
@@ -130,6 +134,7 @@ pub fn import(
 		Some("rawsound") => import_raw_sound,
 		Some("sprite") => import_sprite,
 		Some("texture") => import_wall,
+		Some("weapon") => import_weapon,
 		Some(ext) => bail!("Unsupported file extension: {}", ext),
 		None => match path.file_name() {
 			Some("pnames") => import_pnames,
@@ -203,9 +208,11 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 
 		registry.register::<LinedefRef>("LinedefRef".into());
 		handler_set.register_clone::<LinedefRef>();
+		handler_set.register_spawn::<LinedefRefDef, LinedefRef>();
 
 		registry.register::<SectorRef>("SectorRef".into());
 		handler_set.register_clone::<SectorRef>();
+		handler_set.register_spawn::<SectorRefDef, SectorRef>();
 
 		registry.register::<SpriteRender>("SpriteRender".into());
 		handler_set.register_clone::<SpriteRender>();
@@ -220,16 +227,6 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 
 	// Load IWAD and PWADs
 	load_wads(resources, &arg_matches)?;
-
-	// Execute load functions
-	{
-		let (iwad_info, mut asset_storage) =
-			<(Read<IWADInfo>, Write<AssetStorage>)>::fetch_mut(resources);
-
-		for load_fn in iwad_info.load_fns {
-			load_fn(&mut asset_storage);
-		}
-	}
 
 	// Select map
 	let map = if let Some(map) = arg_matches.value_of("map") {
@@ -456,6 +453,24 @@ pub fn new_game(map: &str, world: &mut World, resources: &mut Resources) -> anyh
 	let quadtree = create_quadtree(world, resources);
 	resources.insert(quadtree);
 
+	log::info!("Spawning entities...");
+	let things = {
+		let asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
+		map::load::build_things(
+			&asset_storage
+				.source()
+				.load(&RelativePath::new(&map_lower).with_extension("things"))?,
+		)?
+	};
+	spawn::spawn_things(things, world, resources)?;
+
+	// Spawn player
+	let entity = spawn::spawn_player(world, resources, 1)?;
+	resources.insert(Client {
+		entity: Some(entity),
+		..Client::default()
+	});
+
 	log::info!("Processing assets...");
 	{
 		let (render_context, mut asset_storage) =
@@ -498,24 +513,6 @@ pub fn new_game(map: &str, world: &mut World, resources: &mut Resources) -> anyh
 			})
 		});
 	}
-
-	log::info!("Spawning entities...");
-	let things = {
-		let asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-		map::load::build_things(
-			&asset_storage
-				.source()
-				.load(&RelativePath::new(&map_lower).with_extension("things"))?,
-		)?
-	};
-	spawn::spawn_things(things, world, resources)?;
-
-	// Spawn player
-	let entity = spawn::spawn_player(world, resources, 1)?;
-	resources.insert(Client {
-		entity: Some(entity),
-		..Client::default()
-	});
 
 	log::debug!(
 		"Loading took {} s",

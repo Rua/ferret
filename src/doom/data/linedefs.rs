@@ -6,29 +6,50 @@ use crate::{
 		door::{DoorLinedefTouch, DoorParams, DoorState, DoorSwitchUse, DoorUse},
 		exit::{ExitSwitchUse, NextMapDef},
 		floor::{FloorLinedefTouch, FloorParams, FloorSwitchUse, FloorTargetHeight},
+		map::LinedefRefDef,
 		physics::{TouchEventDef, Touchable},
 		plat::{PlatLinedefTouch, PlatParams, PlatSwitchUse, PlatTargetHeight},
 		switch::SwitchParams,
-		template::{EntityTemplate, EntityTypeId},
+		template::{EntityTemplate, EntityTemplateRefDef},
 		texture::TextureScroll,
 	},
 };
 use legion::World;
 use nalgebra::Vector2;
-use std::time::Duration;
+use once_cell::sync::Lazy;
+use std::{collections::HashMap, time::Duration};
 
+#[allow(unused_variables)]
 #[rustfmt::skip]
-pub fn load(asset_storage: &mut AssetStorage) {
+pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemplate>> = Lazy::new(|| {
+	let mut linedefs: HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemplate> = HashMap::new();
+
+	// The default, boring, do-nothing linedef
+	linedefs.insert("linedef0.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
 	/*
 		Push doors, open-close
 	*/
 
 	// Retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(1)),
+	linedefs.insert("linedef1.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -52,16 +73,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef1", template);
+	});
 
 	// Retrigger, slow
 	// TODO blue key
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(26)),
+	linedefs.insert("linedef26.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -85,16 +108,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef26", template);
+	});
 
 	// Retrigger, slow
 	// TODO red key
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(28)),
+	linedefs.insert("linedef28.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -118,16 +143,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef28", template);
+	});
 
 	// Retrigger, slow
 	// TODO yellow key
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(27)),
+	linedefs.insert("linedef27.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -151,15 +178,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef27", template);
+	});
 
 	// Retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(117)),
+	linedefs.insert("linedef117.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -182,19 +211,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef117", template);
+	});
 
 	/*
 		Push doors, open only
 	*/
 
 	// No retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(31)),
+	linedefs.insert("linedef31.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -218,16 +249,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef31", template);
+	});
 
 	// No retrigger, slow
 	// TODO blue key
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(32)),
+	linedefs.insert("linedef32.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -251,16 +284,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef32", template);
+	});
 
 	// No retrigger, slow
 	// TODO red key
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(33)),
+	linedefs.insert("linedef33.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -284,16 +319,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef33", template);
+	});
 
 	// No retrigger, slow
 	// TODO yellow key
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(34)),
+	linedefs.insert("linedef34.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -317,15 +354,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef34", template);
+	});
 
 	// No retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(118)),
+	linedefs.insert("linedef118.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -349,19 +388,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef118", template);
+	});
 
 	/*
 		Switch doors, open-close
 	*/
 
 	// Retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(63)),
+	linedefs.insert("linedef63.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -388,15 +429,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef63", template);
+	});
 
 	// Retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(114)),
+	linedefs.insert("linedef114.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -423,15 +466,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef114", template);
+	});
 
 	// No retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(29)),
+	linedefs.insert("linedef29.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -458,15 +503,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef29", template);
+	});
 
 	// No retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(111)),
+	linedefs.insert("linedef111.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -493,19 +540,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef111", template);
+	});
 
 	/*
 		Switch doors, open only
 	*/
 
 	// Retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(61)),
+	linedefs.insert("linedef61.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -532,15 +581,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef61", template);
+	});
 
 	// Retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(115)),
+	linedefs.insert("linedef115.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -567,16 +618,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef115", template);
+	});
 
 	// Retrigger, fast
 	// TODO blue key
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(99)),
+	linedefs.insert("linedef99.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -603,16 +656,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef99", template);
+	});
 
 	// Retrigger, fast
 	// TODO red key
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(134)),
+	linedefs.insert("linedef134.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -639,16 +694,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef134", template);
+	});
 
 	// Retrigger, fast
 	// TODO yellow key
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(136)),
+	linedefs.insert("linedef136.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -675,15 +732,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef136", template);
+	});
 
 	// No retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(103)),
+	linedefs.insert("linedef103.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -710,15 +769,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef103", template);
+	});
 
 	// No retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(112)),
+	linedefs.insert("linedef112.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -745,16 +806,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef112", template);
+	});
 
 	// No retrigger, fast
 	// TODO blue key
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(133)),
+	linedefs.insert("linedef133.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -781,16 +844,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef133", template);
+	});
 
 	// No retrigger, fast
 	// TODO red key
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(135)),
+	linedefs.insert("linedef135.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -817,16 +882,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef135", template);
+	});
 
 	// No retrigger, fast
 	// TODO yellow key
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(137)),
+	linedefs.insert("linedef137.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -853,19 +920,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef137", template);
+	});
 
 	/*
 		Switch doors, close only
 	*/
 
 	// Retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(42)),
+	linedefs.insert("linedef42.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -892,15 +961,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef42", template);
+	});
 
 	// Retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(116)),
+	linedefs.insert("linedef116.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -927,15 +998,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef116", template);
+	});
 
 	// No retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(113)),
+	linedefs.insert("linedef113.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -962,15 +1035,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef113", template);
+	});
 
 	// No retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(50)),
+	linedefs.insert("linedef50.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -997,19 +1072,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef50", template);
+	});
 
 	/*
 		Linedef touch doors, open-close
 	*/
 
 	// Retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(90)),
+	linedefs.insert("linedef90.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -1033,15 +1110,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef90", template);
+	});
 
 	// Retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(105)),
+	linedefs.insert("linedef105.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -1065,15 +1144,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef105", template);
+	});
 
 	// No retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(4)),
+	linedefs.insert("linedef4.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -1097,15 +1178,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef4", template);
+	});
 
 	// No retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(108)),
+	linedefs.insert("linedef108.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -1129,19 +1212,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef108", template);
+	});
 
 	/*
 		Linedef touch doors, open only
 	*/
 
 	// Retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(86)),
+	linedefs.insert("linedef86.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -1165,15 +1250,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef86", template);
+	});
 
 	// Retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(106)),
+	linedefs.insert("linedef106.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -1197,15 +1284,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef106", template);
+	});
 
 	// No retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(2)),
+	linedefs.insert("linedef2.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -1229,15 +1318,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef2", template);
+	});
 
 	// No retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(109)),
+	linedefs.insert("linedef109.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -1261,19 +1352,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef109", template);
+	});
 
 	/*
 		Linedef touch doors, close only
 	*/
 
 	// Retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(75)),
+	linedefs.insert("linedef75.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -1297,15 +1390,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef75", template);
+	});
 
 	// Retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(107)),
+	linedefs.insert("linedef107.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -1329,15 +1424,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef107", template);
+	});
 
 	// No retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(3)),
+	linedefs.insert("linedef3.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -1361,15 +1458,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef3", template);
+	});
 
 	// No retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(110)),
+	linedefs.insert("linedef110.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -1393,19 +1492,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef110", template);
+	});
 
 	/*
 		Linedef touch doors, close-open
 	*/
 
 	// Retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(76)),
+	linedefs.insert("linedef76.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -1429,15 +1530,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef76", template);
+	});
 
 	// No retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(16)),
+	linedefs.insert("linedef16.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -1461,19 +1564,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef16", template);
+	});
 
 	/*
 		Switch floors, current height
 	*/
 
 	// No retrigger, slow, offset 512
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(140)),
+	linedefs.insert("linedef140.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -1498,19 +1603,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef140", template);
+	});
 
 	/*
 		Switch floors, lowest neighbour floor
 	*/
 
 	// Retrigger, slow, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(60)),
+	linedefs.insert("linedef60.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -1535,15 +1642,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef60", template);
+	});
 
 	// No retrigger, slow, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(23)),
+	linedefs.insert("linedef23.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -1568,19 +1677,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef23", template);
+	});
 
 	/*
 		Switch floors, lowest neighbour floor above
 	*/
 
 	// Retrigger, slow, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(69)),
+	linedefs.insert("linedef69.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -1605,15 +1716,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef69", template);
+	});
 
 	// No retrigger, slow, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(18)),
+	linedefs.insert("linedef18.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -1638,15 +1751,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef18", template);
+	});
 
 	// Retrigger, fast, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(132)),
+	linedefs.insert("linedef132.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -1671,15 +1786,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef132", template);
+	});
 
 	// No retrigger, fast, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(131)),
+	linedefs.insert("linedef131.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -1704,19 +1821,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef131", template);
+	});
 
 	/*
 		Switch floors, lowest neighbour ceiling
 	*/
 
 	// Retrigger, slow, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(64)),
+	linedefs.insert("linedef64.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -1741,15 +1860,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef64", template);
+	});
 
 	// No retrigger, slow, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(101)),
+	linedefs.insert("linedef101.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -1774,16 +1895,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef101", template);
+	});
 
 	// Retrigger, slow, offset -8
 	// TODO crush
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(65)),
+	linedefs.insert("linedef65.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -1808,16 +1931,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef65", template);
+	});
 
 	// No retrigger, slow, offset -8
 	// TODO crush
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(55)),
+	linedefs.insert("linedef55.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -1842,19 +1967,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef55", template);
+	});
 
 	/*
 		Switch floors, highest neighbour floor
 	*/
 
 	// Retrigger, slow, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(45)),
+	linedefs.insert("linedef45.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -1879,15 +2006,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef45", template);
+	});
 
 	// No retrigger, slow, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(102)),
+	linedefs.insert("linedef102.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -1912,15 +2041,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef102", template);
+	});
 
 	// Retrigger, fast, offset +8
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(70)),
+	linedefs.insert("linedef70.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -1945,15 +2076,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef70", template);
+	});
 
 	// No retrigger, fast, offset +8
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(71)),
+	linedefs.insert("linedef71.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -1978,19 +2111,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef71", template);
+	});
 
 	/*
 		Linedef touch floors, current height
 	*/
 
 	// Retrigger, slow, offset 24
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(92)),
+	linedefs.insert("linedef92.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2012,15 +2147,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef92", template);
+	});
 
 	// No retrigger, slow, offset 24
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(58)),
+	linedefs.insert("linedef58.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2042,16 +2179,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef58", template);
+	});
 
 	// Retrigger, slow, offset 24
 	// TODO change type
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(93)),
+	linedefs.insert("linedef93.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2073,16 +2212,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef93", template);
+	});
 
 	// No retrigger, slow, offset 24
 	// TODO change type
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(59)),
+	linedefs.insert("linedef59.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2104,19 +2245,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef59", template);
+	});
 
 	/*
 		Linedef touch floors, lowest neighbour floor
 	*/
 
 	// Retrigger, slow, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(82)),
+	linedefs.insert("linedef82.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2138,15 +2281,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef82", template);
+	});
 
 	// No retrigger, slow, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(38)),
+	linedefs.insert("linedef38.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2168,16 +2313,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef38", template);
+	});
 
 	// Retrigger, slow, offset 0
 	// TODO type change
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(84)),
+	linedefs.insert("linedef84.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2199,16 +2346,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef84", template);
+	});
 
 	// No retrigger, slow, offset 0
 	// TODO type change
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(37)),
+	linedefs.insert("linedef37.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2230,19 +2379,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef37", template);
+	});
 
 	/*
 		Linedef touch floors, lowest neighbour floor above
 	*/
 
 	// Retrigger, slow, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(128)),
+	linedefs.insert("linedef128.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2264,15 +2415,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef128", template);
+	});
 
 	// No retrigger, slow, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(119)),
+	linedefs.insert("linedef119.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2294,15 +2447,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef119", template);
+	});
 
 	// Retrigger, fast, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(129)),
+	linedefs.insert("linedef129.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2324,15 +2479,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef129", template);
+	});
 
 	// No retrigger, fast, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(130)),
+	linedefs.insert("linedef130.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2354,19 +2511,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef130", template);
+	});
 
 	/*
 		Linedef touch floors, lowest neighbour ceiling
 	*/
 
 	// Retrigger, slow, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(91)),
+	linedefs.insert("linedef91.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2388,15 +2547,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef91", template);
+	});
 
 	// No retrigger, slow, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(5)),
+	linedefs.insert("linedef5.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2418,16 +2579,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef5", template);
+	});
 
 	// Retrigger, slow, offset -8
 	// TODO crush
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(94)),
+	linedefs.insert("linedef94.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2449,16 +2612,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef94", template);
+	});
 
 	// No retrigger, slow, offset -8
 	// TODO crush
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(56)),
+	linedefs.insert("linedef56.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2480,19 +2645,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef56", template);
+	});
 
 	/*
 		Linedef touch floors, highest neighbour floor
 	*/
 
 	// Retrigger, slow, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(83)),
+	linedefs.insert("linedef83.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2514,15 +2681,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef83", template);
+	});
 
 	// No retrigger, slow, offset 0
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(19)),
+	linedefs.insert("linedef19.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2544,15 +2713,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef19", template);
+	});
 
 	// Retrigger, fast, offset +8
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(98)),
+	linedefs.insert("linedef98.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2574,15 +2745,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef98", template);
+	});
 
 	// No retrigger, fast, offset +8
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(36)),
+	linedefs.insert("linedef36.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2604,19 +2777,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef36", template);
+	});
 
 	/*
 		Switch plats, current - lowest neighbour floor
 	*/
 
 	// Retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(62)),
+	linedefs.insert("linedef62.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -2648,15 +2823,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef62", template);
+	});
 
 	// Retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(123)),
+	linedefs.insert("linedef123.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -2688,15 +2865,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef123", template);
+	});
 
 	// No retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(21)),
+	linedefs.insert("linedef21.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -2728,15 +2907,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef21", template);
+	});
 
 	// No retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(122)),
+	linedefs.insert("linedef122.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Usable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Usable,
+			));
 			world
 		},
 		r#use: {
@@ -2768,19 +2949,21 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef122", template);
+	});
 
 	/*
 		Linedef touch plats, current - lowest neighbour floor
 	*/
 
 	// Retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(88)),
+	linedefs.insert("linedef88.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2809,15 +2992,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef88", template);
+	});
 
 	// Retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(120)),
+	linedefs.insert("linedef120.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2846,15 +3031,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef120", template);
+	});
 
 	// No retrigger, slow
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(10)),
+	linedefs.insert("linedef10.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2883,15 +3070,17 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef10", template);
+	});
 
 	// No retrigger, fast
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(121)),
+	linedefs.insert("linedef121.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
-			world.push((Touchable,));
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				Touchable,
+			));
 			world
 		},
 		touch: {
@@ -2920,18 +3109,18 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef121", template);
+	});
 
 	/*
 		Other
 	*/
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(11)),
+	linedefs.insert("linedef11.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
 			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
 				NextMapDef,
 				Usable,
 			));
@@ -2951,146 +3140,278 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef11", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(6)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef6", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(7)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef7", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(8)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef8", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(9)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef9", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(12)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef12", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(13)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef13", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(14)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef14", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(15)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef15", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(17)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef17", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(20)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef20", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(22)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef22", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(24)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef24", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(25)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef25", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(30)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef30", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(35)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef35", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(39)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef39", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(40)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef40", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(41)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef41", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(43)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef43", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(44)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef44", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(46)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef46", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(47)),
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef47", template);
-
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(48)),
+	linedefs.insert("linedef6.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
 			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef7.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef8.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef9.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef12.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef13.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef14.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef15.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef17.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef20.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef22.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef24.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef25.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef30.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef35.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef39.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef40.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef41.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef43.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef44.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef46.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef47.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	linedefs.insert("linedef48.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
 				TextureScroll {
 					speed: Vector2::new(35.0, 0.0),
 				},
@@ -3098,186 +3419,367 @@ pub fn load(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef48", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(49)),
+	linedefs.insert("linedef49.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef49", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(51)),
+	linedefs.insert("linedef51.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef51", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(52)),
+	linedefs.insert("linedef52.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef52", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(53)),
+	linedefs.insert("linedef53.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef53", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(54)),
+	linedefs.insert("linedef54.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef54", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(57)),
+	linedefs.insert("linedef57.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef57", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(66)),
+	linedefs.insert("linedef66.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef66", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(67)),
+	linedefs.insert("linedef67.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef67", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(68)),
+	linedefs.insert("linedef68.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef68", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(72)),
+	linedefs.insert("linedef72.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef72", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(73)),
+	linedefs.insert("linedef73.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef73", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(74)),
+	linedefs.insert("linedef74.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef74", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(77)),
+	linedefs.insert("linedef77.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef77", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(79)),
+	linedefs.insert("linedef79.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef79", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(80)),
+	linedefs.insert("linedef80.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef80", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(81)),
+	linedefs.insert("linedef81.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef81", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(87)),
+	linedefs.insert("linedef87.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef87", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(89)),
+	linedefs.insert("linedef89.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef89", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(95)),
+	linedefs.insert("linedef95.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef95", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(96)),
+	linedefs.insert("linedef96.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef96", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(97)),
+	linedefs.insert("linedef97.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef97", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(100)),
+	linedefs.insert("linedef100.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef100", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(104)),
+	linedefs.insert("linedef104.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef104", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(124)),
+	linedefs.insert("linedef124.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef124", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(125)),
+	linedefs.insert("linedef125.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef125", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(126)),
+	linedefs.insert("linedef126.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef126", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(127)),
+	linedefs.insert("linedef127.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef127", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(138)),
+	linedefs.insert("linedef138.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef138", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(139)),
+	linedefs.insert("linedef139.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef139", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Linedef(141)),
+	linedefs.insert("linedef141.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+			));
+			world
+		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("linedef141", template);
-}
+	});
+
+	linedefs
+});

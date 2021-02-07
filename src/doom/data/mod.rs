@@ -1,13 +1,17 @@
 pub mod anims;
 mod bindings;
 pub mod iwads;
-pub mod linedefs;
-pub mod mobjs;
-pub mod sectors;
+mod linedefs;
+mod mobjs;
+mod sectors;
 pub mod sounds;
-pub mod weapons;
+mod weapons;
 
 pub use bindings::get_bindings;
+pub use linedefs::LINEDEFS;
+pub use mobjs::{DOOMEDNUMS, MOBJS};
+pub use sectors::SECTORS;
+pub use weapons::WEAPONS;
 
 use once_cell::sync::Lazy;
 use std::time::Duration;

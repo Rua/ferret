@@ -17,11 +17,14 @@ use crate::{
 };
 use legion::World;
 use nalgebra::Vector2;
+use once_cell::sync::Lazy;
 use std::{collections::HashMap, default::Default};
 
 #[rustfmt::skip]
-pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
-	let template = WeaponTemplate {
+pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTemplate>> = Lazy::new(|| {
+	let mut weapons: HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTemplate> = HashMap::new();
+
+	weapons.insert("fist.weapon", |asset_storage| WeaponTemplate {
 		name: Some("fist"),
 		states: {
 			let mut states = HashMap::with_capacity(8);
@@ -247,10 +250,9 @@ pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. WeaponTemplate::default()
-	};
-	asset_storage.insert("fist", template);
+	});
 
-	let template = WeaponTemplate {
+	weapons.insert("pistol.weapon", |asset_storage| WeaponTemplate {
 		name: Some("pistol"),
 		states: {
 			let mut states = HashMap::with_capacity(9);
@@ -507,10 +509,9 @@ pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. WeaponTemplate::default()
-	};
-	asset_storage.insert("pistol", template);
+	});
 
-	let template = WeaponTemplate {
+	weapons.insert("shotgun.weapon", |asset_storage| WeaponTemplate {
 		name: Some("shotgun"),
 		states: {
 			let mut states = HashMap::with_capacity(15);
@@ -898,10 +899,9 @@ pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. WeaponTemplate::default()
-	};
-	asset_storage.insert("shotgun", template);
+	});
 
-	let template = WeaponTemplate {
+	weapons.insert("chaingun.weapon", |asset_storage| WeaponTemplate {
 		name: Some("chaingun"),
 		states: {
 			let mut states = HashMap::with_capacity(10);
@@ -1207,10 +1207,9 @@ pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. WeaponTemplate::default()
-	};
-	asset_storage.insert("chaingun", template);
+	});
 
-	let template = WeaponTemplate {
+	weapons.insert("missile.weapon", |asset_storage| WeaponTemplate {
 		name: Some("missile"),
 		states: {
 			let mut states = HashMap::with_capacity(11);
@@ -1352,7 +1351,7 @@ pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
-						SpawnProjectile("rocket".into()),
+						SpawnProjectile(asset_storage.load("rocket.entity")),
 					));
 					world
 				},
@@ -1501,10 +1500,522 @@ pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. WeaponTemplate::default()
-	};
-	asset_storage.insert("missile", template);
+	});
 
-	let template = WeaponTemplate {
+	weapons.insert("plasma.weapon", |asset_storage| WeaponTemplate {
+		name: Some("plasma"),
+		states: {
+			let mut states = HashMap::with_capacity(9);
+			states.insert(StateName::from("up").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 1 * FRAME_TIME,
+							state: (StateName::from("up").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("plsg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						WeaponPosition::Up,
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("down").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 1 * FRAME_TIME,
+							state: (StateName::from("down").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("plsg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						WeaponPosition::Down,
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("ready").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 1 * FRAME_TIME,
+							state: (StateName::from("ready").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("plsg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						WeaponPosition::Bob,
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						WeaponReady,
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("attack").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("attack").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("plsg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SpawnProjectile(asset_storage.load("plasma.entity")),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlot::Flash,
+						SetWeaponState((StateName::from("flash").unwrap(), 0)),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 20 * FRAME_TIME,
+							state: (StateName::from("ready").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("plsg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						WeaponReFire,
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("flash").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("flash").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("plsf.sprite"),
+							frame: 0,
+							full_bright: true,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0625),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(None),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("flash2").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("flash2").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("plsf.sprite"),
+							frame: 1,
+							full_bright: true,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0625),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(None),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. WeaponTemplate::default()
+	});
+
+	weapons.insert("bfg.weapon", |asset_storage| WeaponTemplate {
+		name: Some("bfg"),
+		states: {
+			let mut states = HashMap::with_capacity(10);
+			states.insert(StateName::from("up").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 1 * FRAME_TIME,
+							state: (StateName::from("up").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						WeaponPosition::Up,
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("down").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 1 * FRAME_TIME,
+							state: (StateName::from("down").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						WeaponPosition::Down,
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("ready").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 1 * FRAME_TIME,
+							state: (StateName::from("ready").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						WeaponPosition::Bob,
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						WeaponReady,
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("attack").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 20 * FRAME_TIME,
+							state: (StateName::from("attack").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgg.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						StartSound(asset_storage.load("dsbfg.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("attack").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlot::Flash,
+						SetWeaponState((StateName::from("flash").unwrap(), 0)),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("attack").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SpawnProjectile(asset_storage.load("bfg.entity")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 20 * FRAME_TIME,
+							state: (StateName::from("ready").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgg.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						WeaponReFire,
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("flash").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 11 * FRAME_TIME,
+							state: (StateName::from("flash").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgf.sprite"),
+							frame: 0,
+							full_bright: true,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0625),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("flash").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("bfgf.sprite"),
+							frame: 1,
+							full_bright: true,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.125),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(None),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. WeaponTemplate::default()
+	});
+
+	weapons.insert("chainsaw.weapon", |asset_storage| WeaponTemplate {
 		name: Some("chainsaw"),
 		states: {
 			let mut states = HashMap::with_capacity(8);
@@ -1768,478 +2279,14 @@ pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. WeaponTemplate::default()
-	};
-	asset_storage.insert("chainsaw", template);
-}
+	});
 
-#[rustfmt::skip]
-pub fn load_doom1(asset_storage: &mut AssetStorage) {
-	let template = WeaponTemplate {
-		name: Some("plasma"),
-		states: {
-			let mut states = HashMap::with_capacity(9);
-			states.insert(
-				StateName::from("up").unwrap(),
-				vec![{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						NextWeaponState {
-							time: 1 * FRAME_TIME,
-							state: (StateName::from("up").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						SetWeaponSprite(Some(SpriteRender {
-							sprite: asset_storage.load("plsg.sprite"),
-							frame: 0,
-							full_bright: false,
-						})),
-					));
-					world.push((EntityDef, WeaponSpriteSlotDef, WeaponPosition::Up));
-					world
-				}],
-			);
-			states.insert(
-				StateName::from("down").unwrap(),
-				vec![{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						NextWeaponState {
-							time: 1 * FRAME_TIME,
-							state: (StateName::from("down").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						SetWeaponSprite(Some(SpriteRender {
-							sprite: asset_storage.load("plsg.sprite"),
-							frame: 0,
-							full_bright: false,
-						})),
-					));
-					world.push((EntityDef, WeaponSpriteSlotDef, WeaponPosition::Down));
-					world
-				}],
-			);
-			states.insert(
-				StateName::from("ready").unwrap(),
-				vec![{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						NextWeaponState {
-							time: 1 * FRAME_TIME,
-							state: (StateName::from("ready").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						SetWeaponSprite(Some(SpriteRender {
-							sprite: asset_storage.load("plsg.sprite"),
-							frame: 0,
-							full_bright: false,
-						})),
-					));
-					world.push((EntityDef, WeaponSpriteSlotDef, WeaponPosition::Bob));
-					world.push((EntityDef, WeaponSpriteSlotDef, WeaponReady));
-					world
-				}],
-			);
-			states.insert(
-				StateName::from("attack").unwrap(),
-				vec![
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 3 * FRAME_TIME,
-								state: (StateName::from("attack").unwrap(), 1),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("plsg.sprite"),
-								frame: 0,
-								full_bright: false,
-							})),
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SpawnProjectile("plasma".into()),
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlot::Flash,
-							SetWeaponState((StateName::from("flash").unwrap(), 0)),
-						));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 20 * FRAME_TIME,
-								state: (StateName::from("ready").unwrap(), 0),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("plsg.sprite"),
-								frame: 1,
-								full_bright: false,
-							})),
-						));
-						world.push((EntityDef, WeaponSpriteSlotDef, WeaponReFire));
-						world
-					},
-				],
-			);
-			states.insert(
-				StateName::from("flash").unwrap(),
-				vec![
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 4 * FRAME_TIME,
-								state: (StateName::from("flash").unwrap(), 1),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("plsf.sprite"),
-								frame: 0,
-								full_bright: true,
-							})),
-						));
-						world.push((EntityDef, WeaponSpriteSlotDef, ExtraLight(0.0625)));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((EntityDef, WeaponSpriteSlotDef, SetWeaponSprite(None)));
-						world.push((EntityDef, WeaponSpriteSlotDef, ExtraLight(0.0)));
-						world
-					},
-				],
-			);
-			states.insert(
-				StateName::from("flash2").unwrap(),
-				vec![
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 4 * FRAME_TIME,
-								state: (StateName::from("flash2").unwrap(), 1),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("plsf.sprite"),
-								frame: 1,
-								full_bright: true,
-							})),
-						));
-						world.push((EntityDef, WeaponSpriteSlotDef, ExtraLight(0.0625)));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((EntityDef, WeaponSpriteSlotDef, SetWeaponSprite(None)));
-						world.push((EntityDef, WeaponSpriteSlotDef, ExtraLight(0.0)));
-						world
-					},
-				],
-			);
-			states
-		},
-		..WeaponTemplate::default()
-	};
-	asset_storage.insert("plasma", template);
-
-	let template = WeaponTemplate {
-		name: Some("bfg"),
-		states: {
-			let mut states = HashMap::with_capacity(10);
-			states.insert(
-				StateName::from("up").unwrap(),
-				vec![{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						NextWeaponState {
-							time: 1 * FRAME_TIME,
-							state: (StateName::from("up").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						SetWeaponSprite(Some(SpriteRender {
-							sprite: asset_storage.load("bfgg.sprite"),
-							frame: 0,
-							full_bright: false,
-						})),
-					));
-					world.push((EntityDef, WeaponSpriteSlotDef, WeaponPosition::Up));
-					world
-				}],
-			);
-			states.insert(
-				StateName::from("down").unwrap(),
-				vec![{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						NextWeaponState {
-							time: 1 * FRAME_TIME,
-							state: (StateName::from("down").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						SetWeaponSprite(Some(SpriteRender {
-							sprite: asset_storage.load("bfgg.sprite"),
-							frame: 0,
-							full_bright: false,
-						})),
-					));
-					world.push((EntityDef, WeaponSpriteSlotDef, WeaponPosition::Down));
-					world
-				}],
-			);
-			states.insert(
-				StateName::from("ready").unwrap(),
-				vec![{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						NextWeaponState {
-							time: 1 * FRAME_TIME,
-							state: (StateName::from("ready").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						SetWeaponSprite(Some(SpriteRender {
-							sprite: asset_storage.load("bfgg.sprite"),
-							frame: 0,
-							full_bright: false,
-						})),
-					));
-					world.push((EntityDef, WeaponSpriteSlotDef, WeaponPosition::Bob));
-					world.push((EntityDef, WeaponSpriteSlotDef, WeaponReady));
-					world
-				}],
-			);
-			states.insert(
-				StateName::from("attack").unwrap(),
-				vec![
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 20 * FRAME_TIME,
-								state: (StateName::from("attack").unwrap(), 1),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("bfgg.sprite"),
-								frame: 0,
-								full_bright: false,
-							})),
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							StartSound(asset_storage.load("dsbfg.sound")),
-						));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 10 * FRAME_TIME,
-								state: (StateName::from("attack").unwrap(), 2),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("bfgg.sprite"),
-								frame: 1,
-								full_bright: false,
-							})),
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlot::Flash,
-							SetWeaponState((StateName::from("flash").unwrap(), 0)),
-						));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 10 * FRAME_TIME,
-								state: (StateName::from("attack").unwrap(), 3),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("bfgg.sprite"),
-								frame: 1,
-								full_bright: false,
-							})),
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SpawnProjectile("bfg".into()),
-						));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 20 * FRAME_TIME,
-								state: (StateName::from("ready").unwrap(), 0),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("bfgg.sprite"),
-								frame: 1,
-								full_bright: false,
-							})),
-						));
-						world.push((EntityDef, WeaponSpriteSlotDef, WeaponReFire));
-						world
-					},
-				],
-			);
-			states.insert(
-				StateName::from("flash").unwrap(),
-				vec![
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 11 * FRAME_TIME,
-								state: (StateName::from("flash").unwrap(), 1),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("bfgf.sprite"),
-								frame: 0,
-								full_bright: true,
-							})),
-						));
-						world.push((EntityDef, WeaponSpriteSlotDef, ExtraLight(0.0625)));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 6 * FRAME_TIME,
-								state: (StateName::from("flash").unwrap(), 2),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("bfgf.sprite"),
-								frame: 1,
-								full_bright: true,
-							})),
-						));
-						world.push((EntityDef, WeaponSpriteSlotDef, ExtraLight(0.125)));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((EntityDef, WeaponSpriteSlotDef, SetWeaponSprite(None)));
-						world.push((EntityDef, WeaponSpriteSlotDef, ExtraLight(0.0)));
-						world
-					},
-				],
-			);
-			states
-		},
-		..WeaponTemplate::default()
-	};
-	asset_storage.insert("bfg", template);
-}
-
-#[rustfmt::skip]
-pub fn load_doom2(asset_storage: &mut AssetStorage) {
-	let template = WeaponTemplate {
+	weapons.insert("supershotgun.weapon", |asset_storage| WeaponTemplate {
 		name: Some("supershotgun"),
 		states: {
 			let mut states = HashMap::with_capacity(16);
-			states.insert(
-				StateName::from("up").unwrap(),
-				vec![{
+			states.insert(StateName::from("up").unwrap(), vec![
+				{
 					let mut world = World::default();
 					world.push((
 						EntityDef,
@@ -2258,13 +2305,16 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 							full_bright: false,
 						})),
 					));
-					world.push((EntityDef, WeaponSpriteSlotDef, WeaponPosition::Up));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						WeaponPosition::Up,
+					));
 					world
-				}],
-			);
-			states.insert(
-				StateName::from("down").unwrap(),
-				vec![{
+				},
+			]);
+			states.insert(StateName::from("down").unwrap(), vec![
+				{
 					let mut world = World::default();
 					world.push((
 						EntityDef,
@@ -2283,13 +2333,16 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 							full_bright: false,
 						})),
 					));
-					world.push((EntityDef, WeaponSpriteSlotDef, WeaponPosition::Down));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						WeaponPosition::Down,
+					));
 					world
-				}],
-			);
-			states.insert(
-				StateName::from("ready").unwrap(),
-				vec![{
+				},
+			]);
+			states.insert(StateName::from("ready").unwrap(), vec![
+				{
 					let mut world = World::default();
 					world.push((
 						EntityDef,
@@ -2308,328 +2361,351 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 							full_bright: false,
 						})),
 					));
-					world.push((EntityDef, WeaponSpriteSlotDef, WeaponPosition::Bob));
-					world.push((EntityDef, WeaponSpriteSlotDef, WeaponReady));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						WeaponPosition::Bob,
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						WeaponReady,
+					));
 					world
-				}],
-			);
-			states.insert(
-				StateName::from("attack").unwrap(),
-				vec![
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 3 * FRAME_TIME,
-								state: (StateName::from("attack").unwrap(), 1),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("sht2.sprite"),
-								frame: 0,
-								full_bright: false,
-							})),
-						));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 7 * FRAME_TIME,
-								state: (StateName::from("attack").unwrap(), 2),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("sht2.sprite"),
-								frame: 0,
-								full_bright: false,
-							})),
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							LineAttack {
-								count: 20,
-								damage_range: (1..=3).into(),
-								damage_multiplier: 5.0,
-								distance: 2000.0,
-								spread: Vector2::new(
-									Angle::from_units(1.0 / 32.0),
-									Angle::from_units(1.0 / 50.526199853),
-								),
-								accurate_until_refire: false,
-								sparks: true,
-								hit_sound: None,
-								miss_sound: None,
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							StartSound(asset_storage.load("dsdshtgn.sound")),
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlot::Flash,
-							SetWeaponState((StateName::from("flash").unwrap(), 0)),
-						));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 7 * FRAME_TIME,
-								state: (StateName::from("attack").unwrap(), 3),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("sht2.sprite"),
-								frame: 1,
-								full_bright: false,
-							})),
-						));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 7 * FRAME_TIME,
-								state: (StateName::from("attack").unwrap(), 4),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("sht2.sprite"),
-								frame: 2,
-								full_bright: false,
-							})),
-						));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 7 * FRAME_TIME,
-								state: (StateName::from("attack").unwrap(), 5),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("sht2.sprite"),
-								frame: 3,
-								full_bright: false,
-							})),
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							StartSound(asset_storage.load("dsdbopn.sound")),
-						));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 7 * FRAME_TIME,
-								state: (StateName::from("attack").unwrap(), 6),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("sht2.sprite"),
-								frame: 4,
-								full_bright: false,
-							})),
-						));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 7 * FRAME_TIME,
-								state: (StateName::from("attack").unwrap(), 7),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("sht2.sprite"),
-								frame: 5,
-								full_bright: false,
-							})),
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							StartSound(asset_storage.load("dsdbload.sound")),
-						));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 6 * FRAME_TIME,
-								state: (StateName::from("attack").unwrap(), 8),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("sht2.sprite"),
-								frame: 6,
-								full_bright: false,
-							})),
-						));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 6 * FRAME_TIME,
-								state: (StateName::from("attack").unwrap(), 9),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("sht2.sprite"),
-								frame: 7,
-								full_bright: false,
-							})),
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							StartSound(asset_storage.load("dsdbcls.sound")),
-						));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 5 * FRAME_TIME,
-								state: (StateName::from("ready").unwrap(), 0),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("sht2.sprite"),
-								frame: 0,
-								full_bright: false,
-							})),
-						));
-						world.push((EntityDef, WeaponSpriteSlotDef, WeaponReFire));
-						world
-					},
-				],
-			);
-			states.insert(
-				StateName::from("flash").unwrap(),
-				vec![
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 5 * FRAME_TIME,
-								state: (StateName::from("flash").unwrap(), 1),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("sht2.sprite"),
-								frame: 8,
-								full_bright: true,
-							})),
-						));
-						world.push((EntityDef, WeaponSpriteSlotDef, ExtraLight(0.0625)));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							NextWeaponState {
-								time: 4 * FRAME_TIME,
-								state: (StateName::from("flash").unwrap(), 2),
-							},
-						));
-						world.push((
-							EntityDef,
-							WeaponSpriteSlotDef,
-							SetWeaponSprite(Some(SpriteRender {
-								sprite: asset_storage.load("sht2.sprite"),
-								frame: 9,
-								full_bright: true,
-							})),
-						));
-						world.push((EntityDef, WeaponSpriteSlotDef, ExtraLight(0.125)));
-						world
-					},
-					{
-						let mut world = World::default();
-						world.push((EntityDef, WeaponSpriteSlotDef, SetWeaponSprite(None)));
-						world.push((EntityDef, WeaponSpriteSlotDef, ExtraLight(0.0)));
-						world
-					},
-				],
-			);
+				},
+			]);
+			states.insert(StateName::from("attack").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("attack").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 7 * FRAME_TIME,
+							state: (StateName::from("attack").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						LineAttack {
+							count: 20,
+							damage_range: (1..=3).into(),
+							damage_multiplier: 5.0,
+							distance: 2000.0,
+							spread: Vector2::new(
+								Angle::from_units(1.0 / 32.0),
+								Angle::from_units(1.0 / 50.526199853),
+							),
+							accurate_until_refire: false,
+							sparks: true,
+							hit_sound: None,
+							miss_sound: None,
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						StartSound(asset_storage.load("dsdshtgn.sound")),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlot::Flash,
+						SetWeaponState((StateName::from("flash").unwrap(), 0)),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 7 * FRAME_TIME,
+							state: (StateName::from("attack").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 1,
+							full_bright: false,
+						})),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 7 * FRAME_TIME,
+							state: (StateName::from("attack").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 2,
+							full_bright: false,
+						})),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 7 * FRAME_TIME,
+							state: (StateName::from("attack").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 3,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						StartSound(asset_storage.load("dsdbopn.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 7 * FRAME_TIME,
+							state: (StateName::from("attack").unwrap(), 6),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 4,
+							full_bright: false,
+						})),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 7 * FRAME_TIME,
+							state: (StateName::from("attack").unwrap(), 7),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 5,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						StartSound(asset_storage.load("dsdbload.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("attack").unwrap(), 8),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 6,
+							full_bright: false,
+						})),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("attack").unwrap(), 9),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 7,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						StartSound(asset_storage.load("dsdbcls.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("ready").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 0,
+							full_bright: false,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						WeaponReFire,
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("flash").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("flash").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 8,
+							full_bright: true,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0625),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						NextWeaponState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("flash").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(Some(SpriteRender {
+							sprite: asset_storage.load("sht2.sprite"),
+							frame: 9,
+							full_bright: true,
+						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.125),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						SetWeaponSprite(None),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ExtraLight(0.0),
+					));
+					world
+				},
+			]);
 			states
 		},
-		..WeaponTemplate::default()
-	};
-	asset_storage.insert("supershotgun", template);
-}
+		.. WeaponTemplate::default()
+	});
+
+	weapons
+});

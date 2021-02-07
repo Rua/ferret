@@ -215,15 +215,7 @@ fn build_sectors(data: &[u8], asset_storage: &mut AssetStorage) -> anyhow::Resul
 				},
 			],
 			light_level: reader.read_u16::<LE>()? as f32 / 255.0,
-			special_type: {
-				let special_type = reader.read_u16::<LE>()?;
-
-				if special_type == 0 {
-					None
-				} else {
-					Some(special_type)
-				}
-			},
+			special_type: reader.read_u16::<LE>()?,
 			sector_tag: reader.read_u16::<LE>()?,
 			linedefs: Vec::new(),
 			neighbours: Vec::new(),
@@ -453,11 +445,7 @@ fn build_linedefs(
 			} else {
 				SolidBits::empty()
 			},
-			special_type: if special_type == 0 {
-				None
-			} else {
-				Some(special_type)
-			},
+			special_type,
 			sector_tag,
 			sidedefs,
 		});

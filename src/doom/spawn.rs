@@ -8,24 +8,24 @@ use crate::{
 	},
 	doom::{
 		components::{SpawnPoint, Transform},
+		data::DOOMEDNUMS,
 		exit::NextMap,
 		map::{
 			AnimState, LinedefDynamic, LinedefRef, Map, MapDynamic, SectorDynamic, SectorRef,
 			SidedefDynamic, Thing, ThingFlags,
 		},
 		physics::BoxCollider,
-		template::{EntityTemplate, EntityTemplateRef, EntityTypeId},
+		template::EntityTemplate,
 	},
 };
 use anyhow::bail;
+use arrayvec::ArrayString;
 use legion::{
-	any,
-	systems::{CommandBuffer, ResourceSet},
-	world::EntityHasher,
-	Entity, IntoQuery, Read, Resources, World, Write,
+	any, systems::ResourceSet, world::EntityHasher, Entity, IntoQuery, Read, Resources, World,
+	Write,
 };
 use nalgebra::{Vector2, Vector3};
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Write as _};
 
 pub fn spawn_helper(
 	src_world: &World,
@@ -92,21 +92,16 @@ pub fn spawn_things(
 		}
 
 		// Find entity template
-		let template_handle = {
-			let asset_storage = <Read<AssetStorage>>::fetch(resources);
+		let template_handle: AssetHandle<EntityTemplate> = {
+			let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
 
-			let template_handle = match asset_storage
-				.iter::<EntityTemplate>()
-				.find(|(_, template)| template.type_id == Some(EntityTypeId::Thing(thing.r#type)))
-			{
-				Some((x, _)) => x.clone(),
+			match DOOMEDNUMS.get(&thing.r#type) {
+				Some(template_name) => asset_storage.load::<EntityTemplate>(template_name),
 				None => {
 					log::warn!("Thing {} has invalid thing type {}", i, thing.r#type);
 					continue;
 				}
-			};
-
-			template_handle
+			}
 		};
 
 		// Use NAN to use the default spawn height based on the sector interval
@@ -138,12 +133,8 @@ pub fn spawn_player(
 	player_num: usize,
 ) -> anyhow::Result<Entity> {
 	let template_handle = {
-		let asset_storage = <Read<AssetStorage>>::fetch(resources);
-
-		match asset_storage.handle_for::<EntityTemplate>("player") {
-			Some(template) => template.clone(),
-			None => bail!("Entity type not found: {}", "player"),
-		}
+		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
+		asset_storage.load::<EntityTemplate>("player.entity")
 	};
 
 	// Get spawn point transform
@@ -168,21 +159,11 @@ pub fn spawn_map_entities(
 	resources: &mut Resources,
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
-	let mut command_buffer = CommandBuffer::new(world);
-	resources.insert(SpawnContext(NextMap("e1m2".into())));
-
-	{
-		let (asset_storage, game_time, handler_set) = <(
-			Read<AssetStorage>,
-			Read<GameTime>,
-			Read<SpawnMergerHandlerSet>,
-		)>::fetch(resources);
-		let mut merger = SpawnMerger::new(&handler_set, &resources);
-
+	let (map_entity, num_linedefs, num_sectors) = {
+		let (asset_storage, game_time) = <(Read<AssetStorage>, Read<GameTime>)>::fetch(resources);
 		let map = asset_storage.get(&map_handle).unwrap();
 
 		// Create map entity
-		let map_entity = command_buffer.push(());
 		let anim_states = map
 			.anims
 			.iter()
@@ -197,126 +178,94 @@ pub fn spawn_map_entities(
 			})
 			.collect();
 
-		let mut map_dynamic = MapDynamic {
+		let num_linedefs = map.linedefs.len();
+		let num_sectors = map.sectors.len();
+		let map_entity = world.push((MapDynamic {
 			anim_states,
 			map: map_handle.clone(),
-			linedefs: Vec::with_capacity(map.linedefs.len()),
-			sectors: Vec::with_capacity(map.sectors.len()),
+			linedefs: Vec::with_capacity(num_linedefs),
+			sectors: Vec::with_capacity(num_sectors),
+		},));
+
+		(map_entity, num_linedefs, num_sectors)
+	};
+
+	resources.insert(SpawnContext(NextMap("e1m2".into())));
+	let mut query = <&mut MapDynamic>::query();
+
+	// Create linedef entities
+
+	for i in 0..num_linedefs {
+		// Load the entity template handle
+		let special_type = {
+			let asset_storage = <Read<AssetStorage>>::fetch(resources);
+			asset_storage.get(&map_handle).unwrap().linedefs[i].special_type
 		};
 
-		// Create linedef entities
-		for (i, linedef) in map.linedefs.iter().enumerate() {
-			let entity = if let Some(special_type) = linedef.special_type {
-				// Fetch and add entity template
-				let (handle, template) =
-					match asset_storage
-						.iter::<EntityTemplate>()
-						.find(|(_, template)| {
-							template.type_id == Some(EntityTypeId::Linedef(special_type))
-						}) {
-						Some(entry) => entry,
-						None => {
-							log::warn!("Linedef {} has invalid special type {}", i, special_type);
-							continue;
-						}
-					};
+		let template_handle = {
+			let mut template_name = ArrayString::<[u8; 20]>::new();
+			write!(template_name, "linedef{}.entity", special_type)?;
+			let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
+			asset_storage.load::<EntityTemplate>(&template_name)
+		};
 
-				let entity = if template.world.is_empty() {
-					log::debug!(
-						"Linedef {} has special type {} with empty template world",
-						i,
-						special_type
-					);
+		// Spawn the entity
+		resources.insert(SpawnContext(LinedefRef {
+			map_entity,
+			index: i,
+		}));
+		resources.insert(SpawnContext(template_handle.clone()));
 
-					command_buffer.push(())
-				} else {
-					let entity_map = world.clone_from(&template.world, &any(), &mut merger);
-					entity_map.into_iter().map(|(_, to)| to).next().unwrap()
-				};
+		let linedef_entity = {
+			let asset_storage = <Read<AssetStorage>>::fetch(resources);
+			let template = asset_storage.get(&template_handle).unwrap();
+			let entity_map = spawn_helper(&template.world, world, resources);
+			entity_map.into_iter().map(|(_, to)| to).next().unwrap()
+		};
 
-				// Set entity template reference
-				command_buffer.add_component(entity, EntityTemplateRef(handle.clone()));
+		resources.remove::<SpawnContext<LinedefRef>>();
+		resources.remove::<SpawnContext<AssetHandle<EntityTemplate>>>();
 
-				entity
-			} else {
-				command_buffer.push(())
-			};
+		// Add to MapDynamic
+		let map_dynamic = query.get_mut(world, map_entity).unwrap();
+		let asset_storage = <Read<AssetStorage>>::fetch(resources);
+		let linedef = &asset_storage.get(&map_handle).unwrap().linedefs[i];
+		let sidedefs = [
+			linedef.sidedefs[0].as_ref().map(|sidedef| SidedefDynamic {
+				textures: sidedef.textures.clone(),
+			}),
+			linedef.sidedefs[1].as_ref().map(|sidedef| SidedefDynamic {
+				textures: sidedef.textures.clone(),
+			}),
+		];
+		map_dynamic.linedefs.push(LinedefDynamic {
+			entity: linedef_entity,
+			sidedefs,
+			texture_offset: Vector2::new(0.0, 0.0),
+		});
+	}
 
-			let sidedefs = [
-				linedef.sidedefs[0].as_ref().map(|sidedef| SidedefDynamic {
-					textures: sidedef.textures.clone(),
-				}),
-				linedef.sidedefs[1].as_ref().map(|sidedef| SidedefDynamic {
-					textures: sidedef.textures.clone(),
-				}),
-			];
-			map_dynamic.linedefs.push(LinedefDynamic {
-				entity,
-				sidedefs,
-				texture_offset: Vector2::new(0.0, 0.0),
-			});
-			command_buffer.add_component(
-				entity,
-				LinedefRef {
-					map_entity,
-					index: i,
-				},
-			);
-		}
+	// Create sector entities
+	for i in 0..num_sectors {
+		// Load the entity template handle
+		let special_type = {
+			let asset_storage = <Read<AssetStorage>>::fetch(resources);
+			asset_storage.get(&map_handle).unwrap().sectors[i].special_type
+		};
 
-		// Create sector entities
-		for (i, sector) in map.sectors.iter().enumerate() {
-			let entity = if let Some(special_type) = sector.special_type {
-				// Fetch and add entity template
-				let (handle, template) =
-					match asset_storage
-						.iter::<EntityTemplate>()
-						.find(|(_, template)| {
-							template.type_id == Some(EntityTypeId::Sector(special_type))
-						}) {
-						Some(entry) => entry,
-						None => {
-							log::warn!("Sector {} has invalid special type {}", i, special_type);
-							continue;
-						}
-					};
+		let template_handle = {
+			let mut template_name = ArrayString::<[u8; 20]>::new();
+			write!(template_name, "sector{}.entity", special_type)
+				.expect("Insufficient capacity for name");
+			let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
+			asset_storage.load::<EntityTemplate>(&template_name)
+		};
 
-				let entity = if template.world.is_empty() {
-					log::debug!(
-						"Sector {} has special type {} with empty template world",
-						i,
-						special_type
-					);
-
-					command_buffer.push(())
-				} else {
-					let entity_map = world.clone_from(&template.world, &any(), &mut merger);
-					entity_map.into_iter().map(|(_, to)| to).next().unwrap()
-				};
-
-				// Set entity template reference
-				command_buffer.add_component(entity, EntityTemplateRef(handle.clone()));
-
-				entity
-			} else {
-				command_buffer.push(())
-			};
-
-			map_dynamic.sectors.push(SectorDynamic {
-				entity,
-				light_level: sector.light_level,
-				interval: sector.interval,
-			});
-			command_buffer.add_component(
-				entity,
-				SectorRef {
-					map_entity,
-					index: i,
-				},
-			);
-
-			// Find midpoint of sector for sound purposes
+		// Find midpoint of sector for sound purposes
+		let transform = {
 			let mut bbox = AABB2::empty();
+			let asset_storage = <Read<AssetStorage>>::fetch(resources);
+			let map = asset_storage.get(&map_handle).unwrap();
 
 			for linedef in map.linedefs.iter() {
 				for sidedef in linedef.sidedefs.iter().flatten() {
@@ -329,19 +278,41 @@ pub fn spawn_map_entities(
 
 			let midpoint = (bbox.min() + bbox.max()) / 2.0;
 
-			command_buffer.add_component(
-				entity,
-				Transform {
-					position: Vector3::new(midpoint[0], midpoint[1], 0.0),
-					rotation: Vector3::new(0.into(), 0.into(), 0.into()),
-				},
-			);
-		}
+			Transform {
+				position: Vector3::new(midpoint[0], midpoint[1], 0.0),
+				rotation: Vector3::new(0.into(), 0.into(), 0.into()),
+			}
+		};
 
-		command_buffer.add_component(map_entity, map_dynamic);
+		// Spawn the entity
+		resources.insert(SpawnContext(transform));
+		resources.insert(SpawnContext(SectorRef {
+			map_entity,
+			index: i,
+		}));
+		resources.insert(SpawnContext(template_handle.clone()));
+
+		let sector_entity = {
+			let asset_storage = <Read<AssetStorage>>::fetch(resources);
+			let template = asset_storage.get(&template_handle).unwrap();
+			let entity_map = spawn_helper(&template.world, world, resources);
+			entity_map.into_iter().map(|(_, to)| to).next().unwrap()
+		};
+
+		resources.remove::<SpawnContext<SectorRef>>();
+		resources.remove::<SpawnContext<AssetHandle<EntityTemplate>>>();
+
+		// Add to MapDynamic
+		let map_dynamic = query.get_mut(world, map_entity).unwrap();
+		let asset_storage = <Read<AssetStorage>>::fetch(resources);
+		let sector = &asset_storage.get(&map_handle).unwrap().sectors[i];
+		map_dynamic.sectors.push(SectorDynamic {
+			entity: sector_entity,
+			light_level: sector.light_level,
+			interval: sector.interval,
+		});
 	}
 
 	resources.remove::<SpawnContext<NextMap>>();
-	command_buffer.flush(world, resources);
 	Ok(())
 }

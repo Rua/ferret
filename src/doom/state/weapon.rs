@@ -17,7 +17,7 @@ use crate::{
 		sound::{Sound, StartSound},
 		spawn::{spawn_entity, spawn_helper},
 		state::{State, StateAction, StateName, StateSystemsRun},
-		template::WeaponTemplate,
+		template::{EntityTemplate, WeaponTemplate},
 		trace::EntityTracer,
 	},
 };
@@ -30,7 +30,7 @@ use nalgebra::{Vector2, Vector3};
 use num_traits::Zero;
 use rand::{distributions::Uniform, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
-use std::{sync::atomic::Ordering, time::Duration};
+use std::{collections::HashSet, sync::atomic::Ordering, time::Duration};
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct WeaponSpriteSlotDef;
@@ -50,6 +50,7 @@ pub struct WeaponState {
 	pub slots: [State; 2],
 	pub current: AssetHandle<WeaponTemplate>,
 	pub switch_to: Option<AssetHandle<WeaponTemplate>>,
+	pub inventory: HashSet<AssetHandle<WeaponTemplate>>,
 	pub inaccurate: bool,
 }
 
@@ -59,20 +60,19 @@ pub enum WeaponSpriteSlot {
 	Flash = 1,
 }
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct WeaponStateDef;
+#[derive(Clone, Debug)]
+pub struct WeaponStateDef {
+	pub current: AssetHandle<WeaponTemplate>,
+	pub inventory: HashSet<AssetHandle<WeaponTemplate>>,
+}
 
 impl SpawnFrom<WeaponStateDef> for WeaponState {
 	fn spawn(
-		_component: &WeaponStateDef,
+		component: &WeaponStateDef,
 		_accessor: ComponentAccessor,
 		resources: &Resources,
 	) -> WeaponState {
-		let (asset_storage, game_time) = <(Read<AssetStorage>, Read<GameTime>)>::fetch(resources);
-
-		let current = asset_storage
-			.handle_for::<WeaponTemplate>("pistol")
-			.unwrap();
+		let game_time = <Read<GameTime>>::fetch(resources);
 
 		WeaponState {
 			slots: [
@@ -85,8 +85,9 @@ impl SpawnFrom<WeaponStateDef> for WeaponState {
 					action: StateAction::None,
 				},
 			],
-			current,
+			current: component.current.clone(),
 			switch_to: None,
+			inventory: component.inventory.clone(),
 			inaccurate: false,
 		}
 	}
@@ -221,8 +222,15 @@ pub struct LineAttack {
 }
 
 pub fn line_attack(resources: &mut Resources) -> impl Runnable {
-	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	let (mut asset_storage, mut handler_set) =
+		<(Write<AssetStorage>, Write<SpawnMergerHandlerSet>)>::fetch_mut(resources);
 	handler_set.register_clone::<LineAttack>();
+
+	let blood1 = asset_storage.load::<EntityTemplate>("blood1.entity");
+	let blood2 = asset_storage.load::<EntityTemplate>("blood2.entity");
+	let blood3 = asset_storage.load::<EntityTemplate>("blood3.entity");
+	let puff1 = asset_storage.load::<EntityTemplate>("puff1.entity");
+	let puff3 = asset_storage.load::<EntityTemplate>("puff3.entity");
 
 	SystemBuilder::new("line_attack")
 		.read_resource::<AssetStorage>()
@@ -336,27 +344,24 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 									continue
 								}
 							};
-							let template_name = match particle {
+							let handle = match particle {
 								DamageParticle::Blood => {
 									if damage <= 9.0 {
-										"blood3"
+										&blood3
 									} else if damage <= 12.0 {
-										"blood2"
+										&blood2
 									} else {
-										"blood1"
+										&blood1
 									}
 								}
 								DamageParticle::Puff => {
 									if line_attack.sparks {
-										"puff1"
+										&puff1
 									} else {
-										"puff3"
+										&puff3
 									}
 								}
-							};
-							let handle = asset_storage
-								.handle_for(template_name)
-								.expect("Damage particle template is not present");
+							}.clone();
 
 							command_buffer.exec_mut(move |world, resources| {
 								spawn_entity(world, resources, &handle, particle_transform);
@@ -577,7 +582,7 @@ impl SpawnFrom<OwnerDef> for Owner {
 }
 
 #[derive(Clone, Debug)]
-pub struct SpawnProjectile(pub String);
+pub struct SpawnProjectile(pub AssetHandle<EntityTemplate>);
 
 pub fn spawn_projectile(resources: &mut Resources) -> impl Runnable {
 	let (mut handler_set, mut registry) =
@@ -592,18 +597,14 @@ pub fn spawn_projectile(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<AssetStorage>()
 		.with_query(<(Entity, &Entity, &SpawnProjectile)>::query())
 		.with_query(<&Transform>::query().filter(component::<WeaponState>()))
-		.build(move |command_buffer, world, resources, queries| {
-			let asset_storage = resources;
+		.build(move |command_buffer, world, _resources, queries| {
 			let (world0, world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, SpawnProjectile(template_name)) in queries.0.iter(&world0) {
+			for (&entity, &target, SpawnProjectile(projectile_handle)) in queries.0.iter(&world0) {
 				command_buffer.remove(entity);
 
 				if let Ok(&(mut transform)) = queries.1.get(&world, target) {
-					let handle = asset_storage
-						.handle_for(&template_name)
-						.expect("Invalid template name on SpawnProjectile");
-
+					let handle = projectile_handle.clone();
 					let direction = angles_to_axes(transform.rotation)[0];
 					transform.position += direction; // Start a little forward from the spawner
 					transform.position[2] += 32.0;
@@ -621,12 +622,13 @@ pub fn spawn_projectile(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct SprayAttack {
 	pub count: usize,
 	pub damage_range: Uniform<u32>,
 	pub damage_multiplier: f32,
 	pub distance: f32,
+	pub particle: AssetHandle<EntityTemplate>,
 	pub spread: Vector2<Angle>,
 }
 
@@ -717,10 +719,7 @@ pub fn spray_attack(resources: &mut Resources) -> impl Runnable {
 								particle_transform.position[2] += box_collider.height / 4.0;
 							}
 
-							// TODO make particle customisable
-							let handle = asset_storage
-								.handle_for("extrabfg")
-								.expect("Damage particle template is not present");
+							let handle = spray_attack.particle.clone();
 
 							command_buffer.exec_mut(move |world, resources| {
 								spawn_entity(world, resources, &handle, particle_transform);

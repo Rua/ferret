@@ -6,6 +6,7 @@ use crate::{
 	common::{
 		assets::AssetHandle,
 		geometry::{Angle, Interval, Line2, Line3, Plane2, Side, AABB2},
+		spawn::{ComponentAccessor, SpawnContext, SpawnFrom},
 		time::Timer,
 	},
 	doom::{
@@ -17,7 +18,7 @@ use crate::{
 };
 use bitflags::bitflags;
 use fnv::FnvHashMap;
-use legion::Entity;
+use legion::{systems::ResourceSet, Entity, Read, Resources};
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, time::Duration};
@@ -80,7 +81,7 @@ pub struct Linedef {
 	pub bbox: AABB2,
 	pub flags: LinedefFlags,
 	pub blocks_types: SolidBits,
-	pub special_type: Option<u16>,
+	pub special_type: u16,
 	pub sector_tag: u16,
 	pub sidedefs: [Option<Sidedef>; 2],
 }
@@ -111,10 +112,23 @@ pub struct SidedefDynamic {
 	pub textures: [TextureType; 3],
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct LinedefRef {
 	pub map_entity: Entity,
 	pub index: usize,
+}
+
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
+pub struct LinedefRefDef;
+
+impl SpawnFrom<LinedefRefDef> for LinedefRef {
+	fn spawn(
+		_component: &LinedefRefDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> Self {
+		<Read<SpawnContext<LinedefRef>>>::fetch(resources).0
+	}
 }
 
 #[derive(Clone, Debug)]
@@ -152,7 +166,7 @@ pub struct Sector {
 	pub interval: Interval,
 	pub textures: [TextureType; 2],
 	pub light_level: f32,
-	pub special_type: Option<u16>,
+	pub special_type: u16,
 	pub sector_tag: u16,
 	pub linedefs: Vec<usize>,
 	pub subsectors: Vec<usize>,
@@ -176,6 +190,19 @@ pub struct SectorDynamic {
 pub struct SectorRef {
 	pub map_entity: Entity,
 	pub index: usize,
+}
+
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
+pub struct SectorRefDef;
+
+impl SpawnFrom<SectorRefDef> for SectorRef {
+	fn spawn(
+		_component: &SectorRefDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> Self {
+		<Read<SpawnContext<SectorRef>>>::fetch(resources).0
+	}
 }
 
 impl Map {

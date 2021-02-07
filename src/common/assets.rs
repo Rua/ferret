@@ -110,16 +110,6 @@ impl AssetStorage {
 		storage.assets.get(&handle.id())
 	}
 
-	/// Returns an iterator that iterates over all assets of the given type.
-	#[inline]
-	pub fn iter<A: Asset>(&self) -> impl Iterator<Item = (&AssetHandle<A>, &A)> {
-		let storage = storage::<A>(&self.storages);
-		storage
-			.handles
-			.iter()
-			.map(move |handle| (handle, storage.assets.get(&handle.id()).unwrap()))
-	}
-
 	/// Returns the handle associated with the given asset name,
 	/// or `None` if it does not exist in the storage.
 	#[inline]
@@ -140,28 +130,6 @@ impl AssetStorage {
 				None
 			}
 		})
-	}
-
-	/// Inserts the given `asset` into the storage, assigning it the given `name`, and
-	/// returning a new handle for it.
-	#[inline]
-	pub fn insert<A: Asset>(&mut self, name: &str, asset: A) -> AssetHandle<A> {
-		let storage = storage_mut::<A>(&mut self.storages);
-		match storage.names.get(name) {
-			Some(_) => {
-				panic!("Asset already exists with name \"{}\"", name);
-			}
-			None => {
-				let handle = {
-					let handle = self.handle_allocator.allocate();
-					storage.assets.insert(handle.id(), asset);
-					storage.handles.push(handle.clone());
-					handle
-				};
-				storage.names.insert(name.to_owned(), handle.downgrade());
-				handle
-			}
-		}
 	}
 
 	/// Loads the asset with the given `name`, returning a new handle for it.
@@ -190,7 +158,7 @@ impl AssetStorage {
 				} else {
 					match import_result {
 						Ok(data) => {
-							log::trace!("Loaded \"{}\"", name);
+							log::trace!("Loaded \"{}\" with id {}", name, handle.id());
 							let asset = *data.downcast().ok().unwrap();
 							storage.assets.insert(handle.id(), asset);
 						}
@@ -230,7 +198,7 @@ impl AssetStorage {
 			// Build the asset
 			let asset = match data.and_then(|d| process_func(d, self)) {
 				Ok(asset) => {
-					log::trace!("Loaded \"{}\"", name);
+					log::trace!("Loaded \"{}\" with id {}", name, handle.id());
 					asset
 				}
 				Err(e) => {

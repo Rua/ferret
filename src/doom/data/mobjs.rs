@@ -21,17 +21,21 @@ use crate::{
 			weapon::{OwnerDef, ProjectileTouch, RadiusAttack, SprayAttack, WeaponStateDef},
 			EntityDef, StateName,
 		},
-		template::{EntityTemplate, EntityTemplateRefDef, EntityTypeId},
+		template::{EntityTemplate, EntityTemplateRefDef},
 	},
 };
+use arrayvec::ArrayVec;
 use legion::World;
 use nalgebra::{Vector2, Vector3};
+use once_cell::sync::Lazy;
 use std::{collections::HashMap, default::Default};
 
 #[rustfmt::skip]
-pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Thing(1)),
+pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemplate>> = Lazy::new(|| {
+	let mut mobjs: HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemplate> = HashMap::new();
+
+	mobjs.insert("spawn1.entity", |asset_storage| EntityTemplate {
+		name: Some("spawn1"),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -44,11 +48,10 @@ pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("spawn1", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Thing(2)),
+	mobjs.insert("spawn2.entity", |asset_storage| EntityTemplate {
+		name: Some("spawn2"),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -61,11 +64,10 @@ pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("spawn2", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Thing(3)),
+	mobjs.insert("spawn3.entity", |asset_storage| EntityTemplate {
+		name: Some("spawn3"),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -78,11 +80,10 @@ pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("spawn3", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Thing(4)),
+	mobjs.insert("spawn4.entity", |asset_storage| EntityTemplate {
+		name: Some("spawn4"),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -95,11 +96,10 @@ pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("spawn4", template);
+	});
 
-	let template = EntityTemplate {
-		type_id: Some(EntityTypeId::Thing(11)),
+	mobjs.insert("spawndm.entity", |asset_storage| EntityTemplate {
+		name: Some("spawndm"),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -111,12 +111,10 @@ pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("spawndm", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("player.entity", |asset_storage| EntityTemplate {
 		name: Some("player"),
-		type_id: None,
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -176,7 +174,13 @@ pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 						None,
 					],
 				},
-				WeaponStateDef,
+				WeaponStateDef {
+					current: asset_storage.load("pistol.weapon"),
+					inventory: ArrayVec::from([
+						asset_storage.load("fist.weapon"),
+						asset_storage.load("pistol.weapon"),
+					]).into_iter().collect(),
+				},
 			));
 			world
 		},
@@ -656,12 +660,10 @@ pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("player", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("possessed.entity", |asset_storage| EntityTemplate {
 		name: Some("possessed"),
-		type_id: Some(EntityTypeId::Thing(3004)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -1347,12 +1349,10 @@ pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("possessed", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("shotguy.entity", |asset_storage| EntityTemplate {
 		name: Some("shotguy"),
-		type_id: Some(EntityTypeId::Thing(9)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -2057,13411 +2057,10 @@ pub fn load_doom1sw(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("shotguy", template);
+	});
 
-	let template = EntityTemplate {
-		name: Some("smoke"),
-		type_id: None,
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::PARTICLE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("puff.sprite"),
-					frame: 1,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(5);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("puff.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("puff.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("puff.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("puff.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("puff.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("smoke", template);
-
-	let template = EntityTemplate {
-		name: Some("troop"),
-		type_id: Some(EntityTypeId::Thing(3001)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 56.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				HealthDef {
-					max: 60.0,
-					pain_chance: 0.78125,
-				},
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("troo.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(36);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("see").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 6),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 7),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("pain").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("pain").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 7,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 7,
-							full_bright: false,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dspopain.sound")),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("melee").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("melee").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 4,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("melee").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 5,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 6,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("missile").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 4,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 5,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 6,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("death").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 8,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 9,
-							full_bright: false,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsbgdth1.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 10,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 11,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 12,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("xdeath").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("xdeath").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 13,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("xdeath").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 14,
-							full_bright: false,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsslop.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("xdeath").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 15,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("xdeath").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 16,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("xdeath").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 17,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("xdeath").unwrap(), 6),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 18,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("xdeath").unwrap(), 7),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 19,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 20,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("raise").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 12,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 11,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 10,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 9,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 8,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("troop", template);
-
-	let template = EntityTemplate {
-		name: Some("sergeant"),
-		type_id: Some(EntityTypeId::Thing(3002)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 56.0,
-					radius: 30.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				HealthDef {
-					max: 150.0,
-					pain_chance: 0.703125,
-				},
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 400.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("sarg.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(27);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("see").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 6),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 7),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("pain").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("pain").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 7,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 7,
-							full_bright: false,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsdmpain.sound")),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("melee").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("melee").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 4,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("melee").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 5,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 6,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("death").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 8,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 9,
-							full_bright: false,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dssgtdth.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 10,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 11,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 12,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 13,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("raise").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 13,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 12,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 11,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 10,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 9,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 8,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("sergeant", template);
-
-	let template = EntityTemplate {
-		name: Some("shadows"),
-		type_id: Some(EntityTypeId::Thing(58)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 56.0,
-					radius: 30.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				HealthDef {
-					max: 150.0,
-					pain_chance: 0.703125,
-				},
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 400.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("sarg.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(27);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("see").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 6),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 7),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("pain").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("pain").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 7,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 7,
-							full_bright: false,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsdmpain.sound")),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("melee").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("melee").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 4,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("melee").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 5,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 6,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("death").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 8,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 9,
-							full_bright: false,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dssgtdth.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 10,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 11,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 12,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 13,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("raise").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 13,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 12,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 11,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 10,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 9,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 8,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("shadows", template);
-
-	let template = EntityTemplate {
-		name: Some("bruiser"),
-		type_id: Some(EntityTypeId::Thing(3003)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 64.0,
-					radius: 24.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				HealthDef {
-					max: 1000.0,
-					pain_chance: 0.1953125,
-				},
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 1000.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("boss.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(32);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("see").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 6),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 7),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("pain").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("pain").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 7,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 2 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 7,
-							full_bright: false,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsdmpain.sound")),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("melee").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("melee").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 4,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("melee").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 5,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 6,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("missile").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 4,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 5,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 6,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("death").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 8,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 9,
-							full_bright: false,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsbrsdth.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 10,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 11,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 12,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 6),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 13,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 14,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("raise").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 14,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 13,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 12,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 11,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 10,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 6),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 9,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("boss.sprite"),
-							frame: 8,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("bruiser", template);
-
-	let template = EntityTemplate {
-		name: Some("bruisershot"),
-		type_id: None,
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 8.0,
-					radius: 6.0,
-					solid_type: SolidType::PROJECTILE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				OwnerDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 15.0 * FRAME_RATE,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("bal7.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				Touchable,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(6);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 0 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal7.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsfirsht.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal7.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal7.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("death").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextStateRandomTimeDef {
-							time: (FRAME_TIME..6 * FRAME_TIME).into(),
-							state: (StateName::from("death").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal7.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						SetSolidType(SolidType::PARTICLE),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsfirxpl.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal7.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal7.sprite"),
-							frame: 4,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		touch: {
-			let mut world = World::default();
-			world.push((
-				TouchEventDef,
-				ProjectileTouch {
-					damage_range: (1..=8).into(),
-					damage_multiplier: 8.0,
-				},
-			));
-			world
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("bruisershot", template);
-
-	let template = EntityTemplate {
-		name: Some("barrel"),
-		type_id: Some(EntityTypeId::Thing(2035)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 42.0,
-					radius: 10.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Puff,
-				},
-				EntityTemplateRefDef,
-				HealthDef {
-					max: 20.0,
-					pain_chance: 0.0,
-				},
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("bar1.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(7);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bar1.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bar1.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("death").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bexp.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bexp.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsbarexp.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bexp.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						RadiusAttack {
-							damage: 128.0,
-							radius: 128.0,
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bexp.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bexp.sprite"),
-							frame: 4,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("barrel", template);
-
-	let template = EntityTemplate {
-		name: Some("troopshot"),
-		type_id: None,
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 8.0,
-					radius: 6.0,
-					solid_type: SolidType::PROJECTILE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				OwnerDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 10.0 * FRAME_RATE,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("bal1.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				Touchable,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(6);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 0 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal1.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsfirsht.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal1.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal1.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("death").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextStateRandomTimeDef {
-							time: (FRAME_TIME..6 * FRAME_TIME).into(),
-							state: (StateName::from("death").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal1.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						SetSolidType(SolidType::PARTICLE),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsfirxpl.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal1.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal1.sprite"),
-							frame: 4,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		touch: {
-			let mut world = World::default();
-			world.push((
-				TouchEventDef,
-				ProjectileTouch {
-					damage_range: (1..=8).into(),
-					damage_multiplier: 3.0,
-				},
-			));
-			world
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("troopshot", template);
-
-	let template = EntityTemplate {
-		name: Some("headshot"),
-		type_id: None,
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 8.0,
-					radius: 6.0,
-					solid_type: SolidType::PROJECTILE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				OwnerDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 10.0 * FRAME_RATE,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("bal2.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				Touchable,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(6);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 0 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal2.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsfirsht.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal2.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal2.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("death").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextStateRandomTimeDef {
-							time: (FRAME_TIME..6 * FRAME_TIME).into(),
-							state: (StateName::from("death").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal2.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						SetSolidType(SolidType::PARTICLE),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsfirxpl.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal2.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bal2.sprite"),
-							frame: 4,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		touch: {
-			let mut world = World::default();
-			world.push((
-				TouchEventDef,
-				ProjectileTouch {
-					damage_range: (1..=8).into(),
-					damage_multiplier: 5.0,
-				},
-			));
-			world
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("headshot", template);
-
-	let template = EntityTemplate {
-		name: Some("rocket"),
-		type_id: None,
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 8.0,
-					radius: 11.0,
-					solid_type: SolidType::PROJECTILE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				OwnerDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 20.0 * FRAME_RATE,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("misl.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				Touchable,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(5);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 0 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("misl.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsrlaunc.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 1 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("misl.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("death").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextStateRandomTimeDef {
-							time: (FRAME_TIME..8 * FRAME_TIME).into(),
-							state: (StateName::from("death").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						RadiusAttack {
-							damage: 128.0,
-							radius: 128.0,
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("misl.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						SetSolidType(SolidType::PARTICLE),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsbarexp.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("misl.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("misl.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		touch: {
-			let mut world = World::default();
-			world.push((
-				TouchEventDef,
-				ProjectileTouch {
-					damage_range: (1..=8).into(),
-					damage_multiplier: 20.0,
-				},
-			));
-			world
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("rocket", template);
-
-	let template = EntityTemplate {
-		name: Some("arachplaz"),
-		type_id: None,
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 8.0,
-					radius: 13.0,
-					solid_type: SolidType::PROJECTILE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				OwnerDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 25.0 * FRAME_RATE,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("apls.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				Touchable,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(8);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 0 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("apls.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsplasma.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("apls.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("apls.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("death").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextStateRandomTimeDef {
-							time: (FRAME_TIME..5 * FRAME_TIME).into(),
-							state: (StateName::from("death").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("apbx.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						SetSolidType(SolidType::PARTICLE),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsfirxpl.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("apbx.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("apbx.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("apbx.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("apbx.sprite"),
-							frame: 4,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		touch: {
-			let mut world = World::default();
-			world.push((
-				TouchEventDef,
-				ProjectileTouch {
-					damage_range: (1..=8).into(),
-					damage_multiplier: 5.0,
-				},
-			));
-			world
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("arachplaz", template);
-
-	let template = EntityTemplate {
-		name: Some("puff1"),
-		type_id: None,
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::PARTICLE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("puff.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(4);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("puff.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("puff.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("puff.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("puff.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("puff1", template);
-
-	let template = EntityTemplate {
-		name: Some("puff3"),
-		type_id: None,
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::PARTICLE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("puff.sprite"),
-					frame: 2,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(2);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("puff.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("puff.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("puff3", template);
-
-	let template = EntityTemplate {
-		name: Some("blood1"),
-		type_id: None,
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::PARTICLE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				Physics {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					velocity: Vector3::new(0.0, 0.0, 2.0 * FRAME_RATE),
-				},
-				SpriteRender {
-					sprite: asset_storage.load("blud.sprite"),
-					frame: 2,
-					full_bright: false,
-				},
-				StateDef,
-				RandomTransformDef([(0.0..=0.0).into(), (0.0..=0.0).into(), (-4.0..=4.0).into()]),
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(3);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextStateRandomTimeDef {
-							time: (FRAME_TIME..8 * FRAME_TIME).into(),
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("blud.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("blud.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("blud.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("blood1", template);
-
-	let template = EntityTemplate {
-		name: Some("blood2"),
-		type_id: None,
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::PARTICLE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				Physics {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					velocity: Vector3::new(0.0, 0.0, 2.0 * FRAME_RATE),
-				},
-				SpriteRender {
-					sprite: asset_storage.load("blud.sprite"),
-					frame: 1,
-					full_bright: false,
-				},
-				StateDef,
-				RandomTransformDef([(0.0..=0.0).into(), (0.0..=0.0).into(), (-4.0..=4.0).into()]),
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(2);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("blud.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("blud.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("blood2", template);
-
-	let template = EntityTemplate {
-		name: Some("blood3"),
-		type_id: None,
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::PARTICLE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				Physics {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					velocity: Vector3::new(0.0, 0.0, 2.0 * FRAME_RATE),
-				},
-				SpriteRender {
-					sprite: asset_storage.load("blud.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				RandomTransformDef([(0.0..=0.0).into(), (0.0..=0.0).into(), (-4.0..=4.0).into()]),
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("blud.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("blood3", template);
-
-	let template = EntityTemplate {
-		name: Some("tfog"),
-		type_id: None,
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::PARTICLE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("tfog.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(12);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tfog.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tfog.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tfog.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tfog.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tfog.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 6),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tfog.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 7),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tfog.sprite"),
-							frame: 4,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 8),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tfog.sprite"),
-							frame: 5,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 9),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tfog.sprite"),
-							frame: 6,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 10),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tfog.sprite"),
-							frame: 7,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 11),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tfog.sprite"),
-							frame: 8,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 12),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tfog.sprite"),
-							frame: 9,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("tfog", template);
-
-	let template = EntityTemplate {
-		name: Some("ifog"),
-		type_id: None,
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::PARTICLE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("ifog.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(7);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("ifog.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("ifog.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("ifog.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("ifog.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("ifog.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 6),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("ifog.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 7),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("ifog.sprite"),
-							frame: 4,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("ifog", template);
-
-	let template = EntityTemplate {
-		name: Some("teleportman"),
-		type_id: Some(EntityTypeId::Thing(14)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::PARTICLE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("teleportman", template);
-
-	let template = EntityTemplate {
-		name: Some("misc0"),
-		type_id: Some(EntityTypeId::Thing(2018)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("arm1.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(2);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("arm1.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 7 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("arm1.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc0", template);
-
-	let template = EntityTemplate {
-		name: Some("misc1"),
-		type_id: Some(EntityTypeId::Thing(2019)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("arm2.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(2);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("arm2.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("arm2.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc1", template);
-
-	let template = EntityTemplate {
-		name: Some("misc2"),
-		type_id: Some(EntityTypeId::Thing(2014)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("bon1.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(6);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bon1.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bon1.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bon1.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bon1.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bon1.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bon1.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc2", template);
-
-	let template = EntityTemplate {
-		name: Some("misc3"),
-		type_id: Some(EntityTypeId::Thing(2015)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("bon2.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(6);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bon2.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bon2.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bon2.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bon2.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bon2.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bon2.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc3", template);
-
-	let template = EntityTemplate {
-		name: Some("misc4"),
-		type_id: Some(EntityTypeId::Thing(5)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("bkey.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(2);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bkey.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bkey.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc4", template);
-
-	let template = EntityTemplate {
-		name: Some("misc5"),
-		type_id: Some(EntityTypeId::Thing(13)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("rkey.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(2);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("rkey.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("rkey.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc5", template);
-
-	let template = EntityTemplate {
-		name: Some("misc6"),
-		type_id: Some(EntityTypeId::Thing(6)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("ykey.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(2);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("ykey.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("ykey.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc6", template);
-
-	let template = EntityTemplate {
-		name: Some("misc10"),
-		type_id: Some(EntityTypeId::Thing(2011)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("stim.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("stim.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc10", template);
-
-	let template = EntityTemplate {
-		name: Some("misc11"),
-		type_id: Some(EntityTypeId::Thing(2012)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("medi.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("medi.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc11", template);
-
-	let template = EntityTemplate {
-		name: Some("misc12"),
-		type_id: Some(EntityTypeId::Thing(2013)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("soul.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(6);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("soul.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("soul.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("soul.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("soul.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("soul.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("soul.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc12", template);
-
-	let template = EntityTemplate {
-		name: Some("ins"),
-		type_id: Some(EntityTypeId::Thing(2024)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("pins.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(4);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pins.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pins.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pins.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pins.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("ins", template);
-
-	let template = EntityTemplate {
-		name: Some("misc14"),
-		type_id: Some(EntityTypeId::Thing(2025)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("suit.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("suit.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc14", template);
-
-	let template = EntityTemplate {
-		name: Some("misc15"),
-		type_id: Some(EntityTypeId::Thing(2026)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("pmap.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(6);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pmap.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pmap.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pmap.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pmap.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pmap.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pmap.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc15", template);
-
-	let template = EntityTemplate {
-		name: Some("misc16"),
-		type_id: Some(EntityTypeId::Thing(2045)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("pvis.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(2);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pvis.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pvis.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc16", template);
-
-	let template = EntityTemplate {
-		name: Some("clip"),
-		type_id: Some(EntityTypeId::Thing(2007)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("clip.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("clip.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("clip", template);
-
-	let template = EntityTemplate {
-		name: Some("misc17"),
-		type_id: Some(EntityTypeId::Thing(2048)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("ammo.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("ammo.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc17", template);
-
-	let template = EntityTemplate {
-		name: Some("misc18"),
-		type_id: Some(EntityTypeId::Thing(2010)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("rock.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("rock.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc18", template);
-
-	let template = EntityTemplate {
-		name: Some("misc19"),
-		type_id: Some(EntityTypeId::Thing(2046)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("brok.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("brok.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc19", template);
-
-	let template = EntityTemplate {
-		name: Some("misc22"),
-		type_id: Some(EntityTypeId::Thing(2008)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("shel.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("shel.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc22", template);
-
-	let template = EntityTemplate {
-		name: Some("misc23"),
-		type_id: Some(EntityTypeId::Thing(2049)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("sbox.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sbox.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc23", template);
-
-	let template = EntityTemplate {
-		name: Some("misc24"),
-		type_id: Some(EntityTypeId::Thing(8)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("bpak.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bpak.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc24", template);
-
-	let template = EntityTemplate {
-		name: Some("chaingun"),
-		type_id: Some(EntityTypeId::Thing(2002)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("mgun.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("mgun.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("chaingun", template);
-
-	let template = EntityTemplate {
-		name: Some("misc26"),
-		type_id: Some(EntityTypeId::Thing(2005)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("csaw.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("csaw.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc26", template);
-
-	let template = EntityTemplate {
-		name: Some("misc27"),
-		type_id: Some(EntityTypeId::Thing(2003)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("laun.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("laun.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc27", template);
-
-	let template = EntityTemplate {
-		name: Some("shotgun"),
-		type_id: Some(EntityTypeId::Thing(2001)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("shot.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("shot.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("shotgun", template);
-
-	let template = EntityTemplate {
-		name: Some("misc31"),
-		type_id: Some(EntityTypeId::Thing(2028)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("colu.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("colu.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc31", template);
-
-	let template = EntityTemplate {
-		name: Some("misc43"),
-		type_id: Some(EntityTypeId::Thing(46)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("tred.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(4);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tred.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tred.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tred.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tred.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc43", template);
-
-	let template = EntityTemplate {
-		name: Some("misc48"),
-		type_id: Some(EntityTypeId::Thing(48)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("elec.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("elec.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc48", template);
-
-	let template = EntityTemplate {
-		name: Some("misc49"),
-		type_id: Some(EntityTypeId::Thing(34)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("cand.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cand.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc49", template);
-
-	let template = EntityTemplate {
-		name: Some("misc50"),
-		type_id: Some(EntityTypeId::Thing(35)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("cbra.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cbra.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc50", template);
-
-	let template = EntityTemplate {
-		name: Some("misc62"),
-		type_id: Some(EntityTypeId::Thing(15)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("play.sprite"),
-					frame: 13,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("play.sprite"),
-							frame: 13,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc62", template);
-
-	let template = EntityTemplate {
-		name: Some("misc63"),
-		type_id: Some(EntityTypeId::Thing(18)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("poss.sprite"),
-					frame: 11,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("poss.sprite"),
-							frame: 11,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc63", template);
-
-	let template = EntityTemplate {
-		name: Some("misc64"),
-		type_id: Some(EntityTypeId::Thing(21)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("sarg.sprite"),
-					frame: 13,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("sarg.sprite"),
-							frame: 13,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc64", template);
-
-	let template = EntityTemplate {
-		name: Some("misc66"),
-		type_id: Some(EntityTypeId::Thing(20)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("troo.sprite"),
-					frame: 12,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("troo.sprite"),
-							frame: 12,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc66", template);
-
-	let template = EntityTemplate {
-		name: Some("misc67"),
-		type_id: Some(EntityTypeId::Thing(19)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("spos.sprite"),
-					frame: 11,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spos.sprite"),
-							frame: 11,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc67", template);
-
-	let template = EntityTemplate {
-		name: Some("misc68"),
-		type_id: Some(EntityTypeId::Thing(10)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("play.sprite"),
-					frame: 22,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("play.sprite"),
-							frame: 22,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc68", template);
-
-	let template = EntityTemplate {
-		name: Some("misc69"),
-		type_id: Some(EntityTypeId::Thing(12)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("play.sprite"),
-					frame: 22,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("play.sprite"),
-							frame: 22,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc69", template);
-
-	let template = EntityTemplate {
-		name: Some("misc71"),
-		type_id: Some(EntityTypeId::Thing(24)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("pol5.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pol5.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc71", template);
-}
-
-#[rustfmt::skip]
-pub fn load_doom1(asset_storage: &mut AssetStorage) {
-	let template = EntityTemplate {
-		name: Some("head"),
-		type_id: Some(EntityTypeId::Thing(3005)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 56.0,
-					radius: 31.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				HealthDef {
-					max: 400.0,
-					pain_chance: 0.5,
-				},
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 400.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("head.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(20);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("see").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("pain").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("pain").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 4,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("pain").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 4,
-							full_bright: false,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsdmpain.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 5,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("missile").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 5 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("death").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 6,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 7,
-							full_bright: false,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dscacdth.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 8,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 9,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 10,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 11,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("raise").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 11,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 10,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 9,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 8,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("raise").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 7,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 6,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("head", template);
-
-	let template = EntityTemplate {
-		name: Some("skull"),
-		type_id: Some(EntityTypeId::Thing(3006)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 56.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				HealthDef {
-					max: 100.0,
-					pain_chance: 1.0,
-				},
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 50.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("skul.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(16);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("see").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("pain").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("pain").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 4,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 4,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsdmpain.sound")),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("missile").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("death").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 5,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 6,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsfirxpl.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 7,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 8,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 9,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 6),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 10,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("skull", template);
-
-	let template = EntityTemplate {
-		name: Some("spider"),
-		type_id: Some(EntityTypeId::Thing(7)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 100.0,
-					radius: 128.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				HealthDef {
-					max: 3000.0,
-					pain_chance: 0.15625,
-				},
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 1000.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("spid.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(31);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("see").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 6),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 7),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 8),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 9),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 4,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 10),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 4,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 11),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 5,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 5,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("pain").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("pain").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 8,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 8,
-							full_bright: false,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsdmpain.sound")),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("missile").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 20 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 6,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 7,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 1 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 7,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("death").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 20 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 9,
-							full_bright: false,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsspidth.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 10,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 11,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 12,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 13,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 6),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 14,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 7),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 15,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 8),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 16,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 9),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 17,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 30 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 10),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 18,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("spid.sprite"),
-							frame: 18,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("spider", template);
-
-	let template = EntityTemplate {
-		name: Some("cyborg"),
-		type_id: Some(EntityTypeId::Thing(16)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 110.0,
-					radius: 40.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				HealthDef {
-					max: 4000.0,
-					pain_chance: 0.078125,
-				},
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 1000.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("cybr.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(27);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("see").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 6),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 7),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 3 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 3,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("pain").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 6,
-							full_bright: false,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsdmpain.sound")),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("missile").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 4,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 12 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 5,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 12 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 4,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 12 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 5,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 12 * FRAME_TIME,
-							state: (StateName::from("missile").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 4,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 12 * FRAME_TIME,
-							state: (StateName::from("see").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 5,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("death").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 7,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 8,
-							full_bright: false,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dscybdth.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 9,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 10,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 11,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 6),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetBlocksTypes(SolidBits::empty()),
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 12,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 7),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 13,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 8),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 14,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 30 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 9),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 15,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cybr.sprite"),
-							frame: 15,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("cyborg", template);
-
-	let template = EntityTemplate {
-		name: Some("plasma"),
-		type_id: None,
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 8.0,
-					radius: 13.0,
-					solid_type: SolidType::PROJECTILE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				OwnerDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 25.0 * FRAME_RATE,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("plss.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				Touchable,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(8);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 0 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("plss.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsplasma.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("plss.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("plss.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("death").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextStateRandomTimeDef {
-							time: (FRAME_TIME..4 * FRAME_TIME).into(),
-							state: (StateName::from("death").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("plse.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						SetSolidType(SolidType::PARTICLE),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsfirxpl.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("plse.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("plse.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("plse.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("plse.sprite"),
-							frame: 4,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		touch: {
-			let mut world = World::default();
-			world.push((
-				TouchEventDef,
-				ProjectileTouch {
-					damage_range: (1..=8).into(),
-					damage_multiplier: 5.0,
-				},
-			));
-			world
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("plasma", template);
-
-	let template = EntityTemplate {
-		name: Some("bfg"),
-		type_id: None,
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 8.0,
-					radius: 13.0,
-					solid_type: SolidType::PROJECTILE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				OwnerDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 25.0 * FRAME_RATE,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("bfs1.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				Touchable,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(8);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bfs1.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bfs1.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states.insert(StateName::from("death").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextStateRandomTimeDef {
-							time: (FRAME_TIME..8 * FRAME_TIME).into(),
-							state: (StateName::from("death").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bfe1.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						SetSolidType(SolidType::PARTICLE),
-					));
-					world.push((
-						EntityDef,
-						StartSound(asset_storage.load("dsrxplod.sound")),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bfe1.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bfe1.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world.push((
-						EntityDef,
-						SprayAttack {
-							count: 40,
-							damage_range: (15..=120).into(),
-							damage_multiplier: 1.0,
-							distance: 1024.0,
-							spread: Vector2::new(
-								Angle::from_units(1.0 / 8.0),
-								Angle::from_units(1.0 / 10.0),
-							),
-						},
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bfe1.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 5),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bfe1.sprite"),
-							frame: 4,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("death").unwrap(), 6),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bfe1.sprite"),
-							frame: 5,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		touch: {
-			let mut world = World::default();
-			world.push((
-				TouchEventDef,
-				ProjectileTouch {
-					damage_range: (1..=8).into(),
-					damage_multiplier: 100.0,
-				},
-			));
-			world
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("bfg", template);
-
-	let template = EntityTemplate {
-		name: Some("extrabfg"),
-		type_id: None,
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::PARTICLE,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("bfe2.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(4);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bfe2.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bfe2.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bfe2.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 4),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bfe2.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("extrabfg", template);
-
-	let template = EntityTemplate {
-		name: Some("misc7"),
-		type_id: Some(EntityTypeId::Thing(39)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("ysku.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(2);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("ysku.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("ysku.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc7", template);
-
-	let template = EntityTemplate {
-		name: Some("misc8"),
-		type_id: Some(EntityTypeId::Thing(38)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("rsku.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(2);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("rsku.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("rsku.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc8", template);
-
-	let template = EntityTemplate {
-		name: Some("misc9"),
-		type_id: Some(EntityTypeId::Thing(40)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("bsku.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(2);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bsku.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bsku.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc9", template);
-
-	let template = EntityTemplate {
-		name: Some("inv"),
-		type_id: Some(EntityTypeId::Thing(2022)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("pinv.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(4);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pinv.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pinv.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pinv.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pinv.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("inv", template);
-
-	let template = EntityTemplate {
-		name: Some("misc13"),
-		type_id: Some(EntityTypeId::Thing(2023)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("pstr.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pstr.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc13", template);
-
-	let template = EntityTemplate {
-		name: Some("misc20"),
-		type_id: Some(EntityTypeId::Thing(2047)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("cell.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("cell.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc20", template);
-
-	let template = EntityTemplate {
-		name: Some("misc21"),
-		type_id: Some(EntityTypeId::Thing(17)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("celp.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("celp.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc21", template);
-
-	let template = EntityTemplate {
-		name: Some("misc25"),
-		type_id: Some(EntityTypeId::Thing(2006)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("bfug.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("bfug.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc25", template);
-
-	let template = EntityTemplate {
-		name: Some("misc28"),
-		type_id: Some(EntityTypeId::Thing(2004)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("plas.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("plas.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc28", template);
-
-	let template = EntityTemplate {
-		name: Some("misc32"),
-		type_id: Some(EntityTypeId::Thing(30)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("col1.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("col1.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc32", template);
-
-	let template = EntityTemplate {
-		name: Some("misc33"),
-		type_id: Some(EntityTypeId::Thing(31)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("col2.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("col2.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc33", template);
-
-	let template = EntityTemplate {
-		name: Some("misc34"),
-		type_id: Some(EntityTypeId::Thing(32)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("col3.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("col3.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc34", template);
-
-	let template = EntityTemplate {
-		name: Some("misc35"),
-		type_id: Some(EntityTypeId::Thing(33)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("col4.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("col4.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc35", template);
-
-	let template = EntityTemplate {
-		name: Some("misc36"),
-		type_id: Some(EntityTypeId::Thing(37)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("col6.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("col6.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc36", template);
-
-	let template = EntityTemplate {
-		name: Some("misc37"),
-		type_id: Some(EntityTypeId::Thing(36)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("col5.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(2);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 14 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("col5.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 14 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("col5.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc37", template);
-
-	let template = EntityTemplate {
-		name: Some("misc38"),
-		type_id: Some(EntityTypeId::Thing(41)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("ceye.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(4);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("ceye.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("ceye.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("ceye.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("ceye.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc38", template);
-
-	let template = EntityTemplate {
-		name: Some("misc39"),
-		type_id: Some(EntityTypeId::Thing(42)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("fsku.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(3);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("fsku.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("fsku.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("fsku.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc39", template);
-
-	let template = EntityTemplate {
-		name: Some("misc40"),
-		type_id: Some(EntityTypeId::Thing(43)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("tre1.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tre1.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc40", template);
-
-	let template = EntityTemplate {
-		name: Some("misc41"),
-		type_id: Some(EntityTypeId::Thing(44)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("tblu.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(4);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tblu.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tblu.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tblu.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tblu.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc41", template);
-
-	let template = EntityTemplate {
-		name: Some("misc42"),
-		type_id: Some(EntityTypeId::Thing(45)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("tgrn.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(4);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tgrn.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tgrn.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tgrn.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tgrn.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc42", template);
-
-	let template = EntityTemplate {
-		name: Some("misc44"),
-		type_id: Some(EntityTypeId::Thing(55)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("smbt.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(4);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("smbt.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("smbt.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("smbt.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("smbt.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc44", template);
-
-	let template = EntityTemplate {
-		name: Some("misc45"),
-		type_id: Some(EntityTypeId::Thing(56)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("smgt.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(4);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("smgt.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("smgt.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("smgt.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("smgt.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc45", template);
-
-	let template = EntityTemplate {
-		name: Some("misc46"),
-		type_id: Some(EntityTypeId::Thing(57)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("smrt.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(4);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("smrt.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("smrt.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("smrt.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("smrt.sprite"),
-							frame: 3,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc46", template);
-
-	let template = EntityTemplate {
-		name: Some("misc47"),
-		type_id: Some(EntityTypeId::Thing(47)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("smit.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("smit.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc47", template);
-
-	let template = EntityTemplate {
-		name: Some("misc51"),
-		type_id: Some(EntityTypeId::Thing(49)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 68.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("gor1.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: true,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(4);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("gor1.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 15 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("gor1.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("gor1.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("gor1.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc51", template);
-
-	let template = EntityTemplate {
-		name: Some("misc52"),
-		type_id: Some(EntityTypeId::Thing(50)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 84.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("gor2.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: true,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("gor2.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc52", template);
-
-	let template = EntityTemplate {
-		name: Some("misc53"),
-		type_id: Some(EntityTypeId::Thing(51)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 84.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("gor3.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: true,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("gor3.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc53", template);
-
-	let template = EntityTemplate {
-		name: Some("misc54"),
-		type_id: Some(EntityTypeId::Thing(52)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 68.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("gor4.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: true,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("gor4.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc54", template);
-
-	let template = EntityTemplate {
-		name: Some("misc55"),
-		type_id: Some(EntityTypeId::Thing(53)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 52.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("gor5.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: true,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("gor5.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc55", template);
-
-	let template = EntityTemplate {
-		name: Some("misc56"),
-		type_id: Some(EntityTypeId::Thing(59)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 84.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("gor2.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: true,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("gor2.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc56", template);
-
-	let template = EntityTemplate {
-		name: Some("misc57"),
-		type_id: Some(EntityTypeId::Thing(60)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 68.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("gor4.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: true,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("gor4.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc57", template);
-
-	let template = EntityTemplate {
-		name: Some("misc58"),
-		type_id: Some(EntityTypeId::Thing(61)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 52.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("gor3.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: true,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("gor3.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc58", template);
-
-	let template = EntityTemplate {
-		name: Some("misc59"),
-		type_id: Some(EntityTypeId::Thing(62)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 52.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("gor5.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: true,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("gor5.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc59", template);
-
-	let template = EntityTemplate {
-		name: Some("misc60"),
-		type_id: Some(EntityTypeId::Thing(63)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 68.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: false,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("gor1.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: true,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(4);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 10 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("gor1.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 15 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("gor1.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 3),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("gor1.sprite"),
-							frame: 2,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("gor1.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc60", template);
-
-	let template = EntityTemplate {
-		name: Some("misc61"),
-		type_id: Some(EntityTypeId::Thing(22)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("head.sprite"),
-					frame: 11,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("head.sprite"),
-							frame: 11,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc61", template);
-
-	let template = EntityTemplate {
-		name: Some("misc65"),
-		type_id: Some(EntityTypeId::Thing(23)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 20.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::empty(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("skul.sprite"),
-					frame: 10,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("skul.sprite"),
-							frame: 10,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						RemoveEntity,
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc65", template);
-
-	let template = EntityTemplate {
-		name: Some("misc70"),
-		type_id: Some(EntityTypeId::Thing(28)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("pol2.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pol2.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc70", template);
-
-	let template = EntityTemplate {
-		name: Some("misc72"),
-		type_id: Some(EntityTypeId::Thing(27)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("pol4.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pol4.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc72", template);
-
-	let template = EntityTemplate {
-		name: Some("misc73"),
-		type_id: Some(EntityTypeId::Thing(29)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("pol3.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(2);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pol3.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pol3.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc73", template);
-
-	let template = EntityTemplate {
-		name: Some("misc74"),
-		type_id: Some(EntityTypeId::Thing(25)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("pol1.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pol1.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc74", template);
-
-	let template = EntityTemplate {
-		name: Some("misc75"),
-		type_id: Some(EntityTypeId::Thing(26)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("pol6.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(2);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 6 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pol6.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 8 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("pol6.sprite"),
-							frame: 1,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc75", template);
-
-	let template = EntityTemplate {
-		name: Some("misc76"),
-		type_id: Some(EntityTypeId::Thing(54)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 32.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("tre2.sprite"),
-					frame: 0,
-					full_bright: false,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(1);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("tre2.sprite"),
-							frame: 0,
-							full_bright: false,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc76", template);
-
-	let template = EntityTemplate {
-		name: Some("misc77"),
-		type_id: Some(EntityTypeId::Thing(70)),
-		world: {
-			let mut world = World::default();
-			world.push((
-				BoxCollider {
-					height: 16.0,
-					radius: 16.0,
-					solid_type: SolidType::MONSTER,
-					blocks_types: SolidBits::all(),
-					damage_particle: DamageParticle::Blood,
-				},
-				EntityTemplateRefDef,
-				PhysicsDef {
-					collision_response: CollisionResponse::Stop,
-					gravity: true,
-					mass: 100.0,
-					speed: 0.0,
-				},
-				SpriteRender {
-					sprite: asset_storage.load("fcan.sprite"),
-					frame: 0,
-					full_bright: true,
-				},
-				StateDef,
-				TransformDef {
-					spawn_on_ceiling: false,
-				},
-			));
-			world
-		},
-		states: {
-			let mut states = HashMap::with_capacity(3);
-			states.insert(StateName::from("spawn").unwrap(), vec![
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 1),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("fcan.sprite"),
-							frame: 0,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 2),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("fcan.sprite"),
-							frame: 1,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-				{
-					let mut world = World::default();
-					world.push((
-						EntityDef,
-						NextState {
-							time: 4 * FRAME_TIME,
-							state: (StateName::from("spawn").unwrap(), 0),
-						},
-					));
-					world.push((
-						EntityDef,
-						SetEntitySprite(SpriteRender {
-							sprite: asset_storage.load("fcan.sprite"),
-							frame: 2,
-							full_bright: true,
-						}),
-					));
-					world
-				},
-			]);
-			states
-		},
-		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc77", template);
-}
-
-#[rustfmt::skip]
-pub fn load_doom2(asset_storage: &mut AssetStorage) {
-	let template = EntityTemplate {
+	mobjs.insert("vile.entity", |asset_storage| EntityTemplate {
 		name: Some("vile"),
-		type_id: Some(EntityTypeId::Thing(64)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -16218,12 +2817,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("vile", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("fire.entity", |asset_storage| EntityTemplate {
 		name: Some("fire"),
-		type_id: None,
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -16838,12 +3435,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("fire", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("undead.entity", |asset_storage| EntityTemplate {
 		name: Some("undead"),
-		type_id: Some(EntityTypeId::Thing(66)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -17585,12 +4180,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("undead", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("tracer.entity", |asset_storage| EntityTemplate {
 		name: Some("tracer"),
-		type_id: None,
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -17776,12 +4369,153 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("tracer", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("smoke.entity", |asset_storage| EntityTemplate {
+		name: Some("smoke"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("puff.sprite"),
+					frame: 1,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(5);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("fatso.entity", |asset_storage| EntityTemplate {
 		name: Some("fatso"),
-		type_id: Some(EntityTypeId::Thing(67)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -18673,12 +5407,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("fatso", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("fatshot.entity", |asset_storage| EntityTemplate {
 		name: Some("fatshot"),
-		type_id: None,
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -18864,12 +5596,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("fatshot", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("chainguy.entity", |asset_storage| EntityTemplate {
 		name: Some("chainguy"),
-		type_id: Some(EntityTypeId::Thing(65)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -19612,12 +6342,3199 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("chainguy", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("troop.entity", |asset_storage| EntityTemplate {
+		name: Some("troop"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				HealthDef {
+					max: 60.0,
+					pain_chance: 0.78125,
+				},
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("troo.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(36);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("see").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 6),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 7),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("pain").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("pain").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dspopain.sound")),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("melee").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("melee").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("melee").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("missile").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("death").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsbgdth1.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("xdeath").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("xdeath").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("xdeath").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsslop.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("xdeath").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("xdeath").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 16,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("xdeath").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 17,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("xdeath").unwrap(), 6),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 18,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("xdeath").unwrap(), 7),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 19,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 20,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("raise").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("sergeant.entity", |asset_storage| EntityTemplate {
+		name: Some("sergeant"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 30.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				HealthDef {
+					max: 150.0,
+					pain_chance: 0.703125,
+				},
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 400.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("sarg.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(27);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("see").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 6),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 7),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("pain").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("pain").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsdmpain.sound")),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("melee").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("melee").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("melee").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("death").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dssgtdth.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("raise").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("shadows.entity", |asset_storage| EntityTemplate {
+		name: Some("shadows"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 30.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				HealthDef {
+					max: 150.0,
+					pain_chance: 0.703125,
+				},
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 400.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("sarg.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(27);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("see").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 6),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 7),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("pain").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("pain").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsdmpain.sound")),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("melee").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("melee").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("melee").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("death").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dssgtdth.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("raise").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("head.entity", |asset_storage| EntityTemplate {
+		name: Some("head"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 31.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				HealthDef {
+					max: 400.0,
+					pain_chance: 0.5,
+				},
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 400.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("head.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(20);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("see").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("pain").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("pain").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("pain").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsdmpain.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("missile").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("death").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dscacdth.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("raise").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("bruiser.entity", |asset_storage| EntityTemplate {
+		name: Some("bruiser"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 64.0,
+					radius: 24.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				HealthDef {
+					max: 1000.0,
+					pain_chance: 0.1953125,
+				},
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 1000.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("boss.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(32);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("see").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 6),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 7),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("pain").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("pain").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 2 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsdmpain.sound")),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("melee").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("melee").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("melee").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("missile").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("death").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsbrsdth.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 6),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("raise").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("raise").unwrap(), 6),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("boss.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("bruisershot.entity", |asset_storage| EntityTemplate {
+		name: Some("bruisershot"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 8.0,
+					radius: 6.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				OwnerDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 15.0 * FRAME_RATE,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bal7.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				Touchable,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(6);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 0 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal7.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirsht.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal7.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal7.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("death").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..6 * FRAME_TIME).into(),
+							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal7.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						SetSolidType(SolidType::PARTICLE),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirxpl.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal7.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal7.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 8.0,
+				},
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("knight.entity", |asset_storage| EntityTemplate {
 		name: Some("knight"),
-		type_id: Some(EntityTypeId::Thing(69)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -20283,12 +10200,1032 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("knight", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("skull.entity", |asset_storage| EntityTemplate {
+		name: Some("skull"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 56.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				HealthDef {
+					max: 100.0,
+					pain_chance: 1.0,
+				},
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 50.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("skul.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(16);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("see").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("pain").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("pain").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsdmpain.sound")),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("missile").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("death").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 5,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 6,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirxpl.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 8,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 6),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("spider.entity", |asset_storage| EntityTemplate {
+		name: Some("spider"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 100.0,
+					radius: 128.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				HealthDef {
+					max: 3000.0,
+					pain_chance: 0.15625,
+				},
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 1000.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("spid.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(31);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("see").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 6),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 7),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 8),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 9),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 10),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 11),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("pain").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("pain").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsdmpain.sound")),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("missile").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 20 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 6,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 1 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("death").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 20 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsspidth.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 6),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 7),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 8),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 16,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 9),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 17,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 30 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 10),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 18,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spid.sprite"),
+							frame: 18,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("baby.entity", |asset_storage| EntityTemplate {
 		name: Some("baby"),
-		type_id: Some(EntityTypeId::Thing(68)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -21009,12 +11946,580 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("baby", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("cyborg.entity", |asset_storage| EntityTemplate {
+		name: Some("cyborg"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 110.0,
+					radius: 40.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				HealthDef {
+					max: 4000.0,
+					pain_chance: 0.078125,
+				},
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 1000.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("cybr.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(27);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("see").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 6),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 7),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 3 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("pain").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 6,
+							full_bright: false,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsdmpain.sound")),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("missile").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 12 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 12 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 12 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 12 * FRAME_TIME,
+							state: (StateName::from("missile").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 4,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 12 * FRAME_TIME,
+							state: (StateName::from("see").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 5,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("death").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 7,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 8,
+							full_bright: false,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dscybdth.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 9,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 6),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetBlocksTypes(SolidBits::empty()),
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 7),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 8),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 14,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 30 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 9),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cybr.sprite"),
+							frame: 15,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("pain.entity", |asset_storage| EntityTemplate {
 		name: Some("pain"),
-		type_id: Some(EntityTypeId::Thing(71)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -21556,12 +13061,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("pain", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("wolfss.entity", |asset_storage| EntityTemplate {
 		name: Some("wolfss"),
-		type_id: Some(EntityTypeId::Thing(84)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -22323,12 +13826,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("wolfss", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("keen.entity", |asset_storage| EntityTemplate {
 		name: Some("keen"),
-		type_id: Some(EntityTypeId::Thing(72)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -22652,12 +14153,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("keen", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("bossbrain.entity", |asset_storage| EntityTemplate {
 		name: Some("bossbrain"),
-		type_id: Some(EntityTypeId::Thing(88)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -22810,12 +14309,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("bossbrain", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("bossspit.entity", |asset_storage| EntityTemplate {
 		name: Some("bossspit"),
-		type_id: Some(EntityTypeId::Thing(89)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -22911,12 +14408,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("bossspit", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("bosstarget.entity", |asset_storage| EntityTemplate {
 		name: Some("bosstarget"),
-		type_id: Some(EntityTypeId::Thing(87)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -22941,12 +14436,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("bosstarget", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("spawnshot.entity", |asset_storage| EntityTemplate {
 		name: Some("spawnshot"),
-		type_id: None,
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -23095,12 +14588,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			world
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("spawnshot", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("spawnfire.entity", |asset_storage| EntityTemplate {
 		name: Some("spawnfire"),
-		type_id: None,
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -23297,12 +14788,4283 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("spawnfire", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("barrel.entity", |asset_storage| EntityTemplate {
+		name: Some("barrel"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 42.0,
+					radius: 10.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Puff,
+				},
+				EntityTemplateRefDef,
+				HealthDef {
+					max: 20.0,
+					pain_chance: 0.0,
+				},
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bar1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(7);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bar1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bar1.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("death").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bexp.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bexp.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsbarexp.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bexp.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						RadiusAttack {
+							damage: 128.0,
+							radius: 128.0,
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bexp.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bexp.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("troopshot.entity", |asset_storage| EntityTemplate {
+		name: Some("troopshot"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 8.0,
+					radius: 6.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				OwnerDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 10.0 * FRAME_RATE,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bal1.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				Touchable,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(6);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 0 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal1.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirsht.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal1.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal1.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("death").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..6 * FRAME_TIME).into(),
+							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal1.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						SetSolidType(SolidType::PARTICLE),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirxpl.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal1.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal1.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 3.0,
+				},
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("headshot.entity", |asset_storage| EntityTemplate {
+		name: Some("headshot"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 8.0,
+					radius: 6.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				OwnerDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 10.0 * FRAME_RATE,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bal2.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				Touchable,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(6);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 0 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal2.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirsht.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal2.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal2.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("death").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..6 * FRAME_TIME).into(),
+							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal2.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						SetSolidType(SolidType::PARTICLE),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirxpl.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal2.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bal2.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 5.0,
+				},
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("rocket.entity", |asset_storage| EntityTemplate {
+		name: Some("rocket"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 8.0,
+					radius: 11.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				OwnerDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 20.0 * FRAME_RATE,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("misl.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				Touchable,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(5);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 0 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("misl.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsrlaunc.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 1 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("misl.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("death").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..8 * FRAME_TIME).into(),
+							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						RadiusAttack {
+							damage: 128.0,
+							radius: 128.0,
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("misl.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						SetSolidType(SolidType::PARTICLE),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsbarexp.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("misl.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("misl.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 20.0,
+				},
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("plasma.entity", |asset_storage| EntityTemplate {
+		name: Some("plasma"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 8.0,
+					radius: 13.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				OwnerDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 25.0 * FRAME_RATE,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("plss.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				Touchable,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(8);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 0 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plss.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsplasma.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plss.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plss.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("death").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..4 * FRAME_TIME).into(),
+							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plse.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						SetSolidType(SolidType::PARTICLE),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirxpl.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plse.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plse.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plse.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plse.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 5.0,
+				},
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("bfg.entity", |asset_storage| EntityTemplate {
+		name: Some("bfg"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 8.0,
+					radius: 13.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				OwnerDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 25.0 * FRAME_RATE,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bfs1.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				Touchable,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(8);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfs1.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfs1.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("death").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..8 * FRAME_TIME).into(),
+							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe1.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						SetSolidType(SolidType::PARTICLE),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsrxplod.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe1.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe1.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						SprayAttack {
+							count: 40,
+							damage_range: (15..=120).into(),
+							damage_multiplier: 1.0,
+							distance: 1024.0,
+							particle: asset_storage.load("extrabfg.entity"),
+							spread: Vector2::new(
+								Angle::from_units(1.0 / 8.0),
+								Angle::from_units(1.0 / 10.0),
+							),
+						},
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe1.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe1.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 6),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe1.sprite"),
+							frame: 5,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 100.0,
+				},
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("arachplaz.entity", |asset_storage| EntityTemplate {
+		name: Some("arachplaz"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 8.0,
+					radius: 13.0,
+					solid_type: SolidType::PROJECTILE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				OwnerDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 25.0 * FRAME_RATE,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("apls.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				Touchable,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(8);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 0 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("apls.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsplasma.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("apls.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("apls.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states.insert(StateName::from("death").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..5 * FRAME_TIME).into(),
+							state: (StateName::from("death").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("apbx.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world.push((
+						EntityDef,
+						SetSolidType(SolidType::PARTICLE),
+					));
+					world.push((
+						EntityDef,
+						StartSound(asset_storage.load("dsfirxpl.sound")),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("apbx.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("apbx.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("apbx.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 5 * FRAME_TIME,
+							state: (StateName::from("death").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("apbx.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		touch: {
+			let mut world = World::default();
+			world.push((
+				TouchEventDef,
+				ProjectileTouch {
+					damage_range: (1..=8).into(),
+					damage_multiplier: 5.0,
+				},
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("puff1.entity", |asset_storage| EntityTemplate {
+		name: Some("puff1"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("puff.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(4);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("puff3.entity", |asset_storage| EntityTemplate {
+		name: Some("puff3"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("puff.sprite"),
+					frame: 2,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(2);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("puff.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("blood1.entity", |asset_storage| EntityTemplate {
+		name: Some("blood1"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				Physics {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					velocity: Vector3::new(0.0, 0.0, 2.0 * FRAME_RATE),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("blud.sprite"),
+					frame: 2,
+					full_bright: false,
+				},
+				StateDef,
+				RandomTransformDef([(0.0..=0.0).into(), (0.0..=0.0).into(), (-4.0..=4.0).into()]),
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(3);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextStateRandomTimeDef {
+							time: (FRAME_TIME..8 * FRAME_TIME).into(),
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("blud.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("blud.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("blud.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("blood2.entity", |asset_storage| EntityTemplate {
+		name: Some("blood2"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				Physics {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					velocity: Vector3::new(0.0, 0.0, 2.0 * FRAME_RATE),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("blud.sprite"),
+					frame: 1,
+					full_bright: false,
+				},
+				StateDef,
+				RandomTransformDef([(0.0..=0.0).into(), (0.0..=0.0).into(), (-4.0..=4.0).into()]),
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(2);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("blud.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("blud.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("blood3.entity", |asset_storage| EntityTemplate {
+		name: Some("blood3"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				Physics {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					velocity: Vector3::new(0.0, 0.0, 2.0 * FRAME_RATE),
+				},
+				SpriteRender {
+					sprite: asset_storage.load("blud.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				RandomTransformDef([(0.0..=0.0).into(), (0.0..=0.0).into(), (-4.0..=4.0).into()]),
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("blud.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("tfog.entity", |asset_storage| EntityTemplate {
+		name: Some("tfog"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("tfog.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(12);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 6),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 7),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 8),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 5,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 9),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 6,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 10),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 7,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 11),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 8,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 12),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tfog.sprite"),
+							frame: 9,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("ifog.entity", |asset_storage| EntityTemplate {
+		name: Some("ifog"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("ifog.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(7);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ifog.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ifog.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ifog.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ifog.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ifog.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 6),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ifog.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 7),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ifog.sprite"),
+							frame: 4,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("teleportman.entity", |asset_storage| EntityTemplate {
+		name: Some("teleportman"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("extrabfg.entity", |asset_storage| EntityTemplate {
+		name: Some("extrabfg"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::PARTICLE,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bfe2.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(4);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe2.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe2.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe2.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfe2.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc0.entity", |asset_storage| EntityTemplate {
+		name: Some("misc0"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("arm1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(2);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("arm1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 7 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("arm1.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc1.entity", |asset_storage| EntityTemplate {
+		name: Some("misc1"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("arm2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(2);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("arm2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("arm2.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc2.entity", |asset_storage| EntityTemplate {
+		name: Some("misc2"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bon1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(6);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon1.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon1.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon1.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon1.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon1.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc3.entity", |asset_storage| EntityTemplate {
+		name: Some("misc3"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bon2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(6);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon2.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon2.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon2.sprite"),
+							frame: 3,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon2.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bon2.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc4.entity", |asset_storage| EntityTemplate {
+		name: Some("misc4"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bkey.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(2);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bkey.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bkey.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc5.entity", |asset_storage| EntityTemplate {
+		name: Some("misc5"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("rkey.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(2);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("rkey.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("rkey.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc6.entity", |asset_storage| EntityTemplate {
+		name: Some("misc6"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("ykey.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(2);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ykey.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ykey.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc7.entity", |asset_storage| EntityTemplate {
+		name: Some("misc7"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("ysku.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(2);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ysku.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ysku.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc8.entity", |asset_storage| EntityTemplate {
+		name: Some("misc8"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("rsku.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(2);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("rsku.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("rsku.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc9.entity", |asset_storage| EntityTemplate {
+		name: Some("misc9"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bsku.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(2);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bsku.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bsku.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc10.entity", |asset_storage| EntityTemplate {
+		name: Some("misc10"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("stim.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("stim.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc11.entity", |asset_storage| EntityTemplate {
+		name: Some("misc11"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("medi.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("medi.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc12.entity", |asset_storage| EntityTemplate {
+		name: Some("misc12"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("soul.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(6);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("soul.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("soul.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("soul.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("soul.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("soul.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("soul.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("inv.entity", |asset_storage| EntityTemplate {
+		name: Some("inv"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pinv.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(4);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pinv.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pinv.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pinv.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pinv.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc13.entity", |asset_storage| EntityTemplate {
+		name: Some("misc13"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pstr.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pstr.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("ins.entity", |asset_storage| EntityTemplate {
+		name: Some("ins"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pins.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(4);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pins.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pins.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pins.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pins.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc14.entity", |asset_storage| EntityTemplate {
+		name: Some("misc14"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("suit.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("suit.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc15.entity", |asset_storage| EntityTemplate {
+		name: Some("misc15"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pmap.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(6);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pmap.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pmap.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pmap.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 4),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pmap.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 5),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pmap.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pmap.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc16.entity", |asset_storage| EntityTemplate {
+		name: Some("misc16"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pvis.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(2);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pvis.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pvis.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("mega.entity", |asset_storage| EntityTemplate {
 		name: Some("mega"),
-		type_id: Some(EntityTypeId::Thing(83)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -23415,12 +19177,790 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("mega", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("clip.entity", |asset_storage| EntityTemplate {
+		name: Some("clip"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("clip.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("clip.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc17.entity", |asset_storage| EntityTemplate {
+		name: Some("misc17"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("ammo.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ammo.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc18.entity", |asset_storage| EntityTemplate {
+		name: Some("misc18"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("rock.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("rock.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc19.entity", |asset_storage| EntityTemplate {
+		name: Some("misc19"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("brok.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("brok.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc20.entity", |asset_storage| EntityTemplate {
+		name: Some("misc20"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("cell.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cell.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc21.entity", |asset_storage| EntityTemplate {
+		name: Some("misc21"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("celp.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("celp.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc22.entity", |asset_storage| EntityTemplate {
+		name: Some("misc22"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("shel.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("shel.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc23.entity", |asset_storage| EntityTemplate {
+		name: Some("misc23"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("sbox.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sbox.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc24.entity", |asset_storage| EntityTemplate {
+		name: Some("misc24"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bpak.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bpak.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc25.entity", |asset_storage| EntityTemplate {
+		name: Some("misc25"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("bfug.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("bfug.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("chaingun.entity", |asset_storage| EntityTemplate {
+		name: Some("chaingun"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("mgun.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("mgun.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc26.entity", |asset_storage| EntityTemplate {
+		name: Some("misc26"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("csaw.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("csaw.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc27.entity", |asset_storage| EntityTemplate {
+		name: Some("misc27"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("laun.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("laun.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc28.entity", |asset_storage| EntityTemplate {
+		name: Some("misc28"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("plas.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("plas.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("shotgun.entity", |asset_storage| EntityTemplate {
+		name: Some("shotgun"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("shot.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("shot.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("supershotgun.entity", |asset_storage| EntityTemplate {
 		name: Some("supershotgun"),
-		type_id: Some(EntityTypeId::Thing(82)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -23469,12 +20009,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("supershotgun", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("misc29.entity", |asset_storage| EntityTemplate {
 		name: Some("misc29"),
-		type_id: Some(EntityTypeId::Thing(85)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -23587,12 +20125,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc29", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("misc30.entity", |asset_storage| EntityTemplate {
 		name: Some("misc30"),
-		type_id: Some(EntityTypeId::Thing(86)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -23705,12 +20241,3213 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc30", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("misc31.entity", |asset_storage| EntityTemplate {
+		name: Some("misc31"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("colu.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("colu.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc32.entity", |asset_storage| EntityTemplate {
+		name: Some("misc32"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("col1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("col1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc33.entity", |asset_storage| EntityTemplate {
+		name: Some("misc33"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("col2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("col2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc34.entity", |asset_storage| EntityTemplate {
+		name: Some("misc34"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("col3.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("col3.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc35.entity", |asset_storage| EntityTemplate {
+		name: Some("misc35"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("col4.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("col4.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc36.entity", |asset_storage| EntityTemplate {
+		name: Some("misc36"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("col6.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("col6.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc37.entity", |asset_storage| EntityTemplate {
+		name: Some("misc37"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("col5.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(2);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 14 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("col5.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 14 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("col5.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc38.entity", |asset_storage| EntityTemplate {
+		name: Some("misc38"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("ceye.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(4);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ceye.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ceye.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ceye.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("ceye.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc39.entity", |asset_storage| EntityTemplate {
+		name: Some("misc39"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("fsku.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(3);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fsku.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fsku.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fsku.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc40.entity", |asset_storage| EntityTemplate {
+		name: Some("misc40"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("tre1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tre1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc41.entity", |asset_storage| EntityTemplate {
+		name: Some("misc41"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("tblu.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(4);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tblu.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tblu.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tblu.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tblu.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc42.entity", |asset_storage| EntityTemplate {
+		name: Some("misc42"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("tgrn.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(4);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tgrn.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tgrn.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tgrn.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tgrn.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc43.entity", |asset_storage| EntityTemplate {
+		name: Some("misc43"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("tred.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(4);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tred.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tred.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tred.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tred.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc44.entity", |asset_storage| EntityTemplate {
+		name: Some("misc44"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("smbt.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(4);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smbt.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smbt.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smbt.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smbt.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc45.entity", |asset_storage| EntityTemplate {
+		name: Some("misc45"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("smgt.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(4);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smgt.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smgt.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smgt.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smgt.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc46.entity", |asset_storage| EntityTemplate {
+		name: Some("misc46"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("smrt.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(4);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smrt.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smrt.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smrt.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smrt.sprite"),
+							frame: 3,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc47.entity", |asset_storage| EntityTemplate {
+		name: Some("misc47"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("smit.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("smit.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc48.entity", |asset_storage| EntityTemplate {
+		name: Some("misc48"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("elec.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("elec.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc49.entity", |asset_storage| EntityTemplate {
+		name: Some("misc49"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("cand.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cand.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc50.entity", |asset_storage| EntityTemplate {
+		name: Some("misc50"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("cbra.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("cbra.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc51.entity", |asset_storage| EntityTemplate {
+		name: Some("misc51"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 68.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(4);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 15 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor1.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor1.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor1.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc52.entity", |asset_storage| EntityTemplate {
+		name: Some("misc52"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 84.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc53.entity", |asset_storage| EntityTemplate {
+		name: Some("misc53"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 84.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor3.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor3.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc54.entity", |asset_storage| EntityTemplate {
+		name: Some("misc54"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 68.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor4.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor4.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc55.entity", |asset_storage| EntityTemplate {
+		name: Some("misc55"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 52.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor5.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor5.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc56.entity", |asset_storage| EntityTemplate {
+		name: Some("misc56"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 84.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc57.entity", |asset_storage| EntityTemplate {
+		name: Some("misc57"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 68.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor4.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor4.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc58.entity", |asset_storage| EntityTemplate {
+		name: Some("misc58"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 52.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor3.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor3.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc59.entity", |asset_storage| EntityTemplate {
+		name: Some("misc59"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 52.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor5.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor5.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc60.entity", |asset_storage| EntityTemplate {
+		name: Some("misc60"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 68.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: false,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("gor1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: true,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(4);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 10 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 15 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor1.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 3),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor1.sprite"),
+							frame: 2,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("gor1.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc61.entity", |asset_storage| EntityTemplate {
+		name: Some("misc61"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("head.sprite"),
+					frame: 11,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("head.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc62.entity", |asset_storage| EntityTemplate {
+		name: Some("misc62"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("play.sprite"),
+					frame: 13,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc63.entity", |asset_storage| EntityTemplate {
+		name: Some("misc63"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("poss.sprite"),
+					frame: 11,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("poss.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc64.entity", |asset_storage| EntityTemplate {
+		name: Some("misc64"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("sarg.sprite"),
+					frame: 13,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("sarg.sprite"),
+							frame: 13,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc65.entity", |asset_storage| EntityTemplate {
+		name: Some("misc65"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("skul.sprite"),
+					frame: 10,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("skul.sprite"),
+							frame: 10,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						RemoveEntity,
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc66.entity", |asset_storage| EntityTemplate {
+		name: Some("misc66"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("troo.sprite"),
+					frame: 12,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("troo.sprite"),
+							frame: 12,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc67.entity", |asset_storage| EntityTemplate {
+		name: Some("misc67"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("spos.sprite"),
+					frame: 11,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("spos.sprite"),
+							frame: 11,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc68.entity", |asset_storage| EntityTemplate {
+		name: Some("misc68"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("play.sprite"),
+					frame: 22,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 22,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc69.entity", |asset_storage| EntityTemplate {
+		name: Some("misc69"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("play.sprite"),
+					frame: 22,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("play.sprite"),
+							frame: 22,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc70.entity", |asset_storage| EntityTemplate {
+		name: Some("misc70"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pol2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pol2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc71.entity", |asset_storage| EntityTemplate {
+		name: Some("misc71"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 20.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::empty(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pol5.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pol5.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc72.entity", |asset_storage| EntityTemplate {
+		name: Some("misc72"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pol4.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pol4.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc73.entity", |asset_storage| EntityTemplate {
+		name: Some("misc73"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pol3.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(2);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pol3.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pol3.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc74.entity", |asset_storage| EntityTemplate {
+		name: Some("misc74"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pol1.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pol1.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc75.entity", |asset_storage| EntityTemplate {
+		name: Some("misc75"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("pol6.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(2);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 6 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pol6.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 8 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("pol6.sprite"),
+							frame: 1,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc76.entity", |asset_storage| EntityTemplate {
+		name: Some("misc76"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 32.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("tre2.sprite"),
+					frame: 0,
+					full_bright: false,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(1);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("tre2.sprite"),
+							frame: 0,
+							full_bright: false,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc77.entity", |asset_storage| EntityTemplate {
+		name: Some("misc77"),
+		world: {
+			let mut world = World::default();
+			world.push((
+				BoxCollider {
+					height: 16.0,
+					radius: 16.0,
+					solid_type: SolidType::MONSTER,
+					blocks_types: SolidBits::all(),
+					damage_particle: DamageParticle::Blood,
+				},
+				EntityTemplateRefDef,
+				PhysicsDef {
+					collision_response: CollisionResponse::Stop,
+					gravity: true,
+					mass: 100.0,
+					speed: 0.0,
+				},
+				SpriteRender {
+					sprite: asset_storage.load("fcan.sprite"),
+					frame: 0,
+					full_bright: true,
+				},
+				StateDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
+			));
+			world
+		},
+		states: {
+			let mut states = HashMap::with_capacity(3);
+			states.insert(StateName::from("spawn").unwrap(), vec![
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 1),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fcan.sprite"),
+							frame: 0,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 2),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fcan.sprite"),
+							frame: 1,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+				{
+					let mut world = World::default();
+					world.push((
+						EntityDef,
+						NextState {
+							time: 4 * FRAME_TIME,
+							state: (StateName::from("spawn").unwrap(), 0),
+						},
+					));
+					world.push((
+						EntityDef,
+						SetEntitySprite(SpriteRender {
+							sprite: asset_storage.load("fcan.sprite"),
+							frame: 2,
+							full_bright: true,
+						}),
+					));
+					world
+				},
+			]);
+			states
+		},
+		.. EntityTemplate::default()
+	});
+
+	mobjs.insert("misc78.entity", |asset_storage| EntityTemplate {
 		name: Some("misc78"),
-		type_id: Some(EntityTypeId::Thing(73)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -23759,12 +23496,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc78", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("misc79.entity", |asset_storage| EntityTemplate {
 		name: Some("misc79"),
-		type_id: Some(EntityTypeId::Thing(74)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -23813,12 +23548,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc79", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("misc80.entity", |asset_storage| EntityTemplate {
 		name: Some("misc80"),
-		type_id: Some(EntityTypeId::Thing(75)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -23867,12 +23600,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc80", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("misc81.entity", |asset_storage| EntityTemplate {
 		name: Some("misc81"),
-		type_id: Some(EntityTypeId::Thing(76)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -23921,12 +23652,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc81", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("misc82.entity", |asset_storage| EntityTemplate {
 		name: Some("misc82"),
-		type_id: Some(EntityTypeId::Thing(77)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -23975,12 +23704,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc82", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("misc83.entity", |asset_storage| EntityTemplate {
 		name: Some("misc83"),
-		type_id: Some(EntityTypeId::Thing(78)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -24029,12 +23756,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc83", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("misc84.entity", |asset_storage| EntityTemplate {
 		name: Some("misc84"),
-		type_id: Some(EntityTypeId::Thing(79)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -24083,12 +23808,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc84", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("misc85.entity", |asset_storage| EntityTemplate {
 		name: Some("misc85"),
-		type_id: Some(EntityTypeId::Thing(80)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -24137,12 +23860,10 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc85", template);
+	});
 
-	let template = EntityTemplate {
+	mobjs.insert("misc86.entity", |asset_storage| EntityTemplate {
 		name: Some("misc86"),
-		type_id: Some(EntityTypeId::Thing(81)),
 		world: {
 			let mut world = World::default();
 			world.push((
@@ -24191,6 +23912,135 @@ pub fn load_doom2(asset_storage: &mut AssetStorage) {
 			states
 		},
 		.. EntityTemplate::default()
-	};
-	asset_storage.insert("misc86", template);
-}
+	});
+
+	mobjs
+});
+
+pub static DOOMEDNUMS: Lazy<HashMap<u16, &'static str>> = Lazy::new(|| {
+	let mut doomednums: HashMap<u16, &'static str> = HashMap::new();
+	doomednums.insert(1, "spawn1.entity");
+	doomednums.insert(2, "spawn2.entity");
+	doomednums.insert(3, "spawn3.entity");
+	doomednums.insert(4, "spawn4.entity");
+	doomednums.insert(11, "spawndm.entity");
+	doomednums.insert(3004, "possessed.entity");
+	doomednums.insert(9, "shotguy.entity");
+	doomednums.insert(64, "vile.entity");
+	doomednums.insert(66, "undead.entity");
+	doomednums.insert(67, "fatso.entity");
+	doomednums.insert(65, "chainguy.entity");
+	doomednums.insert(3001, "troop.entity");
+	doomednums.insert(3002, "sergeant.entity");
+	doomednums.insert(58, "shadows.entity");
+	doomednums.insert(3005, "head.entity");
+	doomednums.insert(3003, "bruiser.entity");
+	doomednums.insert(69, "knight.entity");
+	doomednums.insert(3006, "skull.entity");
+	doomednums.insert(7, "spider.entity");
+	doomednums.insert(68, "baby.entity");
+	doomednums.insert(16, "cyborg.entity");
+	doomednums.insert(71, "pain.entity");
+	doomednums.insert(84, "wolfss.entity");
+	doomednums.insert(72, "keen.entity");
+	doomednums.insert(88, "bossbrain.entity");
+	doomednums.insert(89, "bossspit.entity");
+	doomednums.insert(87, "bosstarget.entity");
+	doomednums.insert(2035, "barrel.entity");
+	doomednums.insert(14, "teleportman.entity");
+	doomednums.insert(2018, "misc0.entity");
+	doomednums.insert(2019, "misc1.entity");
+	doomednums.insert(2014, "misc2.entity");
+	doomednums.insert(2015, "misc3.entity");
+	doomednums.insert(5, "misc4.entity");
+	doomednums.insert(13, "misc5.entity");
+	doomednums.insert(6, "misc6.entity");
+	doomednums.insert(39, "misc7.entity");
+	doomednums.insert(38, "misc8.entity");
+	doomednums.insert(40, "misc9.entity");
+	doomednums.insert(2011, "misc10.entity");
+	doomednums.insert(2012, "misc11.entity");
+	doomednums.insert(2013, "misc12.entity");
+	doomednums.insert(2022, "inv.entity");
+	doomednums.insert(2023, "misc13.entity");
+	doomednums.insert(2024, "ins.entity");
+	doomednums.insert(2025, "misc14.entity");
+	doomednums.insert(2026, "misc15.entity");
+	doomednums.insert(2045, "misc16.entity");
+	doomednums.insert(83, "mega.entity");
+	doomednums.insert(2007, "clip.entity");
+	doomednums.insert(2048, "misc17.entity");
+	doomednums.insert(2010, "misc18.entity");
+	doomednums.insert(2046, "misc19.entity");
+	doomednums.insert(2047, "misc20.entity");
+	doomednums.insert(17, "misc21.entity");
+	doomednums.insert(2008, "misc22.entity");
+	doomednums.insert(2049, "misc23.entity");
+	doomednums.insert(8, "misc24.entity");
+	doomednums.insert(2006, "misc25.entity");
+	doomednums.insert(2002, "chaingun.entity");
+	doomednums.insert(2005, "misc26.entity");
+	doomednums.insert(2003, "misc27.entity");
+	doomednums.insert(2004, "misc28.entity");
+	doomednums.insert(2001, "shotgun.entity");
+	doomednums.insert(82, "supershotgun.entity");
+	doomednums.insert(85, "misc29.entity");
+	doomednums.insert(86, "misc30.entity");
+	doomednums.insert(2028, "misc31.entity");
+	doomednums.insert(30, "misc32.entity");
+	doomednums.insert(31, "misc33.entity");
+	doomednums.insert(32, "misc34.entity");
+	doomednums.insert(33, "misc35.entity");
+	doomednums.insert(37, "misc36.entity");
+	doomednums.insert(36, "misc37.entity");
+	doomednums.insert(41, "misc38.entity");
+	doomednums.insert(42, "misc39.entity");
+	doomednums.insert(43, "misc40.entity");
+	doomednums.insert(44, "misc41.entity");
+	doomednums.insert(45, "misc42.entity");
+	doomednums.insert(46, "misc43.entity");
+	doomednums.insert(55, "misc44.entity");
+	doomednums.insert(56, "misc45.entity");
+	doomednums.insert(57, "misc46.entity");
+	doomednums.insert(47, "misc47.entity");
+	doomednums.insert(48, "misc48.entity");
+	doomednums.insert(34, "misc49.entity");
+	doomednums.insert(35, "misc50.entity");
+	doomednums.insert(49, "misc51.entity");
+	doomednums.insert(50, "misc52.entity");
+	doomednums.insert(51, "misc53.entity");
+	doomednums.insert(52, "misc54.entity");
+	doomednums.insert(53, "misc55.entity");
+	doomednums.insert(59, "misc56.entity");
+	doomednums.insert(60, "misc57.entity");
+	doomednums.insert(61, "misc58.entity");
+	doomednums.insert(62, "misc59.entity");
+	doomednums.insert(63, "misc60.entity");
+	doomednums.insert(22, "misc61.entity");
+	doomednums.insert(15, "misc62.entity");
+	doomednums.insert(18, "misc63.entity");
+	doomednums.insert(21, "misc64.entity");
+	doomednums.insert(23, "misc65.entity");
+	doomednums.insert(20, "misc66.entity");
+	doomednums.insert(19, "misc67.entity");
+	doomednums.insert(10, "misc68.entity");
+	doomednums.insert(12, "misc69.entity");
+	doomednums.insert(28, "misc70.entity");
+	doomednums.insert(24, "misc71.entity");
+	doomednums.insert(27, "misc72.entity");
+	doomednums.insert(29, "misc73.entity");
+	doomednums.insert(25, "misc74.entity");
+	doomednums.insert(26, "misc75.entity");
+	doomednums.insert(54, "misc76.entity");
+	doomednums.insert(70, "misc77.entity");
+	doomednums.insert(73, "misc78.entity");
+	doomednums.insert(74, "misc79.entity");
+	doomednums.insert(75, "misc80.entity");
+	doomednums.insert(76, "misc81.entity");
+	doomednums.insert(77, "misc82.entity");
+	doomednums.insert(78, "misc83.entity");
+	doomednums.insert(79, "misc84.entity");
+	doomednums.insert(80, "misc85.entity");
+	doomednums.insert(81, "misc86.entity");
+	doomednums
+});

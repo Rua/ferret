@@ -1,29 +1,26 @@
 use crate::{
 	common::{
-		assets::AssetHandle,
+		assets::{AssetHandle, AssetStorage, ImportData},
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom},
 	},
-	doom::state::StateName,
+	doom::{
+		data::{LINEDEFS, MOBJS, SECTORS, WEAPONS},
+		state::StateName,
+	},
 };
+use anyhow::Context;
 use legion::{systems::ResourceSet, Read, Resources, World};
+use relative_path::RelativePath;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, Default)]
 pub struct EntityTemplate {
 	pub name: Option<&'static str>,
-	pub type_id: Option<EntityTypeId>,
 	pub world: World,
 	pub touch: World,
 	pub r#use: World,
 	pub states: HashMap<StateName, Vec<World>>,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum EntityTypeId {
-	Linedef(u16),
-	Sector(u16),
-	Thing(u16),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -43,8 +40,32 @@ impl SpawnFrom<EntityTemplateRefDef> for EntityTemplateRef {
 	}
 }
 
+pub fn import_entity(
+	path: &RelativePath,
+	asset_storage: &mut AssetStorage,
+) -> anyhow::Result<Box<dyn ImportData>> {
+	let func = MOBJS
+		.get(path.as_str())
+		.or_else(|| LINEDEFS.get(path.as_str()))
+		.or_else(|| SECTORS.get(path.as_str()))
+		.with_context(|| format!("EntityTemplate \"{}\" not found", path))?;
+	let template = func(asset_storage);
+	Ok(Box::new(template))
+}
+
 #[derive(Debug, Default)]
 pub struct WeaponTemplate {
 	pub name: Option<&'static str>,
 	pub states: HashMap<StateName, Vec<World>>,
+}
+
+pub fn import_weapon(
+	path: &RelativePath,
+	asset_storage: &mut AssetStorage,
+) -> anyhow::Result<Box<dyn ImportData>> {
+	let func = WEAPONS
+		.get(path.as_str())
+		.with_context(|| format!("WeaponTemplate \"{}\" not found", path))?;
+	let template = func(asset_storage);
+	Ok(Box::new(template))
 }
