@@ -35,6 +35,42 @@ pub struct Client {
 	pub previous_command: UserCommand,
 }
 
+fn select_weapon<'a>(
+	possible: &'a [&str],
+	asset_storage: &AssetStorage,
+	weapon_state: &WeaponState,
+) -> Option<&'a str> {
+	// Find the first weapon that is in the inventory, if any
+	let first: Option<&str> = possible.iter().copied().find(|name| {
+		let asset_name = format!("{}.weapon", name);
+
+		let handle = match asset_storage.handle_for::<WeaponTemplate>(&asset_name) {
+			Some(handle) => handle,
+			None => return false,
+		};
+
+		weapon_state.inventory.contains(&handle)
+	});
+
+	// Find the weapon after the current one, if any
+	let next: Option<&str> = possible
+		.iter()
+		.copied()
+		.skip_while(|name| {
+			let asset_name = format!("{}.weapon", name);
+
+			let handle = match asset_storage.handle_for::<WeaponTemplate>(&asset_name) {
+				Some(handle) => handle,
+				None => return false,
+			};
+
+			weapon_state.current != handle
+		})
+		.nth(1);
+
+	next.or(first)
+}
+
 pub fn player_command_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("player_command_system")
 		.read_resource::<AssetStorage>()
@@ -61,21 +97,15 @@ pub fn player_command_system(_resources: &mut Resources) -> impl Runnable {
 						.enumerate()
 						.filter_map(|(i, x)| if *x { Some(i + 1) } else { None });
 
+				// Do not register a button press if more than one weapon key is pressed at a time
 				let weapon_index: Option<usize> = match (iter.next(), iter.next()) {
 					(Some(i), None) => Some(i),
 					_ => None,
 				};
 
-				weapon_index.and_then(|i| {
-					let weapon_state = query
-						.get(world, entity)
-						.expect("Client entity does not have WeaponState");
-					let weapon_template = asset_storage
-						.get(&weapon_state.current)
-						.expect("Entity has invalid current weapon");
-
-					let names: &[&str] = match i {
-						1 => &["chainsaw", "fist"],
+				weapon_index
+					.map(|i| match i {
+						1 => &["chainsaw", "fist"] as &[&str],
 						2 => &["pistol"],
 						3 => &["supershotgun", "shotgun"],
 						4 => &["chaingun"],
@@ -83,20 +113,14 @@ pub fn player_command_system(_resources: &mut Resources) -> impl Runnable {
 						6 => &["plasma"],
 						7 => &["bfg"],
 						_ => unreachable!(),
-					};
+					})
+					.and_then(|possible| {
+						let weapon_state = query
+							.get(world, entity)
+							.expect("Client entity does not have WeaponState");
 
-					let mut iter = names
-						.iter()
-						.copied()
-						.filter(|&name| asset_storage.handle_for::<WeaponTemplate>(name).is_some())
-						.peekable();
-					let first = iter.peek().map(|x| *x);
-					iter.find(|&name| Some(name) == weapon_template.name);
-
-					// After finding the current weapon, take the next one,
-					// or the first in the slot if there is none.
-					iter.next().or(first)
-				})
+						select_weapon(possible, asset_storage, weapon_state)
+					})
 			});
 
 			let mut command = UserCommand {
@@ -343,7 +367,10 @@ pub fn player_weapon_system(_resources: &mut Resources) -> impl Runnable {
 					.command
 					.weapon
 					.as_ref()
-					.and_then(|name| asset_storage.handle_for::<WeaponTemplate>(name))
+					.and_then(|name| {
+						let asset_name = format!("{}.weapon", name);
+						asset_storage.handle_for::<WeaponTemplate>(&asset_name)
+					})
 					.as_ref()
 					.filter(|&handle| *handle != weapon_state.current)
 					.map(Clone::clone)
