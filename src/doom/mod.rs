@@ -101,7 +101,7 @@ use clap::ArgMatches;
 use crossbeam_channel::Sender;
 use legion::{
 	component,
-	serialize::{Canon, ENTITY_SERIALIZER},
+	serialize::{set_entity_serializer, Canon},
 	systems::{CommandBuffer, ResourceSet},
 	Entity, IntoQuery, Read, Registry, Resources, Schedule, World, Write,
 };
@@ -562,8 +562,7 @@ pub fn save_game(name: &str, world: &mut World, resources: &mut Resources) {
 		);
 		let mut serializer = rmp_serde::encode::Serializer::new(&mut file);
 
-		ENTITY_SERIALIZER
-			.set(&*canon, || saved_resources.serialize(&mut serializer))
+		set_entity_serializer(&*canon, || saved_resources.serialize(&mut serializer))
 			.context("Couldn't serialize resources")?;
 		world
 			.as_serializable(game_entities!(), &*registry, &*canon)
@@ -596,9 +595,9 @@ pub fn load_game(name: &str, world: &mut World, resources: &mut Resources) {
 					.with_context(|| format!("Couldn't open \"{}\" for reading", name))?,
 			);
 			let mut deserializer = rmp_serde::decode::Deserializer::new(&mut file);
-			let saved_resources = ENTITY_SERIALIZER
-				.set(&*canon, || SavedResources::deserialize(&mut deserializer))
-				.context("Couldn't deserialize resources")?;
+			let saved_resources =
+				set_entity_serializer(&*canon, || SavedResources::deserialize(&mut deserializer))
+					.context("Couldn't deserialize resources")?;
 			registry
 				.as_deserialize_into_world(world, &*canon)
 				.deserialize(&mut deserializer)

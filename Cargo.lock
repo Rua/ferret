@@ -1005,10 +1005,9 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 [[package]]
 name = "legion"
 version = "0.3.1"
-source = "git+https://github.com/rua/legion?branch=serde-rearrange#bd6ae24aa186d9e2f8ece55f61cb1a8ce6611943"
+source = "git+https://github.com/amethyst/legion#27151ca17a1a3b867aca916d04ed8b3cc8adaf54"
 dependencies = [
  "bit-set",
- "derivative",
  "downcast-rs",
  "erased-serde",
  "itertools",

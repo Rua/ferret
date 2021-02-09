@@ -17,7 +17,7 @@ crossbeam-channel = "0.5"
 derivative = "2.1"
 downcast-rs = "1.2"
 fnv = "1.0"
-legion = {git = "https://github.com/rua/legion", default-features = false, features = ["extended-tuple-impls", "serialize"], branch = "serde-rearrange"}
+legion = {git = "https://github.com/amethyst/legion", default-features = false, features = ["extended-tuple-impls", "serialize"]}
 log = {version = "0.4", features = ["std"]}
 nalgebra = {version = "0.24", features = ["serde-serialize"]}
 num-traits = "0.2"
