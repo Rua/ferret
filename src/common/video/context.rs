@@ -2,10 +2,10 @@ use anyhow::Context;
 use std::sync::Arc;
 use vulkano::{
 	app_info_from_cargo_toml,
-	device::{Device, DeviceExtensions, Features, Queue},
+	device::{Device, DeviceExtensions, Features, Queue, RawDeviceExtensions},
 	instance::{
 		debug::{DebugCallback, MessageSeverity, MessageType},
-		Instance, InstanceExtensions, PhysicalDevice, QueueFamily,
+		Instance, InstanceExtensions, PhysicalDevice, QueueFamily, RawInstanceExtensions,
 	},
 	swapchain::Surface,
 };
@@ -55,11 +55,23 @@ impl RenderContext {
 			MessageType::all(),
 			|ref message| {
 				if message.severity.error {
-					log::error!("{}: {}", message.layer_prefix, message.description);
+					log::error!(
+						"{}: {}",
+						message.layer_prefix.unwrap_or("None"),
+						message.description
+					);
 				} else if message.severity.warning {
-					log::warn!("{}: {}", message.layer_prefix, message.description);
+					log::warn!(
+						"{}: {}",
+						message.layer_prefix.unwrap_or("None"),
+						message.description
+					);
 				} else {
-					log::trace!("{}: {}", message.layer_prefix, message.description);
+					log::trace!(
+						"{}: {}",
+						message.layer_prefix.unwrap_or("None"),
+						message.description
+					);
 				}
 			},
 		)
@@ -72,10 +84,6 @@ impl RenderContext {
 		log::debug!("Creating Vulkan device");
 		let (device, queues) =
 			create_device(&instance, &surface).context("Couldn't create Vulkan device")?;
-		log::info!(
-			"Selected Vulkan device: {}",
-			device.physical_device().name()
-		);
 
 		// All done!
 		Ok((
@@ -102,42 +110,48 @@ impl RenderContext {
 }
 
 fn create_instance() -> anyhow::Result<Arc<Instance>> {
-	let mut instance_extensions = vulkano_win::required_extensions();
 	let supported_extensions = InstanceExtensions::supported_by_core().unwrap();
+	let extensions = InstanceExtensions {
+		ext_debug_utils: supported_extensions.ext_debug_utils && cfg!(debug_assertions),
+		..vulkano_win::required_extensions()
+	};
 
-	let mut layers = Vec::new();
+	if extensions != InstanceExtensions::none() {
+		let raw_extensions = RawInstanceExtensions::from(&extensions);
+		log::info!("Enabled Vulkan instance extensions:");
 
-	#[cfg(debug_assertions)]
-	{
-		if supported_extensions.ext_debug_utils {
-			instance_extensions.ext_debug_utils = true;
+		for extension in raw_extensions.iter() {
+			log::info!("- {}", extension.to_string_lossy());
+		}
+	}
 
-			let available_layers: Vec<_> = vulkano::instance::layers_list()?.collect();
-
-			for to_enable in [
-				"VK_LAYER_LUNARG_standard_validation",
-				"VK_LAYER_LUNARG_monitor",
-			]
-			.iter()
-			{
-				if available_layers.iter().any(|l| l.name() == *to_enable) {
-					layers.push(*to_enable);
-				}
-			}
-
-			log::debug!(
-				"EXT_debug_utils is available, enabled Vulkan validation layers: {}",
-				layers.join(", ")
-			);
+	let layers_to_enable: &[&str] =
+		if cfg!(debug_assertions) && supported_extensions.ext_debug_utils {
+			&["VK_LAYER_LUNARG_standard_validation"]
 		} else {
-			log::debug!("EXT_debug_utils not available, Vulkan validation layers disabled");
+			&[]
+		};
+	let layers = vulkano::instance::layers_list()?
+		.filter(|layer| layers_to_enable.contains(&layer.name()))
+		.collect::<Vec<_>>();
+
+	if !layers.is_empty() {
+		log::info!("Enabled Vulkan layers:");
+
+		for layer in &layers {
+			log::info!(
+				"- {} (version {}): {}",
+				layer.name(),
+				layer.implementation_version(),
+				layer.description()
+			);
 		}
 	}
 
 	let instance = Instance::new(
 		Some(&app_info_from_cargo_toml!()),
-		&instance_extensions,
-		layers,
+		&extensions,
+		layers.iter().map(|layer| layer.name()),
 	)?;
 
 	Ok(instance)
@@ -196,11 +210,22 @@ fn create_device(
 	let (physical_device, family) = find_suitable_physical_device(&instance, &surface)?
 		.context("No suitable physical device found")?;
 
+	log::info!("Selected Vulkan device: {}", physical_device.name());
+
 	let features = Features::none();
 	let extensions = DeviceExtensions {
 		khr_swapchain: true,
-		..DeviceExtensions::none()
+		..DeviceExtensions::required_extensions(physical_device)
 	};
+
+	if extensions != DeviceExtensions::none() {
+		let raw_extensions = RawDeviceExtensions::from(&extensions);
+		log::info!("Enabled Vulkan device extensions:");
+
+		for extension in raw_extensions.iter() {
+			log::info!("- {}", extension.to_string_lossy());
+		}
+	}
 
 	let (device, mut queues) =
 		Device::new(physical_device, &features, &extensions, vec![(family, 1.0)])?;
