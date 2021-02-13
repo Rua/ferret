@@ -1,6 +1,6 @@
 use crate::{
 	common::assets::AssetStorage,
-	doom::font::{Font, FontSpacing},
+	doom::ui::{Font, FontSpacing},
 };
 use fnv::FnvHashMap;
 use once_cell::sync::Lazy;
@@ -115,7 +115,7 @@ pub static FONTS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> Font>> = L
             characters.insert('9', asset_storage.load("stgnum9.patch"));
             characters
         },
-		spacing: FontSpacing::VariableWidth { space_width: 4.0 },
+		spacing: FontSpacing::FixedWidth { width: 4.0 },
     });
 
     fonts.insert("sttnum.font", |asset_storage| Font {
@@ -153,7 +153,7 @@ pub static FONTS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> Font>> = L
             characters.insert('9', asset_storage.load("stysnum9.patch"));
             characters
         },
-		spacing: FontSpacing::VariableWidth { space_width: 4.0 },
+		spacing: FontSpacing::FixedWidth { width: 4.0 },
     });
 
     fonts.insert("winum.font", |asset_storage| Font {

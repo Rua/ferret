@@ -1,9 +1,12 @@
 use crate::{
-	common::assets::AssetHandle,
-	doom::{font::Font, image::Image},
+	common::assets::{AssetHandle, AssetStorage, ImportData},
+	doom::{data::FONTS, image::Image},
 };
+use anyhow::Context;
 use derivative::Derivative;
+use fnv::FnvHashMap;
 use nalgebra::Vector2;
+use relative_path::RelativePath;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
@@ -108,4 +111,27 @@ impl UiParams {
 			self.stretch_offsets[stretch[1] as usize][1],
 		)
 	}
+}
+
+#[derive(Clone, Debug)]
+pub struct Font {
+	pub characters: FnvHashMap<char, AssetHandle<Image>>,
+	pub spacing: FontSpacing,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum FontSpacing {
+	FixedWidth { width: f32 },
+	VariableWidth { space_width: f32 },
+}
+
+pub fn import_font(
+	path: &RelativePath,
+	asset_storage: &mut AssetStorage,
+) -> anyhow::Result<Box<dyn ImportData>> {
+	let func = FONTS
+		.get(path.as_str())
+		.with_context(|| format!("Font \"{}\" not found", path))?;
+	let template = func(asset_storage);
+	Ok(Box::new(template))
 }

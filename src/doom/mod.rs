@@ -8,7 +8,6 @@ pub mod door;
 pub mod draw;
 pub mod exit;
 pub mod floor;
-pub mod font;
 pub mod health;
 pub mod hud;
 pub mod image;
@@ -58,7 +57,6 @@ use crate::{
 		},
 		exit::exit_switch_use,
 		floor::{floor_active, floor_linedef_touch, floor_switch_use},
-		font::{import_font, Font},
 		health::apply_damage,
 		hud::health_stat,
 		image::{import_palette, import_patch, Image, ImageData, Palette},
@@ -96,7 +94,7 @@ use crate::{
 			WeaponTemplate,
 		},
 		texture::{texture_animation_system, texture_scroll_system},
-		ui::{UiImage, UiParams, UiTransform},
+		ui::{import_font, Font, UiImage, UiParams, UiTransform},
 		wad::{IWADInfo, WadLoader},
 	},
 };

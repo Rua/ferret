@@ -7,9 +7,8 @@ use crate::{
 		},
 	},
 	doom::{
-		font::FontSpacing,
 		image::Image,
-		ui::{UiImage, UiParams, UiText, UiTransform},
+		ui::{FontSpacing, UiImage, UiParams, UiText, UiTransform},
 	},
 };
 use anyhow::Context;

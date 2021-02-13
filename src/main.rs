@@ -121,6 +121,39 @@ fn main() -> anyhow::Result<()> {
 				image: asset_storage.load("stbar.patch"),
 			},
 		));
+
+		// Ammo
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(2.0, 171.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(42.0, 20.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiText {
+				text: " 50".into(),
+				font: asset_storage.load("sttnum.font"),
+			},
+		));
+
+		// Health
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(48.0, 171.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(56.0, 20.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiText {
+				text: String::with_capacity(4),
+				font: asset_storage.load("sttnum.font"),
+			},
+			doom::hud::HealthStat,
+		));
+
+		// Arms
 		world.push((
 			doom::ui::UiTransform {
 				position: Vector2::new(104.0, 168.0),
@@ -133,6 +166,92 @@ fn main() -> anyhow::Result<()> {
 				image: asset_storage.load("starms.patch"),
 			},
 		));
+
+		// Weapon 2
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(111.0, 172.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(4.0, 6.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiImage {
+				image: asset_storage.load("stysnum2.patch"),
+			},
+		));
+
+		// Weapon 3
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(123.0, 172.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(4.0, 6.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiImage {
+				image: asset_storage.load("stgnum3.patch"),
+			},
+		));
+
+		// Weapon 4
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(135.0, 172.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(4.0, 6.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiImage {
+				image: asset_storage.load("stgnum4.patch"),
+			},
+		));
+
+		// Weapon 5
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(111.0, 182.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(4.0, 6.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiImage {
+				image: asset_storage.load("stgnum5.patch"),
+			},
+		));
+
+		// Weapon 6
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(123.0, 182.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(4.0, 6.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiImage {
+				image: asset_storage.load("stgnum6.patch"),
+			},
+		));
+
+		// Weapon 7
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(135.0, 182.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(4.0, 6.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiImage {
+				image: asset_storage.load("stgnum7.patch"),
+			},
+		));
+
+		// Face
 		world.push((
 			doom::ui::UiTransform {
 				position: Vector2::new(143.0, 168.0),
@@ -145,19 +264,182 @@ fn main() -> anyhow::Result<()> {
 				image: asset_storage.load("stfst00.patch"),
 			},
 		));
+
+		// Armor
 		world.push((
 			doom::ui::UiTransform {
-				position: Vector2::new(48.0, 171.0),
+				position: Vector2::new(179.0, 171.0),
 				depth: 10.0,
 				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
-				size: Vector2::new(100.0, 100.0),
+				size: Vector2::new(56.0, 20.0),
 				stretch: [false; 2],
 			},
 			doom::ui::UiText {
-				text: "    ".into(),
+				text: "  0%".into(),
 				font: asset_storage.load("sttnum.font"),
 			},
-			doom::hud::HealthStat,
+		));
+
+		// Blue key
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(239.0, 171.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(7.0, 5.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiImage {
+				image: asset_storage.load("stkeys0.patch"),
+			},
+		));
+
+		// Yellow key
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(239.0, 181.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(7.0, 5.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiImage {
+				image: asset_storage.load("stkeys1.patch"),
+			},
+		));
+
+		// Red key
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(239.0, 191.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(7.0, 5.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiImage {
+				image: asset_storage.load("stkeys2.patch"),
+			},
+		));
+
+		// Bullets current
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(276.0, 173.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(12.0, 6.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiText {
+				text: " 50".into(),
+				font: asset_storage.load("stysnum.font"),
+			},
+		));
+
+		// Bullets max
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(302.0, 173.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(12.0, 6.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiText {
+				text: "200".into(),
+				font: asset_storage.load("stysnum.font"),
+			},
+		));
+
+		// Shells current
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(276.0, 179.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(12.0, 6.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiText {
+				text: "  0".into(),
+				font: asset_storage.load("stysnum.font"),
+			},
+		));
+
+		// Shells max
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(302.0, 179.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(12.0, 6.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiText {
+				text: " 50".into(),
+				font: asset_storage.load("stysnum.font"),
+			},
+		));
+
+		// Rockets current
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(276.0, 185.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(12.0, 6.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiText {
+				text: "  0".into(),
+				font: asset_storage.load("stysnum.font"),
+			},
+		));
+
+		// Rockets max
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(302.0, 185.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(12.0, 6.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiText {
+				text: " 50".into(),
+				font: asset_storage.load("stysnum.font"),
+			},
+		));
+
+		// Cells current
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(276.0, 191.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(12.0, 6.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiText {
+				text: "  0".into(),
+				font: asset_storage.load("stysnum.font"),
+			},
+		));
+
+		// Cells max
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(302.0, 191.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(12.0, 6.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiText {
+				text: "300".into(),
+				font: asset_storage.load("stysnum.font"),
+			},
 		));
 	}
 
