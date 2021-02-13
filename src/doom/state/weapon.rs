@@ -211,8 +211,8 @@ pub fn next_weapon_state(resources: &mut Resources) -> impl Runnable {
 #[derive(Clone, Debug)]
 pub struct LineAttack {
 	pub count: usize,
-	pub damage_range: Uniform<u32>,
-	pub damage_multiplier: f32,
+	pub damage_range: Uniform<i32>,
+	pub damage_multiplier: i32,
 	pub distance: f32,
 	pub spread: Vector2<Angle>,
 	pub accurate_until_refire: bool,
@@ -304,7 +304,7 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 						if let Some(collision) = trace.collision {
 							// Apply the damage
 							let damage = line_attack.damage_multiplier
-								* thread_rng().sample(line_attack.damage_range) as f32;
+								* thread_rng().sample(line_attack.damage_range);
 
 							command_buffer.push((
 								collision.entity,
@@ -346,9 +346,9 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 							};
 							let handle = match particle {
 								DamageParticle::Blood => {
-									if damage <= 9.0 {
+									if damage <= 9 {
 										&blood3
-									} else if damage <= 12.0 {
+									} else if damage <= 12 {
 										&blood2
 									} else {
 										&blood1
@@ -385,8 +385,8 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 
 #[derive(Clone, Debug)]
 pub struct ProjectileTouch {
-	pub damage_range: Uniform<u32>,
-	pub damage_multiplier: f32,
+	pub damage_range: Uniform<i32>,
+	pub damage_multiplier: i32,
 }
 
 pub fn projectile_touch(resources: &mut Resources) -> impl Runnable {
@@ -412,7 +412,7 @@ pub fn projectile_touch(resources: &mut Resources) -> impl Runnable {
 
 						// Apply the damage to the other entity
 						let damage = projectile_touch.damage_multiplier
-							* thread_rng().sample(projectile_touch.damage_range) as f32;
+							* thread_rng().sample(projectile_touch.damage_range);
 
 						command_buffer.push((
 							touch_event.other,
@@ -430,7 +430,7 @@ pub fn projectile_touch(resources: &mut Resources) -> impl Runnable {
 
 #[derive(Clone, Copy, Debug)]
 pub struct RadiusAttack {
-	pub damage: f32,
+	pub damage: i32,
 	pub radius: f32,
 }
 
@@ -508,7 +508,7 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 							command_buffer.push((
 								entity,
 								Damage {
-									damage: radius_attack.damage * scale,
+									damage: (radius_attack.damage as f32 * scale) as i32,
 									source_entity,
 									direction: transform.position - midpoint,
 								},
@@ -625,8 +625,8 @@ pub fn spawn_projectile(resources: &mut Resources) -> impl Runnable {
 #[derive(Clone, Debug)]
 pub struct SprayAttack {
 	pub count: usize,
-	pub damage_range: Uniform<u32>,
-	pub damage_multiplier: f32,
+	pub damage_range: Uniform<i32>,
+	pub damage_multiplier: i32,
 	pub distance: f32,
 	pub particle: AssetHandle<EntityTemplate>,
 	pub spread: Vector2<Angle>,
@@ -695,7 +695,7 @@ pub fn spray_attack(resources: &mut Resources) -> impl Runnable {
 					if let Some(collision) = trace.collision {
 						// Apply the damage
 						let damage = spray_attack.damage_multiplier
-							* thread_rng().sample(spray_attack.damage_range) as f32;
+							* thread_rng().sample(spray_attack.damage_range);
 
 						command_buffer.push((
 							collision.entity,

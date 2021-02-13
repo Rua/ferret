@@ -97,56 +97,68 @@ fn main() -> anyhow::Result<()> {
 	{
 		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(&mut resources);
 
-		world.extend(vec![
-			(
-				doom::ui::UiTransform {
-					position: Vector2::new(0.0, 168.0),
-					depth: 1.0,
-					alignment: [doom::ui::UiAlignment::Near, doom::ui::UiAlignment::Far],
-					size: Vector2::new(320.0, 32.0),
-					stretch: [true, false],
-				},
-				doom::ui::UiImage {
-					image: asset_storage.load("floor7_2.flat"),
-				},
-			),
-			(
-				doom::ui::UiTransform {
-					position: Vector2::new(0.0, 168.0),
-					depth: 2.0,
-					alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
-					size: Vector2::new(320.0, 32.0),
-					stretch: [false; 2],
-				},
-				doom::ui::UiImage {
-					image: asset_storage.load("stbar.patch"),
-				},
-			),
-			(
-				doom::ui::UiTransform {
-					position: Vector2::new(104.0, 168.0),
-					depth: 3.0,
-					alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
-					size: Vector2::new(40.0, 32.0),
-					stretch: [false; 2],
-				},
-				doom::ui::UiImage {
-					image: asset_storage.load("starms.patch"),
-				},
-			),
-			(
-				doom::ui::UiTransform {
-					position: Vector2::new(143.0, 168.0),
-					depth: 10.0,
-					alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
-					size: Vector2::new(24.0, 29.0),
-					stretch: [false; 2],
-				},
-				doom::ui::UiImage {
-					image: asset_storage.load("stfst00.patch"),
-				},
-			),
-		]);
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(0.0, 168.0),
+				depth: 1.0,
+				alignment: [doom::ui::UiAlignment::Near, doom::ui::UiAlignment::Far],
+				size: Vector2::new(320.0, 32.0),
+				stretch: [true, false],
+			},
+			doom::ui::UiImage {
+				image: asset_storage.load("floor7_2.flat"),
+			},
+		));
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(0.0, 168.0),
+				depth: 2.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(320.0, 32.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiImage {
+				image: asset_storage.load("stbar.patch"),
+			},
+		));
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(104.0, 168.0),
+				depth: 3.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(40.0, 32.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiImage {
+				image: asset_storage.load("starms.patch"),
+			},
+		));
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(143.0, 168.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(24.0, 29.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiImage {
+				image: asset_storage.load("stfst00.patch"),
+			},
+		));
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(48.0, 171.0),
+				depth: 10.0,
+				alignment: [doom::ui::UiAlignment::Middle, doom::ui::UiAlignment::Far],
+				size: Vector2::new(100.0, 100.0),
+				stretch: [false; 2],
+			},
+			doom::ui::UiText {
+				text: "    ".into(),
+				font: asset_storage.load("sttnum.font"),
+			},
+			doom::hud::HealthStat,
+		));
 	}
 
 	let mut should_quit = false;

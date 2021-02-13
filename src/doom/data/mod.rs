@@ -1,5 +1,6 @@
 pub mod anims;
 mod bindings;
+mod fonts;
 pub mod iwads;
 mod linedefs;
 mod mobjs;
@@ -8,6 +9,7 @@ pub mod sounds;
 mod weapons;
 
 pub use bindings::get_bindings;
+pub use fonts::FONTS;
 pub use linedefs::LINEDEFS;
 pub use mobjs::{DOOMEDNUMS, MOBJS};
 pub use sectors::SECTORS;

@@ -1,4 +1,7 @@
-use crate::{common::assets::AssetHandle, doom::image::Image};
+use crate::{
+	common::assets::AssetHandle,
+	doom::{font::Font, image::Image},
+};
 use derivative::Derivative;
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
@@ -15,6 +18,12 @@ pub struct UiTransform {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UiImage {
 	pub image: AssetHandle<Image>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct UiText {
+	pub text: String,
+	pub font: AssetHandle<Font>,
 }
 
 #[derive(Clone, Copy, Debug, Derivative, Serialize, Deserialize)]

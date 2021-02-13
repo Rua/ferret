@@ -164,7 +164,7 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 						LineAttack {
 							count: 1,
 							damage_range: (1..=10).into(),
-							damage_multiplier: 2.0,
+							damage_multiplier: 2,
 							distance: 64.0,
 							spread: Vector2::new(
 								Angle::from_units(1.0 / 64.0),
@@ -392,7 +392,7 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 						LineAttack {
 							count: 1,
 							damage_range: (1..=3).into(),
-							damage_multiplier: 5.0,
+							damage_multiplier: 5,
 							distance: 2000.0,
 							spread: Vector2::new(
 								Angle::from_units(1.0 / 64.0),
@@ -651,7 +651,7 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 						LineAttack {
 							count: 7,
 							damage_range: (1..=3).into(),
-							damage_multiplier: 5.0,
+							damage_multiplier: 5,
 							distance: 2000.0,
 							spread: Vector2::new(
 								Angle::from_units(1.0 / 64.0),
@@ -1020,7 +1020,7 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 						LineAttack {
 							count: 1,
 							damage_range: (1..=3).into(),
-							damage_multiplier: 5.0,
+							damage_multiplier: 5,
 							distance: 2000.0,
 							spread: Vector2::new(
 								Angle::from_units(1.0 / 64.0),
@@ -1069,7 +1069,7 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 						LineAttack {
 							count: 1,
 							damage_range: (1..=3).into(),
-							damage_multiplier: 5.0,
+							damage_multiplier: 5,
 							distance: 2000.0,
 							spread: Vector2::new(
 								Angle::from_units(1.0 / 64.0),
@@ -2196,7 +2196,7 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 						LineAttack {
 							count: 1,
 							damage_range: (1..=10).into(),
-							damage_multiplier: 2.0,
+							damage_multiplier: 2,
 							distance: 65.0,
 							spread: Vector2::new(
 								Angle::from_units(1.0 / 64.0),
@@ -2235,7 +2235,7 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 						LineAttack {
 							count: 1,
 							damage_range: (1..=10).into(),
-							damage_multiplier: 2.0,
+							damage_multiplier: 2,
 							distance: 65.0,
 							spread: Vector2::new(
 								Angle::from_units(1.0 / 64.0),
@@ -2421,7 +2421,7 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 						LineAttack {
 							count: 20,
 							damage_range: (1..=3).into(),
-							damage_multiplier: 5.0,
+							damage_multiplier: 5,
 							distance: 2000.0,
 							spread: Vector2::new(
 								Angle::from_units(1.0 / 32.0),

@@ -7,8 +7,9 @@ use crate::{
 		},
 	},
 	doom::{
+		font::FontSpacing,
 		image::Image,
-		ui::{UiImage, UiParams, UiTransform},
+		ui::{UiImage, UiParams, UiText, UiTransform},
 	},
 };
 use anyhow::Context;
@@ -67,7 +68,7 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 		.read_resource::<UiParams>()
 		.write_resource::<Option<DrawContext>>()
 		.with_query(<(Entity, &UiTransform)>::query())
-		.with_query(<(&UiImage, &UiTransform)>::query())
+		.with_query(<(&UiTransform, Option<&UiImage>, Option<&UiText>)>::query())
 		.build(move |_command_buffer, world, resources, queries| {
 			(|| -> anyhow::Result<()> {
 				let (asset_storage, sampler, ui_params, draw_context) = resources;
@@ -114,25 +115,62 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 				// Group draws into batches by texture, preserving depth order
 				let mut batches: Vec<(AssetHandle<Image>, Vec<InstanceData>)> = Vec::new();
 
-				for (ui_image, ui_transform) in entities
+				for (ui_transform, ui_image, ui_text) in entities
 					.into_iter()
 					.filter_map(|(_, entity)| queries.1.get(world, entity).ok())
 				{
-					// Set up instance data
-					let image = asset_storage.get(&ui_image.image).unwrap();
-					let position = ui_transform.position + ui_params.align(ui_transform.alignment)
-						- image.offset;
-					let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
+					if let Some(ui_image) = ui_image {
+						// Set up instance data
+						let image = asset_storage.get(&ui_image.image).unwrap();
+						let position = ui_transform.position
+							+ ui_params.align(ui_transform.alignment)
+							- image.offset;
+						let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
 
-					let instance_data = InstanceData {
-						in_position: position.into(),
-						in_size: size.into(),
-					};
+						let instance_data = InstanceData {
+							in_position: position.into(),
+							in_size: size.into(),
+						};
 
-					// Add to batches
-					match batches.last_mut() {
-						Some((i, id)) if *i == ui_image.image => id.push(instance_data),
-						_ => batches.push((ui_image.image.clone(), vec![instance_data])),
+						// Add to batches
+						match batches.last_mut() {
+							Some((i, id)) if *i == ui_image.image => id.push(instance_data),
+							_ => batches.push((ui_image.image.clone(), vec![instance_data])),
+						}
+					}
+
+					if let Some(ui_text) = ui_text {
+						let font = asset_storage.get(&ui_text.font).unwrap();
+						let mut position =
+							ui_transform.position + ui_params.align(ui_transform.alignment);
+
+						for ch in ui_text.text.chars() {
+							if ch == ' ' {
+								let width = match font.spacing {
+									FontSpacing::FixedWidth { width } => width,
+									FontSpacing::VariableWidth { space_width } => space_width,
+								};
+								position[0] += width;
+							} else if let Some(image_handle) = font.characters.get(&ch) {
+								let image = asset_storage.get(image_handle).unwrap();
+								let instance_data = InstanceData {
+									in_position: (position - image.offset).into(),
+									in_size: image.size().into(),
+								};
+
+								let width = match font.spacing {
+									FontSpacing::FixedWidth { width } => width,
+									FontSpacing::VariableWidth { .. } => image.size()[0],
+								};
+								position[0] += width;
+
+								// Add to batches
+								match batches.last_mut() {
+									Some((i, id)) if i == image_handle => id.push(instance_data),
+									_ => batches.push((image_handle.clone(), vec![instance_data])),
+								}
+							}
+						}
 					}
 				}
 

@@ -21,14 +21,14 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Health {
-	pub current: f32,
-	pub max: f32,
+	pub current: i32,
+	pub max: i32,
 	pub pain_chance: f32,
 }
 
 #[derive(Clone, Copy, Debug)]
 pub struct HealthDef {
-	pub max: f32,
+	pub max: i32,
 	pub pain_chance: f32,
 }
 
@@ -44,7 +44,7 @@ impl SpawnFrom<HealthDef> for Health {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Damage {
-	pub damage: f32,
+	pub damage: i32,
 	pub source_entity: Entity,
 	pub direction: Vector3<f32>,
 }
@@ -78,7 +78,7 @@ pub fn apply_damage(resources: &mut Resources) -> impl Runnable {
 					queries.1.get_mut(&mut world, target)
 				{
 					// Apply damage
-					if health.current <= 0.0 {
+					if health.current <= 0 {
 						break;
 					}
 
@@ -92,11 +92,12 @@ pub fn apply_damage(resources: &mut Resources) -> impl Runnable {
 						// Avoid dividing by zero
 						if !direction.is_zero() {
 							direction.normalize_mut();
-							let mut thrust = damage.damage * 12.5 * FRAME_RATE / physics.mass;
+							let mut thrust =
+								damage.damage as f32 * 12.5 * FRAME_RATE / physics.mass;
 
 							// Sometimes push the other direction for low damage
-							if health.current < 0.0
-								&& damage.damage < 40.0 && damage.direction[2] > 64.0
+							if health.current < 0
+								&& damage.damage < 40 && damage.direction[2] > 64.0
 								&& thread_rng().gen_bool(0.5)
 							{
 								direction = -direction;
@@ -111,7 +112,7 @@ pub fn apply_damage(resources: &mut Resources) -> impl Runnable {
 					if let Some(state) = state {
 						let template = asset_storage.get(&template_ref.0).unwrap();
 
-						if health.current <= 0.0 {
+						if health.current <= 0 {
 							if health.current < -health.max
 								&& template.states.contains_key("xdeath")
 							{

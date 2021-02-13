@@ -137,7 +137,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 100.0,
+					max: 100,
 					pain_chance: 0.99609375,
 				},
 				MovementBob {
@@ -676,7 +676,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 20.0,
+					max: 20,
 					pain_chance: 0.78125,
 				},
 				PhysicsDef {
@@ -1365,7 +1365,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 30.0,
+					max: 30,
 					pain_chance: 0.6640625,
 				},
 				PhysicsDef {
@@ -2073,7 +2073,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 700.0,
+					max: 700,
 					pain_chance: 0.0390625,
 				},
 				PhysicsDef {
@@ -3451,7 +3451,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 300.0,
+					max: 300,
 					pain_chance: 0.390625,
 				},
 				PhysicsDef {
@@ -4363,7 +4363,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				TouchEventDef,
 				ProjectileTouch {
 					damage_range: (1..=8).into(),
-					damage_multiplier: 10.0,
+					damage_multiplier: 10,
 				},
 			));
 			world
@@ -4528,7 +4528,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 600.0,
+					max: 600,
 					pain_chance: 0.3125,
 				},
 				PhysicsDef {
@@ -5590,7 +5590,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				TouchEventDef,
 				ProjectileTouch {
 					damage_range: (1..=8).into(),
-					damage_multiplier: 8.0,
+					damage_multiplier: 8,
 				},
 			));
 			world
@@ -5612,7 +5612,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 70.0,
+					max: 70,
 					pain_chance: 0.6640625,
 				},
 				PhysicsDef {
@@ -6358,7 +6358,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 60.0,
+					max: 60,
 					pain_chance: 0.78125,
 				},
 				PhysicsDef {
@@ -7106,7 +7106,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 150.0,
+					max: 150,
 					pain_chance: 0.703125,
 				},
 				PhysicsDef {
@@ -7678,7 +7678,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 150.0,
+					max: 150,
 					pain_chance: 0.703125,
 				},
 				PhysicsDef {
@@ -8250,7 +8250,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 400.0,
+					max: 400,
 					pain_chance: 0.5,
 				},
 				PhysicsDef {
@@ -8689,7 +8689,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 1000.0,
+					max: 1000,
 					pain_chance: 0.1953125,
 				},
 				PhysicsDef {
@@ -9525,7 +9525,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				TouchEventDef,
 				ProjectileTouch {
 					damage_range: (1..=8).into(),
-					damage_multiplier: 8.0,
+					damage_multiplier: 8,
 				},
 			));
 			world
@@ -9547,7 +9547,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 500.0,
+					max: 500,
 					pain_chance: 0.1953125,
 				},
 				PhysicsDef {
@@ -10216,7 +10216,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 100.0,
+					max: 100,
 					pain_chance: 1.0,
 				},
 				PhysicsDef {
@@ -10592,7 +10592,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 3000.0,
+					max: 3000,
 					pain_chance: 0.15625,
 				},
 				PhysicsDef {
@@ -11238,7 +11238,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 500.0,
+					max: 500,
 					pain_chance: 0.5,
 				},
 				PhysicsDef {
@@ -11962,7 +11962,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 4000.0,
+					max: 4000,
 					pain_chance: 0.078125,
 				},
 				PhysicsDef {
@@ -12532,7 +12532,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 400.0,
+					max: 400,
 					pain_chance: 0.5,
 				},
 				PhysicsDef {
@@ -13077,7 +13077,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 50.0,
+					max: 50,
 					pain_chance: 0.6640625,
 				},
 				PhysicsDef {
@@ -13842,7 +13842,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 100.0,
+					max: 100,
 					pain_chance: 1.0,
 				},
 				PhysicsDef {
@@ -14169,7 +14169,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 250.0,
+					max: 250,
 					pain_chance: 0.99609375,
 				},
 				PhysicsDef {
@@ -14582,7 +14582,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				TouchEventDef,
 				ProjectileTouch {
 					damage_range: (1..=8).into(),
-					damage_multiplier: 3.0,
+					damage_multiplier: 3,
 				},
 			));
 			world
@@ -14804,7 +14804,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				},
 				EntityTemplateRefDef,
 				HealthDef {
-					max: 20.0,
+					max: 20,
 					pain_chance: 0.0,
 				},
 				PhysicsDef {
@@ -14941,7 +14941,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 					world.push((
 						EntityDef,
 						RadiusAttack {
-							damage: 128.0,
+							damage: 128,
 							radius: 128.0,
 						},
 					));
@@ -15169,7 +15169,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				TouchEventDef,
 				ProjectileTouch {
 					damage_range: (1..=8).into(),
-					damage_multiplier: 3.0,
+					damage_multiplier: 3,
 				},
 			));
 			world
@@ -15358,7 +15358,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				TouchEventDef,
 				ProjectileTouch {
 					damage_range: (1..=8).into(),
-					damage_multiplier: 5.0,
+					damage_multiplier: 5,
 				},
 			));
 			world
@@ -15458,7 +15458,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 					world.push((
 						EntityDef,
 						RadiusAttack {
-							damage: 128.0,
+							damage: 128,
 							radius: 128.0,
 						},
 					));
@@ -15535,7 +15535,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				TouchEventDef,
 				ProjectileTouch {
 					damage_range: (1..=8).into(),
-					damage_multiplier: 20.0,
+					damage_multiplier: 20,
 				},
 			));
 			world
@@ -15762,7 +15762,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				TouchEventDef,
 				ProjectileTouch {
 					damage_range: (1..=8).into(),
-					damage_multiplier: 5.0,
+					damage_multiplier: 5,
 				},
 			));
 			world
@@ -15914,7 +15914,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 						SprayAttack {
 							count: 40,
 							damage_range: (15..=120).into(),
-							damage_multiplier: 1.0,
+							damage_multiplier: 1,
 							distance: 1024.0,
 							particle: asset_storage.load("extrabfg.entity"),
 							spread: Vector2::new(
@@ -15999,7 +15999,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				TouchEventDef,
 				ProjectileTouch {
 					damage_range: (1..=8).into(),
-					damage_multiplier: 100.0,
+					damage_multiplier: 100,
 				},
 			));
 			world
@@ -16226,7 +16226,7 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 				TouchEventDef,
 				ProjectileTouch {
 					damage_range: (1..=8).into(),
-					damage_multiplier: 5.0,
+					damage_multiplier: 5,
 				},
 			));
 			world

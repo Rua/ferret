@@ -8,7 +8,9 @@ pub mod door;
 pub mod draw;
 pub mod exit;
 pub mod floor;
+pub mod font;
 pub mod health;
+pub mod hud;
 pub mod image;
 pub mod input;
 pub mod light;
@@ -56,7 +58,9 @@ use crate::{
 		},
 		exit::exit_switch_use,
 		floor::{floor_active, floor_linedef_touch, floor_switch_use},
+		font::{import_font, Font},
 		health::apply_damage,
+		hud::health_stat,
 		image::{import_palette, import_patch, Image, ImageData, Palette},
 		light::{light_flash_system, light_glow_system},
 		map::{
@@ -127,6 +131,7 @@ pub fn import(
 	let function = match path.extension() {
 		Some("entity") => import_entity,
 		Some("flat") => import_flat,
+		Some("font") => import_font,
 		Some("map") => import_map,
 		Some("palette") => import_palette,
 		Some("patch") => import_patch,
@@ -176,16 +181,17 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 	// Asset types
 	let mut asset_storage = AssetStorage::new(import, WadLoader::new());
 	asset_storage.add_storage::<EntityTemplate>(false);
-	asset_storage.add_storage::<WeaponTemplate>(false);
+	asset_storage.add_storage::<Font>(false);
 	asset_storage.add_storage::<Image>(true);
 	asset_storage.add_storage::<ImageData>(false);
-	asset_storage.add_storage::<Palette>(false);
 	asset_storage.add_storage::<Map>(false);
+	asset_storage.add_storage::<Palette>(false);
 	asset_storage.add_storage::<PNames>(false);
-	asset_storage.add_storage::<Textures>(false);
-	asset_storage.add_storage::<Sprite>(false);
 	asset_storage.add_storage::<RawSound>(false);
 	asset_storage.add_storage::<Sound>(false);
+	asset_storage.add_storage::<Sprite>(false);
+	asset_storage.add_storage::<Textures>(false);
+	asset_storage.add_storage::<WeaponTemplate>(false);
 	resources.insert(asset_storage);
 
 	// Component types
@@ -296,6 +302,7 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 
 			state(resources, actions)
 		})
+		.add_thread_local(health_stat(resources)).flush()
 		.add_thread_local(increment_game_time()).flush()
 		.build())
 }
