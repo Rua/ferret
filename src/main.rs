@@ -177,7 +177,14 @@ fn main() -> anyhow::Result<()> {
 				stretch: [false; 2],
 			},
 			doom::ui::UiImage {
-				image: asset_storage.load("stysnum2.patch"),
+				image: asset_storage.load("stysnum0.patch"),
+			},
+			doom::hud::ArmsStat {
+				weapons: vec!["pistol".into()],
+				images: [
+					asset_storage.load("stgnum2.patch"),
+					asset_storage.load("stysnum2.patch"),
+				],
 			},
 		));
 
@@ -191,7 +198,14 @@ fn main() -> anyhow::Result<()> {
 				stretch: [false; 2],
 			},
 			doom::ui::UiImage {
-				image: asset_storage.load("stgnum3.patch"),
+				image: asset_storage.load("stysnum0.patch"),
+			},
+			doom::hud::ArmsStat {
+				weapons: vec!["shotgun".into(), "supershotgun".into()],
+				images: [
+					asset_storage.load("stgnum3.patch"),
+					asset_storage.load("stysnum3.patch"),
+				],
 			},
 		));
 
@@ -205,7 +219,14 @@ fn main() -> anyhow::Result<()> {
 				stretch: [false; 2],
 			},
 			doom::ui::UiImage {
-				image: asset_storage.load("stgnum4.patch"),
+				image: asset_storage.load("stysnum0.patch"),
+			},
+			doom::hud::ArmsStat {
+				weapons: vec!["chaingun".into()],
+				images: [
+					asset_storage.load("stgnum4.patch"),
+					asset_storage.load("stysnum4.patch"),
+				],
 			},
 		));
 
@@ -219,7 +240,14 @@ fn main() -> anyhow::Result<()> {
 				stretch: [false; 2],
 			},
 			doom::ui::UiImage {
-				image: asset_storage.load("stgnum5.patch"),
+				image: asset_storage.load("stysnum0.patch"),
+			},
+			doom::hud::ArmsStat {
+				weapons: vec!["missile".into()],
+				images: [
+					asset_storage.load("stgnum5.patch"),
+					asset_storage.load("stysnum5.patch"),
+				],
 			},
 		));
 
@@ -233,7 +261,14 @@ fn main() -> anyhow::Result<()> {
 				stretch: [false; 2],
 			},
 			doom::ui::UiImage {
-				image: asset_storage.load("stgnum6.patch"),
+				image: asset_storage.load("stysnum0.patch"),
+			},
+			doom::hud::ArmsStat {
+				weapons: vec!["plasma".into()],
+				images: [
+					asset_storage.load("stgnum6.patch"),
+					asset_storage.load("stysnum6.patch"),
+				],
 			},
 		));
 
@@ -248,6 +283,13 @@ fn main() -> anyhow::Result<()> {
 			},
 			doom::ui::UiImage {
 				image: asset_storage.load("stgnum7.patch"),
+			},
+			doom::hud::ArmsStat {
+				weapons: vec!["bfg".into()],
+				images: [
+					asset_storage.load("stgnum7.patch"),
+					asset_storage.load("stysnum7.patch"),
+				],
 			},
 		));
 

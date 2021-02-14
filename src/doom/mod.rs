@@ -58,7 +58,7 @@ use crate::{
 		exit::exit_switch_use,
 		floor::{floor_active, floor_linedef_touch, floor_switch_use},
 		health::apply_damage,
-		hud::health_stat,
+		hud::{arms_stat, health_stat},
 		image::{import_palette, import_patch, Image, ImageData, Palette},
 		light::{light_flash_system, light_glow_system},
 		map::{
@@ -301,6 +301,7 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 			state(resources, actions)
 		})
 		.add_thread_local(health_stat(resources)).flush()
+		.add_thread_local(arms_stat(resources)).flush()
 		.add_thread_local(increment_game_time()).flush()
 		.build())
 }
