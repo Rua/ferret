@@ -14,7 +14,10 @@ use clap::{App, Arg};
 use crossbeam_channel::Sender;
 use legion::{serialize::Canon, systems::ResourceSet, Read, Registry, Resources, World, Write};
 use nalgebra::Vector2;
-use std::time::{Duration, Instant};
+use std::{
+	sync::atomic::{AtomicBool, Ordering},
+	time::{Duration, Instant},
+};
 use winit::{
 	event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent},
 	event_loop::{ControlFlow, EventLoop},
@@ -25,28 +28,24 @@ fn main() -> anyhow::Result<()> {
 	let arg_matches = App::new(clap::crate_name!())
 		.about(clap::crate_description!())
 		.version(clap::crate_version!())
+		.arg(Arg::new("PWADS").about("PWAD files to add").multiple(true))
 		.arg(
-			Arg::with_name("PWADS")
-				.help("PWAD files to add")
-				.multiple(true),
-		)
-		.arg(
-			Arg::with_name("iwad")
-				.help("IWAD file to use instead of the default")
-				.short("i")
+			Arg::new("iwad")
+				.about("IWAD file to use instead of the default")
+				.short('i')
 				.long("iwad")
 				.value_name("FILE"),
 		)
 		.arg(
-			Arg::with_name("map")
-				.help("Map to load at startup")
-				.short("m")
+			Arg::new("map")
+				.about("Map to load at startup")
+				.short('m')
 				.long("map")
 				.value_name("NAME"),
 		)
 		.arg(
-			Arg::with_name("log-level")
-				.help("Highest log level to display")
+			Arg::new("log-level")
+				.about("Highest log level to display")
 				.long("log-level")
 				.value_name("LEVEL")
 				.possible_values(&["ERROR", "WARN", "INFO", "DEBUG", "TRACE"]),
@@ -485,11 +484,12 @@ fn main() -> anyhow::Result<()> {
 		));
 	}
 
-	let mut should_quit = false;
+	let should_quit = AtomicBool::new(false);
 	let mut old_time = Instant::now();
 	let mut leftover_time = Duration::default();
+	let mut execute_commands = doom::commands::execute_commands(command_receiver, &should_quit);
 
-	while !should_quit {
+	while !should_quit.load(Ordering::Relaxed) {
 		let mut delta;
 		let mut new_time;
 
@@ -562,30 +562,9 @@ fn main() -> anyhow::Result<()> {
 		});
 
 		// Execute console commands
-		while let Some(command) = command_receiver.try_iter().next() {
-			// Split into tokens
-			let tokens = match common::commands::tokenize(&command) {
-				Ok(tokens) => tokens,
-				Err(e) => {
-					log::error!("Invalid syntax: {}", e);
-					continue;
-				}
-			};
+		execute_commands(&mut world, &mut resources);
 
-			// Split further into subcommands
-			for args in tokens.split(|tok| tok == ";") {
-				match args[0].as_str() {
-					"change" => doom::change_map(&args[1], &mut world, &mut resources)?,
-					"load" => doom::load_game(&args[1], &mut world, &mut resources),
-					"new" => doom::new_game(&args[1], &mut world, &mut resources)?,
-					"quit" => should_quit = true,
-					"save" => doom::save_game(&args[1], &mut world, &mut resources),
-					_ => log::error!("Unknown command: {}", args[0]),
-				}
-			}
-		}
-
-		if should_quit {
+		if should_quit.load(Ordering::Relaxed) {
 			return Ok(());
 		}
 

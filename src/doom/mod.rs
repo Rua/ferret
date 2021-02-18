@@ -2,6 +2,7 @@
 
 pub mod camera;
 pub mod client;
+pub mod commands;
 pub mod components;
 pub mod data;
 pub mod door;
@@ -114,7 +115,6 @@ use std::{
 	fs::File,
 	io::{BufReader, BufWriter, Write as IOWrite},
 	path::Path,
-	time::Instant,
 };
 use vulkano::{
 	format::Format,
@@ -407,7 +407,7 @@ macro_rules! game_entities {
 }
 
 pub fn clear_game(world: &mut World, resources: &mut Resources) {
-	log::info!("Clearing game...");
+	log::debug!("Clearing game...");
 	let mut command_buffer = CommandBuffer::new(world);
 	command_buffer.exec_mut(|_, resources| {
 		resources.remove::<Client>();
@@ -441,96 +441,102 @@ pub fn create_quadtree(world: &World, resources: &Resources) -> Quadtree {
 	quadtree
 }
 
-pub fn new_game(map: &str, world: &mut World, resources: &mut Resources) -> anyhow::Result<()> {
+pub fn new_game(map: &str, world: &mut World, resources: &mut Resources) {
 	clear_game(world, resources);
 
-	log::info!("Starting map {}...", map);
-	let map_lower = map.to_ascii_lowercase();
-	let start_time = Instant::now();
-	resources.insert(GameTime::default());
+	let result = || -> anyhow::Result<()> {
+		log::info!("Starting map {}...", map);
+		let map_lower = map.to_ascii_lowercase();
+		resources.insert(GameTime::default());
 
-	log::info!("Loading map...");
-	let map_handle: AssetHandle<Map> = {
-		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-		asset_storage.load(&format!("{}.map", map_lower))
-	};
-	spawn::spawn_map_entities(world, resources, &map_handle)?;
+		log::info!("Loading map...");
+		let map_handle: AssetHandle<Map> = {
+			let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
+			asset_storage.load(&format!("{}.map", map_lower))
+		};
+		spawn::spawn_map_entities(world, resources, &map_handle)?;
 
-	let quadtree = create_quadtree(world, resources);
-	resources.insert(quadtree);
+		let quadtree = create_quadtree(world, resources);
+		resources.insert(quadtree);
 
-	log::info!("Spawning entities...");
-	let things = {
-		let asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-		map::load::build_things(
-			&asset_storage
-				.source()
-				.load(&RelativePath::new(&map_lower).with_extension("things"))?,
-		)?
-	};
-	spawn::spawn_things(things, world, resources)?;
+		log::info!("Spawning entities...");
+		let things = {
+			let asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
+			map::load::build_things(
+				&asset_storage
+					.source()
+					.load(&RelativePath::new(&map_lower).with_extension("things"))?,
+			)?
+		};
+		spawn::spawn_things(things, world, resources)?;
 
-	// Spawn player
-	let entity = spawn::spawn_player(world, resources, 1)?;
-	resources.insert(Client {
-		entity: Some(entity),
-		..Client::default()
-	});
-
-	log::info!("Processing assets...");
-	{
-		let (render_context, mut asset_storage) =
-			<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(resources);
-
-		// Palette
-		let palette_handle: AssetHandle<Palette> = asset_storage.load("playpal.palette");
-
-		// Images
-		asset_storage.process::<Image, _>(|data, asset_storage| {
-			let image_data: ImageData = *data.downcast().ok().unwrap();
-			let palette = asset_storage.get(&palette_handle).unwrap();
-			let data: Vec<_> = image_data
-				.data
-				.into_iter()
-				.map(|pixel| {
-					if pixel.a == 0xFF {
-						palette[pixel.i as usize]
-					} else {
-						crate::doom::image::RGBAColor::default()
-					}
-				})
-				.collect();
-
-			// Create the image
-			let (image, _future) = ImmutableImage::from_iter(
-				data.as_bytes().iter().copied(),
-				Dimensions::Dim2d {
-					width: image_data.size[0] as u32,
-					height: image_data.size[1] as u32,
-				},
-				MipmapsCount::One,
-				Format::R8G8B8A8Unorm,
-				render_context.queues().graphics.clone(),
-			)?;
-
-			Ok(crate::doom::image::Image {
-				image,
-				offset: Vector2::new(image_data.offset[0] as f32, image_data.offset[1] as f32),
-			})
+		// Spawn player
+		let entity = spawn::spawn_player(world, resources, 1)?;
+		resources.insert(Client {
+			entity: Some(entity),
+			..Client::default()
 		});
+
+		log::info!("Processing assets...");
+		{
+			let (render_context, mut asset_storage) =
+				<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(resources);
+
+			// Palette
+			let palette_handle: AssetHandle<Palette> = asset_storage.load("playpal.palette");
+
+			// Images
+			asset_storage.process::<Image, _>(|data, asset_storage| {
+				let image_data: ImageData = *data.downcast().ok().unwrap();
+				let palette = asset_storage.get(&palette_handle).unwrap();
+				let data: Vec<_> = image_data
+					.data
+					.into_iter()
+					.map(|pixel| {
+						if pixel.a == 0xFF {
+							palette[pixel.i as usize]
+						} else {
+							crate::doom::image::RGBAColor::default()
+						}
+					})
+					.collect();
+
+				// Create the image
+				let (image, _future) = ImmutableImage::from_iter(
+					data.as_bytes().iter().copied(),
+					Dimensions::Dim2d {
+						width: image_data.size[0] as u32,
+						height: image_data.size[1] as u32,
+					},
+					MipmapsCount::One,
+					Format::R8G8B8A8Unorm,
+					render_context.queues().graphics.clone(),
+				)?;
+
+				Ok(crate::doom::image::Image {
+					image,
+					offset: Vector2::new(image_data.offset[0] as f32, image_data.offset[1] as f32),
+				})
+			});
+		}
+
+		Ok(())
+	}();
+
+	match result {
+		Ok(_) => log::info!("Game start complete."),
+		Err(err) => log::error!("{:?}", err),
 	}
-
-	log::debug!(
-		"Loading took {} s",
-		(Instant::now() - start_time).as_secs_f32()
-	);
-
-	Ok(())
 }
 
-pub fn change_map(map: &str, world: &mut World, resources: &mut Resources) -> anyhow::Result<()> {
+pub fn change_map(map: &str, world: &mut World, resources: &mut Resources) {
+	if !resources.contains::<GameTime>() {
+		log::error!("Can't change map, not currently in a game.");
+		return;
+	}
+
 	// TODO continue existing game
-	new_game(map, world, resources)
+	new_game(map, world, resources);
 }
 
 #[derive(Serialize, Deserialize)]
