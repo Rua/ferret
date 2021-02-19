@@ -1,8 +1,10 @@
 use anyhow::{bail, Context};
+use clap::{App, AppSettings, ArgMatches};
 use crossbeam_channel::{Receiver, Sender};
+use legion::{Resources, World};
 use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
-use std::{io::BufRead, thread::Builder};
+use std::{collections::HashMap, io::BufRead, thread::Builder};
 
 pub fn init() -> anyhow::Result<(Sender<String>, Receiver<String>)> {
 	let (sender, receiver) = crossbeam_channel::unbounded();
@@ -32,64 +34,74 @@ pub fn init() -> anyhow::Result<(Sender<String>, Receiver<String>)> {
 	Ok((sender, receiver))
 }
 
-/*pub struct CommandList<T> {
-	commands: HashMap<String, Command<T>>,
-}
+const MAIN_TEMPLATE: &'static str = "{subcommands}";
+const SUBCOMMAND_TEMPLATE: &'static str = "{usage}\n{about}\n\n{all-args}";
 
-impl<T> CommandList<T> {
-	pub fn new() -> CommandList<T> {
-		CommandList {
-			commands: HashMap::new(),
-		}
-	}
+pub fn execute_commands<'a>(
+	command_receiver: Receiver<String>,
+	commands: Vec<(App<'static>, fn(&ArgMatches, &mut World, &mut Resources))>,
+) -> impl FnMut(&mut World, &mut Resources) + 'a {
+	let mut app = Some(
+		App::new("")
+			.help_template(MAIN_TEMPLATE)
+			.global_setting(AppSettings::DisableHelpFlags)
+			.global_setting(AppSettings::DisableVersion)
+			.setting(AppSettings::NoBinaryName),
+	);
 
-	pub fn add<F: Fn(&mut T, Vec<String>) + Sync + 'static>(
-		mut self,
-		name: &str,
-		func: F,
-	) -> CommandList<T> {
-		self.commands.insert(
-			name.to_owned(),
-			Command {
-				func: Box::new(func),
-			},
+	let mut functions: HashMap<String, _> = HashMap::with_capacity(commands.len());
+
+	for (subcommand, func) in commands.into_iter() {
+		functions.insert(subcommand.get_name().into(), func);
+
+		app = Some(
+			app.take()
+				.unwrap()
+				.subcommand(subcommand.help_template(SUBCOMMAND_TEMPLATE)),
 		);
-
-		self
 	}
 
-	/*pub fn keys(&self) -> Vec<&String> {
-		self.commands.keys().collect::<Vec<_>>()
-	}*/
+	let mut app = app.unwrap();
 
-	pub fn execute(&self, args: Vec<String>, system: &mut T) {
-		match self.commands.get(&args[0]) {
-			Some(val) => val.call(system, args),
-			None => debug!("Received invalid command: {}", args[0]),
-		}
-	}
+	move |world, resources| {
+		while let Some(command) = command_receiver.try_iter().next() {
+			// Split into tokens
+			let tokens = match tokenize(&command) {
+				Ok(tokens) => tokens,
+				Err(e) => {
+					log::error!("Invalid syntax: {}", e);
+					continue;
+				}
+			};
 
-	pub fn print_commands(&self) {
-		let mut names = self.commands.keys().collect::<Vec<&String>>();
-		names.sort();
+			// Split further into subcommands
+			for args in tokens.split(|tok| tok == ";") {
+				let matches = match app.try_get_matches_from_mut(args) {
+					Ok(m) => m,
+					Err(e) => {
+						if !e.use_stderr() {
+							log::info!("{}", e.to_string().trim_end());
+						} else if !functions.contains_key(&args[0]) {
+							log::error!("Unknown command: \"{}\". Type \"help\" for a list of valid commands.", args[0]);
+						} else {
+							log::error!(
+								"Invalid syntax for command. Type \"help {}\" for valid usage.",
+								args[0]
+							);
+						}
+						continue;
+					}
+				};
 
-		for name in names {
-			info!("{}", name);
+				if let Some((command, matches)) = matches.subcommand() {
+					functions[command](matches, world, resources);
+				}
+			}
 		}
 	}
 }
 
-struct Command<T> {
-	func: Box<dyn Fn(&mut T, Vec<String>) + Sync + 'static>,
-}
-
-impl<T> Command<T> {
-	pub fn call(&self, system: &mut T, args: Vec<String>) {
-		(self.func)(system, args);
-	}
-}*/
-
-pub fn tokenize(mut text: &str) -> anyhow::Result<Vec<String>> {
+fn tokenize(mut text: &str) -> anyhow::Result<Vec<String>> {
 	// Whitespace, except newlines
 	static RE_SPACE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^[^\S\n]+"#).unwrap());
 

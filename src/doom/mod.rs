@@ -229,6 +229,10 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 		handler_set.register_clone::<UiImage>();
 	}
 
+	log::info!("Engine initialised.");
+	log::info!("Type \"help\" to see available commands.");
+	log::info!("--------------------------------");
+
 	// Load IWAD and PWADs
 	load_wads(resources, &arg_matches)?;
 
@@ -442,17 +446,18 @@ pub fn create_quadtree(world: &World, resources: &Resources) -> Quadtree {
 }
 
 pub fn new_game(map: &str, world: &mut World, resources: &mut Resources) {
+	let map = map.to_ascii_lowercase();
+	log::info!("Starting new game on map {}...", map);
+
 	clear_game(world, resources);
 
 	let result = || -> anyhow::Result<()> {
-		log::info!("Starting map {}...", map);
-		let map_lower = map.to_ascii_lowercase();
 		resources.insert(GameTime::default());
 
 		log::info!("Loading map...");
 		let map_handle: AssetHandle<Map> = {
 			let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-			asset_storage.load(&format!("{}.map", map_lower))
+			asset_storage.load(&format!("{}.map", map))
 		};
 		spawn::spawn_map_entities(world, resources, &map_handle)?;
 
@@ -465,7 +470,7 @@ pub fn new_game(map: &str, world: &mut World, resources: &mut Resources) {
 			map::load::build_things(
 				&asset_storage
 					.source()
-					.load(&RelativePath::new(&map_lower).with_extension("things"))?,
+					.load(&RelativePath::new(&map).with_extension("things"))?,
 			)?
 		};
 		spawn::spawn_things(things, world, resources)?;
@@ -524,7 +529,7 @@ pub fn new_game(map: &str, world: &mut World, resources: &mut Resources) {
 	}();
 
 	match result {
-		Ok(_) => log::info!("Game start complete."),
+		Ok(_) => log::info!("Game started."),
 		Err(err) => log::error!("{:?}", err),
 	}
 }
@@ -586,7 +591,7 @@ pub fn save_game(name: &str, world: &mut World, resources: &mut Resources) {
 	});
 
 	match result {
-		Ok(_) => log::info!("Save complete."),
+		Ok(_) => log::info!("Game saved."),
 		Err(err) => log::error!("{:?}", err),
 	}
 }
@@ -626,7 +631,7 @@ pub fn load_game(name: &str, world: &mut World, resources: &mut Resources) {
 			let quadtree = create_quadtree(world, resources);
 			resources.insert(quadtree);
 
-			log::info!("Load complete.");
+			log::info!("Game loaded.");
 		}
 		Err(err) => log::error!("{:?}", err),
 	}

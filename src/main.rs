@@ -5,6 +5,7 @@ mod doom;
 
 use crate::common::{
 	assets::AssetStorage,
+	commands::execute_commands,
 	input::InputState,
 	spawn::SpawnMergerHandlerSet,
 	video::{DrawTarget, PresentTarget, RenderContext},
@@ -14,10 +15,7 @@ use clap::{App, Arg};
 use crossbeam_channel::Sender;
 use legion::{serialize::Canon, systems::ResourceSet, Read, Registry, Resources, World, Write};
 use nalgebra::Vector2;
-use std::{
-	sync::atomic::{AtomicBool, Ordering},
-	time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 use winit::{
 	event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent},
 	event_loop::{ControlFlow, EventLoop},
@@ -89,6 +87,9 @@ fn main() -> anyhow::Result<()> {
 		doom::init_draw_systems(&mut resources).context("Couldn't initialise draw systems")?;
 	let mut sound_systems =
 		doom::init_sound_systems(&mut resources).context("Couldn't initialise sound systems")?;
+
+	let commands = doom::commands::commands();
+	let mut execute_commands = execute_commands(command_receiver, commands);
 
 	// Create world
 	let mut world = World::default();
@@ -484,12 +485,10 @@ fn main() -> anyhow::Result<()> {
 		));
 	}
 
-	let should_quit = AtomicBool::new(false);
 	let mut old_time = Instant::now();
 	let mut leftover_time = Duration::default();
-	let mut execute_commands = doom::commands::execute_commands(command_receiver, &should_quit);
 
-	while !should_quit.load(Ordering::Relaxed) {
+	while !resources.contains::<ShouldQuit>() {
 		let mut delta;
 		let mut new_time;
 
@@ -564,7 +563,7 @@ fn main() -> anyhow::Result<()> {
 		// Execute console commands
 		execute_commands(&mut world, &mut resources);
 
-		if should_quit.load(Ordering::Relaxed) {
+		if resources.contains::<ShouldQuit>() {
 			return Ok(());
 		}
 
@@ -586,3 +585,6 @@ fn main() -> anyhow::Result<()> {
 
 	Ok(())
 }
+
+#[derive(Clone, Copy, Debug, Default)]
+struct ShouldQuit;
