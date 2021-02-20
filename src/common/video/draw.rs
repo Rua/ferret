@@ -2,13 +2,15 @@ use crate::common::video::RenderContext;
 use anyhow::Context;
 use std::sync::Arc;
 use vulkano::{
-	command_buffer::AutoCommandBufferBuilder,
+	buffer::{BufferUsage, CpuAccessibleBuffer},
+	command_buffer::{AutoCommandBufferBuilder, CommandBuffer},
 	descriptor::descriptor_set::DescriptorSet,
 	device::Device,
 	format::Format,
 	framebuffer::{Framebuffer, FramebufferAbstract, RenderPassAbstract},
 	image::{AttachmentImage, ImageAccess, ImageUsage},
 	single_pass_renderpass,
+	sync::GpuFuture,
 };
 
 pub struct DrawTarget {
@@ -174,6 +176,32 @@ impl DrawTarget {
 
 	pub fn render_pass(&self) -> &Arc<dyn RenderPassAbstract + Send + Sync> {
 		&self.render_pass
+	}
+
+	pub fn copy_to_cpu(
+		&self,
+		render_context: &RenderContext,
+	) -> anyhow::Result<(Arc<CpuAccessibleBuffer<[u8]>>, [u32; 2], impl GpuFuture)> {
+		let graphics_queue = &render_context.queues().graphics;
+		let format = self.colour_attachment.format();
+		let dimensions = self.colour_attachment.dimensions();
+
+		unsafe {
+			// TODO: Would be nice to have a CpuAccessibleImage in Vulkano?
+			let buffer = CpuAccessibleBuffer::<[u8]>::uninitialized_array(
+				render_context.device().clone(),
+				format.size().unwrap() * dimensions.num_texels() as usize,
+				BufferUsage::transfer_destination(),
+				true,
+			)?;
+			let mut builder = AutoCommandBufferBuilder::primary_one_time_submit(
+				render_context.device().clone(),
+				graphics_queue.family(),
+			)?;
+			builder.copy_image_to_buffer(self.colour_attachment.clone(), buffer.clone())?;
+			let future = builder.build()?.execute(graphics_queue.clone())?;
+			Ok((buffer, dimensions.width_height(), future))
+		}
 	}
 }
 

@@ -100,6 +100,7 @@ use crate::{
 	},
 };
 use anyhow::{bail, Context};
+use chrono::Local;
 use clap::ArgMatches;
 use crossbeam_channel::Sender;
 use legion::{
@@ -120,6 +121,7 @@ use vulkano::{
 	format::Format,
 	image::{Dimensions, ImmutableImage, MipmapsCount},
 	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
+	sync::GpuFuture,
 };
 
 pub fn import(
@@ -572,27 +574,29 @@ pub fn save_game(name: &str, world: &mut World, resources: &mut Resources) {
 		game_time: *game_time,
 	};
 
-	let result = ASSET_SERIALIZER.set(&mut asset_storage, || -> anyhow::Result<()> {
-		let mut file = BufWriter::new(
-			File::create(&name)
-				.with_context(|| format!("Couldn't open \"{}\" for writing", name))?,
-		);
-		let mut serializer = rmp_serde::encode::Serializer::new(&mut file);
+	let result = ASSET_SERIALIZER
+		.set(&mut asset_storage, || -> anyhow::Result<()> {
+			let mut file = BufWriter::new(
+				File::create(&name)
+					.with_context(|| format!("Couldn't open \"{}\" for writing", name))?,
+			);
+			let mut serializer = rmp_serde::encode::Serializer::new(&mut file);
 
-		set_entity_serializer(&*canon, || saved_resources.serialize(&mut serializer))
-			.context("Couldn't serialize resources")?;
-		world
-			.as_serializable(game_entities!(), &*registry, &*canon)
-			.serialize(&mut serializer)
-			.context("Couldn't serialize world")?;
+			set_entity_serializer(&*canon, || saved_resources.serialize(&mut serializer))
+				.context("Couldn't serialize resources")?;
+			world
+				.as_serializable(game_entities!(), &*registry, &*canon)
+				.serialize(&mut serializer)
+				.context("Couldn't serialize world")?;
 
-		file.flush().context("Couldn't flush file")?;
-		Ok(())
-	});
+			file.flush().context("Couldn't flush file")?;
+			log::info!("Game saved.");
+			Ok(())
+		})
+		.context("Couldn't save game");
 
-	match result {
-		Ok(_) => log::info!("Game saved."),
-		Err(err) => log::error!("{:?}", err),
+	if let Err(err) = result {
+		log::error!("{:?}", err);
 	}
 }
 
@@ -621,7 +625,8 @@ pub fn load_game(name: &str, world: &mut World, resources: &mut Resources) {
 				.context("Couldn't deserialize world")?;
 			Ok(saved_resources)
 		})
-	};
+	}
+	.context("Couldn't load game");
 
 	match result {
 		Ok(saved_resources) => {
@@ -634,5 +639,34 @@ pub fn load_game(name: &str, world: &mut World, resources: &mut Resources) {
 			log::info!("Game loaded.");
 		}
 		Err(err) => log::error!("{:?}", err),
+	}
+}
+
+pub fn take_screenshot(resources: &Resources) {
+	let result = || -> anyhow::Result<_> {
+		let (draw_target, render_context) =
+			<(Read<DrawTarget>, Read<RenderContext>)>::fetch(resources);
+		let (buffer, dimensions, future) = draw_target.copy_to_cpu(&render_context)?;
+		future.then_signal_fence_and_flush()?.wait(None)?;
+
+		let filename = Local::now()
+			.format("screenshot %Y-%m-%d %H-%M-%S %f.png")
+			.to_string();
+		let mut encoder = png::Encoder::new(
+			BufWriter::new(File::create(&filename)?),
+			dimensions[0],
+			dimensions[1],
+		);
+		encoder.set_color(png::ColorType::RGBA);
+		encoder.set_depth(png::BitDepth::Eight);
+		let mut writer = encoder.write_header()?;
+		writer.write_image_data(&buffer.read()?)?;
+		log::info!("Screenshot saved to \"{}\"", filename);
+		Ok(())
+	}()
+	.context("Couldn't take screenshot");
+
+	if let Err(err) = result {
+		log::error!("{:?}", err);
 	}
 }

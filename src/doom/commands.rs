@@ -1,5 +1,5 @@
 use crate::{
-	doom::{change_map, load_game, new_game, save_game},
+	doom::{change_map, load_game, new_game, save_game, take_screenshot},
 	ShouldQuit,
 };
 use clap::{App, Arg, ArgMatches};
@@ -49,6 +49,12 @@ pub fn commands() -> Vec<(App<'static>, fn(&ArgMatches, &mut World, &mut Resourc
 			),
 			|matches, world, resources| {
 				save_game(matches.value_of("NAME").unwrap(), world, resources);
+			},
+		),
+		(
+			App::new("screenshot").about("Take a screenshot"),
+			|_matches, _world, resources| {
+				take_screenshot(resources);
 			},
 		),
 	]
