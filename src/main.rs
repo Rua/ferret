@@ -26,24 +26,28 @@ fn main() -> anyhow::Result<()> {
 	let arg_matches = App::new(clap::crate_name!())
 		.about(clap::crate_description!())
 		.version(clap::crate_version!())
-		.arg(Arg::new("PWADS").about("PWAD files to add").multiple(true))
 		.arg(
-			Arg::new("iwad")
-				.about("IWAD file to use instead of the default")
-				.short('i')
+			Arg::with_name("PWADS")
+				.help("PWAD files to add")
+				.multiple(true),
+		)
+		.arg(
+			Arg::with_name("iwad")
+				.help("IWAD file to use instead of the default")
+				.short("i")
 				.long("iwad")
 				.value_name("FILE"),
 		)
 		.arg(
-			Arg::new("map")
-				.about("Map to load at startup")
-				.short('m')
+			Arg::with_name("map")
+				.help("Map to load at startup")
+				.short("m")
 				.long("map")
 				.value_name("NAME"),
 		)
 		.arg(
-			Arg::new("log-level")
-				.about("Highest log level to display")
+			Arg::with_name("log-level")
+				.help("Highest log level to display")
 				.long("log-level")
 				.value_name("LEVEL")
 				.possible_values(&["ERROR", "WARN", "INFO", "DEBUG", "TRACE"]),

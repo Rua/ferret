@@ -39,11 +39,14 @@ const SUBCOMMAND_TEMPLATE: &'static str = "{usage}\n{about}\n\n{all-args}";
 
 pub fn execute_commands<'a>(
 	command_receiver: Receiver<String>,
-	commands: Vec<(App<'static>, fn(&ArgMatches, &mut World, &mut Resources))>,
+	commands: Vec<(
+		App<'static, 'static>,
+		fn(&ArgMatches, &mut World, &mut Resources),
+	)>,
 ) -> impl FnMut(&mut World, &mut Resources) + 'a {
 	let mut app = Some(
 		App::new("")
-			.help_template(MAIN_TEMPLATE)
+			.template(MAIN_TEMPLATE)
 			.global_setting(AppSettings::DisableHelpFlags)
 			.global_setting(AppSettings::DisableVersion)
 			.setting(AppSettings::NoBinaryName),
@@ -57,7 +60,7 @@ pub fn execute_commands<'a>(
 		app = Some(
 			app.take()
 				.unwrap()
-				.subcommand(subcommand.help_template(SUBCOMMAND_TEMPLATE)),
+				.subcommand(subcommand.template(SUBCOMMAND_TEMPLATE)),
 		);
 	}
 
@@ -76,7 +79,8 @@ pub fn execute_commands<'a>(
 
 			// Split further into subcommands
 			for args in tokens.split(|tok| tok == ";") {
-				let matches = match app.try_get_matches_from_mut(args) {
+				//println!("{:#?}", app);
+				let matches = match app.get_matches_from_safe_borrow(args) {
 					Ok(m) => m,
 					Err(e) => {
 						if !e.use_stderr() {
@@ -93,7 +97,7 @@ pub fn execute_commands<'a>(
 					}
 				};
 
-				if let Some((command, matches)) = matches.subcommand() {
+				if let (command, Some(matches)) = matches.subcommand() {
 					functions[command](matches, world, resources);
 				}
 			}
