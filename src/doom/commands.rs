@@ -1,5 +1,5 @@
 use crate::{
-	doom::{change_map, load_game, new_game, save_game, take_screenshot},
+	doom::{change_map, cheats::give_all, load_game, new_game, save_game, take_screenshot},
 	ShouldQuit,
 };
 use clap::{App, Arg, ArgMatches};
@@ -28,6 +28,18 @@ pub fn commands() -> Vec<(
 			),
 			|matches, world, resources| {
 				load_game(matches.value_of("NAME").unwrap(), world, resources);
+			},
+		),
+		(
+			App::new("idfa").about("[Cheat] Give all weapons, ammo and armor"),
+			|_matches, world, resources| {
+				give_all(world, resources, false);
+			},
+		),
+		(
+			App::new("idkfa").about("[Cheat] Give all weapons, ammo, armor and keys"),
+			|_matches, world, resources| {
+				give_all(world, resources, true);
 			},
 		),
 		(

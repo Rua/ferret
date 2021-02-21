@@ -168,4 +168,5 @@ pub fn read_string<R: Read>(reader: &mut R) -> anyhow::Result<ArrayString<[u8; 8
 pub struct IWADInfo {
 	pub files: &'static [&'static str],
 	pub map: &'static str,
+	pub weapons: &'static [&'static str],
 }

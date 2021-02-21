@@ -79,7 +79,6 @@ pub fn execute_commands<'a>(
 
 			// Split further into subcommands
 			for args in tokens.split(|tok| tok == ";") {
-				//println!("{:#?}", app);
 				let matches = match app.get_matches_from_safe_borrow(args) {
 					Ok(m) => m,
 					Err(e) => {

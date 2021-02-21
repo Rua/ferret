@@ -1,4 +1,7 @@
-use crate::common::assets::{AssetStorage, ImportData};
+use crate::common::{
+	assets::{AssetHandle, AssetStorage, ImportData},
+	video::{AsBytes, RenderContext},
+};
 use byteorder::{ReadBytesExt, LE};
 use nalgebra::Vector2;
 use relative_path::RelativePath;
@@ -7,7 +10,10 @@ use std::{
 	ops::Deref,
 	sync::Arc,
 };
-use vulkano::image::ImageViewAccess;
+use vulkano::{
+	format::Format,
+	image::{Dimensions, ImageViewAccess, ImmutableImage, MipmapsCount},
+};
 
 #[derive(Copy, Clone, Debug, Default)]
 #[repr(C)]
@@ -122,4 +128,41 @@ pub fn import_patch(
 	}
 
 	Ok(Box::new(ImageData { data, size, offset }))
+}
+
+pub fn process_images(render_context: &RenderContext, asset_storage: &mut AssetStorage) {
+	let palette_handle: AssetHandle<Palette> = asset_storage.load("playpal.palette");
+
+	asset_storage.process::<Image, _>(|data, asset_storage| {
+		let image_data: ImageData = *data.downcast().ok().unwrap();
+		let palette = asset_storage.get(&palette_handle).unwrap();
+		let data: Vec<_> = image_data
+			.data
+			.into_iter()
+			.map(|pixel| {
+				if pixel.a == 0xFF {
+					palette[pixel.i as usize]
+				} else {
+					crate::doom::image::RGBAColor::default()
+				}
+			})
+			.collect();
+
+		// Create the image
+		let (image, _future) = ImmutableImage::from_iter(
+			data.as_bytes().iter().copied(),
+			Dimensions::Dim2d {
+				width: image_data.size[0] as u32,
+				height: image_data.size[1] as u32,
+			},
+			MipmapsCount::One,
+			Format::R8G8B8A8Unorm,
+			render_context.queues().graphics.clone(),
+		)?;
+
+		Ok(crate::doom::image::Image {
+			image,
+			offset: Vector2::new(image_data.offset[0] as f32, image_data.offset[1] as f32),
+		})
+	});
 }

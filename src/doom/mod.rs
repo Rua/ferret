@@ -1,6 +1,7 @@
 //! Items specific to the implementation of Doom.
 
 pub mod camera;
+pub mod cheats;
 pub mod client;
 pub mod commands;
 pub mod components;
@@ -36,7 +37,7 @@ use crate::{
 		quadtree::Quadtree,
 		spawn::SpawnMergerHandlerSet,
 		time::{increment_game_time, DeltaTime, GameTime},
-		video::{AsBytes, DrawTarget, RenderContext},
+		video::{DrawTarget, RenderContext},
 	},
 	doom::{
 		camera::{camera_system, movement_bob_system},
@@ -60,7 +61,7 @@ use crate::{
 		floor::{floor_active, floor_linedef_touch, floor_switch_use},
 		health::apply_damage,
 		hud::{arms_stat, health_stat},
-		image::{import_palette, import_patch, Image, ImageData, Palette},
+		image::{import_palette, import_patch, process_images, Image, ImageData, Palette},
 		light::{light_flash_system, light_glow_system},
 		map::{
 			load::import_map,
@@ -109,7 +110,6 @@ use legion::{
 	systems::{CommandBuffer, ResourceSet},
 	Entity, IntoQuery, Read, Registry, Resources, Schedule, World, Write,
 };
-use nalgebra::Vector2;
 use relative_path::RelativePath;
 use serde::{de::DeserializeSeed, Deserialize, Serialize};
 use std::{
@@ -118,8 +118,6 @@ use std::{
 	path::Path,
 };
 use vulkano::{
-	format::Format,
-	image::{Dimensions, ImmutableImage, MipmapsCount},
 	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
 	sync::GpuFuture,
 };
@@ -484,47 +482,10 @@ pub fn new_game(map: &str, world: &mut World, resources: &mut Resources) {
 			..Client::default()
 		});
 
-		log::info!("Processing assets...");
 		{
 			let (render_context, mut asset_storage) =
 				<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(resources);
-
-			// Palette
-			let palette_handle: AssetHandle<Palette> = asset_storage.load("playpal.palette");
-
-			// Images
-			asset_storage.process::<Image, _>(|data, asset_storage| {
-				let image_data: ImageData = *data.downcast().ok().unwrap();
-				let palette = asset_storage.get(&palette_handle).unwrap();
-				let data: Vec<_> = image_data
-					.data
-					.into_iter()
-					.map(|pixel| {
-						if pixel.a == 0xFF {
-							palette[pixel.i as usize]
-						} else {
-							crate::doom::image::RGBAColor::default()
-						}
-					})
-					.collect();
-
-				// Create the image
-				let (image, _future) = ImmutableImage::from_iter(
-					data.as_bytes().iter().copied(),
-					Dimensions::Dim2d {
-						width: image_data.size[0] as u32,
-						height: image_data.size[1] as u32,
-					},
-					MipmapsCount::One,
-					Format::R8G8B8A8Unorm,
-					render_context.queues().graphics.clone(),
-				)?;
-
-				Ok(crate::doom::image::Image {
-					image,
-					offset: Vector2::new(image_data.offset[0] as f32, image_data.offset[1] as f32),
-				})
-			});
+			process_images(&render_context, &mut asset_storage);
 		}
 
 		Ok(())
