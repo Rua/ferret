@@ -18,7 +18,9 @@ use crate::{
 				NextState, NextStateRandomTimeDef, RemoveEntity, SetBlocksTypes, SetEntitySprite,
 				SetSolidType, StateDef,
 			},
-			weapon::{OwnerDef, ProjectileTouch, RadiusAttack, SprayAttack, WeaponStateDef},
+			weapon::{
+				AmmoState, OwnerDef, ProjectileTouch, RadiusAttack, SprayAttack, WeaponStateDef,
+			},
 			EntityDef, StateName,
 		},
 		template::{EntityTemplate, EntityTemplateRefDef},
@@ -179,6 +181,12 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 					inventory: ArrayVec::from([
 						asset_storage.load("fist.weapon"),
 						asset_storage.load("pistol.weapon"),
+					]).into_iter().collect(),
+					ammo: ArrayVec::from([
+						(asset_storage.load("bullets.ammo"), AmmoState { current: 50, max: 200 }),
+						(asset_storage.load("shells.ammo"), AmmoState { current: 0, max: 50 }),
+						(asset_storage.load("rockets.ammo"), AmmoState { current: 0, max: 50 }),
+						(asset_storage.load("cells.ammo"), AmmoState { current: 0, max: 300 }),
 					]).into_iter().collect(),
 				},
 			));

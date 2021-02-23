@@ -17,7 +17,7 @@ use crate::{
 		sound::{Sound, StartSound},
 		spawn::{spawn_entity, spawn_helper},
 		state::{State, StateAction, StateName, StateSystemsRun},
-		template::{EntityTemplate, WeaponTemplate},
+		template::{AmmoTemplate, EntityTemplate, WeaponTemplate},
 		trace::EntityTracer,
 	},
 };
@@ -30,7 +30,11 @@ use nalgebra::{Vector2, Vector3};
 use num_traits::Zero;
 use rand::{distributions::Uniform, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashSet, sync::atomic::Ordering, time::Duration};
+use std::{
+	collections::{HashMap, HashSet},
+	sync::atomic::Ordering,
+	time::Duration,
+};
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct WeaponSpriteSlotDef;
@@ -51,6 +55,7 @@ pub struct WeaponState {
 	pub current: AssetHandle<WeaponTemplate>,
 	pub switch_to: Option<AssetHandle<WeaponTemplate>>,
 	pub inventory: HashSet<AssetHandle<WeaponTemplate>>,
+	pub ammo: HashMap<AssetHandle<AmmoTemplate>, AmmoState>,
 	pub inaccurate: bool,
 }
 
@@ -60,10 +65,17 @@ pub enum WeaponSpriteSlot {
 	Flash = 1,
 }
 
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
+pub struct AmmoState {
+	pub current: usize,
+	pub max: usize,
+}
+
 #[derive(Clone, Debug)]
 pub struct WeaponStateDef {
 	pub current: AssetHandle<WeaponTemplate>,
 	pub inventory: HashSet<AssetHandle<WeaponTemplate>>,
+	pub ammo: HashMap<AssetHandle<AmmoTemplate>, AmmoState>,
 }
 
 impl SpawnFrom<WeaponStateDef> for WeaponState {
@@ -88,6 +100,7 @@ impl SpawnFrom<WeaponStateDef> for WeaponState {
 			current: component.current.clone(),
 			switch_to: None,
 			inventory: component.inventory.clone(),
+			ammo: component.ammo.clone(),
 			inaccurate: false,
 		}
 	}

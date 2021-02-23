@@ -92,8 +92,8 @@ use crate::{
 		},
 		switch::switch_active_system,
 		template::{
-			import_entity, import_weapon, EntityTemplate, EntityTemplateRef, EntityTemplateRefDef,
-			WeaponTemplate,
+			import_ammo, import_entity, import_weapon, AmmoTemplate, EntityTemplate,
+			EntityTemplateRef, EntityTemplateRefDef, WeaponTemplate,
 		},
 		texture::{texture_animation_system, texture_scroll_system},
 		ui::{import_font, Font, UiImage, UiParams, UiTransform},
@@ -127,6 +127,7 @@ pub fn import(
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Box<dyn ImportData>> {
 	let function = match path.extension() {
+		Some("ammo") => import_ammo,
 		Some("entity") => import_entity,
 		Some("flat") => import_flat,
 		Some("font") => import_font,
@@ -178,6 +179,7 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 
 	// Asset types
 	let mut asset_storage = AssetStorage::new(import, WadLoader::new());
+	asset_storage.add_storage::<AmmoTemplate>(false);
 	asset_storage.add_storage::<EntityTemplate>(false);
 	asset_storage.add_storage::<Font>(false);
 	asset_storage.add_storage::<Image>(true);

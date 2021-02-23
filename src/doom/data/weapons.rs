@@ -12,7 +12,7 @@ use crate::{
 			},
 			EntityDef, StateName,
 		},
-		template::WeaponTemplate,
+		template::{AmmoTemplate, WeaponTemplate},
 	},
 };
 use legion::World;
@@ -2708,4 +2708,27 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 	});
 
 	weapons
+});
+
+#[rustfmt::skip]
+pub static AMMO: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> AmmoTemplate>> = Lazy::new(|| {
+	let mut ammo: HashMap<&'static str, fn(&mut AssetStorage) -> AmmoTemplate> = HashMap::new();
+
+	ammo.insert("bullets.ammo", |_asset_storage| AmmoTemplate {
+		name: Some("bullets"),
+	});
+
+	ammo.insert("shells.ammo", |_asset_storage| AmmoTemplate {
+		name: Some("shells"),
+	});
+
+	ammo.insert("rockets.ammo", |_asset_storage| AmmoTemplate {
+		name: Some("rockets"),
+	});
+
+	ammo.insert("cells.ammo", |_asset_storage| AmmoTemplate {
+		name: Some("cells"),
+	});
+
+	ammo
 });

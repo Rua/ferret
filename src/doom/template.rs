@@ -4,7 +4,7 @@ use crate::{
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom},
 	},
 	doom::{
-		data::{LINEDEFS, MOBJS, SECTORS, WEAPONS},
+		data::{AMMO, LINEDEFS, MOBJS, SECTORS, WEAPONS},
 		state::StateName,
 	},
 };
@@ -66,6 +66,22 @@ pub fn import_weapon(
 	let func = WEAPONS
 		.get(path.as_str())
 		.with_context(|| format!("WeaponTemplate \"{}\" not found", path))?;
+	let template = func(asset_storage);
+	Ok(Box::new(template))
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct AmmoTemplate {
+	pub name: Option<&'static str>,
+}
+
+pub fn import_ammo(
+	path: &RelativePath,
+	asset_storage: &mut AssetStorage,
+) -> anyhow::Result<Box<dyn ImportData>> {
+	let func = AMMO
+		.get(path.as_str())
+		.with_context(|| format!("AmmoTemplate \"{}\" not found", path))?;
 	let template = func(asset_storage);
 	Ok(Box::new(template))
 }
