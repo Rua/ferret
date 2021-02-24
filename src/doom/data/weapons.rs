@@ -1,3 +1,4 @@
+#![allow(unused_variables)]
 use crate::{
 	common::{assets::AssetStorage, geometry::Angle},
 	doom::{
@@ -6,13 +7,13 @@ use crate::{
 		sound::StartSound,
 		state::{
 			weapon::{
-				ExtraLight, LineAttack, NextWeaponState, SetWeaponSprite, SetWeaponState,
-				SpawnProjectile, WeaponPosition, WeaponReFire, WeaponReady, WeaponSpriteSlot,
-				WeaponSpriteSlotDef,
+				ChangeAmmoCount, ExtraLight, LineAttack, NextWeaponState, SetWeaponSprite,
+				SetWeaponState, SpawnProjectile, WeaponPosition, WeaponReFire, WeaponReady,
+				WeaponSpriteSlot, WeaponSpriteSlotDef,
 			},
 			EntityDef, StateName,
 		},
-		template::{AmmoTemplate, WeaponTemplate},
+		template::{AmmoTemplate, WeaponAmmo, WeaponTemplate},
 	},
 };
 use legion::World;
@@ -25,7 +26,7 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 	let mut weapons: HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTemplate> = HashMap::new();
 
 	weapons.insert("fist.weapon", |asset_storage| WeaponTemplate {
-		name: Some("fist"),
+		name: "fist",
 		states: {
 			let mut states = HashMap::with_capacity(8);
 			states.insert(StateName::from("up").unwrap(), vec![
@@ -253,7 +254,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 	});
 
 	weapons.insert("pistol.weapon", |asset_storage| WeaponTemplate {
-		name: Some("pistol"),
+		name: "pistol",
+		ammo: Some(WeaponAmmo {
+			handle: asset_storage.load("bullets.ammo"),
+			count: 1,
+		}),
 		states: {
 			let mut states = HashMap::with_capacity(9);
 			states.insert(StateName::from("up").unwrap(), vec![
@@ -389,6 +394,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
+						ChangeAmmoCount,
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
 						LineAttack {
 							count: 1,
 							damage_range: (1..=3).into(),
@@ -512,7 +522,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 	});
 
 	weapons.insert("shotgun.weapon", |asset_storage| WeaponTemplate {
-		name: Some("shotgun"),
+		name: "shotgun",
+		ammo: Some(WeaponAmmo {
+			handle: asset_storage.load("shells.ammo"),
+			count: 1,
+		}),
 		states: {
 			let mut states = HashMap::with_capacity(15);
 			states.insert(StateName::from("up").unwrap(), vec![
@@ -644,6 +658,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 							frame: 0,
 							full_bright: false,
 						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ChangeAmmoCount,
 					));
 					world.push((
 						EntityDef,
@@ -902,7 +921,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 	});
 
 	weapons.insert("chaingun.weapon", |asset_storage| WeaponTemplate {
-		name: Some("chaingun"),
+		name: "chaingun",
+		ammo: Some(WeaponAmmo {
+			handle: asset_storage.load("bullets.ammo"),
+			count: 1,
+		}),
 		states: {
 			let mut states = HashMap::with_capacity(10);
 			states.insert(StateName::from("up").unwrap(), vec![
@@ -1017,6 +1040,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
+						ChangeAmmoCount,
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
 						LineAttack {
 							count: 1,
 							damage_range: (1..=3).into(),
@@ -1062,6 +1090,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 							frame: 1,
 							full_bright: false,
 						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ChangeAmmoCount,
 					));
 					world.push((
 						EntityDef,
@@ -1210,7 +1243,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 	});
 
 	weapons.insert("missile.weapon", |asset_storage| WeaponTemplate {
-		name: Some("missile"),
+		name: "missile",
+		ammo: Some(WeaponAmmo {
+			handle: asset_storage.load("rockets.ammo"),
+			count: 1,
+		}),
 		states: {
 			let mut states = HashMap::with_capacity(11);
 			states.insert(StateName::from("up").unwrap(), vec![
@@ -1347,6 +1384,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 							frame: 1,
 							full_bright: false,
 						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ChangeAmmoCount,
 					));
 					world.push((
 						EntityDef,
@@ -1503,7 +1545,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 	});
 
 	weapons.insert("plasma.weapon", |asset_storage| WeaponTemplate {
-		name: Some("plasma"),
+		name: "plasma",
+		ammo: Some(WeaponAmmo {
+			handle: asset_storage.load("cells.ammo"),
+			count: 1,
+		}),
 		states: {
 			let mut states = HashMap::with_capacity(9);
 			states.insert(StateName::from("up").unwrap(), vec![
@@ -1614,6 +1660,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 							frame: 0,
 							full_bright: false,
 						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ChangeAmmoCount,
 					));
 					world.push((
 						EntityDef,
@@ -1744,7 +1795,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 	});
 
 	weapons.insert("bfg.weapon", |asset_storage| WeaponTemplate {
-		name: Some("bfg"),
+		name: "bfg",
+		ammo: Some(WeaponAmmo {
+			handle: asset_storage.load("cells.ammo"),
+			count: 40,
+		}),
 		states: {
 			let mut states = HashMap::with_capacity(10);
 			states.insert(StateName::from("up").unwrap(), vec![
@@ -1911,6 +1966,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 					world.push((
 						EntityDef,
 						WeaponSpriteSlotDef,
+						ChangeAmmoCount,
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
 						SpawnProjectile(asset_storage.load("bfg.entity")),
 					));
 					world
@@ -2016,7 +2076,7 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 	});
 
 	weapons.insert("chainsaw.weapon", |asset_storage| WeaponTemplate {
-		name: Some("chainsaw"),
+		name: "chainsaw",
 		states: {
 			let mut states = HashMap::with_capacity(8);
 			states.insert(StateName::from("up").unwrap(), vec![
@@ -2282,7 +2342,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 	});
 
 	weapons.insert("supershotgun.weapon", |asset_storage| WeaponTemplate {
-		name: Some("supershotgun"),
+		name: "supershotgun",
+		ammo: Some(WeaponAmmo {
+			handle: asset_storage.load("shells.ammo"),
+			count: 2,
+		}),
 		states: {
 			let mut states = HashMap::with_capacity(16);
 			states.insert(StateName::from("up").unwrap(), vec![
@@ -2414,6 +2478,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 							frame: 0,
 							full_bright: false,
 						})),
+					));
+					world.push((
+						EntityDef,
+						WeaponSpriteSlotDef,
+						ChangeAmmoCount,
 					));
 					world.push((
 						EntityDef,
@@ -2715,19 +2784,23 @@ pub static AMMO: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> AmmoTemplat
 	let mut ammo: HashMap<&'static str, fn(&mut AssetStorage) -> AmmoTemplate> = HashMap::new();
 
 	ammo.insert("bullets.ammo", |_asset_storage| AmmoTemplate {
-		name: Some("bullets"),
+		name: "bullets",
+		.. AmmoTemplate::default()
 	});
 
 	ammo.insert("shells.ammo", |_asset_storage| AmmoTemplate {
-		name: Some("shells"),
+		name: "shells",
+		.. AmmoTemplate::default()
 	});
 
 	ammo.insert("rockets.ammo", |_asset_storage| AmmoTemplate {
-		name: Some("rockets"),
+		name: "rockets",
+		.. AmmoTemplate::default()
 	});
 
 	ammo.insert("cells.ammo", |_asset_storage| AmmoTemplate {
-		name: Some("cells"),
+		name: "cells",
+		.. AmmoTemplate::default()
 	});
 
 	ammo

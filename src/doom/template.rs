@@ -55,8 +55,15 @@ pub fn import_entity(
 
 #[derive(Debug, Default)]
 pub struct WeaponTemplate {
-	pub name: Option<&'static str>,
+	pub name: &'static str,
+	pub ammo: Option<WeaponAmmo>,
 	pub states: HashMap<StateName, Vec<World>>,
+}
+
+#[derive(Clone, Debug)]
+pub struct WeaponAmmo {
+	pub handle: AssetHandle<AmmoTemplate>,
+	pub count: i32,
 }
 
 pub fn import_weapon(
@@ -72,7 +79,7 @@ pub fn import_weapon(
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct AmmoTemplate {
-	pub name: Option<&'static str>,
+	pub name: &'static str,
 }
 
 pub fn import_ammo(

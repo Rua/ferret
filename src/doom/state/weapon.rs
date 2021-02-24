@@ -67,8 +67,8 @@ pub enum WeaponSpriteSlot {
 
 #[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
 pub struct AmmoState {
-	pub current: usize,
-	pub max: usize,
+	pub current: i32,
+	pub max: i32,
 }
 
 #[derive(Clone, Debug)]
@@ -162,6 +162,45 @@ pub fn weapon_state(resources: &mut Resources) -> impl Runnable {
 				resources.remove::<SpawnContext<Entity>>();
 				resources.remove::<SpawnContext<WeaponSpriteSlot>>();
 			});
+		})
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ChangeAmmoCount;
+
+pub fn change_ammo_count(resources: &mut Resources) -> impl Runnable {
+	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
+	handler_set.register_clone::<ChangeAmmoCount>();
+
+	SystemBuilder::new("change_ammo_count")
+		.read_resource::<AssetStorage>()
+		.with_query(<(Entity, &Entity, &ChangeAmmoCount)>::query())
+		.with_query(<&mut WeaponState>::query())
+		.build(move |command_buffer, world, resources, queries| {
+			let asset_storage = resources;
+			let (world0, mut world) = world.split_for_query(&queries.0);
+
+			for (&entity, &target, &ChangeAmmoCount) in queries.0.iter(&world0) {
+				command_buffer.remove(entity);
+
+				if let Ok(weapon_state) = queries.1.get_mut(&mut world, target) {
+					let weapon_template = asset_storage.get(&weapon_state.current).unwrap();
+
+					if let Some(weapon_ammo) = &weapon_template.ammo {
+						if let Some(ammo) = weapon_state.ammo.get_mut(&weapon_ammo.handle) {
+							ammo.current -= weapon_ammo.count;
+
+							if ammo.current < 0 {
+								log::warn!("Negative ammo count");
+							}
+						} else {
+							log::warn!("ChangeAmmoCount on entity without that ammo type");
+						}
+					} else {
+						log::warn!("ChangeAmmoCount on weapon with no ammo consumption");
+					}
+				}
+			}
 		})
 }
 

@@ -60,7 +60,7 @@ use crate::{
 		exit::exit_switch_use,
 		floor::{floor_active, floor_linedef_touch, floor_switch_use},
 		health::apply_damage,
-		hud::{arms_stat, health_stat},
+		hud::{ammo_stat, arms_stat, health_stat},
 		image::{import_palette, import_patch, process_images, Image, ImageData, Palette},
 		light::{light_flash_system, light_glow_system},
 		map::{
@@ -85,8 +85,8 @@ use crate::{
 			},
 			state,
 			weapon::{
-				extra_light, line_attack, next_weapon_state, projectile_touch, radius_attack,
-				set_weapon_sprite, set_weapon_state, spawn_projectile, spray_attack,
+				change_ammo_count, extra_light, line_attack, next_weapon_state, projectile_touch,
+				radius_attack, set_weapon_sprite, set_weapon_state, spawn_projectile, spray_attack,
 				weapon_position, weapon_ready, weapon_refire,
 			},
 		},
@@ -286,6 +286,7 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 		.add_thread_local(apply_damage(resources)).flush()
 		.add_thread_local_fn({
 			let actions = Schedule::builder()
+				.add_system(change_ammo_count(resources))
 				.add_system(extra_light(resources))
 				.add_system(next_entity_state(resources))
 				.add_system(remove_entity(resources))
@@ -306,6 +307,7 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 
 			state(resources, actions)
 		})
+		.add_thread_local(ammo_stat(resources)).flush()
 		.add_thread_local(health_stat(resources)).flush()
 		.add_thread_local(arms_stat(resources)).flush()
 		.add_thread_local(increment_game_time()).flush()

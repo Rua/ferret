@@ -139,6 +139,10 @@ fn main() -> anyhow::Result<()> {
 				text: " 50".into(),
 				font: asset_storage.load("sttnum.font"),
 			},
+			doom::hud::AmmoStat {
+				ammo_type: None,
+				show_max: false,
+			},
 		));
 
 		// Health
@@ -381,6 +385,10 @@ fn main() -> anyhow::Result<()> {
 				text: " 50".into(),
 				font: asset_storage.load("stysnum.font"),
 			},
+			doom::hud::AmmoStat {
+				ammo_type: Some(asset_storage.load("bullets.ammo")),
+				show_max: false,
+			},
 		));
 
 		// Bullets max
@@ -395,6 +403,10 @@ fn main() -> anyhow::Result<()> {
 			doom::ui::UiText {
 				text: "200".into(),
 				font: asset_storage.load("stysnum.font"),
+			},
+			doom::hud::AmmoStat {
+				ammo_type: Some(asset_storage.load("bullets.ammo")),
+				show_max: true,
 			},
 		));
 
@@ -411,6 +423,10 @@ fn main() -> anyhow::Result<()> {
 				text: "  0".into(),
 				font: asset_storage.load("stysnum.font"),
 			},
+			doom::hud::AmmoStat {
+				ammo_type: Some(asset_storage.load("shells.ammo")),
+				show_max: false,
+			},
 		));
 
 		// Shells max
@@ -425,6 +441,10 @@ fn main() -> anyhow::Result<()> {
 			doom::ui::UiText {
 				text: " 50".into(),
 				font: asset_storage.load("stysnum.font"),
+			},
+			doom::hud::AmmoStat {
+				ammo_type: Some(asset_storage.load("shells.ammo")),
+				show_max: true,
 			},
 		));
 
@@ -441,6 +461,10 @@ fn main() -> anyhow::Result<()> {
 				text: "  0".into(),
 				font: asset_storage.load("stysnum.font"),
 			},
+			doom::hud::AmmoStat {
+				ammo_type: Some(asset_storage.load("rockets.ammo")),
+				show_max: false,
+			},
 		));
 
 		// Rockets max
@@ -455,6 +479,10 @@ fn main() -> anyhow::Result<()> {
 			doom::ui::UiText {
 				text: " 50".into(),
 				font: asset_storage.load("stysnum.font"),
+			},
+			doom::hud::AmmoStat {
+				ammo_type: Some(asset_storage.load("rockets.ammo")),
+				show_max: true,
 			},
 		));
 
@@ -471,6 +499,10 @@ fn main() -> anyhow::Result<()> {
 				text: "  0".into(),
 				font: asset_storage.load("stysnum.font"),
 			},
+			doom::hud::AmmoStat {
+				ammo_type: Some(asset_storage.load("cells.ammo")),
+				show_max: false,
+			},
 		));
 
 		// Cells max
@@ -485,6 +517,10 @@ fn main() -> anyhow::Result<()> {
 			doom::ui::UiText {
 				text: "300".into(),
 				font: asset_storage.load("stysnum.font"),
+			},
+			doom::hud::AmmoStat {
+				ammo_type: Some(asset_storage.load("cells.ammo")),
+				show_max: true,
 			},
 		));
 	}
