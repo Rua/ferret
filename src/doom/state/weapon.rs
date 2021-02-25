@@ -71,6 +71,21 @@ pub struct AmmoState {
 	pub max: i32,
 }
 
+impl WeaponState {
+	fn can_fire(&self, asset_storage: &AssetStorage) -> bool {
+		asset_storage
+			.get(&self.current)
+			.unwrap()
+			.ammo
+			.as_ref()
+			.map_or(true, |weapon_ammo| {
+				self.ammo
+					.get(&weapon_ammo.handle)
+					.map_or(false, |ammo_state| ammo_state.current >= weapon_ammo.count)
+			})
+	}
+}
+
 #[derive(Clone, Debug)]
 pub struct WeaponStateDef {
 	pub current: AssetHandle<WeaponTemplate>,
@@ -870,25 +885,26 @@ pub fn weapon_ready(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<WeaponReady>();
 
 	SystemBuilder::new("weapon_ready")
+		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
 		.with_query(<(Entity, &Entity, &WeaponSpriteSlot, &WeaponReady)>::query())
 		.with_query(<&mut WeaponState>::query().filter(component::<WeaponState>()))
 		.build(move |command_buffer, world, resources, queries| {
-			let client = resources;
+			let (asset_storage, client) = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
 			for (&entity, &target, &slot, WeaponReady) in queries.0.iter(&world0) {
 				command_buffer.remove(entity);
 
 				if let Ok(weapon_state) = queries.1.get_mut(&mut world, target) {
-					let state = &mut weapon_state.slots[slot as usize];
-
 					if weapon_state.switch_to.is_some() {
 						let state_name = (StateName::from("down").unwrap(), 0);
-						state.action = StateAction::Set(state_name);
+						weapon_state.slots[slot as usize].action = StateAction::Set(state_name);
 					} else if client.command.attack {
-						let state_name = (StateName::from("attack").unwrap(), 0);
-						state.action = StateAction::Set(state_name);
+						if weapon_state.can_fire(&asset_storage) {
+							let state_name = (StateName::from("attack").unwrap(), 0);
+							weapon_state.slots[slot as usize].action = StateAction::Set(state_name);
+						}
 					}
 				}
 			}
@@ -903,23 +919,26 @@ pub fn weapon_refire(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<WeaponReFire>();
 
 	SystemBuilder::new("weapon_refire")
+		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
 		.with_query(<(Entity, &Entity, &WeaponSpriteSlot, &WeaponReFire)>::query())
 		.with_query(<&mut WeaponState>::query().filter(component::<WeaponState>()))
 		.build(move |command_buffer, world, resources, queries| {
-			let client = resources;
+			let (asset_storage, client) = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
 			for (&entity, &target, &slot, WeaponReFire) in queries.0.iter(&world0) {
 				command_buffer.remove(entity);
 
 				if let Ok(weapon_state) = queries.1.get_mut(&mut world, target) {
-					let state = &mut weapon_state.slots[slot as usize];
-
 					if client.command.attack {
-						let state_name = (StateName::from("attack").unwrap(), 0);
-						state.action = StateAction::Set(state_name);
-						weapon_state.inaccurate = true;
+						if weapon_state.can_fire(&asset_storage) {
+							let state_name = (StateName::from("attack").unwrap(), 0);
+							weapon_state.slots[slot as usize].action = StateAction::Set(state_name);
+							weapon_state.inaccurate = true;
+						} else {
+							weapon_state.inaccurate = false;
+						}
 					} else {
 						weapon_state.inaccurate = false;
 					}
