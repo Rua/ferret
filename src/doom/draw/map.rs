@@ -133,13 +133,13 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 						} else {
 							&handle
 						};
-						let image = &asset_storage.get(&handle).unwrap().image;
+						let image_view = &asset_storage.get(&handle).unwrap().image_view;
 
 						draw_context.descriptor_sets.truncate(1);
 						draw_context.descriptor_sets.push(Arc::new(
 							normal_texture_set_pool
 								.next()
-								.add_sampled_image(image.clone(), sampler.clone())
+								.add_sampled_image(image_view.clone(), sampler.clone())
 								.context("Couldn't add image to descriptor set")?
 								.build()
 								.context("Couldn't create descriptor set")?,
@@ -182,7 +182,7 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 						draw_context.descriptor_sets.push(Arc::new(
 							normal_texture_set_pool
 								.next()
-								.add_sampled_image(image.image.clone(), sampler.clone())
+								.add_sampled_image(image.image_view.clone(), sampler.clone())
 								.context("Couldn't add image to descriptor set")?
 								.build()
 								.context("Couldn't create descriptor set")?,
@@ -222,7 +222,7 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 					draw_context.descriptor_sets.push(Arc::new(
 						sky_texture_set_pool
 							.next()
-							.add_sampled_image(image.image.clone(), sampler.clone())
+							.add_sampled_image(image.image_view.clone(), sampler.clone())
 							.context("Couldn't add image to descriptor set")?
 							.add_buffer(sky_buffer)?
 							.build()

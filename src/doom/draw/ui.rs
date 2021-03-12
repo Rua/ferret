@@ -180,7 +180,7 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 					draw_context.descriptor_sets.push(Arc::new(
 						texture_set_pool
 							.next()
-							.add_sampled_image(image.image.clone(), sampler.clone())
+							.add_sampled_image(image.image_view.clone(), sampler.clone())
 							.context("Couldn't add image to descriptor set")?
 							.build()
 							.context("Couldn't create descriptor set")?,

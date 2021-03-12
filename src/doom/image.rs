@@ -12,7 +12,10 @@ use std::{
 };
 use vulkano::{
 	format::Format,
-	image::{Dimensions, ImageViewAccess, ImmutableImage, MipmapsCount},
+	image::{
+		view::{ImageView, ImageViewAbstract},
+		ImageDimensions, ImmutableImage, MipmapsCount,
+	},
 };
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -71,13 +74,13 @@ pub struct ImageData {
 }
 
 pub struct Image {
-	pub image: Arc<dyn ImageViewAccess + Send + Sync>,
+	pub image_view: Arc<dyn ImageViewAbstract + Send + Sync>,
 	pub offset: Vector2<f32>,
 }
 
 impl Image {
 	pub fn size(&self) -> Vector2<f32> {
-		let [width, height] = self.image.dimensions().width_height();
+		let [width, height] = self.image_view.image().dimensions().width_height();
 		Vector2::new(width as f32, height as f32)
 	}
 }
@@ -151,17 +154,19 @@ pub fn process_images(render_context: &RenderContext, asset_storage: &mut AssetS
 		// Create the image
 		let (image, _future) = ImmutableImage::from_iter(
 			data.as_bytes().iter().copied(),
-			Dimensions::Dim2d {
+			ImageDimensions::Dim2d {
 				width: image_data.size[0] as u32,
 				height: image_data.size[1] as u32,
+				array_layers: 1,
 			},
 			MipmapsCount::One,
 			Format::R8G8B8A8Unorm,
 			render_context.queues().graphics.clone(),
 		)?;
+		let image_view = ImageView::new(image)?;
 
-		Ok(crate::doom::image::Image {
-			image,
+		Ok(Image {
+			image_view,
 			offset: Vector2::new(image_data.offset[0] as f32, image_data.offset[1] as f32),
 		})
 	});

@@ -34,9 +34,9 @@ serde = {version = "1.0", features = ["derive"]}
 serde_json = "1.0"
 shrev = "1.1"
 smallvec = "1.6"
-vulkano = {git = "https://github.com/vulkano-rs/vulkano"}
-vulkano-shaders = {git = "https://github.com/vulkano-rs/vulkano"}
-vulkano-win = {git = "https://github.com/vulkano-rs/vulkano"}
+vulkano = {git = "https://github.com/rua/vulkano", branch = "imageview"}
+vulkano-shaders = {git = "https://github.com/rua/vulkano", branch = "imageview"}
+vulkano-win = {git = "https://github.com/rua/vulkano", branch = "imageview"}
 winit = "0.24"
 
 [profile.dev]

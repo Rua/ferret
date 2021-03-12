@@ -8,14 +8,17 @@ use vulkano::{
 	device::Device,
 	format::Format,
 	framebuffer::{Framebuffer, FramebufferAbstract, RenderPassAbstract},
-	image::{AttachmentImage, ImageAccess, ImageUsage},
+	image::{
+		view::{ImageView, ImageViewAbstract},
+		AttachmentImage, ImageUsage,
+	},
 	single_pass_renderpass,
 	sync::GpuFuture,
 };
 
 pub struct DrawTarget {
-	colour_attachment: Arc<AttachmentImage>,
-	depth_attachment: Arc<AttachmentImage>,
+	colour_attachment: Arc<ImageView<Arc<AttachmentImage>>>,
+	depth_attachment: Arc<ImageView<Arc<AttachmentImage>>>,
 	framebuffer: Arc<dyn FramebufferAbstract + Send + Sync>,
 	render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
 }
@@ -132,30 +135,39 @@ impl DrawTarget {
 		dimensions: [u32; 2],
 		colour_format: Format,
 		depth_format: Format,
-	) -> anyhow::Result<(Arc<AttachmentImage>, Arc<AttachmentImage>)> {
+	) -> anyhow::Result<(
+		Arc<ImageView<Arc<AttachmentImage>>>,
+		Arc<ImageView<Arc<AttachmentImage>>>,
+	)> {
 		// Create colour attachment
-		let colour_attachment = AttachmentImage::with_usage(
-			device.clone(),
-			dimensions,
-			colour_format,
-			ImageUsage {
-				color_attachment: true,
-				transfer_source: true,
-				..ImageUsage::none()
-			},
+		let colour_attachment = ImageView::new(
+			AttachmentImage::with_usage(
+				device.clone(),
+				dimensions,
+				colour_format,
+				ImageUsage {
+					color_attachment: true,
+					transfer_source: true,
+					..ImageUsage::none()
+				},
+			)
+			.context("Couldn't create colour attachment")?,
 		)
 		.context("Couldn't create colour attachment")?;
 
 		// Create depth attachment
-		let depth_attachment = AttachmentImage::with_usage(
-			device.clone(),
-			dimensions,
-			depth_format,
-			ImageUsage {
-				depth_stencil_attachment: true,
-				transient_attachment: true,
-				..ImageUsage::none()
-			},
+		let depth_attachment = ImageView::new(
+			AttachmentImage::with_usage(
+				device.clone(),
+				dimensions,
+				depth_format,
+				ImageUsage {
+					depth_stencil_attachment: true,
+					transient_attachment: true,
+					..ImageUsage::none()
+				},
+			)
+			.context("Couldn't create depth attachment")?,
 		)
 		.context("Couldn't create depth attachment")?;
 
@@ -163,14 +175,14 @@ impl DrawTarget {
 	}
 
 	pub fn dimensions(&self) -> [u32; 2] {
-		self.colour_attachment.dimensions().width_height()
+		self.colour_attachment.image().dimensions().width_height()
 	}
 
 	pub fn framebuffer(&self) -> &Arc<dyn FramebufferAbstract + Send + Sync> {
 		&self.framebuffer
 	}
 
-	pub fn colour_attachment(&self) -> &Arc<AttachmentImage> {
+	pub fn colour_attachment(&self) -> &Arc<ImageView<Arc<AttachmentImage>>> {
 		&self.colour_attachment
 	}
 
@@ -184,7 +196,7 @@ impl DrawTarget {
 	) -> anyhow::Result<(Arc<CpuAccessibleBuffer<[u8]>>, [u32; 2], impl GpuFuture)> {
 		let graphics_queue = &render_context.queues().graphics;
 		let format = self.colour_attachment.format();
-		let dimensions = self.colour_attachment.dimensions();
+		let dimensions = self.colour_attachment.image().dimensions();
 
 		unsafe {
 			// TODO: Would be nice to have a CpuAccessibleImage in Vulkano?
@@ -198,7 +210,10 @@ impl DrawTarget {
 				render_context.device().clone(),
 				graphics_queue.family(),
 			)?;
-			builder.copy_image_to_buffer(self.colour_attachment.clone(), buffer.clone())?;
+			builder.copy_image_to_buffer(
+				ImageView::image(&self.colour_attachment).clone(),
+				buffer.clone(),
+			)?;
 			let future = builder.build()?.execute(graphics_queue.clone())?;
 			Ok((buffer, dimensions.width_height(), future))
 		}

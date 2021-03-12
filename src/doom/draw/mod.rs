@@ -98,7 +98,7 @@ pub fn finish_draw(_resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 				present_target
 					.present(
 						&render_context.queues().graphics,
-						draw_target.colour_attachment().clone(),
+						draw_target.colour_attachment().image().clone(),
 						future,
 					)
 					.context("Couldn't present swapchain")?;

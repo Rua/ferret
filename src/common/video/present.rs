@@ -37,7 +37,6 @@ impl PresentTarget {
 			params.dimensions,
 			1,
 			ImageUsage {
-				color_attachment: true,
 				transfer_destination: true,
 				..ImageUsage::none()
 			},
@@ -74,7 +73,6 @@ impl PresentTarget {
 			params.dimensions,
 			1,
 			ImageUsage {
-				color_attachment: true,
 				transfer_destination: true,
 				..ImageUsage::none()
 			},

@@ -169,7 +169,7 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 					draw_context.descriptor_sets.push(Arc::new(
 						texture_set_pool
 							.next()
-							.add_sampled_image(image.image.clone(), sampler.clone())
+							.add_sampled_image(image.image_view.clone(), sampler.clone())
 							.context("Couldn't add image to descriptor set")?
 							.add_buffer(
 								texture_uniform_pool
