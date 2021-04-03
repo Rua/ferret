@@ -86,7 +86,11 @@ pub fn import_wall(
 					let src_index = (src_x + src_y_index) as usize;
 					let dest_index = (dest_x + dest_y_index) as usize;
 
-					data[dest_index] = patch.data[src_index];
+					let src_pixel = patch.data[src_index];
+
+					if src_pixel.a != 0 {
+						data[dest_index] = src_pixel;
+					}
 				}
 			}
 
