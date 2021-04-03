@@ -155,7 +155,7 @@ impl DataSource for WadLoader {
 	}
 }
 
-pub fn read_string<R: Read>(reader: &mut R) -> anyhow::Result<ArrayString<[u8; 8]>> {
+pub fn read_string<R: Read>(reader: &mut R) -> anyhow::Result<ArrayString<8>> {
 	let mut buf = [0u8; 8];
 	reader.read_exact(&mut buf)?;
 	let mut string =

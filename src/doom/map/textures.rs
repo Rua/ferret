@@ -100,7 +100,7 @@ pub fn import_wall(
 	}))
 }
 
-pub type PNames = Vec<ArrayString<[u8; 8]>>;
+pub type PNames = Vec<ArrayString<8>>;
 
 pub fn import_pnames(
 	path: &RelativePath,

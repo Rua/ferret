@@ -203,7 +203,7 @@ pub fn spawn_map_entities(
 		};
 
 		let template_handle = {
-			let mut template_name = ArrayString::<[u8; 20]>::new();
+			let mut template_name = ArrayString::<20>::new();
 			write!(template_name, "linedef{}.entity", special_type)?;
 			let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
 			asset_storage.load::<EntityTemplate>(&template_name)
@@ -254,7 +254,7 @@ pub fn spawn_map_entities(
 		};
 
 		let template_handle = {
-			let mut template_name = ArrayString::<[u8; 20]>::new();
+			let mut template_name = ArrayString::<20>::new();
 			write!(template_name, "sector{}.entity", special_type)
 				.expect("Insufficient capacity for name");
 			let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);

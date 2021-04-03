@@ -10,7 +10,7 @@ use legion::{systems::ResourceSet, Entity, Read, Resources, Schedule, World, Wri
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicBool, Ordering};
 
-pub type StateName = ArrayString<[u8; 16]>;
+pub type StateName = ArrayString<16>;
 
 pub mod entity;
 pub mod weapon;
