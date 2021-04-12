@@ -28,8 +28,8 @@ use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
 	command_buffer::DynamicState,
 	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
-	framebuffer::Subpass,
 	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
+	render_pass::Subpass,
 	sampler::Sampler,
 };
 

@@ -237,9 +237,9 @@ dependencies = [
 
 [[package]]
 name = "clang-sys"
-version = "1.1.1"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f54d78e30b388d4815220c8dd03fea5656b6c6d32adb59e89061552a102f8da1"
+checksum = "853eda514c284c2287f4bf20ae614f8781f40a81d32ecda6e91449304dfe077c"
 dependencies = [
  "glob",
  "libc",
@@ -480,9 +480,9 @@ dependencies = [
 
 [[package]]
 name = "crossbeam-channel"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dca26ee1f8d361640700bde38b2c37d8c22b3ce2d360e1fc1c74ea4b0aa7d775"
+checksum = "06ed27e177f16d65f0f0c22a213e17c696ace5dd64b14258b52f9417ccb52db4"
 dependencies = [
  "cfg-if 1.0.0",
  "crossbeam-utils",
@@ -847,9 +847,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.92"
+version = "0.2.93"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56d855069fafbb9b344c0f962150cd2c1187975cb1c22c1522c240d8c4986714"
+checksum = "9385f66bf6105b241aa65a61cb923ef20efc665cb9f9bb50ac2f0c4b7f378d41"
 
 [[package]]
 name = "libloading"
@@ -873,9 +873,9 @@ dependencies = [
 
 [[package]]
 name = "lock_api"
-version = "0.4.2"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd96ffd135b2fd7b973ac026d28085defbe8983df057ced3eb4f2130b0831312"
+checksum = "5a3c91c24eae6777794bb1997ad98bbb87daf92890acab859f7eaa4320333176"
 dependencies = [
  "scopeguard",
 ]
@@ -909,9 +909,9 @@ dependencies = [
 
 [[package]]
 name = "matrixmultiply"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1300bdbea33ec2836b01ff1f5a6eed8bad66d0c31f94d9b7993407a8b054c3a1"
+checksum = "5a8a15b776d9dfaecd44b03c5828c2199cddff5247215858aac14624f8d6b741"
 dependencies = [
  "rawpointer",
 ]
@@ -1695,9 +1695,9 @@ checksum = "6446ced80d6c486436db5c078dde11a9f73d42b57fb273121e160b84f63d894c"
 
 [[package]]
 name = "syn"
-version = "1.0.68"
+version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ce15dd3ed8aa2f8eeac4716d6ef5ab58b6b9256db41d7e1a0224c2788e8fd87"
+checksum = "48fe99c6bd8b1cc636890bcc071842de909d902c81ac7dab53ba33c421ab8ffb"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1801,12 +1801,12 @@ checksum = "5fecdca9a5291cc2b8dcf7dc02453fee791a280f3743cb0905f8822ae463b3fe"
 [[package]]
 name = "vk-sys"
 version = "0.6.0"
-source = "git+https://github.com/Rua/vulkano?branch=readonly#5ac5c34744d1c319403b5fc5726a35c457b3daa7"
+source = "git+https://github.com/vulkano-rs/vulkano#a4ef1e6d9fa784a0db7cca8f12f7417de22dddfa"
 
 [[package]]
 name = "vulkano"
 version = "0.22.0"
-source = "git+https://github.com/Rua/vulkano?branch=readonly#5ac5c34744d1c319403b5fc5726a35c457b3daa7"
+source = "git+https://github.com/vulkano-rs/vulkano#a4ef1e6d9fa784a0db7cca8f12f7417de22dddfa"
 dependencies = [
  "crossbeam-queue",
  "fnv",
@@ -1821,7 +1821,7 @@ dependencies = [
 [[package]]
 name = "vulkano-shaders"
 version = "0.22.0"
-source = "git+https://github.com/Rua/vulkano?branch=readonly#5ac5c34744d1c319403b5fc5726a35c457b3daa7"
+source = "git+https://github.com/vulkano-rs/vulkano#a4ef1e6d9fa784a0db7cca8f12f7417de22dddfa"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1832,7 +1832,7 @@ dependencies = [
 [[package]]
 name = "vulkano-win"
 version = "0.22.0"
-source = "git+https://github.com/Rua/vulkano?branch=readonly#5ac5c34744d1c319403b5fc5726a35c457b3daa7"
+source = "git+https://github.com/vulkano-rs/vulkano#a4ef1e6d9fa784a0db7cca8f12f7417de22dddfa"
 dependencies = [
  "cocoa 0.20.2",
  "metal",

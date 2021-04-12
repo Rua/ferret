@@ -24,9 +24,9 @@ use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
 	command_buffer::DynamicState,
 	descriptor::{descriptor_set::FixedSizeDescriptorSetsPool, PipelineLayoutAbstract},
-	framebuffer::Subpass,
 	impl_vertex,
 	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
+	render_pass::Subpass,
 	sampler::Sampler,
 };
 

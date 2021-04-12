@@ -10,7 +10,7 @@ use crate::{
 };
 use anyhow::Context;
 use legion::{systems::Runnable, Resources, SystemBuilder};
-use vulkano::command_buffer::{AutoCommandBufferBuilder, CommandBuffer, SubpassContents};
+use vulkano::command_buffer::{AutoCommandBufferBuilder, PrimaryCommandBuffer, SubpassContents};
 
 pub fn start_draw(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 	resources.insert::<Option<DrawContext>>(None);

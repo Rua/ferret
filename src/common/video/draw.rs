@@ -3,15 +3,15 @@ use anyhow::Context;
 use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuAccessibleBuffer},
-	command_buffer::{AutoCommandBufferBuilder, CommandBuffer},
+	command_buffer::{AutoCommandBufferBuilder, PrimaryAutoCommandBuffer, PrimaryCommandBuffer},
 	descriptor::descriptor_set::DescriptorSet,
 	device::Device,
 	format::Format,
-	framebuffer::{Framebuffer, FramebufferAbstract, RenderPassAbstract},
 	image::{
 		view::{ImageView, ImageViewAbstract},
 		AttachmentImage, ImageUsage,
 	},
+	render_pass::{Framebuffer, FramebufferAbstract, RenderPass},
 	single_pass_renderpass,
 	sync::GpuFuture,
 };
@@ -20,7 +20,6 @@ pub struct DrawTarget {
 	colour_attachment: Arc<ImageView<Arc<AttachmentImage>>>,
 	depth_attachment: Arc<ImageView<Arc<AttachmentImage>>>,
 	framebuffer: Arc<dyn FramebufferAbstract + Send + Sync>,
-	render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
 }
 
 impl DrawTarget {
@@ -53,7 +52,7 @@ impl DrawTarget {
 		.context("No supported depth buffer format found")?;
 
 		// Create render pass
-		let render_pass: Arc<dyn RenderPassAbstract + Send + Sync> = Arc::new(
+		let render_pass = Arc::new(
 			single_pass_renderpass!(render_context.device().clone(),
 				attachments: {
 					color: {
@@ -86,7 +85,7 @@ impl DrawTarget {
 
 		// Create framebuffer
 		let framebuffer = Arc::new(
-			Framebuffer::start(render_pass.clone())
+			Framebuffer::start(render_pass)
 				.add(colour_attachment.clone())?
 				.add(depth_attachment.clone())?
 				.build()
@@ -97,7 +96,6 @@ impl DrawTarget {
 			colour_attachment,
 			depth_attachment,
 			framebuffer,
-			render_pass,
 		})
 	}
 
@@ -120,7 +118,7 @@ impl DrawTarget {
 
 		// Create framebuffer
 		self.framebuffer = Arc::new(
-			Framebuffer::start(self.render_pass.clone())
+			Framebuffer::start(self.framebuffer.render_pass().clone())
 				.add(self.colour_attachment.clone())?
 				.add(self.depth_attachment.clone())?
 				.build()
@@ -186,8 +184,8 @@ impl DrawTarget {
 		&self.colour_attachment
 	}
 
-	pub fn render_pass(&self) -> &Arc<dyn RenderPassAbstract + Send + Sync> {
-		&self.render_pass
+	pub fn render_pass(&self) -> &Arc<RenderPass> {
+		&self.framebuffer.render_pass()
 	}
 
 	pub fn copy_to_cpu(
@@ -221,6 +219,6 @@ impl DrawTarget {
 }
 
 pub struct DrawContext {
-	pub commands: AutoCommandBufferBuilder,
+	pub commands: AutoCommandBufferBuilder<PrimaryAutoCommandBuffer>,
 	pub descriptor_sets: Vec<Arc<dyn DescriptorSet + Send + Sync>>,
 }
