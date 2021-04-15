@@ -137,7 +137,7 @@ pub fn process_images(render_context: &RenderContext, asset_storage: &mut AssetS
 	let palette_handle: AssetHandle<Palette> = asset_storage.load("playpal.palette");
 
 	asset_storage.process::<Image, _>(|data, asset_storage| {
-		let image_data: ImageData = *data.downcast().ok().unwrap();
+		let image_data: ImageData = *data.downcast().ok().expect("Not an ImageData");
 		let palette = asset_storage.get(&palette_handle).unwrap();
 		let data: Vec<_> = image_data
 			.data

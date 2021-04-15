@@ -1,15 +1,12 @@
 use crate::{
 	common::{
-		assets::{AssetHandle, AssetStorage},
+		assets::AssetStorage,
 		geometry::{ortho_matrix, Interval, AABB3},
 		video::{
 			definition::NumberedInstanceBufferDefinition, DrawContext, DrawTarget, RenderContext,
 		},
 	},
-	doom::{
-		image::Image,
-		ui::{FontSpacing, UiImage, UiParams, UiText, UiTransform},
-	},
+	doom::ui::{FontSpacing, UiHexFontText, UiImage, UiParams, UiText, UiTransform},
 };
 use anyhow::Context;
 use legion::{
@@ -22,6 +19,7 @@ use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
 	command_buffer::DynamicState,
 	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
+	image::view::ImageViewAbstract,
 	impl_vertex,
 	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
 	render_pass::Subpass,
@@ -67,7 +65,12 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 		.read_resource::<UiParams>()
 		.write_resource::<Option<DrawContext>>()
 		.with_query(<(Entity, &UiTransform)>::query())
-		.with_query(<(&UiTransform, Option<&UiImage>, Option<&UiText>)>::query())
+		.with_query(<(
+			&UiTransform,
+			Option<&UiImage>,
+			Option<&UiText>,
+			Option<&UiHexFontText>,
+		)>::query())
 		.build(move |_command_buffer, world, resources, queries| {
 			(|| -> anyhow::Result<()> {
 				let (asset_storage, sampler, ui_params, draw_context) = resources;
@@ -112,9 +115,12 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 				entities.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(Ordering::Equal));
 
 				// Group draws into batches by texture, preserving depth order
-				let mut batches: Vec<(AssetHandle<Image>, Vec<InstanceData>)> = Vec::new();
+				let mut batches: Vec<(
+					Arc<dyn ImageViewAbstract + Send + Sync>,
+					Vec<InstanceData>,
+				)> = Vec::new();
 
-				for (ui_transform, ui_image, ui_text) in entities
+				for (ui_transform, ui_image, ui_text, ui_hexfont_text) in entities
 					.into_iter()
 					.filter_map(|(_, entity)| queries.1.get(world, entity).ok())
 				{
@@ -129,12 +135,14 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 						let instance_data = InstanceData {
 							in_position: position.into(),
 							in_size: size.into(),
+							in_texture_offset: [0.0; 2],
 						};
 
 						// Add to batches
+						let image_view = &image.image_view;
 						match batches.last_mut() {
-							Some((i, id)) if *i == ui_image.image => id.push(instance_data),
-							_ => batches.push((ui_image.image.clone(), vec![instance_data])),
+							Some((i, id)) if i == image_view => id.push(instance_data),
+							_ => batches.push((image_view.clone(), vec![instance_data])),
 						}
 					}
 
@@ -155,6 +163,7 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 								let instance_data = InstanceData {
 									in_position: (position - image.offset).into(),
 									in_size: image.size().into(),
+									in_texture_offset: [0.0; 2],
 								};
 
 								let width = match font.spacing {
@@ -164,23 +173,52 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 								position[0] += width;
 
 								// Add to batches
+								let image_view = &image.image_view;
 								match batches.last_mut() {
-									Some((i, id)) if i == image_handle => id.push(instance_data),
-									_ => batches.push((image_handle.clone(), vec![instance_data])),
+									Some((i, id)) if i == image_view => id.push(instance_data),
+									_ => batches.push((image_view.clone(), vec![instance_data])),
 								}
+							}
+						}
+					}
+
+					if let Some(ui_text) = ui_hexfont_text {
+						let font = asset_storage.get(&ui_text.font).unwrap();
+						let mut cursor_position =
+							ui_transform.position + ui_params.align(ui_transform.alignment);
+
+						for ch in ui_text.text.chars() {
+							if let Some((ch_position, ch_size)) = font.locations.get(&ch) {
+								let instance_data = InstanceData {
+									in_position: cursor_position.into(),
+									in_size: ch_size.map(|x| x as f32).into(),
+									in_texture_offset: ch_position.map(|x| x as f32).into(),
+								};
+
+								// Add to batches
+								match batches.last_mut() {
+									Some((i, id)) if i == &font.image_view => {
+										id.push(instance_data)
+									}
+									_ => {
+										batches.push((font.image_view.clone(), vec![instance_data]))
+									}
+								}
+
+								cursor_position[0] += ch_size[0] as f32;
 							}
 						}
 					}
 				}
 
 				// Draw the batches
-				for (image_handle, instance_data) in batches {
-					let image = asset_storage.get(&image_handle).unwrap();
+				for (image_view, instance_data) in batches {
+					//let image = asset_storage.get(&image_handle).unwrap();
 					draw_context.descriptor_sets.truncate(1);
 					draw_context.descriptor_sets.push(Arc::new(
 						texture_set_pool
 							.next()
-							.add_sampled_image(image.image_view.clone(), sampler.clone())
+							.add_sampled_image(image_view, sampler.clone())
 							.context("Couldn't add image to descriptor set")?
 							.build()
 							.context("Couldn't create descriptor set")?,
@@ -229,5 +267,6 @@ pub mod ui_frag {
 pub struct InstanceData {
 	pub in_position: [f32; 2],
 	pub in_size: [f32; 2],
+	pub in_texture_offset: [f32; 2],
 }
-impl_vertex!(InstanceData, in_position, in_size);
+impl_vertex!(InstanceData, in_position, in_size, in_texture_offset);

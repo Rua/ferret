@@ -1,5 +1,8 @@
 use crate::{
-	common::assets::{AssetHandle, AssetStorage, ImportData},
+	common::{
+		assets::{AssetHandle, AssetStorage, ImportData},
+		blit::blit,
+	},
 	doom::{
 		image::{IAColor, Image, ImageData},
 		wad::read_string,
@@ -51,66 +54,22 @@ pub fn import_wall(
 		.clone();
 	let mut data = vec![IAColor::default(); texture_info.size[0] * texture_info.size[1]];
 
-	texture_info
-		.patches
-		.iter()
-		.try_for_each(|patch_info| -> anyhow::Result<()> {
-			let patch_handle = asset_storage.load::<ImageData>(&patch_info.name);
-			let patch = asset_storage.get(&patch_handle).unwrap();
-
-			if -patch_info.offset[0] >= patch.size[0] as isize
-				|| -patch_info.offset[1] >= patch.size[1] as isize
-				|| patch_info.offset[0] >= texture_info.size[0] as isize
-				|| patch_info.offset[1] >= texture_info.size[1] as isize
-			{
-				// Entirely out of range
-				return Ok(());
-			}
-
-			let src_offset = [
-				std::cmp::max(0, -patch_info.offset[0]) as usize,
-				std::cmp::max(0, -patch_info.offset[1]) as usize,
-			];
-
-			let dst_offset = [
-				(src_offset[0] as isize + patch_info.offset[0]) as usize,
-				(src_offset[1] as isize + patch_info.offset[1]) as usize,
-			];
-
-			let size = [
-				std::cmp::min(
-					patch.size[0],
-					(texture_info.size[0] as isize - patch_info.offset[0]) as usize,
-				) - src_offset[0],
-				std::cmp::min(
-					patch.size[1],
-					(texture_info.size[1] as isize - patch_info.offset[1]) as usize,
-				) - src_offset[1],
-			];
-
-			let src_rows = patch.data[src_offset[1] * patch.size[0]..][..size[1] * patch.size[0]]
-				.chunks_exact(patch.size[0]);
-			let dst_rows = data[dst_offset[1] * texture_info.size[0]..]
-				[..size[1] * texture_info.size[0]]
-				.chunks_exact_mut(texture_info.size[0]);
-			debug_assert_eq!(src_rows.len(), size[1]);
-			debug_assert_eq!(dst_rows.len(), size[1]);
-
-			for (src_row, dst_row) in src_rows.zip(dst_rows) {
-				let src_iter = src_row[src_offset[0]..src_offset[0] + size[0]].iter();
-				let dst_iter = dst_row[dst_offset[0]..dst_offset[0] + size[0]].iter_mut();
-				debug_assert_eq!(src_iter.len(), size[0]);
-				debug_assert_eq!(dst_iter.len(), size[0]);
-
-				for (src, dst) in src_iter.zip(dst_iter) {
-					if src.a != 0 {
-						*dst = *src;
-					}
+	for patch_info in &texture_info.patches {
+		let patch_handle = asset_storage.load::<ImageData>(&patch_info.name);
+		let patch = asset_storage.get(&patch_handle).unwrap();
+		blit(
+			|src, dst| {
+				if src.a != 0 {
+					*dst = *src;
 				}
-			}
-
-			Ok(())
-		})?;
+			},
+			&patch.data,
+			patch.size,
+			&mut data,
+			texture_info.size,
+			patch_info.offset.into(),
+		);
+	}
 
 	Ok(Box::new(ImageData {
 		data,

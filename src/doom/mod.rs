@@ -96,7 +96,7 @@ use crate::{
 			EntityTemplateRef, EntityTemplateRefDef, WeaponTemplate,
 		},
 		texture::{texture_animation_system, texture_scroll_system},
-		ui::{import_font, Font, UiImage, UiParams, UiTransform},
+		ui::{import_font, import_hexfont, Font, HexFont, UiImage, UiParams, UiTransform},
 		wad::{IWADInfo, WadLoader},
 	},
 };
@@ -131,6 +131,7 @@ pub fn import(
 		Some("entity") => import_entity,
 		Some("flat") => import_flat,
 		Some("font") => import_font,
+		Some("hex") => import_hexfont,
 		Some("map") => import_map,
 		Some("palette") => import_palette,
 		Some("patch") => import_patch,
@@ -182,6 +183,7 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 	asset_storage.add_storage::<AmmoTemplate>(false);
 	asset_storage.add_storage::<EntityTemplate>(false);
 	asset_storage.add_storage::<Font>(false);
+	asset_storage.add_storage::<HexFont>(true);
 	asset_storage.add_storage::<Image>(true);
 	asset_storage.add_storage::<ImageData>(false);
 	asset_storage.add_storage::<Map>(false);

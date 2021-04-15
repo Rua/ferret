@@ -18,6 +18,7 @@ crossbeam-channel = "0.5"
 derivative = "2.1"
 downcast-rs = "1.2"
 fnv = "1.0"
+hex = "0.4"
 legion = {version = "0.4", default-features = false, features = ["extended-tuple-impls", "serialize"]}
 log = {version = "0.4", features = ["std"]}
 nalgebra = {version = "0.25", features = ["serde-serialize"]}

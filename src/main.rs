@@ -99,7 +99,24 @@ fn main() -> anyhow::Result<()> {
 	let mut world = World::default();
 
 	{
-		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(&mut resources);
+		let (render_context, mut asset_storage) =
+			<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(&mut resources);
+		let hexfont = asset_storage.load::<doom::ui::HexFont>("console.hex");
+		doom::ui::process_hexfonts(&render_context, &mut asset_storage);
+
+		world.push((
+			doom::ui::UiTransform {
+				position: Vector2::new(0.0, 0.0),
+				depth: 1.0,
+				alignment: [doom::ui::UiAlignment::Near, doom::ui::UiAlignment::Near],
+				size: Vector2::new(320.0, 100.0),
+				stretch: [true, false],
+			},
+			doom::ui::UiHexFontText {
+				text: "foobar".into(),
+				font: hexfont,
+			},
+		));
 
 		world.push((
 			doom::ui::UiTransform {
