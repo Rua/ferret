@@ -35,8 +35,7 @@ use crate::{
 		assets::{AssetHandle, AssetStorage, ImportData, ASSET_SERIALIZER},
 		geometry::AABB2,
 		quadtree::Quadtree,
-		spawn::SpawnMergerHandlerSet,
-		time::{increment_game_time, DeltaTime, GameTime},
+		time::{DeltaTime, GameTime},
 		video::{DrawTarget, RenderContext},
 	},
 	doom::{
@@ -45,17 +44,12 @@ use crate::{
 			player_command_system, player_move_system, player_touch, player_use_system,
 			player_weapon_system, Client,
 		},
-		components::{RandomTransformDef, SpawnPoint, Transform, TransformDef},
+		components::{register_components, Transform},
 		data::{iwads::IWADINFO, FRAME_TIME},
 		door::{door_active, door_linedef_touch, door_switch_use, door_use},
 		draw::{
-			finish_draw,
-			map::draw_map,
-			sprite::{draw_sprites, SpriteRender},
-			start_draw,
-			ui::draw_ui,
-			world::draw_world,
-			wsprite::{draw_weapon_sprites, WeaponSpriteRender},
+			finish_draw, map::draw_map, sprite::draw_sprites, start_draw, ui::draw_ui,
+			world::draw_world, wsprite::draw_weapon_sprites,
 		},
 		exit::exit_switch_use,
 		floor::{floor_active, floor_linedef_touch, floor_switch_use},
@@ -68,7 +62,7 @@ use crate::{
 			textures::{
 				import_flat, import_pnames, import_textures, import_wall, PNames, Textures,
 			},
-			LinedefRef, LinedefRefDef, Map, MapDynamic, SectorRef, SectorRefDef,
+			LinedefRef, Map, MapDynamic, SectorRef,
 		},
 		physics::{physics, BoxCollider},
 		plat::{plat_active, plat_linedef_touch, plat_switch_use},
@@ -92,11 +86,10 @@ use crate::{
 		},
 		switch::switch_active_system,
 		template::{
-			import_ammo, import_entity, import_weapon, AmmoTemplate, EntityTemplate,
-			EntityTemplateRef, EntityTemplateRefDef, WeaponTemplate,
+			import_ammo, import_entity, import_weapon, AmmoTemplate, EntityTemplate, WeaponTemplate,
 		},
 		texture::{texture_animation_system, texture_scroll_system},
-		ui::{import_font, import_hexfont, Font, HexFont, UiImage, UiParams, UiTransform},
+		ui::{import_font, import_hexfont, Font, HexFont, UiParams},
 		wad::{IWADInfo, WadLoader},
 	},
 };
@@ -107,7 +100,7 @@ use crossbeam_channel::Sender;
 use legion::{
 	component,
 	serialize::{set_entity_serializer, Canon},
-	systems::{CommandBuffer, ResourceSet},
+	systems::{Builder, CommandBuffer, ResourceSet},
 	Entity, IntoQuery, Read, Registry, Resources, Schedule, World, Write,
 };
 use relative_path::RelativePath;
@@ -196,42 +189,7 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 	asset_storage.add_storage::<WeaponTemplate>(false);
 	resources.insert(asset_storage);
 
-	// Component types
-	{
-		let (mut handler_set, mut registry) =
-			<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
-
-		registry.register::<SpawnPoint>("SpawnPoint".into());
-		handler_set.register_clone::<SpawnPoint>();
-
-		registry.register::<Transform>("Transform".into());
-		handler_set.register_spawn::<TransformDef, Transform>();
-		handler_set.register_spawn::<RandomTransformDef, Transform>();
-
-		registry.register::<EntityTemplateRef>("EntityTemplateRef".into());
-		handler_set.register_spawn::<EntityTemplateRefDef, EntityTemplateRef>();
-
-		registry.register::<MapDynamic>("MapDynamic".into());
-		handler_set.register_clone::<MapDynamic>();
-
-		registry.register::<LinedefRef>("LinedefRef".into());
-		handler_set.register_clone::<LinedefRef>();
-		handler_set.register_spawn::<LinedefRefDef, LinedefRef>();
-
-		registry.register::<SectorRef>("SectorRef".into());
-		handler_set.register_clone::<SectorRef>();
-		handler_set.register_spawn::<SectorRefDef, SectorRef>();
-
-		registry.register::<SpriteRender>("SpriteRender".into());
-		handler_set.register_clone::<SpriteRender>();
-
-		registry.register::<WeaponSpriteRender>("WeaponSpriteRender".into());
-		handler_set.register_clone::<WeaponSpriteRender>();
-
-		handler_set.register_clone::<UiTransform>();
-
-		handler_set.register_clone::<UiImage>();
-	}
+	register_components(resources);
 
 	log::info!("Engine initialised.");
 	log::info!("Type \"help\" to see available commands.");
@@ -254,9 +212,9 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 	Ok(())
 }
 
-#[rustfmt::skip]
-pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule> {
-	Ok(Schedule::builder()
+pub fn add_update_systems(builder: &mut Builder, resources: &mut Resources) -> anyhow::Result<()> {
+	#[rustfmt::skip]
+	builder
 		.add_thread_local(player_command_system(resources)).flush()
 		.add_thread_local(player_move_system(resources)).flush()
 		.add_thread_local(player_weapon_system(resources)).flush()
@@ -311,13 +269,14 @@ pub fn init_update_systems(resources: &mut Resources) -> anyhow::Result<Schedule
 		})
 		.add_thread_local(ammo_stat(resources)).flush()
 		.add_thread_local(health_stat(resources)).flush()
-		.add_thread_local(arms_stat(resources)).flush()
-		.add_thread_local(increment_game_time()).flush()
-		.build())
+		.add_thread_local(arms_stat(resources)).flush();
+
+	Ok(())
 }
 
-pub fn init_draw_systems(resources: &mut Resources) -> anyhow::Result<Schedule> {
-	Ok(Schedule::builder()
+pub fn add_output_systems(builder: &mut Builder, resources: &mut Resources) -> anyhow::Result<()> {
+	#[rustfmt::skip]
+	builder
 		.add_thread_local(start_draw(resources)?)
 		.add_thread_local(draw_world(resources)?)
 		.add_thread_local(draw_map(resources)?)
@@ -325,15 +284,10 @@ pub fn init_draw_systems(resources: &mut Resources) -> anyhow::Result<Schedule> 
 		.add_thread_local(draw_weapon_sprites(resources)?)
 		.add_thread_local(draw_ui(resources)?)
 		.add_thread_local(finish_draw(resources)?)
-		.build())
-}
-
-#[rustfmt::skip]
-pub fn init_sound_systems(resources: &mut Resources) -> anyhow::Result<Schedule> {
-	Ok(Schedule::builder()
 		.add_thread_local(start_sound_system(resources)).flush()
-		.add_thread_local(sound_playing_system(resources)).flush()
-		.build())
+		.add_thread_local(sound_playing_system(resources)).flush();
+
+	Ok(())
 }
 
 fn load_wads(resources: &mut Resources, arg_matches: &ArgMatches) -> anyhow::Result<()> {

@@ -124,13 +124,14 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 					.into_iter()
 					.filter_map(|(_, entity)| queries.1.get(world, entity).ok())
 				{
+					let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
+
 					if let Some(ui_image) = ui_image {
 						// Set up instance data
 						let image = asset_storage.get(&ui_image.image).unwrap();
 						let position = ui_transform.position
 							+ ui_params.align(ui_transform.alignment)
 							- image.offset;
-						let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
 
 						let instance_data = InstanceData {
 							in_position: position.into(),
@@ -186,16 +187,18 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 						let font = asset_storage.get(&ui_text.font).unwrap();
 						let mut cursor_position =
 							ui_transform.position + ui_params.align(ui_transform.alignment);
+						let start_of_line = cursor_position[0];
 
-						for ch in ui_text.text.chars() {
-							if let Some((ch_position, ch_size)) = font.locations.get(&ch) {
+						for line in font.wrap_lines(size[0] as usize, &ui_text.text) {
+							for (ch_position, ch_size) in
+								line.chars().filter_map(|ch| font.locations.get(&ch))
+							{
 								let instance_data = InstanceData {
 									in_position: cursor_position.into(),
 									in_size: ch_size.map(|x| x as f32).into(),
 									in_texture_offset: ch_position.map(|x| x as f32).into(),
 								};
 
-								// Add to batches
 								match batches.last_mut() {
 									Some((i, id)) if i == &font.image_view => {
 										id.push(instance_data)
@@ -206,6 +209,14 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 								}
 
 								cursor_position[0] += ch_size[0] as f32;
+							}
+
+							cursor_position[0] = start_of_line;
+							cursor_position[1] += font.line_height as f32;
+
+							if cursor_position[1] + font.line_height as f32 > ui_transform.size[1] {
+								// No more room for another line
+								break;
 							}
 						}
 					}

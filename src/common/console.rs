@@ -1,7 +1,8 @@
+use crate::doom::ui::UiHexFontText;
 use anyhow::{bail, Context};
 use clap::{App, AppSettings, ArgMatches};
 use crossbeam_channel::{Receiver, Sender};
-use legion::{Resources, World};
+use legion::{systems::Runnable, IntoQuery, Resources, SystemBuilder, World};
 use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
 use std::{collections::HashMap, io::BufRead, thread::Builder};
@@ -38,7 +39,7 @@ const MAIN_TEMPLATE: &'static str = "{subcommands}";
 const SUBCOMMAND_TEMPLATE: &'static str = "{usage}\n{about}\n\n{all-args}";
 
 pub fn execute_commands<'a>(
-	command_receiver: Receiver<String>,
+	receiver: Receiver<String>,
 	commands: Vec<(
 		App<'static, 'static>,
 		fn(&ArgMatches, &mut World, &mut Resources),
@@ -67,7 +68,7 @@ pub fn execute_commands<'a>(
 	let mut app = app.unwrap();
 
 	move |world, resources| {
-		while let Some(command) = command_receiver.try_iter().next() {
+		while let Some(command) = receiver.try_iter().next() {
 			// Split into tokens
 			let tokens = match tokenize(&command) {
 				Ok(tokens) => tokens,
@@ -189,3 +190,14 @@ fn tokenize(mut text: &str) -> anyhow::Result<Vec<String>> {
 	}
 }
 */
+
+pub fn update_console(receiver: Receiver<String>, _resources: &mut Resources) -> impl Runnable {
+	SystemBuilder::new("update_console")
+		.with_query(<&mut UiHexFontText>::query())
+		.build(move |_command_buffer, world, _resources, query| {
+			let console = query.iter_mut(world).next().unwrap();
+			while let Some(text) = receiver.try_iter().next() {
+				console.text.push_str(&text);
+			}
+		})
+}

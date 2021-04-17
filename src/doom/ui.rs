@@ -157,6 +157,78 @@ pub fn import_font(
 pub struct HexFont {
 	pub image_view: Arc<dyn ImageViewAbstract + Send + Sync>,
 	pub locations: HashMap<char, (Vector2<usize>, Vector2<usize>)>,
+	pub line_height: usize,
+}
+
+impl HexFont {
+	#[inline]
+	pub fn wrap_lines<'a>(&'a self, line_width: usize, slice: &'a str) -> WrapLines<'a> {
+		WrapLines {
+			font: self,
+			line_width,
+			slice,
+		}
+	}
+}
+
+#[derive(Clone)]
+pub struct WrapLines<'a> {
+	font: &'a HexFont,
+	line_width: usize,
+	slice: &'a str,
+}
+
+impl<'a> Iterator for WrapLines<'a> {
+	type Item = &'a str;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		let mut current_width = 0; // The current accumulated length of the line.
+		let mut breakpoint = 0; // The most recent location for a wrapping break.
+
+		for (index, ch) in self.slice.char_indices() {
+			let is_space = matches!(ch, ' ');
+			let is_break = matches!(ch, '\n');
+
+			if is_space || is_break {
+				breakpoint = index;
+			}
+
+			// Hit an explicit line break.
+			if is_break {
+				let (line, slice) = self.slice.split_at(breakpoint);
+				self.slice = &slice[ch.len_utf8()..];
+				return Some(line);
+			}
+
+			let ch_width = self.font.locations[&ch].1[0];
+			current_width += ch_width;
+
+			// Overflowed the line?
+			if current_width > self.line_width {
+				// A single word that's longer than a line. Just break it in the middle.
+				if breakpoint == 0 {
+					breakpoint = index;
+				}
+
+				let (line, slice) = self.slice.split_at(breakpoint);
+				let offset = if is_space { ch.len_utf8() } else { 0 };
+				self.slice = &slice[offset..];
+				return Some(line);
+			}
+
+			// This space fits on the line, so break after it.
+			if is_space {
+				breakpoint = index + ch.len_utf8();
+			}
+		}
+
+		// Iterated through all characters, and didn't find a newline or overflow.
+		if self.slice.is_empty() {
+			None
+		} else {
+			Some(self.slice)
+		}
+	}
 }
 
 #[derive(Clone, Debug)]
@@ -164,6 +236,7 @@ pub struct HexFontData {
 	pub image_data: Vec<u8>,
 	pub image_size: Vector2<usize>,
 	pub locations: HashMap<char, (Vector2<usize>, Vector2<usize>)>,
+	pub line_height: usize,
 }
 
 pub fn import_hexfont(
@@ -174,8 +247,9 @@ pub fn import_hexfont(
 	let mut pixels = HashMap::new();
 	let mut locations = HashMap::new();
 	let mut position = Vector2::new(0, 0);
-	const WIDTH: usize = 4096; // Minimum value of maxImageDimension2D in Vulkan
-	let mut height = 0;
+	const IMAGE_WIDTH: usize = 4096; // Minimum value of maxImageDimension2D in Vulkan
+	let mut image_height = 0;
+	let mut line_height = 0;
 
 	for (i, line) in reader.lines().enumerate() {
 		let line = line?;
@@ -206,23 +280,24 @@ pub fn import_hexfont(
 		let size = Vector2::new(data.len() / 16, 16);
 
 		// If we reach the end of the line, wrap to the next
-		if position[0] + size[0] > WIDTH {
+		if position[0] + size[0] > IMAGE_WIDTH {
 			position[0] = 0;
-			position[1] = height;
+			position[1] = image_height;
 		}
 
 		pixels.insert(ch, data);
 		locations.insert(ch, (position, size));
 		position[0] += size[0];
-		height = height.max(position[1] + size[1]);
+		image_height = image_height.max(position[1] + size[1]);
+		line_height = line_height.max(size[1]);
 	}
 
-	if height > WIDTH {
+	if image_height > IMAGE_WIDTH {
 		bail!("Texture height exceeded maximum");
 	}
 
 	// Now that we know how big the final texture will be, blit all the characters onto it
-	let image_size = Vector2::new(WIDTH, height);
+	let image_size = Vector2::new(IMAGE_WIDTH, image_height);
 	let mut image_data = vec![0u8; image_size[0] * image_size[1]];
 
 	for (ch, &(ch_position, ch_size)) in &locations {
@@ -232,7 +307,7 @@ pub fn import_hexfont(
 			ch_pixels,
 			ch_size.into(),
 			&mut image_data,
-			[WIDTH, height],
+			[IMAGE_WIDTH, image_height],
 			ch_position.map(|x| x as isize).into(),
 		);
 	}
@@ -241,6 +316,7 @@ pub fn import_hexfont(
 		image_data,
 		image_size,
 		locations,
+		line_height,
 	}))
 }
 
@@ -272,6 +348,7 @@ pub fn process_hexfonts(render_context: &RenderContext, asset_storage: &mut Asse
 		Ok(HexFont {
 			image_view,
 			locations: hexfont_data.locations,
+			line_height: hexfont_data.line_height,
 		})
 	})
 }

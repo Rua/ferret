@@ -2,7 +2,7 @@
 
 pub mod assets;
 pub mod blit;
-pub mod commands;
+pub mod console;
 pub mod geometry;
 pub mod input;
 pub mod logger;

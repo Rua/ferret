@@ -5,15 +5,20 @@ mod doom;
 
 use crate::common::{
 	assets::AssetStorage,
-	commands::execute_commands,
+	console::{execute_commands, update_console},
 	input::InputState,
 	spawn::SpawnMergerHandlerSet,
+	time::increment_game_time,
 	video::{DrawTarget, PresentTarget, RenderContext},
 };
 use anyhow::Context;
 use clap::{App, Arg};
 use crossbeam_channel::Sender;
-use legion::{serialize::Canon, systems::ResourceSet, Read, Registry, Resources, World, Write};
+use legion::{
+	serialize::Canon,
+	systems::{ResourceSet, Runnable},
+	Read, Registry, Resources, Schedule, SystemBuilder, World, Write,
+};
 use nalgebra::Vector2;
 use std::time::{Duration, Instant};
 use winit::{
@@ -54,15 +59,16 @@ fn main() -> anyhow::Result<()> {
 		)
 		.get_matches();
 
-	common::logger::init(&arg_matches)?;
+	let (log_sender, log_receiver) = crossbeam_channel::unbounded();
+	common::logger::init(&arg_matches, log_sender)?;
 
 	// Set up resources
 	let mut resources = Resources::default();
 
-	let (command_sender, command_receiver) = common::commands::init()?;
+	let (command_sender, command_receiver) = common::console::init()?;
 	resources.insert(command_sender);
 
-	let mut event_loop = EventLoop::new();
+	let event_loop = EventLoop::new();
 	let (render_context, _debug_callback) =
 		RenderContext::new(&event_loop).context("Could not create RenderContext")?;
 	let present_target = PresentTarget::new(
@@ -85,15 +91,35 @@ fn main() -> anyhow::Result<()> {
 
 	doom::init_resources(&mut resources, &arg_matches)?;
 
-	let mut update_systems =
-		doom::init_update_systems(&mut resources).context("Couldn't initialise update systems")?;
-	let mut draw_systems =
-		doom::init_draw_systems(&mut resources).context("Couldn't initialise draw systems")?;
-	let mut sound_systems =
-		doom::init_sound_systems(&mut resources).context("Couldn't initialise sound systems")?;
+	#[rustfmt::skip]
+	let mut input_systems = {
+		Schedule::builder()
+			.add_thread_local(process_events(event_loop)).flush()
+			.add_thread_local_fn(execute_commands(
+				command_receiver,
+				doom::commands::commands(),
+			)).flush()
+			.build()
+	};
 
-	let commands = doom::commands::commands();
-	let mut execute_commands = execute_commands(command_receiver, commands);
+	#[rustfmt::skip]
+	let mut update_systems = {
+		let mut builder = Schedule::builder();
+		doom::add_update_systems(&mut builder, &mut resources)
+			.context("Couldn't initialise update systems")?;
+		builder
+			.add_thread_local(increment_game_time()).flush()
+			.build()
+	};
+
+	#[rustfmt::skip]
+	let mut output_systems = {
+		let mut builder = Schedule::builder();
+		builder.add_system(update_console(log_receiver, &mut resources));
+		doom::add_output_systems(&mut builder, &mut resources)
+			.context("Couldn't initialise output systems")?;
+		builder.build()
+	};
 
 	// Create world
 	let mut world = World::default();
@@ -113,7 +139,7 @@ fn main() -> anyhow::Result<()> {
 				stretch: [true, false],
 			},
 			doom::ui::UiHexFontText {
-				text: "foobar".into(),
+				text: String::new(),
 				font: hexfont,
 			},
 		));
@@ -559,69 +585,10 @@ fn main() -> anyhow::Result<()> {
 		old_time = new_time;
 		//println!("{} fps", 1.0/delta.as_secs_f32());
 
-		// Process events from the system
-		event_loop.run_return(|event, _, control_flow| {
-			let (command_sender, render_context, mut input_state, mut present_target) =
-				<(
-					Read<Sender<String>>,
-					Read<RenderContext>,
-					Write<InputState>,
-					Write<PresentTarget>,
-				)>::fetch_mut(&mut resources);
-
-			input_state.process_event(&event);
-
-			match event {
-				Event::WindowEvent { event, .. } => match event {
-					WindowEvent::CloseRequested => {
-						command_sender.send("quit".to_owned()).ok();
-						*control_flow = ControlFlow::Exit;
-					}
-					WindowEvent::Resized(new_size) => {
-						present_target.window_resized(new_size.into());
-					}
-					WindowEvent::MouseInput {
-						state: ElementState::Pressed,
-						..
-					} => {
-						let window = render_context.surface().window();
-						if let Err(err) = window.set_cursor_grab(true) {
-							log::warn!("Couldn't grab cursor: {}", err);
-						}
-						window.set_cursor_visible(false);
-						input_state.set_mouse_delta_enabled(true);
-					}
-					WindowEvent::Focused(false)
-					| WindowEvent::KeyboardInput {
-						input:
-							KeyboardInput {
-								state: ElementState::Pressed,
-								virtual_keycode: Some(VirtualKeyCode::Escape),
-								..
-							},
-						..
-					} => {
-						let window = render_context.surface().window();
-						if let Err(err) = window.set_cursor_grab(false) {
-							log::warn!("Couldn't release cursor: {}", err);
-						}
-						window.set_cursor_visible(true);
-						input_state.set_mouse_delta_enabled(false);
-					}
-					_ => {}
-				},
-				Event::RedrawEventsCleared => {
-					*control_flow = ControlFlow::Exit;
-				}
-				_ => {}
-			}
-		});
-
-		// Execute console commands
-		execute_commands(&mut world, &mut resources);
+		input_systems.execute(&mut world, &mut resources);
 
 		if resources.contains::<ShouldQuit>() {
-			return Ok(());
+			break;
 		}
 
 		// Run game frames
@@ -636,8 +603,7 @@ fn main() -> anyhow::Result<()> {
 		}
 
 		// Update video and sound
-		draw_systems.execute(&mut world, &mut resources);
-		sound_systems.execute(&mut world, &mut resources);
+		output_systems.execute(&mut world, &mut resources);
 	}
 
 	Ok(())
@@ -645,3 +611,63 @@ fn main() -> anyhow::Result<()> {
 
 #[derive(Clone, Copy, Debug, Default)]
 struct ShouldQuit;
+
+fn process_events(mut event_loop: EventLoop<()>) -> impl Runnable {
+	SystemBuilder::new("process_events")
+		.read_resource::<Sender<String>>()
+		.read_resource::<RenderContext>()
+		.write_resource::<InputState>()
+		.write_resource::<PresentTarget>()
+		.build(move |_command_buffer, _world, resources, _queries| {
+			event_loop.run_return(|event, _, control_flow| {
+				let (command_sender, render_context, input_state, present_target) = resources;
+
+				input_state.process_event(&event);
+
+				match event {
+					Event::WindowEvent { event, .. } => match event {
+						WindowEvent::CloseRequested => {
+							command_sender.send("quit".to_owned()).ok();
+							*control_flow = ControlFlow::Exit;
+						}
+						WindowEvent::Resized(new_size) => {
+							present_target.window_resized(new_size.into());
+						}
+						WindowEvent::MouseInput {
+							state: ElementState::Pressed,
+							..
+						} => {
+							let window = render_context.surface().window();
+							if let Err(err) = window.set_cursor_grab(true) {
+								log::warn!("Couldn't grab cursor: {}", err);
+							}
+							window.set_cursor_visible(false);
+							input_state.set_mouse_delta_enabled(true);
+						}
+						WindowEvent::Focused(false)
+						| WindowEvent::KeyboardInput {
+							input:
+								KeyboardInput {
+									state: ElementState::Pressed,
+									virtual_keycode: Some(VirtualKeyCode::Escape),
+									..
+								},
+							..
+						} => {
+							let window = render_context.surface().window();
+							if let Err(err) = window.set_cursor_grab(false) {
+								log::warn!("Couldn't release cursor: {}", err);
+							}
+							window.set_cursor_visible(true);
+							input_state.set_mouse_delta_enabled(false);
+						}
+						_ => {}
+					},
+					Event::RedrawEventsCleared => {
+						*control_flow = ControlFlow::Exit;
+					}
+					_ => {}
+				}
+			})
+		})
+}
