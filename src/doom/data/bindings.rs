@@ -67,8 +67,8 @@ pub fn get_bindings() -> Bindings {
 		Button::Key(VirtualKeyCode::D),
 		ButtonBinding::FloatNegative("strafe".into()),
 	);
-	bindings.bind_axis(Axis::Mouse(MouseAxis::X), "yaw".into(), 3.0);
-	bindings.bind_axis(Axis::Mouse(MouseAxis::Y), "pitch".into(), 3.0);
+	bindings.bind_axis(Axis::Mouse(MouseAxis::X), ("yaw".into(), 3.0));
+	bindings.bind_axis(Axis::Mouse(MouseAxis::Y), ("pitch".into(), 3.0));
 
 	bindings
 }

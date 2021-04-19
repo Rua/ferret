@@ -12,12 +12,13 @@ pub enum Button {
 	Mouse(MouseButton),
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Deserialize)]
+#[serde(untagged)]
 pub enum Axis {
 	Mouse(MouseAxis),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize)]
 pub enum MouseAxis {
 	X,
 	Y,
@@ -225,7 +226,7 @@ impl InputState {
 #[derive(Debug, Default, Clone)]
 pub struct Bindings {
 	button_bindings: FnvHashMap<Button, ButtonBinding>,
-	axis_bindings: FnvHashMap<Axis, (&'static str, f64)>,
+	axis_bindings: FnvHashMap<Axis, AxisBinding>,
 }
 
 #[derive(Clone, Debug)]
@@ -236,7 +237,10 @@ pub enum ButtonBinding {
 	Command(String),
 }
 
+type AxisBinding = (String, f64);
+
 impl Bindings {
+	#[inline]
 	pub fn new() -> Bindings {
 		Bindings {
 			button_bindings: FnvHashMap::default(),
@@ -244,18 +248,28 @@ impl Bindings {
 		}
 	}
 
+	#[inline]
 	pub fn bind_button(&mut self, button: Button, binding: ButtonBinding) {
 		self.button_bindings.insert(button, binding);
 	}
 
-	pub fn bind_axis(&mut self, axis: Axis, axis_binding: &'static str, scale: f64) {
-		self.axis_bindings.insert(axis, (axis_binding, scale));
+	#[inline]
+	pub fn get_button(&self, button: Button) -> Option<&ButtonBinding> {
+		self.button_bindings.get(&button)
+	}
+
+	#[inline]
+	pub fn bind_axis(&mut self, axis: Axis, binding: AxisBinding) {
+		self.axis_bindings.insert(axis, binding);
+	}
+
+	#[inline]
+	pub fn get_axis(&self, axis: Axis) -> Option<&AxisBinding> {
+		self.axis_bindings.get(&axis)
 	}
 }
 
-pub fn bind(button: &str, binding: &str, resources: &mut Resources) {
-	debug_assert!(!binding.is_empty());
-
+pub fn bind_button(button: &str, binding: &str, resources: &mut Resources) {
 	let result = if let Some(button) = button.strip_prefix("Mouse") {
 		let deserializer = BorrowedStrDeserializer::<serde::de::value::Error>::new(button);
 		MouseButton::deserialize(deserializer).map(Button::Mouse)
@@ -264,7 +278,7 @@ pub fn bind(button: &str, binding: &str, resources: &mut Resources) {
 		VirtualKeyCode::deserialize(deserializer).map(Button::Key)
 	};
 
-	let button = match result {
+	let button_val = match result {
 		Ok(x) => x,
 		Err(_) => {
 			log::error!("Invalid button: {}", button);
@@ -272,14 +286,65 @@ pub fn bind(button: &str, binding: &str, resources: &mut Resources) {
 		}
 	};
 
-	let binding = match binding.chars().next() {
-		Some('=') => ButtonBinding::Bool(binding[1..].into()),
-		Some('+') => ButtonBinding::FloatPositive(binding[1..].into()),
-		Some('-') => ButtonBinding::FloatNegative(binding[1..].into()),
-		Some(_) => ButtonBinding::Command(binding.into()),
-		None => unreachable!(),
+	let mut bindings = <Write<Bindings>>::fetch_mut(resources);
+	if binding.is_empty() {
+		match bindings.get_button(button_val) {
+			Some(ButtonBinding::Bool(binding)) => {
+				log::info!("{} is bound to: ={}", button, binding)
+			}
+			Some(ButtonBinding::FloatPositive(binding)) => {
+				log::info!("{} is bound to: +{}", button, binding)
+			}
+			Some(ButtonBinding::FloatNegative(binding)) => {
+				log::info!("{} is bound to: -{}", button, binding)
+			}
+			Some(ButtonBinding::Command(binding)) => {
+				log::info!("{} is bound to: {}", button, binding)
+			}
+			None => log::info!("{} is not bound", button),
+		}
+	} else {
+		let binding = match binding.chars().next() {
+			Some('=') => ButtonBinding::Bool(binding[1..].into()),
+			Some('+') => ButtonBinding::FloatPositive(binding[1..].into()),
+			Some('-') => ButtonBinding::FloatNegative(binding[1..].into()),
+			Some(_) => ButtonBinding::Command(binding.into()),
+			None => unreachable!(),
+		};
+		bindings.bind_button(button_val, binding);
+	}
+}
+
+pub fn bind_axis(axis: &str, binding: &str, scale: &str, resources: &mut Resources) {
+	let result = axis.strip_prefix("Mouse").and_then(|axis| {
+		let deserializer = BorrowedStrDeserializer::<serde::de::value::Error>::new(axis);
+		MouseAxis::deserialize(deserializer).map(Axis::Mouse).ok()
+	});
+
+	let axis_val = match result {
+		Some(x) => x,
+		None => {
+			log::error!("Invalid axis: {}", axis);
+			return;
+		}
 	};
 
 	let mut bindings = <Write<Bindings>>::fetch_mut(resources);
-	bindings.bind_button(button, binding);
+	if binding.is_empty() {
+		match bindings.get_axis(axis_val) {
+			Some((binding, scale)) => {
+				log::info!("{} is bound to: {} * {}", axis, binding, scale)
+			}
+			None => log::info!("{} is not bound", axis),
+		}
+	} else {
+		let scale = match scale.parse() {
+			Ok(x) => x,
+			Err(e) => {
+				log::error!("Parse error: {}: {}", e, scale);
+				return;
+			}
+		};
+		bindings.bind_axis(axis_val, (binding.into(), scale));
+	}
 }

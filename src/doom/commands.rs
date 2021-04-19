@@ -1,5 +1,5 @@
 use crate::{
-	common::input::bind,
+	common::input::{bind_axis, bind_button},
 	doom::{change_map, cheats::give_all, load_game, new_game, save_game, take_screenshot},
 	ShouldQuit,
 };
@@ -12,25 +12,49 @@ pub fn commands() -> Vec<(
 )> {
 	vec![
 		(
-			App::new("bind")
-				.about("Bind a button to an action")
+			App::new("bind_axis")
+				.about("Bind an axis to an action.")
 				.setting(AppSettings::AllowLeadingHyphen)
 				.arg(
-					Arg::with_name("BUTTON")
-						.help("Button to bind to")
+					Arg::with_name("AXIS")
+						.help("Axis to bind to.")
 						.empty_values(false)
 						.required(true),
 				)
+				.arg(Arg::with_name("BINDING").help(
+					"Action to bind to the axis.\nLeave empty to display the current binding.",
+				))
 				.arg(
-					Arg::with_name("BINDING")
-						.help("Action to bind to the button")
-						.empty_values(false)
-						.required(true),
+					Arg::with_name("SCALE")
+						.help("Sensitivity factor to apply to the movement.")
+						.default_value("1.0"),
 				),
 			|matches, _world, resources| {
-				bind(
+				bind_axis(
+					matches.value_of("AXIS").unwrap(),
+					matches.value_of("BINDING").unwrap_or(""),
+					matches.value_of("SCALE").unwrap(),
+					resources,
+				);
+			},
+		),
+		(
+			App::new("bind_button")
+				.about("Bind a button to an action.")
+				.setting(AppSettings::AllowLeadingHyphen)
+				.arg(
+					Arg::with_name("BUTTON")
+						.help("Button to bind to.")
+						.empty_values(false)
+						.required(true),
+				)
+				.arg(Arg::with_name("BINDING").help(
+					"Action to bind to the button.\nLeave empty to display the current binding.",
+				)),
+			|matches, _world, resources| {
+				bind_button(
 					matches.value_of("BUTTON").unwrap(),
-					matches.value_of("BINDING").unwrap(),
+					matches.value_of("BINDING").unwrap_or(""),
 					resources,
 				);
 			},

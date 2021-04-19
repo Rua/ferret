@@ -50,6 +50,7 @@ pub fn execute_commands<'a>(
 			.template(MAIN_TEMPLATE)
 			.global_setting(AppSettings::DisableHelpFlags)
 			.global_setting(AppSettings::DisableVersion)
+			.global_setting(AppSettings::DontCollapseArgsInUsage)
 			.setting(AppSettings::NoBinaryName),
 	);
 
