@@ -110,7 +110,7 @@ fn tokenize(mut text: &str) -> anyhow::Result<Vec<String>> {
 	static RE_SPACE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^[^\S\n]+"#).unwrap());
 
 	// C identifier or number literal
-	static RE_UNQUOTED: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^[+-]?[.0-9A-Za-z_]+"#).unwrap());
+	static RE_UNQUOTED: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^[=+-]?[.0-9A-Za-z_]+"#).unwrap());
 
 	// Quoted string, with escapes
 	static RE_QUOTED: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^"(?:[^"\\]*(?:\\.)?)*""#).unwrap());
@@ -195,9 +195,9 @@ pub fn update_console(receiver: Receiver<String>, _resources: &mut Resources) ->
 	SystemBuilder::new("update_console")
 		.with_query(<&mut UiHexFontText>::query())
 		.build(move |_command_buffer, world, _resources, query| {
-			let console = query.iter_mut(world).next().unwrap();
-			while let Some(text) = receiver.try_iter().next() {
-				console.text.push_str(&text);
+			let _console = query.iter_mut(world).next().unwrap();
+			while let Some(_text) = receiver.try_iter().next() {
+				//console.text.push_str(&text);
 			}
 		})
 }

@@ -1,4 +1,6 @@
 use fnv::FnvHashMap;
+use legion::{systems::ResourceSet, Resources, Write};
+use serde::{de::value::BorrowedStrDeserializer, Deserialize};
 use std::{fmt::Debug, hash::Hash};
 use winit::event::{
 	DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent,
@@ -8,18 +10,6 @@ use winit::event::{
 pub enum Button {
 	Key(VirtualKeyCode),
 	Mouse(MouseButton),
-}
-
-impl From<VirtualKeyCode> for Button {
-	fn from(keycode: VirtualKeyCode) -> Self {
-		Button::Key(keycode)
-	}
-}
-
-impl From<MouseButton> for Button {
-	fn from(mouse_button: MouseButton) -> Self {
-		Button::Mouse(mouse_button)
-	}
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -39,20 +29,94 @@ pub struct InputState {
 	mouse_delta_enabled: bool,
 	pressed_keys: Vec<VirtualKeyCode>,
 	pressed_mouse_buttons: Vec<MouseButton>,
+
+	bools: FnvHashMap<&'static str, bool>,
+	floats: FnvHashMap<&'static str, f64>,
 }
 
 impl InputState {
-	pub fn new() -> InputState {
+	pub fn new(
+		bools: impl IntoIterator<Item = &'static str>,
+		floats: impl IntoIterator<Item = &'static str>,
+	) -> InputState {
 		InputState {
 			mouse_delta: [0.0, 0.0],
 			mouse_delta_enabled: false,
 			pressed_keys: Vec::new(),
 			pressed_mouse_buttons: Vec::new(),
+
+			bools: bools.into_iter().map(|s| (s, false)).collect(),
+			floats: floats.into_iter().map(|s| (s, 0.0)).collect(),
 		}
 	}
 
 	pub fn reset(&mut self) {
 		self.mouse_delta = [0.0, 0.0];
+	}
+
+	pub fn set_values(&mut self, bindings: &Bindings) {
+		self.bools = self
+			.bools
+			.keys()
+			.map(|&name| {
+				let value =
+					bindings
+						.button_bindings
+						.iter()
+						.any(|(button, binding)| match binding {
+							ButtonBinding::Bool(binding) => {
+								binding == name && self.button_is_down(*button)
+							}
+							_ => false,
+						});
+
+				(name, value)
+			})
+			.collect();
+
+		self.floats = self
+			.floats
+			.keys()
+			.map(|&name| {
+				let axis_value = bindings
+					.axis_bindings
+					.iter()
+					.map(|(axis, (binding, scale))| {
+						if *binding == name {
+							match axis {
+								Axis::Mouse(axis) => self.mouse_delta(*axis) * scale,
+							}
+						} else {
+							0.0
+						}
+					})
+					.sum::<f64>();
+
+				let buttons_positive =
+					bindings
+						.button_bindings
+						.iter()
+						.any(|(button, binding)| match binding {
+							ButtonBinding::FloatPositive(binding) => {
+								binding == name && self.button_is_down(*button)
+							}
+							_ => false,
+						}) as usize as f64;
+
+				let buttons_negative =
+					bindings
+						.button_bindings
+						.iter()
+						.any(|(button, binding)| match binding {
+							ButtonBinding::FloatNegative(binding) => {
+								binding == name && self.button_is_down(*button)
+							}
+							_ => false,
+						}) as usize as f64;
+
+				(name, axis_value + (buttons_positive - buttons_negative))
+			})
+			.collect();
 	}
 
 	pub fn button_is_down(&self, button: Button) -> bool {
@@ -75,6 +139,20 @@ impl InputState {
 		if !enabled {
 			self.mouse_delta = [0.0, 0.0];
 		}
+	}
+
+	pub fn bool_value(&self, name: &str) -> bool {
+		*self
+			.bools
+			.get(name)
+			.unwrap_or_else(|| panic!("Invalid bool-valued input name: {}", name))
+	}
+
+	pub fn float_value(&self, name: &str) -> f64 {
+		*self
+			.floats
+			.get(name)
+			.unwrap_or_else(|| panic!("Invalid float-valued input name: {}", name))
 	}
 
 	pub fn process_event(&mut self, event: &Event<()>) {
@@ -145,80 +223,63 @@ impl InputState {
 }
 
 #[derive(Debug, Default, Clone)]
-pub struct Bindings<B: Clone + Debug + Hash + Eq, F: Clone + Debug + Hash + Eq> {
-	button_bindings: FnvHashMap<Button, ButtonBinding<B, F>>,
-	axis_bindings: FnvHashMap<Axis, (F, f64)>,
+pub struct Bindings {
+	button_bindings: FnvHashMap<Button, ButtonBinding>,
+	axis_bindings: FnvHashMap<Axis, (&'static str, f64)>,
 }
 
 #[derive(Clone, Debug)]
-pub enum ButtonBinding<B, F> {
-	Bool(B),
-	FloatPositive(F),
-	FloatNegative(F),
+pub enum ButtonBinding {
+	Bool(String),
+	FloatPositive(String),
+	FloatNegative(String),
+	Command(String),
 }
 
-impl<B: Clone + Debug + Hash + Eq, F: Clone + Debug + Hash + Eq> Bindings<B, F> {
-	pub fn new() -> Bindings<B, F> {
+impl Bindings {
+	pub fn new() -> Bindings {
 		Bindings {
 			button_bindings: FnvHashMap::default(),
 			axis_bindings: FnvHashMap::default(),
 		}
 	}
 
-	pub fn bind_button(&mut self, button: Button, binding: ButtonBinding<B, F>) {
+	pub fn bind_button(&mut self, button: Button, binding: ButtonBinding) {
 		self.button_bindings.insert(button, binding);
 	}
 
-	pub fn bind_axis(&mut self, axis: Axis, axis_binding: F, scale: f64) {
+	pub fn bind_axis(&mut self, axis: Axis, axis_binding: &'static str, scale: f64) {
 		self.axis_bindings.insert(axis, (axis_binding, scale));
 	}
+}
 
-	pub fn bool_value(&self, bool_input: &B, input_state: &InputState) -> bool {
-		self.button_bindings
-			.iter()
-			.any(|(button, binding)| match binding {
-				ButtonBinding::Bool(binding) => {
-					binding == bool_input && input_state.button_is_down(*button)
-				}
-				_ => false,
-			})
-	}
+pub fn bind(button: &str, binding: &str, resources: &mut Resources) {
+	debug_assert!(!binding.is_empty());
 
-	pub fn float_value(&self, float_input: &F, input_state: &InputState) -> f64 {
-		let axis_value = self
-			.axis_bindings
-			.iter()
-			.map(|(axis, (binding, scale))| {
-				if binding == float_input {
-					match axis {
-						Axis::Mouse(axis) => input_state.mouse_delta(*axis) * scale,
-					}
-				} else {
-					0.0
-				}
-			})
-			.sum::<f64>();
+	let result = if let Some(button) = button.strip_prefix("Mouse") {
+		let deserializer = BorrowedStrDeserializer::<serde::de::value::Error>::new(button);
+		MouseButton::deserialize(deserializer).map(Button::Mouse)
+	} else {
+		let deserializer = BorrowedStrDeserializer::<serde::de::value::Error>::new(button);
+		VirtualKeyCode::deserialize(deserializer).map(Button::Key)
+	};
 
-		let buttons_positive = self
-			.button_bindings
-			.iter()
-			.any(|(button, binding)| match binding {
-				ButtonBinding::FloatPositive(binding) => {
-					binding == float_input && input_state.button_is_down(*button)
-				}
-				_ => false,
-			}) as usize as f64;
+	let button = match result {
+		Ok(x) => x,
+		Err(_) => {
+			log::error!("Invalid button: {}", button);
+			return;
+		}
+	};
 
-		let buttons_negative = self
-			.button_bindings
-			.iter()
-			.any(|(button, binding)| match binding {
-				ButtonBinding::FloatNegative(binding) => {
-					binding == float_input && input_state.button_is_down(*button)
-				}
-				_ => false,
-			}) as usize as f64;
+	let binding = match binding.chars().next() {
+		Some('=') => ButtonBinding::Bool(binding[1..].into()),
+		Some('+') => ButtonBinding::FloatPositive(binding[1..].into()),
+		Some('-') => ButtonBinding::FloatNegative(binding[1..].into()),
+		Some(_) => ButtonBinding::Command(binding.into()),
+		None => unreachable!(),
+	};
 
-		axis_value + (buttons_positive - buttons_negative)
-	}
+	let mut bindings = <Write<Bindings>>::fetch_mut(resources);
+	bindings.bind_button(button, binding);
 }

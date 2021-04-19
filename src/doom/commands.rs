@@ -1,8 +1,9 @@
 use crate::{
+	common::input::bind,
 	doom::{change_map, cheats::give_all, load_game, new_game, save_game, take_screenshot},
 	ShouldQuit,
 };
-use clap::{App, Arg, ArgMatches};
+use clap::{App, AppSettings, Arg, ArgMatches};
 use legion::{Resources, World};
 
 pub fn commands() -> Vec<(
@@ -11,9 +12,34 @@ pub fn commands() -> Vec<(
 )> {
 	vec![
 		(
+			App::new("bind")
+				.about("Bind a button to an action")
+				.setting(AppSettings::AllowLeadingHyphen)
+				.arg(
+					Arg::with_name("BUTTON")
+						.help("Button to bind to")
+						.empty_values(false)
+						.required(true),
+				)
+				.arg(
+					Arg::with_name("BINDING")
+						.help("Action to bind to the button")
+						.empty_values(false)
+						.required(true),
+				),
+			|matches, _world, resources| {
+				bind(
+					matches.value_of("BUTTON").unwrap(),
+					matches.value_of("BINDING").unwrap(),
+					resources,
+				);
+			},
+		),
+		(
 			App::new("change").about("Change to a new map").arg(
 				Arg::with_name("MAP")
 					.help("Map to change to")
+					.empty_values(false)
 					.required(true),
 			),
 			|matches, world, resources| {
@@ -24,6 +50,7 @@ pub fn commands() -> Vec<(
 			App::new("load").about("Load a previously saved game").arg(
 				Arg::with_name("NAME")
 					.help("Name of the saved game to load")
+					.empty_values(false)
 					.required(true),
 			),
 			|matches, world, resources| {
@@ -46,6 +73,7 @@ pub fn commands() -> Vec<(
 			App::new("new").about("Start a new game").arg(
 				Arg::with_name("MAP")
 					.help("Map to start the new game on")
+					.empty_values(false)
 					.required(true),
 			),
 			|matches, world, resources| {
@@ -62,6 +90,7 @@ pub fn commands() -> Vec<(
 			App::new("save").about("Save the current game").arg(
 				Arg::with_name("NAME")
 					.help("Name to save the game to")
+					.empty_values(false)
 					.required(true),
 			),
 			|matches, world, resources| {

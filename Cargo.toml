@@ -38,7 +38,7 @@ smallvec = "1.6"
 vulkano = {git = "https://github.com/vulkano-rs/vulkano"}
 vulkano-shaders = {git = "https://github.com/vulkano-rs/vulkano"}
 vulkano-win = {git = "https://github.com/vulkano-rs/vulkano"}
-winit = "0.24"
+winit = {version = "0.24", features = ["serde"]}
 
 [profile.dev]
 opt-level = 2

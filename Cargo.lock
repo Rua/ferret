@@ -1459,9 +1459,9 @@ checksum = "60a357793950651c4ed0f3f52338f53b2f809f32d83a07f72909fa13e4c6c1e3"
 
 [[package]]
 name = "redox_syscall"
-version = "0.2.5"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94341e4e44e24f6b591b59e47a8a027df12e008d73fd5672dbea9cc22f4507d9"
+checksum = "8270314b5ccceb518e7e578952f0b72b88222d02e8f77f5ecf7abbb673539041"
 dependencies = [
  "bitflags",
 ]
@@ -1810,12 +1810,12 @@ checksum = "5fecdca9a5291cc2b8dcf7dc02453fee791a280f3743cb0905f8822ae463b3fe"
 [[package]]
 name = "vk-sys"
 version = "0.6.0"
-source = "git+https://github.com/vulkano-rs/vulkano#a4ef1e6d9fa784a0db7cca8f12f7417de22dddfa"
+source = "git+https://github.com/vulkano-rs/vulkano#f1dad10cd4125115a235b63979bd61c7a55e41e8"
 
 [[package]]
 name = "vulkano"
 version = "0.22.0"
-source = "git+https://github.com/vulkano-rs/vulkano#a4ef1e6d9fa784a0db7cca8f12f7417de22dddfa"
+source = "git+https://github.com/vulkano-rs/vulkano#f1dad10cd4125115a235b63979bd61c7a55e41e8"
 dependencies = [
  "crossbeam-queue",
  "fnv",
@@ -1830,7 +1830,7 @@ dependencies = [
 [[package]]
 name = "vulkano-shaders"
 version = "0.22.0"
-source = "git+https://github.com/vulkano-rs/vulkano#a4ef1e6d9fa784a0db7cca8f12f7417de22dddfa"
+source = "git+https://github.com/vulkano-rs/vulkano#f1dad10cd4125115a235b63979bd61c7a55e41e8"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1841,7 +1841,7 @@ dependencies = [
 [[package]]
 name = "vulkano-win"
 version = "0.22.0"
-source = "git+https://github.com/vulkano-rs/vulkano#a4ef1e6d9fa784a0db7cca8f12f7417de22dddfa"
+source = "git+https://github.com/vulkano-rs/vulkano#f1dad10cd4125115a235b63979bd61c7a55e41e8"
 dependencies = [
  "cocoa 0.20.2",
  "metal",
@@ -2073,6 +2073,7 @@ dependencies = [
  "parking_lot",
  "percent-encoding",
  "raw-window-handle",
+ "serde",
  "smithay-client-toolkit",
  "wayland-client",
  "winapi 0.3.9",

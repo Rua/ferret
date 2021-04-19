@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		geometry::{Line2, Line3, AABB3},
-		input::{Bindings, InputState},
+		input::InputState,
 		quadtree::Quadtree,
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
 		time::DeltaTime,
@@ -11,7 +11,7 @@ use crate::{
 		camera::Camera,
 		components::Transform,
 		data::{FORWARD_ACCEL, FRAME_RATE, STRAFE_ACCEL},
-		input::{BoolInput, FloatInput, UserCommand},
+		input::UserCommand,
 		map::MapDynamic,
 		physics::{BoxCollider, Physics, TouchEvent},
 		sound::{Sound, StartSound},
@@ -74,22 +74,21 @@ fn select_weapon<'a>(
 pub fn player_command_system(_resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("player_command_system")
 		.read_resource::<AssetStorage>()
-		.read_resource::<Bindings<BoolInput, FloatInput>>()
 		.read_resource::<InputState>()
 		.write_resource::<Client>()
 		.with_query(<&WeaponState>::query())
 		.build(move |_command_buffer, world, resources, query| {
-			let (asset_storage, bindings, input_state, client) = resources;
+			let (asset_storage, input_state, client) = resources;
 
 			let weapon: Option<&str> = client.entity.and_then(|entity| {
 				let weapon_keys = [
-					bindings.bool_value(&BoolInput::Weapon1, &input_state),
-					bindings.bool_value(&BoolInput::Weapon2, &input_state),
-					bindings.bool_value(&BoolInput::Weapon3, &input_state),
-					bindings.bool_value(&BoolInput::Weapon4, &input_state),
-					bindings.bool_value(&BoolInput::Weapon5, &input_state),
-					bindings.bool_value(&BoolInput::Weapon6, &input_state),
-					bindings.bool_value(&BoolInput::Weapon7, &input_state),
+					input_state.bool_value("weapon1"),
+					input_state.bool_value("weapon2"),
+					input_state.bool_value("weapon3"),
+					input_state.bool_value("weapon4"),
+					input_state.bool_value("weapon5"),
+					input_state.bool_value("weapon6"),
+					input_state.bool_value("weapon7"),
 				];
 				let mut iter =
 					weapon_keys
@@ -124,16 +123,16 @@ pub fn player_command_system(_resources: &mut Resources) -> impl Runnable {
 			});
 
 			let mut command = UserCommand {
-				attack: bindings.bool_value(&BoolInput::Attack, &input_state),
+				attack: input_state.bool_value("attack"),
 				weapon: weapon.map(|x| x.to_owned()),
-				r#use: bindings.bool_value(&BoolInput::Use, &input_state),
-				forward: bindings.float_value(&FloatInput::Forward, &input_state) as f32,
-				pitch: bindings.float_value(&FloatInput::Pitch, &input_state) as f32,
-				strafe: bindings.float_value(&FloatInput::Strafe, &input_state) as f32,
-				yaw: bindings.float_value(&FloatInput::Yaw, &input_state) as f32,
+				r#use: input_state.bool_value("use"),
+				forward: input_state.float_value("forward") as f32,
+				pitch: input_state.float_value("pitch") as f32,
+				strafe: input_state.float_value("strafe") as f32,
+				yaw: input_state.float_value("yaw") as f32,
 			};
 
-			if bindings.bool_value(&BoolInput::Walk, &input_state) {
+			if input_state.bool_value("walk") {
 				command.forward *= 0.5;
 				command.strafe *= 0.6;
 			}

@@ -6,7 +6,7 @@ mod doom;
 use crate::common::{
 	assets::AssetStorage,
 	console::{execute_commands, update_console},
-	input::InputState,
+	input::{Bindings, InputState},
 	spawn::SpawnMergerHandlerSet,
 	time::increment_game_time,
 	video::{DrawTarget, PresentTarget, RenderContext},
@@ -84,7 +84,10 @@ fn main() -> anyhow::Result<()> {
 	resources.insert(render_context);
 
 	resources.insert(common::sound::init()?);
-	resources.insert(InputState::new());
+	resources.insert(InputState::new(
+		doom::input::bool_values(),
+		doom::input::float_values(),
+	));
 	resources.insert(SpawnMergerHandlerSet::new());
 	resources.insert(Registry::<String>::default());
 	resources.insert(Canon::default());
@@ -616,13 +619,16 @@ fn process_events(mut event_loop: EventLoop<()>) -> impl Runnable {
 	SystemBuilder::new("process_events")
 		.read_resource::<Sender<String>>()
 		.read_resource::<RenderContext>()
+		.write_resource::<Bindings>()
 		.write_resource::<InputState>()
 		.write_resource::<PresentTarget>()
 		.build(move |_command_buffer, _world, resources, _queries| {
 			event_loop.run_return(|event, _, control_flow| {
-				let (command_sender, render_context, input_state, present_target) = resources;
+				let (command_sender, render_context, bindings, input_state, present_target) =
+					resources;
 
 				input_state.process_event(&event);
+				input_state.set_values(&bindings);
 
 				match event {
 					Event::WindowEvent { event, .. } => match event {

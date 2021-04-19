@@ -1,77 +1,74 @@
-use crate::{
-	common::input::{Axis, Bindings, Button, ButtonBinding, MouseAxis},
-	doom::input::{BoolInput, FloatInput},
-};
+use crate::common::input::{Axis, Bindings, Button, ButtonBinding, MouseAxis};
 use winit::event::{MouseButton, VirtualKeyCode};
 
-pub fn get_bindings() -> Bindings<BoolInput, FloatInput> {
+pub fn get_bindings() -> Bindings {
 	let mut bindings = Bindings::new();
 	bindings.bind_button(
 		Button::Mouse(MouseButton::Left),
-		ButtonBinding::Bool(BoolInput::Attack),
+		ButtonBinding::Bool("attack".into()),
 	);
 	bindings.bind_button(
 		Button::Key(VirtualKeyCode::Key1),
-		ButtonBinding::Bool(BoolInput::Weapon1),
+		ButtonBinding::Bool("weapon1".into()),
 	);
 	bindings.bind_button(
 		Button::Key(VirtualKeyCode::Key2),
-		ButtonBinding::Bool(BoolInput::Weapon2),
+		ButtonBinding::Bool("weapon2".into()),
 	);
 	bindings.bind_button(
 		Button::Key(VirtualKeyCode::Key3),
-		ButtonBinding::Bool(BoolInput::Weapon3),
+		ButtonBinding::Bool("weapon3".into()),
 	);
 	bindings.bind_button(
 		Button::Key(VirtualKeyCode::Key4),
-		ButtonBinding::Bool(BoolInput::Weapon4),
+		ButtonBinding::Bool("weapon4".into()),
 	);
 	bindings.bind_button(
 		Button::Key(VirtualKeyCode::Key5),
-		ButtonBinding::Bool(BoolInput::Weapon5),
+		ButtonBinding::Bool("weapon5".into()),
 	);
 	bindings.bind_button(
 		Button::Key(VirtualKeyCode::Key6),
-		ButtonBinding::Bool(BoolInput::Weapon6),
+		ButtonBinding::Bool("weapon6".into()),
 	);
 	bindings.bind_button(
 		Button::Key(VirtualKeyCode::Key7),
-		ButtonBinding::Bool(BoolInput::Weapon7),
+		ButtonBinding::Bool("weapon7".into()),
 	);
 	bindings.bind_button(
 		Button::Key(VirtualKeyCode::Space),
-		ButtonBinding::Bool(BoolInput::Use),
+		ButtonBinding::Bool("use".into()),
 	);
 	bindings.bind_button(
 		Button::Mouse(MouseButton::Middle),
-		ButtonBinding::Bool(BoolInput::Use),
+		ButtonBinding::Bool("use".into()),
 	);
 	bindings.bind_button(
 		Button::Key(VirtualKeyCode::LShift),
-		ButtonBinding::Bool(BoolInput::Walk),
+		ButtonBinding::Bool("walk".into()),
 	);
 	bindings.bind_button(
 		Button::Key(VirtualKeyCode::RShift),
-		ButtonBinding::Bool(BoolInput::Walk),
+		ButtonBinding::Bool("walk".into()),
 	);
 	bindings.bind_button(
 		Button::Key(VirtualKeyCode::W),
-		ButtonBinding::FloatPositive(FloatInput::Forward),
+		ButtonBinding::FloatPositive("forward".into()),
 	);
 	bindings.bind_button(
 		Button::Key(VirtualKeyCode::S),
-		ButtonBinding::FloatNegative(FloatInput::Forward),
+		ButtonBinding::FloatNegative("forward".into()),
 	);
 	bindings.bind_button(
 		Button::Key(VirtualKeyCode::A),
-		ButtonBinding::FloatPositive(FloatInput::Strafe),
+		ButtonBinding::FloatPositive("strafe".into()),
 	);
 	bindings.bind_button(
 		Button::Key(VirtualKeyCode::D),
-		ButtonBinding::FloatNegative(FloatInput::Strafe),
+		ButtonBinding::FloatNegative("strafe".into()),
 	);
-	bindings.bind_axis(Axis::Mouse(MouseAxis::X), FloatInput::Yaw, 3.0);
-	bindings.bind_axis(Axis::Mouse(MouseAxis::Y), FloatInput::Pitch, 3.0);
+	bindings.bind_axis(Axis::Mouse(MouseAxis::X), "yaw".into(), 3.0);
+	bindings.bind_axis(Axis::Mouse(MouseAxis::Y), "pitch".into(), 3.0);
 
 	bindings
 }
