@@ -13,20 +13,22 @@ pub fn commands() -> Vec<(
 	vec![
 		(
 			App::new("bind_axis")
-				.about("Bind an axis to an action.")
+				.about("Bind an axis to an action")
 				.setting(AppSettings::AllowLeadingHyphen)
 				.arg(
 					Arg::with_name("AXIS")
-						.help("Axis to bind to.")
+						.help("Axis to bind to")
 						.empty_values(false)
 						.required(true),
 				)
-				.arg(Arg::with_name("BINDING").help(
-					"Action to bind to the axis.\nLeave empty to display the current binding.",
-				))
+				.arg(
+					Arg::with_name("BINDING").help(
+						"Action to bind to the axis\nLeave empty to display the current binding",
+					),
+				)
 				.arg(
 					Arg::with_name("SCALE")
-						.help("Sensitivity factor to apply to the movement.")
+						.help("Sensitivity factor to apply to the movement")
 						.default_value("1.0"),
 				),
 			|matches, _world, resources| {
@@ -40,16 +42,16 @@ pub fn commands() -> Vec<(
 		),
 		(
 			App::new("bind_button")
-				.about("Bind a button to an action.")
+				.about("Bind a button to an action")
 				.setting(AppSettings::AllowLeadingHyphen)
 				.arg(
 					Arg::with_name("BUTTON")
-						.help("Button to bind to.")
+						.help("Button to bind to")
 						.empty_values(false)
 						.required(true),
 				)
 				.arg(Arg::with_name("BINDING").help(
-					"Action to bind to the button.\nLeave empty to display the current binding.",
+					"Action to bind to the button\nLeave empty to display the current binding",
 				)),
 			|matches, _world, resources| {
 				bind_button(

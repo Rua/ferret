@@ -6,7 +6,7 @@ mod doom;
 use crate::common::{
 	assets::AssetStorage,
 	console::{execute_commands, update_console},
-	input::{Bindings, InputState},
+	input::InputState,
 	spawn::SpawnMergerHandlerSet,
 	time::increment_game_time,
 	video::{DrawTarget, PresentTarget, RenderContext},
@@ -619,16 +619,13 @@ fn process_events(mut event_loop: EventLoop<()>) -> impl Runnable {
 	SystemBuilder::new("process_events")
 		.read_resource::<Sender<String>>()
 		.read_resource::<RenderContext>()
-		.write_resource::<Bindings>()
 		.write_resource::<InputState>()
 		.write_resource::<PresentTarget>()
 		.build(move |_command_buffer, _world, resources, _queries| {
 			event_loop.run_return(|event, _, control_flow| {
-				let (command_sender, render_context, bindings, input_state, present_target) =
-					resources;
+				let (command_sender, render_context, input_state, present_target) = resources;
 
 				input_state.process_event(&event);
-				input_state.set_values(&bindings);
 
 				match event {
 					Event::WindowEvent { event, .. } => match event {

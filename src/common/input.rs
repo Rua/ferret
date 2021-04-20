@@ -1,6 +1,7 @@
 use fnv::FnvHashMap;
 use legion::{systems::ResourceSet, Resources, Write};
 use serde::{de::value::BorrowedStrDeserializer, Deserialize};
+use smallvec::SmallVec;
 use std::{fmt::Debug, hash::Hash};
 use winit::event::{
 	DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent,
@@ -20,19 +21,16 @@ pub enum Axis {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize)]
 pub enum MouseAxis {
-	X,
-	Y,
+	X = 0,
+	Y = 1,
 }
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct InputState {
-	mouse_delta: [f64; 2],
+	pub bindings: Bindings,
+	bools: FnvHashMap<&'static str, SmallVec<[Button; 3]>>,
+	floats: FnvHashMap<&'static str, FloatState>,
 	mouse_delta_enabled: bool,
-	pressed_keys: Vec<VirtualKeyCode>,
-	pressed_mouse_buttons: Vec<MouseButton>,
-
-	bools: FnvHashMap<&'static str, bool>,
-	floats: FnvHashMap<&'static str, f64>,
 }
 
 impl InputState {
@@ -41,119 +39,43 @@ impl InputState {
 		floats: impl IntoIterator<Item = &'static str>,
 	) -> InputState {
 		InputState {
-			mouse_delta: [0.0, 0.0],
+			bindings: Bindings::new(),
+			bools: bools.into_iter().map(|s| (s, SmallVec::new())).collect(),
+			floats: floats
+				.into_iter()
+				.map(|s| (s, FloatState::default()))
+				.collect(),
 			mouse_delta_enabled: false,
-			pressed_keys: Vec::new(),
-			pressed_mouse_buttons: Vec::new(),
-
-			bools: bools.into_iter().map(|s| (s, false)).collect(),
-			floats: floats.into_iter().map(|s| (s, 0.0)).collect(),
 		}
 	}
 
 	pub fn reset(&mut self) {
-		self.mouse_delta = [0.0, 0.0];
-	}
-
-	pub fn set_values(&mut self, bindings: &Bindings) {
-		self.bools = self
-			.bools
-			.keys()
-			.map(|&name| {
-				let value =
-					bindings
-						.button_bindings
-						.iter()
-						.any(|(button, binding)| match binding {
-							ButtonBinding::Bool(binding) => {
-								binding == name && self.button_is_down(*button)
-							}
-							_ => false,
-						});
-
-				(name, value)
-			})
-			.collect();
-
-		self.floats = self
-			.floats
-			.keys()
-			.map(|&name| {
-				let axis_value = bindings
-					.axis_bindings
-					.iter()
-					.map(|(axis, (binding, scale))| {
-						if *binding == name {
-							match axis {
-								Axis::Mouse(axis) => self.mouse_delta(*axis) * scale,
-							}
-						} else {
-							0.0
-						}
-					})
-					.sum::<f64>();
-
-				let buttons_positive =
-					bindings
-						.button_bindings
-						.iter()
-						.any(|(button, binding)| match binding {
-							ButtonBinding::FloatPositive(binding) => {
-								binding == name && self.button_is_down(*button)
-							}
-							_ => false,
-						}) as usize as f64;
-
-				let buttons_negative =
-					bindings
-						.button_bindings
-						.iter()
-						.any(|(button, binding)| match binding {
-							ButtonBinding::FloatNegative(binding) => {
-								binding == name && self.button_is_down(*button)
-							}
-							_ => false,
-						}) as usize as f64;
-
-				(name, axis_value + (buttons_positive - buttons_negative))
-			})
-			.collect();
-	}
-
-	pub fn button_is_down(&self, button: Button) -> bool {
-		match button {
-			Button::Key(key) => self.pressed_keys.iter().any(|&k| k == key),
-			Button::Mouse(mouse_button) => self
-				.pressed_mouse_buttons
-				.iter()
-				.any(|&mb| mb == mouse_button),
+		for float_state in self.floats.values_mut() {
+			float_state.mouse_delta = 0.0;
 		}
-	}
-
-	pub fn mouse_delta(&self, axis: MouseAxis) -> f64 {
-		self.mouse_delta[axis as usize]
 	}
 
 	pub fn set_mouse_delta_enabled(&mut self, enabled: bool) {
 		self.mouse_delta_enabled = enabled;
 
 		if !enabled {
-			self.mouse_delta = [0.0, 0.0];
+			self.reset();
 		}
 	}
 
 	pub fn bool_value(&self, name: &str) -> bool {
-		*self
+		!self
 			.bools
 			.get(name)
 			.unwrap_or_else(|| panic!("Invalid bool-valued input name: {}", name))
+			.is_empty()
 	}
 
 	pub fn float_value(&self, name: &str) -> f64 {
-		*self
-			.floats
+		self.floats
 			.get(name)
 			.unwrap_or_else(|| panic!("Invalid float-valued input name: {}", name))
+			.value()
 	}
 
 	pub fn process_event(&mut self, event: &Event<()>) {
@@ -162,64 +84,94 @@ impl InputState {
 				WindowEvent::KeyboardInput {
 					input:
 						KeyboardInput {
-							state: ElementState::Pressed,
+							state,
 							virtual_keycode: Some(key_code),
 							..
 						},
 					..
 				} => {
-					if self.pressed_keys.iter().all(|&k| k != key_code) {
-						self.pressed_keys.push(key_code);
-					}
+					self.button_event(Button::Key(key_code), state);
 				}
-				WindowEvent::KeyboardInput {
-					input:
-						KeyboardInput {
-							state: ElementState::Released,
-							virtual_keycode: Some(key_code),
-							..
-						},
-					..
-				} => {
-					if let Some(i) = self.pressed_keys.iter().position(|&k| k == key_code) {
-						self.pressed_keys.swap_remove(i);
-					}
-				}
-				WindowEvent::MouseInput {
-					state: ElementState::Pressed,
-					button,
-					..
-				} => {
-					if self.pressed_mouse_buttons.iter().all(|&b| b != button) {
-						self.pressed_mouse_buttons.push(button);
-					}
-				}
-				WindowEvent::MouseInput {
-					state: ElementState::Released,
-					button,
-					..
-				} => {
-					if let Some(i) = self.pressed_mouse_buttons.iter().position(|&b| b == button) {
-						self.pressed_mouse_buttons.swap_remove(i);
-					}
+				WindowEvent::MouseInput { state, button, .. } => {
+					self.button_event(Button::Mouse(button), state);
 				}
 				WindowEvent::Focused(false) => {
-					self.pressed_keys.clear();
-					self.pressed_mouse_buttons.clear();
+					for bool_value in self.bools.values_mut() {
+						bool_value.clear();
+					}
+
+					for float_value in self.floats.values_mut() {
+						float_value.buttons_positive.clear();
+						float_value.buttons_negative.clear();
+					}
 				}
 				_ => {}
 			},
 			Event::DeviceEvent { event, .. } => match *event {
 				DeviceEvent::MouseMotion { delta } => {
 					if self.mouse_delta_enabled {
-						self.mouse_delta[0] += delta.0;
-						self.mouse_delta[1] += delta.1;
+						for (axis, delta) in std::array::IntoIter::new([
+							(MouseAxis::X, delta.0),
+							(MouseAxis::Y, delta.1),
+						]) {
+							self.delta_event(Axis::Mouse(axis), delta);
+						}
 					}
 				}
 				_ => {}
 			},
 			_ => {}
 		}
+	}
+
+	fn button_event(&mut self, button: Button, state: ElementState) {
+		if let Some(binding) = self.bindings.button_bindings.get(&button) {
+			let buttons = match binding {
+				ButtonBinding::Bool(name) => Some(self.bools.get_mut(name.as_str()).unwrap()),
+				ButtonBinding::FloatPositive(name) => {
+					Some(&mut self.floats.get_mut(name.as_str()).unwrap().buttons_positive)
+				}
+				ButtonBinding::FloatNegative(name) => {
+					Some(&mut self.floats.get_mut(name.as_str()).unwrap().buttons_negative)
+				}
+				_ => None,
+			};
+
+			buttons.map(|buttons| match state {
+				ElementState::Pressed => {
+					if buttons.iter().all(|&b| b != button) {
+						buttons.push(button);
+					}
+				}
+				ElementState::Released => {
+					if let Some(i) = buttons.iter().position(|&b| b == button) {
+						buttons.swap_remove(i);
+					}
+				}
+			});
+		}
+	}
+
+	fn delta_event(&mut self, axis: Axis, delta: f64) {
+		if let Some((name, scale)) = self.bindings.axis_bindings.get(&axis) {
+			let mouse_delta = &mut self.floats.get_mut(name.as_str()).unwrap().mouse_delta;
+			*mouse_delta += delta * scale;
+		}
+	}
+}
+
+#[derive(Clone, Debug, Default)]
+struct FloatState {
+	mouse_delta: f64,
+	buttons_positive: SmallVec<[Button; 3]>,
+	buttons_negative: SmallVec<[Button; 3]>,
+}
+
+impl FloatState {
+	fn value(&self) -> f64 {
+		let buttons_positive = (!self.buttons_positive.is_empty()) as usize as f64;
+		let buttons_negative = (!self.buttons_negative.is_empty()) as usize as f64;
+		self.mouse_delta + (buttons_positive - buttons_negative)
 	}
 }
 
@@ -286,9 +238,9 @@ pub fn bind_button(button: &str, binding: &str, resources: &mut Resources) {
 		}
 	};
 
-	let mut bindings = <Write<Bindings>>::fetch_mut(resources);
+	let mut input_state = <Write<InputState>>::fetch_mut(resources);
 	if binding.is_empty() {
-		match bindings.get_button(button_val) {
+		match input_state.bindings.get_button(button_val) {
 			Some(ButtonBinding::Bool(binding)) => {
 				log::info!("{} is bound to: ={}", button, binding)
 			}
@@ -311,7 +263,8 @@ pub fn bind_button(button: &str, binding: &str, resources: &mut Resources) {
 			Some(_) => ButtonBinding::Command(binding.into()),
 			None => unreachable!(),
 		};
-		bindings.bind_button(button_val, binding);
+		// TODO release button from previous binding
+		input_state.bindings.bind_button(button_val, binding);
 	}
 }
 
@@ -329,9 +282,9 @@ pub fn bind_axis(axis: &str, binding: &str, scale: &str, resources: &mut Resourc
 		}
 	};
 
-	let mut bindings = <Write<Bindings>>::fetch_mut(resources);
+	let mut input_state = <Write<InputState>>::fetch_mut(resources);
 	if binding.is_empty() {
-		match bindings.get_axis(axis_val) {
+		match input_state.bindings.get_axis(axis_val) {
 			Some((binding, scale)) => {
 				log::info!("{} is bound to: {} * {}", axis, binding, scale)
 			}
@@ -345,6 +298,8 @@ pub fn bind_axis(axis: &str, binding: &str, scale: &str, resources: &mut Resourc
 				return;
 			}
 		};
-		bindings.bind_axis(axis_val, (binding.into(), scale));
+		input_state
+			.bindings
+			.bind_axis(axis_val, (binding.into(), scale));
 	}
 }

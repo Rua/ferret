@@ -34,6 +34,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage, ImportData, ASSET_SERIALIZER},
 		geometry::AABB2,
+		input::InputState,
 		quadtree::Quadtree,
 		time::{DeltaTime, GameTime},
 		video::{DrawTarget, RenderContext},
@@ -169,7 +170,10 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 		.context("Couldn't create texture sampler")?,
 	);
 
-	resources.insert(data::get_bindings());
+	{
+		let mut input_state = <Write<InputState>>::fetch_mut(resources);
+		input_state.bindings = data::get_bindings();
+	}
 
 	// Asset types
 	let mut asset_storage = AssetStorage::new(import, WadLoader::new());
