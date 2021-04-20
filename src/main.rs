@@ -6,7 +6,7 @@ mod doom;
 use crate::common::{
 	assets::AssetStorage,
 	console::{execute_commands, update_console},
-	input::InputState,
+	input::{InputState, RepeatTracker},
 	spawn::SpawnMergerHandlerSet,
 	time::increment_game_time,
 	video::{DrawTarget, PresentTarget, RenderContext},
@@ -616,6 +616,8 @@ fn main() -> anyhow::Result<()> {
 struct ShouldQuit;
 
 fn process_events(mut event_loop: EventLoop<()>) -> impl Runnable {
+	let mut repeat_tracker = RepeatTracker::new();
+
 	SystemBuilder::new("process_events")
 		.read_resource::<Sender<String>>()
 		.read_resource::<RenderContext>()
@@ -623,6 +625,10 @@ fn process_events(mut event_loop: EventLoop<()>) -> impl Runnable {
 		.write_resource::<PresentTarget>()
 		.build(move |_command_buffer, _world, resources, _queries| {
 			event_loop.run_return(|event, _, control_flow| {
+				if repeat_tracker.is_repeat(&event) {
+					return;
+				}
+
 				let (command_sender, render_context, input_state, present_target) = resources;
 
 				input_state.process_event(&event);

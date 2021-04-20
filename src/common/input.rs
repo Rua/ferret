@@ -7,6 +7,58 @@ use winit::event::{
 	DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent,
 };
 
+#[derive(Clone, Debug, Default)]
+pub struct RepeatTracker {
+	pressed: Vec<Button>,
+}
+
+impl RepeatTracker {
+	#[inline]
+	pub fn new() -> RepeatTracker {
+		RepeatTracker {
+			pressed: Vec::new(),
+		}
+	}
+
+	pub fn is_repeat(&mut self, event: &Event<()>) -> bool {
+		let (button, state) = match event {
+			Event::WindowEvent { event, .. } => match *event {
+				WindowEvent::KeyboardInput {
+					input:
+						KeyboardInput {
+							state,
+							virtual_keycode: Some(key_code),
+							..
+						},
+					..
+				} => (Button::Key(key_code), state),
+				WindowEvent::MouseInput { state, button, .. } => (Button::Mouse(button), state),
+				_ => return false,
+			},
+			_ => return false,
+		};
+
+		match state {
+			ElementState::Pressed => {
+				if self.pressed.iter().all(|&b| b != button) {
+					self.pressed.push(button);
+					false
+				} else {
+					true
+				}
+			}
+			ElementState::Released => {
+				if let Some(i) = self.pressed.iter().position(|&b| b == button) {
+					self.pressed.swap_remove(i);
+					false
+				} else {
+					true
+				}
+			}
+		}
+	}
+}
+
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Button {
 	Key(VirtualKeyCode),
