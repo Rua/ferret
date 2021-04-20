@@ -1,3 +1,4 @@
+use crossbeam_channel::Sender;
 use fnv::FnvHashMap;
 use legion::{systems::ResourceSet, Resources, Write};
 use serde::{de::value::BorrowedStrDeserializer, Deserialize};
@@ -77,18 +78,20 @@ pub enum MouseAxis {
 	Y = 1,
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct InputState {
 	pub bindings: Bindings,
 	bools: FnvHashMap<&'static str, SmallVec<[Button; 3]>>,
 	floats: FnvHashMap<&'static str, FloatState>,
 	mouse_delta_enabled: bool,
+	command_sender: Sender<String>,
 }
 
 impl InputState {
 	pub fn new(
 		bools: impl IntoIterator<Item = &'static str>,
 		floats: impl IntoIterator<Item = &'static str>,
+		command_sender: Sender<String>,
 	) -> InputState {
 		InputState {
 			bindings: Bindings::new(),
@@ -98,6 +101,7 @@ impl InputState {
 				.map(|s| (s, FloatState::default()))
 				.collect(),
 			mouse_delta_enabled: false,
+			command_sender,
 		}
 	}
 
@@ -178,18 +182,38 @@ impl InputState {
 
 	fn button_event(&mut self, button: Button, state: ElementState) {
 		if let Some(binding) = self.bindings.button_bindings.get(&button) {
-			let buttons = match binding {
-				ButtonBinding::Bool(name) => Some(self.bools.get_mut(name.as_str()).unwrap()),
-				ButtonBinding::FloatPositive(name) => {
-					Some(&mut self.floats.get_mut(name.as_str()).unwrap().buttons_positive)
+			let buttons = match binding.chars().next().unwrap() {
+				'=' => match self.bools.get_mut(&binding[1..]) {
+					Some(x) => x,
+					None => {
+						log::warn!("Unknown bool-valued input name: {}", &binding[1..]);
+						return;
+					}
+				},
+				'+' => match self.floats.get_mut(&binding[1..]) {
+					Some(x) => &mut x.buttons_positive,
+					None => {
+						log::warn!("Unknown float-valued input name: {}", &binding[1..]);
+						return;
+					}
+				},
+				'-' => match self.floats.get_mut(&binding[1..]) {
+					Some(x) => &mut x.buttons_negative,
+					None => {
+						log::warn!("Unknown float-valued input name: {}", &binding[1..]);
+						return;
+					}
+				},
+				_ => {
+					if state == ElementState::Pressed {
+						self.command_sender.send(binding.clone()).ok();
+					}
+
+					return;
 				}
-				ButtonBinding::FloatNegative(name) => {
-					Some(&mut self.floats.get_mut(name.as_str()).unwrap().buttons_negative)
-				}
-				_ => None,
 			};
 
-			buttons.map(|buttons| match state {
+			match state {
 				ElementState::Pressed => {
 					if buttons.iter().all(|&b| b != button) {
 						buttons.push(button);
@@ -200,7 +224,7 @@ impl InputState {
 						buttons.swap_remove(i);
 					}
 				}
-			});
+			}
 		}
 	}
 
@@ -233,15 +257,8 @@ pub struct Bindings {
 	axis_bindings: FnvHashMap<Axis, AxisBinding>,
 }
 
-#[derive(Clone, Debug)]
-pub enum ButtonBinding {
-	Bool(String),
-	FloatPositive(String),
-	FloatNegative(String),
-	Command(String),
-}
-
-type AxisBinding = (String, f64);
+pub type ButtonBinding = String;
+pub type AxisBinding = (String, f64);
 
 impl Bindings {
 	#[inline]
@@ -253,23 +270,25 @@ impl Bindings {
 	}
 
 	#[inline]
-	pub fn bind_button(&mut self, button: Button, binding: ButtonBinding) {
-		self.button_bindings.insert(button, binding);
-	}
-
-	#[inline]
 	pub fn get_button(&self, button: Button) -> Option<&ButtonBinding> {
 		self.button_bindings.get(&button)
 	}
 
 	#[inline]
-	pub fn bind_axis(&mut self, axis: Axis, binding: AxisBinding) {
-		self.axis_bindings.insert(axis, binding);
+	pub fn get_axis(&self, axis: Axis) -> Option<&AxisBinding> {
+		self.axis_bindings.get(&axis)
 	}
 
 	#[inline]
-	pub fn get_axis(&self, axis: Axis) -> Option<&AxisBinding> {
-		self.axis_bindings.get(&axis)
+	pub fn bind_button(&mut self, button: Button, binding: ButtonBinding) {
+		debug_assert!(!binding.is_empty());
+		self.button_bindings.insert(button, binding);
+	}
+
+	#[inline]
+	pub fn bind_axis(&mut self, axis: Axis, binding: AxisBinding) {
+		debug_assert!(!binding.0.is_empty());
+		self.axis_bindings.insert(axis, binding);
 	}
 }
 
@@ -293,30 +312,12 @@ pub fn bind_button(button: &str, binding: &str, resources: &mut Resources) {
 	let mut input_state = <Write<InputState>>::fetch_mut(resources);
 	if binding.is_empty() {
 		match input_state.bindings.get_button(button_val) {
-			Some(ButtonBinding::Bool(binding)) => {
-				log::info!("{} is bound to: ={}", button, binding)
-			}
-			Some(ButtonBinding::FloatPositive(binding)) => {
-				log::info!("{} is bound to: +{}", button, binding)
-			}
-			Some(ButtonBinding::FloatNegative(binding)) => {
-				log::info!("{} is bound to: -{}", button, binding)
-			}
-			Some(ButtonBinding::Command(binding)) => {
-				log::info!("{} is bound to: {}", button, binding)
-			}
+			Some(binding) => log::info!("{} is bound to: {}", button, binding),
 			None => log::info!("{} is not bound", button),
 		}
 	} else {
-		let binding = match binding.chars().next() {
-			Some('=') => ButtonBinding::Bool(binding[1..].into()),
-			Some('+') => ButtonBinding::FloatPositive(binding[1..].into()),
-			Some('-') => ButtonBinding::FloatNegative(binding[1..].into()),
-			Some(_) => ButtonBinding::Command(binding.into()),
-			None => unreachable!(),
-		};
 		// TODO release button from previous binding
-		input_state.bindings.bind_button(button_val, binding);
+		input_state.bindings.bind_button(button_val, binding.into());
 	}
 }
 

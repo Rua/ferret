@@ -66,7 +66,7 @@ fn main() -> anyhow::Result<()> {
 	let mut resources = Resources::default();
 
 	let (command_sender, command_receiver) = common::console::init()?;
-	resources.insert(command_sender);
+	resources.insert(command_sender.clone());
 
 	let event_loop = EventLoop::new();
 	let (render_context, _debug_callback) =
@@ -87,6 +87,7 @@ fn main() -> anyhow::Result<()> {
 	resources.insert(InputState::new(
 		doom::input::bool_values(),
 		doom::input::float_values(),
+		command_sender,
 	));
 	resources.insert(SpawnMergerHandlerSet::new());
 	resources.insert(Registry::<String>::default());
