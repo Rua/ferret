@@ -6,10 +6,11 @@ use crate::{
 			definition::NumberedInstanceBufferDefinition, DrawContext, DrawTarget, RenderContext,
 		},
 	},
-	doom::ui::{FontSpacing, UiHexFontText, UiImage, UiParams, UiText, UiTransform},
+	doom::ui::{FontSpacing, Hidden, UiHexFontText, UiImage, UiParams, UiText, UiTransform},
 };
 use anyhow::Context;
 use legion::{
+	component,
 	systems::{ResourceSet, Runnable},
 	Entity, IntoQuery, Read, Resources, SystemBuilder,
 };
@@ -64,7 +65,7 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 		.read_resource::<Arc<Sampler>>()
 		.read_resource::<UiParams>()
 		.write_resource::<Option<DrawContext>>()
-		.with_query(<(Entity, &UiTransform)>::query())
+		.with_query(<(Entity, &UiTransform)>::query().filter(!component::<Hidden>()))
 		.with_query(<(
 			&UiTransform,
 			Option<&UiImage>,

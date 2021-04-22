@@ -359,3 +359,6 @@ pub struct UiHexFontText {
 	pub text: String,
 	pub font: AssetHandle<HexFont>,
 }
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Hidden;

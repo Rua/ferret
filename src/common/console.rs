@@ -196,9 +196,9 @@ pub fn update_console(receiver: Receiver<String>, _resources: &mut Resources) ->
 	SystemBuilder::new("update_console")
 		.with_query(<&mut UiHexFontText>::query())
 		.build(move |_command_buffer, world, _resources, query| {
-			let _console = query.iter_mut(world).next().unwrap();
-			while let Some(_text) = receiver.try_iter().next() {
-				//console.text.push_str(&text);
+			let console = query.iter_mut(world).next().unwrap();
+			while let Some(text) = receiver.try_iter().next() {
+				console.text.push_str(&text);
 			}
 		})
 }
