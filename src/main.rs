@@ -146,7 +146,7 @@ fn main() -> anyhow::Result<()> {
 				text: String::new(),
 				font: hexfont,
 			},
-			doom::ui::Hidden,
+			//doom::ui::Hidden,
 		));
 
 		world.push((
