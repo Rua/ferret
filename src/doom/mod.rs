@@ -18,7 +18,7 @@ pub mod light;
 pub mod map;
 pub mod physics;
 pub mod plat;
-pub mod sectormove;
+pub mod sector_move;
 pub mod sound;
 pub mod spawn;
 pub mod sprite;
@@ -67,7 +67,7 @@ use crate::{
 		},
 		physics::{physics, BoxCollider, StepEvent, TouchEvent},
 		plat::{plat_active, plat_linedef_touch, plat_switch_use},
-		sectormove::sector_move_system,
+		sector_move::{sector_move, SectorMoveEvent},
 		sound::{
 			import_raw_sound, import_sound, start_sound, update_sound, RawSound, Sound,
 			StartSoundEvent,
@@ -223,7 +223,8 @@ pub fn add_update_systems(builder: &mut Builder, resources: &mut Resources) -> a
 		.add_thread_local(player_move_system(resources)).flush()
 		.add_thread_local(player_weapon_system(resources)).flush()
 
-		.add_system(player_use(resources)).flush()
+		.add_system(player_use(resources))
+		.flush()
 		.add_system(door_use(resources))
 		.add_system(door_switch_use(resources))
 		.add_system(exit_switch_use(resources))
@@ -232,7 +233,8 @@ pub fn add_update_systems(builder: &mut Builder, resources: &mut Resources) -> a
 		.add_system(clear_event::<UseEvent>())
 		.flush()
 
-		.add_system(physics(resources)).flush()
+		.add_system(physics(resources))
+		.flush()
 		.add_system(door_linedef_touch(resources))
 		.add_system(floor_linedef_touch(resources))
 		.add_system(plat_linedef_touch(resources))
@@ -244,10 +246,14 @@ pub fn add_update_systems(builder: &mut Builder, resources: &mut Resources) -> a
 		.add_system(clear_event::<TouchEvent>())
 		.flush()
 
-		.add_thread_local(sector_move_system(resources)).flush()
-		.add_thread_local(door_active(resources)).flush()
-		.add_thread_local(floor_active(resources)).flush()
-		.add_thread_local(plat_active(resources)).flush()
+		.add_system(sector_move(resources))
+		.flush()
+		.add_system(door_active(resources))
+		.add_system(floor_active(resources))
+		.add_system(plat_active(resources))
+		.add_system(clear_event::<SectorMoveEvent>())
+		.flush()
+
 		.add_thread_local(light_flash_system(resources)).flush()
 		.add_thread_local(light_glow_system(resources)).flush()
 		.add_thread_local(switch_active_system(resources)).flush()

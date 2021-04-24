@@ -9,7 +9,7 @@ use crate::{
 		client::{Usable, UseEvent},
 		map::{LinedefRef, Map, MapDynamic},
 		physics::{TouchEvent, Touchable},
-		sectormove::{CeilingMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
+		sector_move::{CeilingMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
 		sound::{Sound, StartSoundEvent},
 		switch::{SwitchActive, SwitchParams},
 	},
@@ -20,7 +20,6 @@ use legion::{
 	Entity, EntityStore, IntoQuery, Registry, Resources, SystemBuilder, Write,
 };
 use serde::{Deserialize, Serialize};
-use shrev::EventChannel;
 use std::time::Duration;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -59,25 +58,21 @@ pub struct DoorParams {
 }
 
 pub fn door_active(resources: &mut Resources) -> impl Runnable {
-	let (mut handler_set, mut registry, mut sector_move_event_channel) = <(
-		Write<SpawnMergerHandlerSet>,
-		Write<Registry<String>>,
-		Write<EventChannel<SectorMoveEvent>>,
-	)>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 
 	registry.register::<DoorActive>("DoorActive".into());
 	handler_set.register_clone::<DoorActive>();
 
-	let mut sector_move_event_reader = sector_move_event_channel.register_reader();
-
 	SystemBuilder::new("door_active")
 		.read_resource::<GameTime>()
-		.read_resource::<EventChannel<SectorMoveEvent>>()
 		.with_query(<(Entity, &mut CeilingMove, &mut DoorActive)>::query())
-		.build(move |command_buffer, world, resources, query| {
-			let (game_time, sector_move_event_channel) = resources;
+		.with_query(<&SectorMoveEvent>::query())
+		.build(move |command_buffer, world, resources, queries| {
+			let game_time = resources;
+			let (mut world0, world) = world.split_for_query(&queries.0);
 
-			for (&entity, ceiling_move, mut door_active) in query.iter_mut(world) {
+			for (&entity, ceiling_move, mut door_active) in queries.0.iter_mut(&mut world0) {
 				let sector_move = &mut ceiling_move.0;
 
 				if sector_move.velocity != 0.0 {
@@ -106,11 +101,9 @@ pub fn door_active(resources: &mut Resources) -> impl Runnable {
 				}
 			}
 
-			for event in sector_move_event_channel
-				.read(&mut sector_move_event_reader)
-				.filter(|e| e.normal == -1.0)
-			{
-				let (ceiling_move, door_active) = match query.get_mut(world, event.entity) {
+			for event in queries.1.iter(&world).filter(|e| e.normal == -1.0) {
+				let (ceiling_move, door_active) = match queries.0.get_mut(&mut world0, event.entity)
+				{
 					Ok((_, ceiling_move, door_active)) => (ceiling_move, door_active),
 					_ => continue,
 				};

@@ -8,7 +8,7 @@ use crate::{
 		client::{Usable, UseEvent},
 		map::{LinedefRef, Map, MapDynamic},
 		physics::{TouchEvent, Touchable},
-		sectormove::{FloorMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
+		sector_move::{FloorMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
 		sound::{Sound, StartSoundEvent},
 		switch::{SwitchActive, SwitchParams},
 	},
@@ -19,7 +19,6 @@ use legion::{
 	EntityStore, IntoQuery, Registry, Resources, SystemBuilder, Write,
 };
 use serde::{Deserialize, Serialize};
-use shrev::EventChannel;
 use std::time::Duration;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -47,28 +46,21 @@ pub enum FloorTargetHeight {
 }
 
 pub fn floor_active(resources: &mut Resources) -> impl Runnable {
-	let (mut handler_set, mut registry, mut sector_move_event_channel) = <(
-		Write<SpawnMergerHandlerSet>,
-		Write<Registry<String>>,
-		Write<EventChannel<SectorMoveEvent>>,
-	)>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 
 	registry.register::<FloorActive>("FloorActive".into());
 	handler_set.register_clone::<FloorActive>();
 
-	let mut sector_move_event_reader = sector_move_event_channel.register_reader();
-
 	SystemBuilder::new("floor_active")
-		.read_resource::<EventChannel<SectorMoveEvent>>()
+		.with_query(<&SectorMoveEvent>::query())
 		.with_query(<(&mut FloorMove, &mut FloorActive)>::query())
-		.build(move |command_buffer, world, resources, query| {
-			let sector_move_event_channel = resources;
+		.build(move |command_buffer, world, _resources, queries| {
+			let (mut world1, world) = world.split_for_query(&queries.1);
 
-			for event in sector_move_event_channel
-				.read(&mut sector_move_event_reader)
-				.filter(|e| e.normal == 1.0)
-			{
-				let (floor_move, floor_active) = match query.get_mut(world, event.entity) {
+			for event in queries.0.iter(&world).filter(|e| e.normal == 1.0) {
+				let (floor_move, floor_active) = match queries.1.get_mut(&mut world1, event.entity)
+				{
 					Ok(x) => x,
 					_ => continue,
 				};

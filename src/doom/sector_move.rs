@@ -20,7 +20,6 @@ use legion::{
 	Entity, IntoQuery, Registry, Resources, SystemBuilder, Write,
 };
 use serde::{Deserialize, Serialize};
-use shrev::EventChannel;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FloorMove(pub SectorMove);
@@ -38,8 +37,8 @@ pub struct SectorMove {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct SectorMoveEvent {
-	pub event_type: SectorMoveEventType,
 	pub entity: Entity,
+	pub event_type: SectorMoveEventType,
 	pub normal: f32,
 }
 
@@ -49,9 +48,7 @@ pub enum SectorMoveEventType {
 	TargetReached,
 }
 
-pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
-	resources.insert(EventChannel::<SectorMoveEvent>::new());
-
+pub fn sector_move(resources: &mut Resources) -> impl Runnable {
 	let (mut handler_set, mut registry) =
 		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 
@@ -61,12 +58,11 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 	registry.register::<FloorMove>("FloorMove".into());
 	handler_set.register_clone::<FloorMove>();
 
-	SystemBuilder::new("sector_move_system")
+	SystemBuilder::new("sector_move")
 		.read_resource::<AssetStorage>()
 		.read_resource::<DeltaTime>()
 		.read_resource::<GameTime>()
 		.read_resource::<Quadtree>()
-		.write_resource::<EventChannel<SectorMoveEvent>>()
 		.with_query(<&mut MapDynamic>::query())
 		.with_query(<&mut Transform>::query())
 		.with_query(<(Entity, &SectorRef, &mut FloorMove)>::query())
@@ -75,8 +71,7 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 		.read_component::<Owner>() // used by SectorTracer
 		.read_component::<Transform>() // used by SectorTracer
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, delta_time, game_time, quadtree, sector_move_event_channel) =
-				resources;
+			let (asset_storage, delta_time, game_time, quadtree) = resources;
 
 			// TODO check if this is still needed with new Rust versions
 			let query0 = &mut queries.0;
@@ -162,11 +157,11 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 				}
 
 				if let Some(event_type) = event_type {
-					sector_move_event_channel.single_write(SectorMoveEvent {
+					command_buffer.push((SectorMoveEvent {
 						entity,
 						event_type,
 						normal,
-					});
+					},));
 				}
 			};
 

@@ -9,7 +9,7 @@ use crate::{
 		components::Transform,
 		map::{LinedefRef, Map, MapDynamic},
 		physics::{BoxCollider, TouchEvent, Touchable},
-		sectormove::{FloorMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
+		sector_move::{FloorMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
 		sound::{Sound, StartSoundEvent},
 		state::weapon::Owner,
 		switch::{SwitchActive, SwitchParams},
@@ -21,7 +21,6 @@ use legion::{
 	Entity, EntityStore, IntoQuery, Registry, Resources, SystemBuilder, Write,
 };
 use serde::{Deserialize, Serialize};
-use shrev::EventChannel;
 use std::time::Duration;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -61,28 +60,24 @@ pub enum PlatTargetHeight {
 }
 
 pub fn plat_active(resources: &mut Resources) -> impl Runnable {
-	let (mut handler_set, mut registry, mut sector_move_event_channel) = <(
-		Write<SpawnMergerHandlerSet>,
-		Write<Registry<String>>,
-		Write<EventChannel<SectorMoveEvent>>,
-	)>::fetch_mut(resources);
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 
 	registry.register::<PlatActive>("PlatActive".into());
 	handler_set.register_clone::<PlatActive>();
 
-	let mut sector_move_event_reader = sector_move_event_channel.register_reader();
-
 	SystemBuilder::new("plat_active")
 		.read_resource::<GameTime>()
-		.read_resource::<EventChannel<SectorMoveEvent>>()
 		.with_query(<(Entity, &mut FloorMove, &mut PlatActive)>::query())
+		.with_query(<&SectorMoveEvent>::query())
 		.read_component::<BoxCollider>() // used by SectorTracer
 		.read_component::<Owner>() // used by SectorTracer
 		.read_component::<Transform>() // used by SectorTracer
-		.build(move |command_buffer, world, resources, query| {
-			let (game_time, sector_move_event_channel) = resources;
+		.build(move |command_buffer, world, resources, queries| {
+			let game_time = resources;
+			let (mut world0, world) = world.split_for_query(&queries.0);
 
-			for (&entity, floor_move, plat_active) in query.iter_mut(world) {
+			for (&entity, floor_move, plat_active) in queries.0.iter_mut(&mut world0) {
 				let sector_move = &mut floor_move.0;
 
 				if sector_move.velocity != 0.0 {
@@ -107,11 +102,8 @@ pub fn plat_active(resources: &mut Resources) -> impl Runnable {
 				}
 			}
 
-			for event in sector_move_event_channel
-				.read(&mut sector_move_event_reader)
-				.filter(|e| e.normal == 1.0)
-			{
-				let (floor_move, plat_active) = match query.get_mut(world, event.entity) {
+			for event in queries.1.iter(&world).filter(|e| e.normal == 1.0) {
+				let (floor_move, plat_active) = match queries.0.get_mut(&mut world0, event.entity) {
 					Ok((_, floor_move, plat_active)) => (floor_move, plat_active),
 					_ => continue,
 				};
