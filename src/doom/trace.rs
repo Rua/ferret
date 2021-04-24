@@ -11,7 +11,6 @@ use crate::{
 		state::weapon::Owner,
 	},
 };
-use arrayvec::ArrayVec;
 use legion::{component, Entity, EntityStore, IntoQuery};
 use nalgebra::{Vector2, Vector3};
 use smallvec::SmallVec;
@@ -84,7 +83,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 
 						let intersection = front_interval.intersection(*back_interval);
 						let union = front_interval.union(*back_interval);
-						let intervals = ArrayVec::from([
+						let intervals = std::array::IntoIter::new([
 							(
 								Interval::new(union.min, intersection.min),
 								SolidBits::all(),
@@ -102,7 +101,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 							),
 						]);
 
-						for (interval, blocks_types, step) in intervals.into_iter() {
+						for (interval, blocks_types, step) in intervals {
 							if !blocks_types.blocks(solid_type) {
 								continue;
 							}
@@ -190,15 +189,13 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 					if move_bbox2.overlaps(&subsector.bbox) {
 						let sector_dynamic = &self.map_dynamic.sectors[subsector.sector_index];
 
-						for (distance, normal) in ArrayVec::from([
+						for (distance, normal) in std::array::IntoIter::new([
 							(
 								-(sector_dynamic.interval.max + EXTRA_HEADROOM),
 								Vector3::new(0.0, 0.0, -1.0),
 							),
 							(sector_dynamic.interval.min, Vector3::new(0.0, 0.0, 1.0)),
-						])
-						.into_iter()
-						{
+						]) {
 							let z_planes = [
 								CollisionPlane(Plane3::new(normal, distance), true),
 								CollisionPlane(Plane3::new(-normal, -distance), false),
