@@ -17,7 +17,6 @@ use legion::{
 };
 use nalgebra::{Vector2, Vector3};
 use serde::{Deserialize, Serialize};
-use shrev::EventChannel;
 use std::time::Duration;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -32,36 +31,32 @@ pub struct Camera {
 	pub extra_light: f32,
 }
 
-pub fn camera_system(resources: &mut Resources) -> impl Runnable {
-	let (mut handler_set, mut registry, mut step_event_channel) = <(
-		Write<SpawnMergerHandlerSet>,
-		Write<Registry<String>>,
-		Write<EventChannel<StepEvent>>,
-	)>::fetch_mut(resources);
+pub fn camera_move(resources: &mut Resources) -> impl Runnable {
+	let (mut handler_set, mut registry) =
+		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 
 	registry.register::<Camera>("Camera".into());
 	handler_set.register_clone::<Camera>();
 
-	let mut step_event_reader = step_event_channel.register_reader();
-
 	SystemBuilder::new("camera_system")
 		.read_resource::<DeltaTime>()
 		.read_resource::<GameTime>()
-		.read_resource::<EventChannel<StepEvent>>()
+		.with_query(<&StepEvent>::query())
 		.with_query(<&mut Camera>::query())
 		.with_query(<(&MovementBob, &mut Camera)>::query())
 		.build(move |_command_buffer, world, resources, queries| {
-			let (delta_time, game_time, step_event_channel) = resources;
+			let (delta_time, game_time) = resources;
+			let (world0, mut world) = world.split_for_query(&queries.0);
 
 			// Entity stepping up
-			for step_event in step_event_channel.read(&mut step_event_reader) {
-				if let Ok(mut camera) = queries.0.get_mut(world, step_event.entity) {
-					camera.deviation_position -= step_event.height;
+			for &event in queries.0.iter(&world0) {
+				if let Ok(mut camera) = queries.1.get_mut(&mut world, event.entity) {
+					camera.deviation_position -= event.height;
 					camera.deviation_velocity = -camera.deviation_position / 8.0 * FRAME_RATE;
 				}
 			}
 
-			for (movement_bob, mut camera) in queries.1.iter_mut(world) {
+			for (movement_bob, mut camera) in queries.2.iter_mut(&mut world) {
 				// Calculate deviation
 				if camera.deviation_position != 0.0 || camera.deviation_velocity != 0.0 {
 					const DEVIATION_ACCEL: f32 = 0.25 * FRAME_RATE * FRAME_RATE;
@@ -98,7 +93,7 @@ pub struct MovementBob {
 	pub max: f32,
 }
 
-pub fn movement_bob_system(resources: &mut Resources) -> impl Runnable {
+pub fn movement_bob(resources: &mut Resources) -> impl Runnable {
 	let (mut handler_set, mut registry) =
 		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 

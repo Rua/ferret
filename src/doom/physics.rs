@@ -25,7 +25,6 @@ use legion::{
 use nalgebra::Vector3;
 use num_traits::Zero;
 use serde::{Deserialize, Serialize};
-use shrev::EventChannel;
 use smallvec::SmallVec;
 use std::time::Duration;
 
@@ -121,8 +120,6 @@ impl SpawnFrom<PhysicsDef> for Physics {
 }
 
 pub fn physics(resources: &mut Resources) -> impl Runnable {
-	resources.insert(EventChannel::<StepEvent>::new());
-
 	let (mut handler_set, mut registry) =
 		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 
@@ -141,7 +138,6 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<AssetStorage>()
 		.read_resource::<DeltaTime>()
 		.write_resource::<Quadtree>()
-		.write_resource::<EventChannel<StepEvent>>()
 		.with_query(<&MapDynamic>::query())
 		.with_query(
 			<(Entity, &Transform)>::query()
@@ -154,7 +150,7 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 		.read_component::<Owner>() // used by EntityTracer
 		.read_component::<Transform>() // used by EntityTracer
 		.build(move |command_buffer, world, resources, queries| {
-			let (asset_storage, delta_time, quadtree, step_event_channel) = resources;
+			let (asset_storage, delta_time, quadtree) = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 			let map_dynamic = queries.0.iter(&world0).next().unwrap();
 			let map = asset_storage.get(&map_dynamic.map).unwrap();
@@ -257,7 +253,9 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 				*physics_mut = physics;
 
 				// Send events
-				step_event_channel.iter_write(step_events);
+				for event in step_events {
+					command_buffer.push((event,));
+				}
 
 				for event in touch_events {
 					if let Ok((template_ref, Touchable)) = queries.4.get(&world, event.entity) {
@@ -471,6 +469,12 @@ fn step_slide_move<W: EntityStore>(
 
 pub const DISTANCE_EPSILON: f32 = 0.03125;
 
+#[derive(Clone, Copy, Debug)]
+pub struct StepEvent {
+	pub entity: Entity,
+	pub height: f32,
+}
+
 #[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
 pub struct Touchable;
 
@@ -498,10 +502,4 @@ impl SpawnFrom<TouchEventDef> for TouchEvent {
 	) -> Self {
 		<Read<SpawnContext<TouchEvent>>>::fetch(resources).0
 	}
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct StepEvent {
-	pub entity: Entity,
-	pub height: f32,
 }

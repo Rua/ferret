@@ -40,7 +40,7 @@ use crate::{
 		video::{DrawTarget, RenderContext},
 	},
 	doom::{
-		camera::{camera_system, movement_bob_system},
+		camera::{camera_move, movement_bob},
 		client::{
 			player_command_system, player_move_system, player_touch, player_use,
 			player_weapon_system, Client, UseEvent,
@@ -65,7 +65,7 @@ use crate::{
 			},
 			LinedefRef, Map, MapDynamic, SectorRef,
 		},
-		physics::{physics, BoxCollider, TouchEvent},
+		physics::{physics, BoxCollider, StepEvent, TouchEvent},
 		plat::{plat_active, plat_linedef_touch, plat_switch_use},
 		sectormove::sector_move_system,
 		sound::{
@@ -238,11 +238,12 @@ pub fn add_update_systems(builder: &mut Builder, resources: &mut Resources) -> a
 		.add_system(plat_linedef_touch(resources))
 		.add_system(player_touch(resources))
 		.add_system(projectile_touch(resources))
+		.add_system(movement_bob(resources))
+		.add_system(camera_move(resources))
+		.add_system(clear_event::<StepEvent>())
 		.add_system(clear_event::<TouchEvent>())
 		.flush()
 
-		.add_thread_local(movement_bob_system(resources)).flush()
-		.add_thread_local(camera_system(resources)).flush()
 		.add_thread_local(sector_move_system(resources)).flush()
 		.add_thread_local(door_active(resources)).flush()
 		.add_thread_local(floor_active(resources)).flush()
