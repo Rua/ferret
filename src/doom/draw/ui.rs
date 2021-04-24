@@ -190,7 +190,7 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 							ui_transform.position + ui_params.align(ui_transform.alignment);
 						let start_of_line = cursor_position[0];
 
-						for line in font.wrap_lines(size[0] as usize, &ui_text.text) {
+						for line in ui_text.lines.iter().map(|line| line.trim_end()) {
 							for (ch_position, ch_size) in
 								line.chars().filter_map(|ch| font.locations.get(&ch))
 							{

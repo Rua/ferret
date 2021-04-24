@@ -61,6 +61,7 @@ fn main() -> anyhow::Result<()> {
 
 	let (log_sender, log_receiver) = crossbeam_channel::unbounded();
 	common::logger::init(&arg_matches, log_sender)?;
+	log::info!("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
 
 	// Set up resources
 	let mut resources = Resources::default();
@@ -143,7 +144,7 @@ fn main() -> anyhow::Result<()> {
 				stretch: [true, false],
 			},
 			doom::ui::UiHexFontText {
-				text: String::new(),
+				lines: Vec::new(),
 				font: hexfont,
 			},
 			//doom::ui::Hidden,

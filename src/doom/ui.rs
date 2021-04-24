@@ -190,35 +190,30 @@ impl<'a> Iterator for WrapLines<'a> {
 			let is_break = matches!(ch, '\n');
 
 			if is_space || is_break {
-				breakpoint = index;
-			}
-
-			// Hit an explicit line break.
-			if is_break {
-				let (line, slice) = self.slice.split_at(breakpoint);
-				self.slice = &slice[ch.len_utf8()..];
-				return Some(line);
-			}
-
-			let ch_width = self.font.locations[&ch].1[0];
-			current_width += ch_width;
-
-			// Overflowed the line?
-			if current_width > self.line_width {
-				// A single word that's longer than a line. Just break it in the middle.
-				if breakpoint == 0 {
-					breakpoint = index;
-				}
-
-				let (line, slice) = self.slice.split_at(breakpoint);
-				let offset = if is_space { ch.len_utf8() } else { 0 };
-				self.slice = &slice[offset..];
-				return Some(line);
-			}
-
-			// This space fits on the line, so break after it.
-			if is_space {
+				// Always break after whitespace.
 				breakpoint = index + ch.len_utf8();
+			}
+
+			if is_break {
+				// Hit an explicit line break.
+				let (line, slice) = self.slice.split_at(breakpoint);
+				self.slice = slice;
+				return Some(line);
+			} else {
+				let ch_width = self.font.locations[&ch].1[0];
+				current_width += ch_width;
+
+				// Overflowed the line?
+				if !is_space && current_width > self.line_width {
+					// A single word that's longer than a line. Just break it in the middle.
+					if breakpoint == 0 {
+						breakpoint = index;
+					}
+
+					let (line, slice) = self.slice.split_at(breakpoint);
+					self.slice = slice;
+					return Some(line);
+				}
 			}
 		}
 
@@ -356,7 +351,7 @@ pub fn process_hexfonts(render_context: &RenderContext, asset_storage: &mut Asse
 // TODO ewwww
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UiHexFontText {
-	pub text: String,
+	pub lines: Vec<String>,
 	pub font: AssetHandle<HexFont>,
 }
 

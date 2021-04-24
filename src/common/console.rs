@@ -1,4 +1,7 @@
-use crate::doom::ui::UiHexFontText;
+use crate::{
+	common::assets::AssetStorage,
+	doom::ui::{UiHexFontText, UiParams, UiTransform},
+};
 use anyhow::{bail, Context};
 use clap::{App, AppSettings, ArgMatches};
 use crossbeam_channel::{Receiver, Sender};
@@ -194,11 +197,28 @@ fn tokenize(mut text: &str) -> anyhow::Result<Vec<String>> {
 
 pub fn update_console(receiver: Receiver<String>, _resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("update_console")
-		.with_query(<&mut UiHexFontText>::query())
-		.build(move |_command_buffer, world, _resources, query| {
-			let console = query.iter_mut(world).next().unwrap();
-			while let Some(text) = receiver.try_iter().next() {
-				console.text.push_str(&text);
+		.read_resource::<AssetStorage>()
+		.read_resource::<UiParams>()
+		.with_query(<(&UiTransform, &mut UiHexFontText)>::query())
+		.build(move |_command_buffer, world, resources, query| {
+			let (asset_storage, ui_params) = resources;
+			let (ui_transform, console) = query.iter_mut(world).next().unwrap();
+			let font = asset_storage.get(&console.font).unwrap();
+			let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
+
+			while let Some(mut text) = receiver.try_iter().next() {
+				// If the last line doesn't end with a newline, add the new text onto it.
+				if console
+					.lines
+					.last()
+					.map_or(false, |last| !last.ends_with('\n'))
+				{
+					text = console.lines.pop().unwrap() + &text;
+				}
+
+				for line in font.wrap_lines(size[0] as usize, &text) {
+					console.lines.push(line.into());
+				}
 			}
 		})
 }
