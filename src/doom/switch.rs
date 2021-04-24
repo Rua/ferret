@@ -31,14 +31,14 @@ pub struct SwitchActive {
 	pub timer: Timer,
 }
 
-pub fn switch_active_system(resources: &mut Resources) -> impl Runnable {
+pub fn switch_active(resources: &mut Resources) -> impl Runnable {
 	let (mut handler_set, mut registry) =
 		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 
 	registry.register::<SwitchActive>("SwitchActive".into());
 	handler_set.register_clone::<SwitchActive>();
 
-	SystemBuilder::new("switch_active_system")
+	SystemBuilder::new("switch_active")
 		.read_resource::<AssetStorage>()
 		.read_resource::<GameTime>()
 		.with_query(<(Entity, &LinedefRef, &mut SwitchActive)>::query())

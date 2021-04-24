@@ -82,14 +82,14 @@ impl SpawnFrom<LightFlashDef> for LightFlash {
 	}
 }
 
-pub fn light_flash_system(resources: &mut Resources) -> impl Runnable {
+pub fn light_flash(resources: &mut Resources) -> impl Runnable {
 	let (mut handler_set, mut registry) =
 		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 
 	registry.register::<LightFlash>("LightFlash".into());
 	handler_set.register_spawn::<LightFlashDef, LightFlash>();
 
-	SystemBuilder::new("light_flash_system")
+	SystemBuilder::new("light_flash")
 		.read_resource::<AssetStorage>()
 		.read_resource::<GameTime>()
 		.with_query(<(&SectorRef, &mut LightFlash)>::query())
@@ -159,14 +159,14 @@ pub struct LightGlow {
 	pub state: bool,
 }
 
-pub fn light_glow_system(resources: &mut Resources) -> impl Runnable {
+pub fn light_glow(resources: &mut Resources) -> impl Runnable {
 	let (mut handler_set, mut registry) =
 		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 
 	registry.register::<LightGlow>("LightGlow".into());
 	handler_set.register_clone::<LightGlow>();
 
-	SystemBuilder::new("light_glow_system")
+	SystemBuilder::new("light_glow")
 		.read_resource::<AssetStorage>()
 		.read_resource::<DeltaTime>()
 		.with_query(<(&SectorRef, &mut LightGlow)>::query())

@@ -13,8 +13,8 @@ use legion::{
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
 
-pub fn texture_animation_system(_resources: &mut Resources) -> impl Runnable {
-	SystemBuilder::new("texture_animation_system")
+pub fn texture_animation(_resources: &mut Resources) -> impl Runnable {
+	SystemBuilder::new("texture_animation")
 		.read_resource::<AssetStorage>()
 		.read_resource::<GameTime>()
 		.with_query(<&mut MapDynamic>::query())
@@ -39,14 +39,14 @@ pub struct TextureScroll {
 	pub speed: Vector2<f32>,
 }
 
-pub fn texture_scroll_system(resources: &mut Resources) -> impl Runnable {
+pub fn texture_scroll(resources: &mut Resources) -> impl Runnable {
 	let (mut handler_set, mut registry) =
 		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 
 	registry.register::<TextureScroll>("TextureScroll".into());
 	handler_set.register_clone::<TextureScroll>();
 
-	SystemBuilder::new("texture_scroll_system")
+	SystemBuilder::new("texture_scroll")
 		.read_resource::<DeltaTime>()
 		.with_query(<(&LinedefRef, &TextureScroll)>::query())
 		.with_query(<&mut MapDynamic>::query())

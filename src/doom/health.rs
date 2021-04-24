@@ -76,7 +76,7 @@ pub fn apply_damage(resources: &mut Resources) -> impl Runnable {
 				{
 					// Apply damage
 					if health.current <= 0 {
-						break;
+						continue;
 					}
 
 					health.current -= event.damage;

@@ -38,7 +38,7 @@ pub fn camera_move(resources: &mut Resources) -> impl Runnable {
 	registry.register::<Camera>("Camera".into());
 	handler_set.register_clone::<Camera>();
 
-	SystemBuilder::new("camera_system")
+	SystemBuilder::new("camera_move")
 		.read_resource::<DeltaTime>()
 		.read_resource::<GameTime>()
 		.with_query(<&StepEvent>::query())
@@ -100,7 +100,7 @@ pub fn movement_bob(resources: &mut Resources) -> impl Runnable {
 	registry.register::<MovementBob>("MovementBob".into());
 	handler_set.register_clone::<MovementBob>();
 
-	SystemBuilder::new("movement_bob_system")
+	SystemBuilder::new("movement_bob")
 		.with_query(<(&Physics, &mut MovementBob)>::query())
 		.build(move |_command_buffer, world, _resources, query| {
 			for (physics, movement_bob) in query.iter_mut(world) {

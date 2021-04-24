@@ -42,8 +42,7 @@ use crate::{
 	doom::{
 		camera::{camera_move, movement_bob},
 		client::{
-			player_command_system, player_move_system, player_touch, player_use,
-			player_weapon_system, Client, UseEvent,
+			player_command, player_move, player_touch, player_use, player_weapon, Client, UseEvent,
 		},
 		components::{clear_event, register_components, Transform},
 		data::{iwads::IWADINFO, FRAME_TIME},
@@ -57,7 +56,7 @@ use crate::{
 		health::{apply_damage, DamageEvent},
 		hud::{ammo_stat, arms_stat, health_stat},
 		image::{import_palette, import_patch, process_images, Image, ImageData, Palette},
-		light::{light_flash_system, light_glow_system},
+		light::{light_flash, light_glow},
 		map::{
 			load::import_map,
 			textures::{
@@ -85,11 +84,11 @@ use crate::{
 				weapon_position, weapon_ready, weapon_refire, WeaponStateEvent,
 			},
 		},
-		switch::switch_active_system,
+		switch::switch_active,
 		template::{
 			import_ammo, import_entity, import_weapon, AmmoTemplate, EntityTemplate, WeaponTemplate,
 		},
-		texture::{texture_animation_system, texture_scroll_system},
+		texture::{texture_animation, texture_scroll},
 		ui::{import_font, import_hexfont, Font, HexFont, UiParams},
 		wad::{IWADInfo, WadLoader},
 	},
@@ -219,9 +218,9 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 pub fn add_update_systems(builder: &mut Builder, resources: &mut Resources) -> anyhow::Result<()> {
 	#[rustfmt::skip]
 	builder
-		.add_thread_local(player_command_system(resources)).flush()
-		.add_thread_local(player_move_system(resources)).flush()
-		.add_thread_local(player_weapon_system(resources)).flush()
+		.add_system(player_command(resources))
+		.add_system(player_move(resources))
+		.add_system(player_weapon(resources))
 
 		.add_system(player_use(resources))
 		.flush()
@@ -231,7 +230,6 @@ pub fn add_update_systems(builder: &mut Builder, resources: &mut Resources) -> a
 		.add_system(floor_switch_use(resources))
 		.add_system(plat_switch_use(resources))
 		.add_system(clear_event::<UseEvent>())
-		.flush()
 
 		.add_system(physics(resources))
 		.flush()
@@ -244,7 +242,6 @@ pub fn add_update_systems(builder: &mut Builder, resources: &mut Resources) -> a
 		.add_system(camera_move(resources))
 		.add_system(clear_event::<StepEvent>())
 		.add_system(clear_event::<TouchEvent>())
-		.flush()
 
 		.add_system(sector_move(resources))
 		.flush()
@@ -252,13 +249,12 @@ pub fn add_update_systems(builder: &mut Builder, resources: &mut Resources) -> a
 		.add_system(floor_active(resources))
 		.add_system(plat_active(resources))
 		.add_system(clear_event::<SectorMoveEvent>())
-		.flush()
 
-		.add_thread_local(light_flash_system(resources)).flush()
-		.add_thread_local(light_glow_system(resources)).flush()
-		.add_thread_local(switch_active_system(resources)).flush()
-		.add_thread_local(texture_animation_system(resources)).flush()
-		.add_thread_local(texture_scroll_system(resources)).flush()
+		.add_system(light_flash(resources))
+		.add_system(light_glow(resources))
+		.add_system(switch_active(resources))
+		.add_system(texture_animation(resources))
+		.add_system(texture_scroll(resources))
 		
 		.add_system(apply_damage(resources))
 		.add_system(clear_event::<DamageEvent>())
@@ -285,14 +281,13 @@ pub fn add_update_systems(builder: &mut Builder, resources: &mut Resources) -> a
 				.add_system(weapon_refire(resources))
 				.add_system(clear_event::<EntityStateEvent>())
 				.add_system(clear_event::<WeaponStateEvent>())
-				.flush()
 				.build();
 
 			state(resources, actions)
 		})
-		.add_thread_local(ammo_stat(resources)).flush()
-		.add_thread_local(health_stat(resources)).flush()
-		.add_thread_local(arms_stat(resources)).flush();
+		.add_system(ammo_stat(resources))
+		.add_system(health_stat(resources))
+		.add_system(arms_stat(resources));
 
 	Ok(())
 }
@@ -308,8 +303,8 @@ pub fn add_output_systems(builder: &mut Builder, resources: &mut Resources) -> a
 		.add_thread_local(draw_ui(resources)?)
 		.add_thread_local(finish_draw(resources)?)
 		.add_system(start_sound(resources))
-		.add_system(clear_event::<StartSoundEvent>()).flush()
-		.add_system(update_sound(resources)).flush();
+		.add_system(clear_event::<StartSoundEvent>())
+		.add_system(update_sound(resources));
 
 	Ok(())
 }

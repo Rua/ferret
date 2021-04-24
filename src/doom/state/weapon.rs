@@ -16,7 +16,7 @@ use crate::{
 		physics::{BoxCollider, DamageParticle, SolidType, TouchEvent},
 		sound::{Sound, StartSoundEvent, StartSoundEventEntity},
 		spawn::{spawn_entity, spawn_helper},
-		state::{State, StateAction, StateName, StateSystemsRun},
+		state::{entity::EntityStateEvent, State, StateAction, StateName, StateSystemsRun},
 		template::{AmmoTemplate, EntityTemplate, WeaponTemplate},
 		trace::EntityTracer,
 	},
@@ -525,7 +525,7 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<AssetStorage>()
 		.read_resource::<Quadtree>()
 		.with_query(<&MapDynamic>::query())
-		.with_query(<(&WeaponStateEvent, &RadiusAttack)>::query())
+		.with_query(<(&EntityStateEvent, &RadiusAttack)>::query())
 		.with_query(<(Option<&BoxCollider>, Option<&Owner>, &Transform)>::query())
 		.with_query(<(&BoxCollider, &Transform)>::query())
 		.build(move |command_buffer, world, resources, queries| {
@@ -713,7 +713,7 @@ pub fn spray_attack(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<AssetStorage>()
 		.read_resource::<Quadtree>()
 		.with_query(<&MapDynamic>::query())
-		.with_query(<(&WeaponStateEvent, &SprayAttack)>::query())
+		.with_query(<(&EntityStateEvent, &SprayAttack)>::query())
 		.with_query(<&Owner>::query())
 		.with_query(<(Option<&BoxCollider>, &Transform)>::query())
 		.read_component::<BoxCollider>() // used by EntityTracer

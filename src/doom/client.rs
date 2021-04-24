@@ -71,8 +71,8 @@ fn select_weapon<'a>(
 	next.or(first)
 }
 
-pub fn player_command_system(_resources: &mut Resources) -> impl Runnable {
-	SystemBuilder::new("player_command_system")
+pub fn player_command(_resources: &mut Resources) -> impl Runnable {
+	SystemBuilder::new("player_command")
 		.read_resource::<AssetStorage>()
 		.read_resource::<InputState>()
 		.write_resource::<Client>()
@@ -143,8 +143,8 @@ pub fn player_command_system(_resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-pub fn player_move_system(_resources: &mut Resources) -> impl Runnable {
-	SystemBuilder::new("player_move_system")
+pub fn player_move(_resources: &mut Resources) -> impl Runnable {
+	SystemBuilder::new("player_move")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
 		.read_resource::<DeltaTime>()
@@ -353,8 +353,8 @@ pub fn player_use(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-pub fn player_weapon_system(_resources: &mut Resources) -> impl Runnable {
-	SystemBuilder::new("player_weapon_system")
+pub fn player_weapon(_resources: &mut Resources) -> impl Runnable {
+	SystemBuilder::new("player_weapon")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
 		.with_query(<&mut WeaponState>::query())
