@@ -14,7 +14,7 @@ use crossbeam_channel::Sender;
 use legion::{
 	component,
 	systems::{ResourceSet, Runnable},
-	Entity, IntoQuery, Read, Registry, Resources, SystemBuilder, Write,
+	IntoQuery, Read, Registry, Resources, SystemBuilder, Write,
 };
 use serde::{Deserialize, Serialize};
 
@@ -47,19 +47,15 @@ pub fn exit_switch_use(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<AssetStorage>()
 		.read_resource::<Sender<String>>()
 		.read_resource::<GameTime>()
-		.with_query(<(Entity, &UseEvent, &ExitSwitchUse)>::query())
+		.with_query(<(&UseEvent, &ExitSwitchUse)>::query())
 		.with_query(<(&LinedefRef, &NextMap)>::query().filter(!component::<SwitchActive>()))
 		.with_query(<&mut MapDynamic>::query())
 		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, command_sender, game_time) = resources;
 			let (mut world2, world) = world.split_for_query(&queries.2);
 
-			for (&entity, use_event, exit_switch_use) in queries.0.iter(&world) {
-				command_buffer.remove(entity);
-
-				if let Ok((linedef_ref, NextMap(next_map))) =
-					queries.1.get(&world, use_event.entity)
-				{
+			for (event, exit_switch_use) in queries.0.iter(&world) {
+				if let Ok((linedef_ref, NextMap(next_map))) = queries.1.get(&world, event.entity) {
 					let map_dynamic = queries
 						.2
 						.get_mut(&mut world2, linedef_ref.map_entity)
@@ -78,7 +74,7 @@ pub fn exit_switch_use(resources: &mut Resources) -> impl Runnable {
 					);
 
 					if exit_switch_use.switch_params.retrigger_time.is_none() {
-						command_buffer.remove_component::<Usable>(use_event.entity);
+						command_buffer.remove_component::<Usable>(event.entity);
 					}
 				}
 			}

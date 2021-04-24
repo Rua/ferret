@@ -259,31 +259,29 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 				// Send events
 				step_event_channel.iter_write(step_events);
 
-				for touch_event in touch_events {
-					if let Ok((template_ref, Touchable)) = queries.4.get(&world, touch_event.entity)
-					{
+				for event in touch_events {
+					if let Ok((template_ref, Touchable)) = queries.4.get(&world, event.entity) {
 						let handle = template_ref.0.clone();
 						command_buffer.exec_mut(move |world, resources| {
-							resources.insert(SpawnContext(touch_event));
+							resources.insert(SpawnContext(event));
 							let asset_storage = <Read<AssetStorage>>::fetch(resources);
 							let touch_world = &asset_storage.get(&handle).unwrap().touch;
 							spawn_helper(&touch_world, world, resources);
 						});
 					}
 
-					if let Ok((template_ref, Touchable)) = queries.4.get(&world, touch_event.other)
-					{
-						let touch_event = TouchEvent {
-							entity: touch_event.other,
-							other: touch_event.entity,
-							collision: touch_event.collision.map(|c| TouchEventCollision {
+					if let Ok((template_ref, Touchable)) = queries.4.get(&world, event.other) {
+						let event = TouchEvent {
+							entity: event.other,
+							other: event.entity,
+							collision: event.collision.map(|c| TouchEventCollision {
 								velocity: -c.velocity,
 								normal: -c.normal,
 							}),
 						};
 						let handle = template_ref.0.clone();
 						command_buffer.exec_mut(move |world, resources| {
-							resources.insert(SpawnContext(touch_event));
+							resources.insert(SpawnContext(event));
 							let asset_storage = <Read<AssetStorage>>::fetch(resources);
 							let touch_world = &asset_storage.get(&handle).unwrap().touch;
 							spawn_helper(&touch_world, world, resources);

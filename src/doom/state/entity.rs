@@ -7,6 +7,7 @@ use crate::{
 	doom::{
 		draw::sprite::SpriteRender,
 		physics::{BoxCollider, SolidBits, SolidType},
+		sound::StartSoundEventEntity,
 		spawn::spawn_helper,
 		state::{State, StateAction, StateName, StateSystemsRun},
 		template::{EntityTemplate, EntityTemplateRef},
@@ -19,6 +20,24 @@ use legion::{
 };
 use rand::{distributions::Uniform, thread_rng, Rng};
 use std::{sync::atomic::Ordering, time::Duration};
+
+#[derive(Clone, Copy, Debug)]
+pub struct EntityStateEvent {
+	pub entity: Entity,
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct EntityStateEventDef;
+
+impl SpawnFrom<EntityStateEventDef> for EntityStateEvent {
+	fn spawn(
+		_component: &EntityStateEventDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> Self {
+		<Read<SpawnContext<EntityStateEvent>>>::fetch(resources).0
+	}
+}
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct StateDef;
@@ -53,6 +72,8 @@ pub fn entity_state(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_spawn::<StateDef, State>();
 	registry.register::<State>("State".into());
 
+	handler_set.register_spawn::<EntityStateEventDef, EntityStateEvent>();
+
 	SystemBuilder::new("set_entity_state")
 		.read_resource::<GameTime>()
 		.read_resource::<StateSystemsRun>()
@@ -73,7 +94,8 @@ pub fn entity_state(resources: &mut Resources) -> impl Runnable {
 					let handle = template_ref.0.clone();
 
 					command_buffer.exec_mut(move |world, resources| {
-						resources.insert(SpawnContext(entity));
+						resources.insert(SpawnContext(EntityStateEvent { entity }));
+						resources.insert(SpawnContext(StartSoundEventEntity(Some(entity))));
 						let asset_storage = <Read<AssetStorage>>::fetch(resources);
 						let state_world = &asset_storage
 							.get(&handle)
@@ -89,7 +111,8 @@ pub fn entity_state(resources: &mut Resources) -> impl Runnable {
 			}
 
 			command_buffer.exec_mut(move |_world, resources| {
-				resources.remove::<SpawnContext<Entity>>();
+				resources.remove::<SpawnContext<EntityStateEvent>>();
+				resources.remove::<SpawnContext<StartSoundEventEntity>>();
 			});
 		})
 }
@@ -126,16 +149,14 @@ pub fn next_entity_state(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("next_entity_state")
 		.read_resource::<GameTime>()
-		.with_query(<(Entity, &Entity, &NextState)>::query())
+		.with_query(<(&EntityStateEvent, &NextState)>::query())
 		.with_query(<&mut State>::query())
-		.build(move |command_buffer, world, resources, queries| {
+		.build(move |_command_buffer, world, resources, queries| {
 			let game_time = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, next_state) in queries.0.iter(&world0) {
-				command_buffer.remove(entity);
-
-				if let Ok(state) = queries.1.get_mut(&mut world, target) {
+			for (&event, next_state) in queries.0.iter(&world0) {
+				if let Ok(state) = queries.1.get_mut(&mut world, event.entity) {
 					if let StateAction::None = state.action {
 						state.timer.restart_with(**game_time, next_state.time);
 						state.action = StateAction::Wait(next_state.state);
@@ -153,14 +174,12 @@ pub fn remove_entity(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<RemoveEntity>();
 
 	SystemBuilder::new("remove_entity")
-		.with_query(<(Entity, &Entity, &RemoveEntity)>::query())
+		.with_query(<(&EntityStateEvent, &RemoveEntity)>::query())
 		.with_query(<&State>::query())
 		.build(move |command_buffer, world, _resources, queries| {
-			for (&entity, &target, RemoveEntity) in queries.0.iter(world) {
-				command_buffer.remove(entity);
-
-				if let Ok(_) = queries.1.get(world, target) {
-					command_buffer.remove(target);
+			for (&event, RemoveEntity) in queries.0.iter(world) {
+				if let Ok(_) = queries.1.get(world, event.entity) {
+					command_buffer.remove(event.entity);
 				}
 			}
 		})
@@ -174,15 +193,13 @@ pub fn set_blocks_types(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<SetBlocksTypes>();
 
 	SystemBuilder::new("set_blocks_types")
-		.with_query(<(Entity, &Entity, &SetBlocksTypes)>::query())
+		.with_query(<(&EntityStateEvent, &SetBlocksTypes)>::query())
 		.with_query(<&mut BoxCollider>::query().filter(component::<State>()))
-		.build(move |command_buffer, world, _resources, queries| {
+		.build(move |_command_buffer, world, _resources, queries| {
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, &SetBlocksTypes(blocks_types)) in queries.0.iter(&world0) {
-				command_buffer.remove(entity);
-
-				if let Ok(box_collider) = queries.1.get_mut(&mut world, target) {
+			for (&event, &SetBlocksTypes(blocks_types)) in queries.0.iter(&world0) {
+				if let Ok(box_collider) = queries.1.get_mut(&mut world, event.entity) {
 					box_collider.blocks_types = blocks_types;
 				}
 			}
@@ -197,15 +214,13 @@ pub fn set_entity_sprite(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<SetEntitySprite>();
 
 	SystemBuilder::new("set_entity_sprite")
-		.with_query(<(Entity, &Entity, &SetEntitySprite)>::query())
+		.with_query(<(&EntityStateEvent, &SetEntitySprite)>::query())
 		.with_query(<&mut SpriteRender>::query().filter(component::<State>()))
-		.build(move |command_buffer, world, _resources, queries| {
+		.build(move |_command_buffer, world, _resources, queries| {
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, SetEntitySprite(sprite)) in queries.0.iter(&world0) {
-				command_buffer.remove(entity);
-
-				if let Ok(sprite_render) = queries.1.get_mut(&mut world, target) {
+			for (&event, SetEntitySprite(sprite)) in queries.0.iter(&world0) {
+				if let Ok(sprite_render) = queries.1.get_mut(&mut world, event.entity) {
 					*sprite_render = sprite.clone();
 				}
 			}
@@ -220,15 +235,13 @@ pub fn set_solid_type(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<SetSolidType>();
 
 	SystemBuilder::new("set_solid_type")
-		.with_query(<(Entity, &Entity, &SetSolidType)>::query())
+		.with_query(<(&EntityStateEvent, &SetSolidType)>::query())
 		.with_query(<&mut BoxCollider>::query().filter(component::<State>()))
-		.build(move |command_buffer, world, _resources, queries| {
+		.build(move |_command_buffer, world, _resources, queries| {
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, &SetSolidType(solid_type)) in queries.0.iter(&world0) {
-				command_buffer.remove(entity);
-
-				if let Ok(box_collider) = queries.1.get_mut(&mut world, target) {
+			for (&event, &SetSolidType(solid_type)) in queries.0.iter(&world0) {
+				if let Ok(box_collider) = queries.1.get_mut(&mut world, event.entity) {
 					box_collider.solid_type = solid_type;
 				}
 			}

@@ -1,6 +1,7 @@
 use crate::{
 	common::assets::AssetStorage,
 	doom::{
+		components::TransformDef,
 		data::{FRAME_RATE, FRAME_TIME},
 		light::{LightFlashDef, LightFlashType, LightGlow},
 		map::SectorRefDef,
@@ -23,6 +24,9 @@ pub static SECTORS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTe
 			world.push((
 				EntityTemplateRefDef,
 				SectorRefDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -40,6 +44,9 @@ pub static SECTORS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTe
 					flash_type: LightFlashType::Broken,
 					off_time: 8 * FRAME_TIME,
 					on_time: 64 * FRAME_TIME,
+				},
+				TransformDef {
+					spawn_on_ceiling: false,
 				},
 			));
 			world
@@ -59,6 +66,9 @@ pub static SECTORS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTe
 					off_time: 15 * FRAME_TIME,
 					on_time: 5 * FRAME_TIME,
 				},
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -76,6 +86,9 @@ pub static SECTORS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTe
 					flash_type: LightFlashType::StrobeUnSync(8 * FRAME_TIME),
 					off_time: 35 * FRAME_TIME,
 					on_time: 5 * FRAME_TIME,
+				},
+				TransformDef {
+					spawn_on_ceiling: false,
 				},
 			));
 			world
@@ -95,6 +108,9 @@ pub static SECTORS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTe
 					off_time: 15 * FRAME_TIME,
 					on_time: 5 * FRAME_TIME,
 				},
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -108,6 +124,9 @@ pub static SECTORS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTe
 			world.push((
 				EntityTemplateRefDef,
 				SectorRefDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -121,6 +140,9 @@ pub static SECTORS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTe
 			world.push((
 				EntityTemplateRefDef,
 				SectorRefDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -138,6 +160,9 @@ pub static SECTORS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTe
 					speed: (8.0 / 256.0) * FRAME_RATE,
 					..LightGlow::default()
 				},
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -151,6 +176,9 @@ pub static SECTORS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTe
 			world.push((
 				EntityTemplateRefDef,
 				SectorRefDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -164,6 +192,9 @@ pub static SECTORS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTe
 			world.push((
 				EntityTemplateRefDef,
 				SectorRefDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -177,6 +208,9 @@ pub static SECTORS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTe
 			world.push((
 				EntityTemplateRefDef,
 				SectorRefDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -194,6 +228,9 @@ pub static SECTORS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTe
 					flash_type: LightFlashType::Strobe,
 					off_time: 35 * FRAME_TIME,
 					on_time: 5 * FRAME_TIME,
+				},
+				TransformDef {
+					spawn_on_ceiling: false,
 				},
 			));
 			world
@@ -213,6 +250,9 @@ pub static SECTORS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTe
 					off_time: 15 * FRAME_TIME,
 					on_time: 5 * FRAME_TIME,
 				},
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -226,6 +266,9 @@ pub static SECTORS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTe
 			world.push((
 				EntityTemplateRefDef,
 				SectorRefDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -239,6 +282,9 @@ pub static SECTORS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTe
 			world.push((
 				EntityTemplateRefDef,
 				SectorRefDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},
@@ -252,6 +298,9 @@ pub static SECTORS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTe
 			world.push((
 				EntityTemplateRefDef,
 				SectorRefDef,
+				TransformDef {
+					spawn_on_ceiling: false,
+				},
 			));
 			world
 		},

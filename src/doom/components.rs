@@ -11,10 +11,16 @@ use crate::{
 		ui::{UiImage, UiTransform},
 	},
 };
-use legion::{systems::ResourceSet, Read, Registry, Resources, Write};
+use legion::{
+	component,
+	storage::Component,
+	systems::{ResourceSet, Runnable},
+	Entity, IntoQuery, Read, Registry, Resources, SystemBuilder, Write,
+};
 use nalgebra::Vector3;
 use rand::{distributions::Uniform, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
+use std::any::type_name;
 
 pub fn register_components(resources: &mut Resources) {
 	let (mut handler_set, mut registry) =
@@ -106,4 +112,14 @@ impl SpawnFrom<RandomTransformDef> for Transform {
 		transform.position += offset;
 		transform
 	}
+}
+
+pub fn clear_event<E: Component>() -> impl Runnable {
+	SystemBuilder::new(format!("clear_event::<{}>", type_name::<E>()))
+		.with_query(<Entity>::query().filter(component::<E>()))
+		.build(move |command_buffer, world, _resources, query| {
+			for &entity in query.iter(world) {
+				command_buffer.remove(entity);
+			}
+		})
 }

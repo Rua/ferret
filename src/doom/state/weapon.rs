@@ -11,10 +11,10 @@ use crate::{
 		client::Client,
 		components::Transform,
 		draw::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
-		health::{Damage, Health},
+		health::{DamageEvent, Health},
 		map::{LinedefRef, MapDynamic, SectorRef},
 		physics::{BoxCollider, DamageParticle, SolidType, TouchEvent},
-		sound::{Sound, StartSound},
+		sound::{Sound, StartSoundEvent, StartSoundEventEntity},
 		spawn::{spawn_entity, spawn_helper},
 		state::{State, StateAction, StateName, StateSystemsRun},
 		template::{AmmoTemplate, EntityTemplate, WeaponTemplate},
@@ -36,16 +36,38 @@ use std::{
 	time::Duration,
 };
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct WeaponSpriteSlotDef;
+#[derive(Clone, Copy, Debug)]
+pub struct WeaponStateEvent {
+	entity: Entity,
+	slot: WeaponSpriteSlot,
+}
 
-impl SpawnFrom<WeaponSpriteSlotDef> for WeaponSpriteSlot {
+#[derive(Clone, Copy, Debug, Default)]
+pub struct WeaponStateEventDef;
+
+impl SpawnFrom<WeaponStateEventDef> for WeaponStateEvent {
 	fn spawn(
-		_component: &WeaponSpriteSlotDef,
+		_component: &WeaponStateEventDef,
 		_accessor: ComponentAccessor,
 		resources: &Resources,
 	) -> Self {
-		<Read<SpawnContext<WeaponSpriteSlot>>>::fetch(resources).0
+		<Read<SpawnContext<WeaponStateEvent>>>::fetch(resources).0
+	}
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct WeaponStateEventDefSlot(pub WeaponSpriteSlot);
+
+impl SpawnFrom<WeaponStateEventDefSlot> for WeaponStateEvent {
+	fn spawn(
+		component: &WeaponStateEventDefSlot,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> Self {
+		WeaponStateEvent {
+			slot: component.0,
+			..<Read<SpawnContext<WeaponStateEvent>>>::fetch(resources).0
+		}
 	}
 }
 
@@ -128,8 +150,8 @@ pub fn weapon_state(resources: &mut Resources) -> impl Runnable {
 	registry.register::<WeaponState>("WeaponState".into());
 	handler_set.register_spawn::<WeaponStateDef, WeaponState>();
 
-	handler_set.register_clone::<WeaponSpriteSlot>();
-	handler_set.register_spawn::<WeaponSpriteSlotDef, WeaponSpriteSlot>();
+	handler_set.register_spawn::<WeaponStateEventDef, WeaponStateEvent>();
+	handler_set.register_spawn::<WeaponStateEventDefSlot, WeaponStateEvent>();
 
 	const SLOTS: [WeaponSpriteSlot; 2] = [WeaponSpriteSlot::Weapon, WeaponSpriteSlot::Flash];
 
@@ -156,8 +178,8 @@ pub fn weapon_state(resources: &mut Resources) -> impl Runnable {
 						let handle = weapon_state.current.clone();
 
 						command_buffer.exec_mut(move |world, resources| {
-							resources.insert(SpawnContext(entity));
-							resources.insert(SpawnContext(slot));
+							resources.insert(SpawnContext(WeaponStateEvent { entity, slot }));
+							resources.insert(SpawnContext(StartSoundEventEntity(Some(entity))));
 							let asset_storage = <Read<AssetStorage>>::fetch(resources);
 							let state_world = &asset_storage
 								.get(&handle)
@@ -174,8 +196,8 @@ pub fn weapon_state(resources: &mut Resources) -> impl Runnable {
 			}
 
 			command_buffer.exec_mut(move |_world, resources| {
-				resources.remove::<SpawnContext<Entity>>();
-				resources.remove::<SpawnContext<WeaponSpriteSlot>>();
+				resources.remove::<SpawnContext<WeaponStateEvent>>();
+				resources.remove::<SpawnContext<StartSoundEventEntity>>();
 			});
 		})
 }
@@ -189,16 +211,14 @@ pub fn change_ammo_count(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("change_ammo_count")
 		.read_resource::<AssetStorage>()
-		.with_query(<(Entity, &Entity, &ChangeAmmoCount)>::query())
+		.with_query(<(&WeaponStateEvent, &ChangeAmmoCount)>::query())
 		.with_query(<&mut WeaponState>::query())
-		.build(move |command_buffer, world, resources, queries| {
+		.build(move |_command_buffer, world, resources, queries| {
 			let asset_storage = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, &ChangeAmmoCount) in queries.0.iter(&world0) {
-				command_buffer.remove(entity);
-
-				if let Ok(weapon_state) = queries.1.get_mut(&mut world, target) {
+			for (&event, &ChangeAmmoCount) in queries.0.iter(&world0) {
+				if let Ok(weapon_state) = queries.1.get_mut(&mut world, event.entity) {
 					let weapon_template = asset_storage.get(&weapon_state.current).unwrap();
 
 					if let Some(weapon_ammo) = &weapon_template.ammo {
@@ -227,15 +247,13 @@ pub fn extra_light(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<ExtraLight>();
 
 	SystemBuilder::new("extra_light")
-		.with_query(<(Entity, &Entity, &ExtraLight)>::query())
+		.with_query(<(&WeaponStateEvent, &ExtraLight)>::query())
 		.with_query(<&mut Camera>::query())
-		.build(move |command_buffer, world, _resources, queries| {
+		.build(move |_command_buffer, world, _resources, queries| {
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, &ExtraLight(extra_light)) in queries.0.iter(&world0) {
-				command_buffer.remove(entity);
-
-				if let Ok(camera) = queries.1.get_mut(&mut world, target) {
+			for (&event, &ExtraLight(extra_light)) in queries.0.iter(&world0) {
+				if let Ok(camera) = queries.1.get_mut(&mut world, event.entity) {
 					camera.extra_light = extra_light;
 				}
 			}
@@ -254,17 +272,15 @@ pub fn next_weapon_state(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("next_weapon_state")
 		.read_resource::<GameTime>()
-		.with_query(<(Entity, &Entity, &WeaponSpriteSlot, &NextWeaponState)>::query())
+		.with_query(<(&WeaponStateEvent, &NextWeaponState)>::query())
 		.with_query(<&mut WeaponState>::query())
-		.build(move |command_buffer, world, resources, queries| {
+		.build(move |_command_buffer, world, resources, queries| {
 			let game_time = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, &slot, next_state) in queries.0.iter(&world0) {
-				command_buffer.remove(entity);
-
-				if let Ok(weapon_state) = queries.1.get_mut(&mut world, target) {
-					let state = &mut weapon_state.slots[slot as usize];
+			for (&event, next_state) in queries.0.iter(&world0) {
+				if let Ok(weapon_state) = queries.1.get_mut(&mut world, event.entity) {
+					let state = &mut weapon_state.slots[event.slot as usize];
 
 					if let StateAction::None = state.action {
 						state.timer.restart_with(**game_time, next_state.time);
@@ -302,7 +318,7 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("line_attack")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Quadtree>()
-		.with_query(<(Entity, &Entity, &LineAttack)>::query())
+		.with_query(<(&WeaponStateEvent, &LineAttack)>::query())
 		.with_query(<(Option<&BoxCollider>, Option<&Owner>, &Transform, &WeaponState)>::query())
 		.with_query(<&MapDynamic>::query())
 		.with_query(<(
@@ -316,11 +332,9 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, quadtree) = resources;
 
-			for (&entity, &target, line_attack) in queries.0.iter(world) {
-				command_buffer.remove(entity);
-
+			for (&event, line_attack) in queries.0.iter(world) {
 				if let Ok((box_collider, owner, transform, weapon_state)) =
-					queries.1.get(world, target)
+					queries.1.get(world, event.entity)
 				 {
 					let map_dynamic = queries.2.iter(world).next().unwrap();
 					let map = asset_storage.get(&map_dynamic.map).unwrap();
@@ -338,7 +352,7 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 						position[2] += box_collider.height * 0.5 + 8.0;
 					}
 
-					let ignore = Some(owner.map_or(target, |&Owner(owner)| owner));
+					let ignore = Some(owner.map_or(event.entity, |&Owner(owner)| owner));
 
 					for _ in 0..line_attack.count {
 						let mut rotation = transform.rotation;
@@ -374,10 +388,10 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 								* thread_rng().sample(line_attack.damage_range);
 
 							command_buffer.push((
-								collision.entity,
-								Damage {
+								DamageEvent {
+									entity: collision.entity,
 									damage,
-									source_entity: target,
+									source_entity: event.entity,
 									direction: trace.move_step.dir,
 								},
 							));
@@ -436,12 +450,18 @@ pub fn line_attack(resources: &mut Resources) -> impl Runnable {
 
 							// Play hit sound if present
 							if let Some(sound) = line_attack.hit_sound.as_ref() {
-								command_buffer.push((target, StartSound(sound.clone())));
+								command_buffer.push((StartSoundEvent {
+									handle: sound.clone(),
+									entity: Some(event.entity),
+								},));
 							}
 						} else {
 							// Play miss sound if present
 							if let Some(sound) = line_attack.miss_sound.as_ref() {
-								command_buffer.push((target, StartSound(sound.clone())));
+								command_buffer.push((StartSoundEvent {
+									handle: sound.clone(),
+									entity: Some(event.entity),
+								},));
 							}
 						}
 					}
@@ -461,17 +481,15 @@ pub fn projectile_touch(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<ProjectileTouch>();
 
 	SystemBuilder::new("projectile_touch")
-		.with_query(<(Entity, &TouchEvent, &ProjectileTouch)>::query())
+		.with_query(<(&TouchEvent, &ProjectileTouch)>::query())
 		.with_query(<(&Owner, &mut State)>::query())
 		.build(move |command_buffer, world, _resources, queries| {
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, touch_event, projectile_touch) in queries.0.iter(&world0) {
-				command_buffer.remove(entity);
-
-				if let Some(collision) = touch_event.collision {
+			for (event, projectile_touch) in queries.0.iter(&world0) {
+				if let Some(collision) = event.collision {
 					if let Ok((&Owner(source_entity), state)) =
-						queries.1.get_mut(&mut world, touch_event.entity)
+						queries.1.get_mut(&mut world, event.entity)
 					{
 						// Kill the projectile entity
 						let new = (StateName::from("death").unwrap(), 0);
@@ -481,14 +499,12 @@ pub fn projectile_touch(resources: &mut Resources) -> impl Runnable {
 						let damage = projectile_touch.damage_multiplier
 							* thread_rng().sample(projectile_touch.damage_range);
 
-						command_buffer.push((
-							touch_event.other,
-							Damage {
-								damage,
-								source_entity,
-								direction: collision.velocity,
-							},
-						));
+						command_buffer.push((DamageEvent {
+							entity: event.other,
+							damage,
+							source_entity,
+							direction: collision.velocity,
+						},));
 					}
 				}
 			}
@@ -509,7 +525,7 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<AssetStorage>()
 		.read_resource::<Quadtree>()
 		.with_query(<&MapDynamic>::query())
-		.with_query(<(Entity, &Entity, &RadiusAttack)>::query())
+		.with_query(<(&WeaponStateEvent, &RadiusAttack)>::query())
 		.with_query(<(Option<&BoxCollider>, Option<&Owner>, &Transform)>::query())
 		.with_query(<(&BoxCollider, &Transform)>::query())
 		.build(move |command_buffer, world, resources, queries| {
@@ -517,10 +533,8 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 			let map_dynamic = queries.0.iter(world).next().unwrap();
 			let map = asset_storage.get(&map_dynamic.map).unwrap();
 
-			for (&entity, &target, radius_attack) in queries.1.iter(world) {
-				command_buffer.remove(entity);
-
-				let (source_entity, midpoint) = match queries.2.get(world, target) {
+			for (&event, radius_attack) in queries.1.iter(world) {
+				let (source_entity, midpoint) = match queries.2.get(world, event.entity) {
 					Ok((box_collider, owner, transform)) => {
 						let mut midpoint = transform.position;
 
@@ -528,7 +542,7 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 							midpoint[2] += box_collider.height * 0.75;
 						}
 
-						(owner.map_or(target, |o| o.0), midpoint)
+						(owner.map_or(event.entity, |o| o.0), midpoint)
 					}
 					Err(_) => continue,
 				};
@@ -572,14 +586,12 @@ pub fn radius_attack(resources: &mut Resources) -> impl Runnable {
 							// Apply the damage
 							let scale = 1.0 - dist_sq.sqrt() / radius_attack.radius;
 
-							command_buffer.push((
+							command_buffer.push((DamageEvent {
 								entity,
-								Damage {
-									damage: (radius_attack.damage as f32 * scale) as i32,
-									source_entity,
-									direction: transform.position - midpoint,
-								},
-							));
+								damage: (radius_attack.damage as f32 * scale) as i32,
+								source_entity,
+								direction: transform.position - midpoint,
+							},));
 						}
 
 						Vector2::zeros()
@@ -597,16 +609,14 @@ pub fn set_weapon_sprite(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<SetWeaponSprite>();
 
 	SystemBuilder::new("set_weapon_sprite")
-		.with_query(<(Entity, &Entity, &WeaponSpriteSlot, &SetWeaponSprite)>::query())
+		.with_query(<(&WeaponStateEvent, &SetWeaponSprite)>::query())
 		.with_query(<&mut WeaponSpriteRender>::query().filter(component::<WeaponState>()))
-		.build(move |command_buffer, world, _resources, queries| {
+		.build(move |_command_buffer, world, _resources, queries| {
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, &slot, SetWeaponSprite(sprite)) in queries.0.iter(&world0) {
-				command_buffer.remove(entity);
-
-				if let Ok(weapon_sprite_render) = queries.1.get_mut(&mut world, target) {
-					weapon_sprite_render.slots[slot as usize] = sprite.clone();
+			for (&event, SetWeaponSprite(sprite)) in queries.0.iter(&world0) {
+				if let Ok(weapon_sprite_render) = queries.1.get_mut(&mut world, event.entity) {
+					weapon_sprite_render.slots[event.slot as usize] = sprite.clone();
 				}
 			}
 		})
@@ -620,16 +630,14 @@ pub fn set_weapon_state(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<SetWeaponState>();
 
 	SystemBuilder::new("set_weapon_state")
-		.with_query(<(Entity, &Entity, &WeaponSpriteSlot, &SetWeaponState)>::query())
+		.with_query(<(&WeaponStateEvent, &SetWeaponState)>::query())
 		.with_query(<&mut WeaponState>::query())
-		.build(move |command_buffer, world, _resources, queries| {
+		.build(move |_command_buffer, world, _resources, queries| {
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, &slot, &SetWeaponState(next_state)) in queries.0.iter(&world0) {
-				command_buffer.remove(entity);
-
-				if let Ok(weapon_state) = queries.1.get_mut(&mut world, target) {
-					let state = &mut weapon_state.slots[slot as usize];
+			for (&event, &SetWeaponState(next_state)) in queries.0.iter(&world0) {
+				if let Ok(weapon_state) = queries.1.get_mut(&mut world, event.entity) {
+					let state = &mut weapon_state.slots[event.slot as usize];
 					state.action = StateAction::Set(next_state);
 				}
 			}
@@ -662,22 +670,20 @@ pub fn spawn_projectile(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("spawn_projectile")
 		.read_resource::<AssetStorage>()
-		.with_query(<(Entity, &Entity, &SpawnProjectile)>::query())
+		.with_query(<(&WeaponStateEvent, &SpawnProjectile)>::query())
 		.with_query(<&Transform>::query().filter(component::<WeaponState>()))
 		.build(move |command_buffer, world, _resources, queries| {
 			let (world0, world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, SpawnProjectile(projectile_handle)) in queries.0.iter(&world0) {
-				command_buffer.remove(entity);
-
-				if let Ok(&(mut transform)) = queries.1.get(&world, target) {
+			for (&event, SpawnProjectile(projectile_handle)) in queries.0.iter(&world0) {
+				if let Ok(&(mut transform)) = queries.1.get(&world, event.entity) {
 					let handle = projectile_handle.clone();
 					let direction = angles_to_axes(transform.rotation)[0];
 					transform.position += direction; // Start a little forward from the spawner
 					transform.position[2] += 32.0;
 
 					command_buffer.exec_mut(move |world, resources| {
-						resources.insert(SpawnContext(Owner(target)));
+						resources.insert(SpawnContext(Owner(event.entity)));
 						spawn_entity(world, resources, &handle, transform);
 					});
 				}
@@ -707,7 +713,7 @@ pub fn spray_attack(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<AssetStorage>()
 		.read_resource::<Quadtree>()
 		.with_query(<&MapDynamic>::query())
-		.with_query(<(Entity, &Entity, &SprayAttack)>::query())
+		.with_query(<(&WeaponStateEvent, &SprayAttack)>::query())
 		.with_query(<&Owner>::query())
 		.with_query(<(Option<&BoxCollider>, &Transform)>::query())
 		.read_component::<BoxCollider>() // used by EntityTracer
@@ -720,10 +726,11 @@ pub fn spray_attack(resources: &mut Resources) -> impl Runnable {
 			let map_dynamic = queries.0.iter(world).next().unwrap();
 			let map = asset_storage.get(&map_dynamic.map).unwrap();
 
-			for (&entity, &target, spray_attack) in queries.1.iter(world) {
-				command_buffer.remove(entity);
-
-				let owner = queries.2.get(world, target).map_or(target, |o| o.0);
+			for (&event, spray_attack) in queries.1.iter(world) {
+				let owner = queries
+					.2
+					.get(world, event.entity)
+					.map_or(event.entity, |o| o.0);
 
 				let (midpoint, angle) = match queries.3.get(world, owner) {
 					Ok((box_collider, transform)) => {
@@ -764,14 +771,12 @@ pub fn spray_attack(resources: &mut Resources) -> impl Runnable {
 						let damage = spray_attack.damage_multiplier
 							* thread_rng().sample(spray_attack.damage_range);
 
-						command_buffer.push((
-							collision.entity,
-							Damage {
-								damage,
-								source_entity: target,
-								direction: trace.move_step.dir,
-							},
-						));
+						command_buffer.push((DamageEvent {
+							entity: collision.entity,
+							damage,
+							source_entity: event.entity,
+							direction: trace.move_step.dir,
+						},));
 
 						if let Ok((box_collider, transform)) =
 							queries.3.get(world, collision.entity)
@@ -814,7 +819,7 @@ pub fn weapon_position(resources: &mut Resources) -> impl Runnable {
 
 	SystemBuilder::new("weapon_position")
 		.read_resource::<GameTime>()
-		.with_query(<(Entity, &Entity, &WeaponSpriteSlot, &WeaponPosition)>::query())
+		.with_query(<(&WeaponStateEvent, &WeaponPosition)>::query())
 		.with_query(
 			<(
 				&Camera,
@@ -824,17 +829,15 @@ pub fn weapon_position(resources: &mut Resources) -> impl Runnable {
 			)>::query()
 			.filter(component::<WeaponState>()),
 		)
-		.build(move |command_buffer, world, resources, queries| {
+		.build(move |_command_buffer, world, resources, queries| {
 			let game_time = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, &slot, weapon_position) in queries.0.iter(&world0) {
-				command_buffer.remove(entity);
-
+			for (&event, weapon_position) in queries.0.iter(&world0) {
 				if let Ok((camera, movement_bob, weapon_state, weapon_sprite_render)) =
-					queries.1.get_mut(&mut world, target)
+					queries.1.get_mut(&mut world, event.entity)
 				{
-					let state = &mut weapon_state.slots[slot as usize];
+					let state = &mut weapon_state.slots[event.slot as usize];
 
 					match weapon_position {
 						WeaponPosition::Bob => {
@@ -856,7 +859,7 @@ pub fn weapon_position(resources: &mut Resources) -> impl Runnable {
 
 								if let Some(switch_to) = weapon_state.switch_to.take() {
 									let state_name = (StateName::from("up").unwrap(), 0);
-									weapon_state.slots[slot as usize].action =
+									weapon_state.slots[event.slot as usize].action =
 										StateAction::Set(state_name);
 									weapon_state.current = switch_to;
 								}
@@ -887,23 +890,23 @@ pub fn weapon_ready(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("weapon_ready")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
-		.with_query(<(Entity, &Entity, &WeaponSpriteSlot, &WeaponReady)>::query())
+		.with_query(<(&WeaponStateEvent, &WeaponReady)>::query())
 		.with_query(<&mut WeaponState>::query().filter(component::<WeaponState>()))
-		.build(move |command_buffer, world, resources, queries| {
+		.build(move |_command_buffer, world, resources, queries| {
 			let (asset_storage, client) = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, &slot, WeaponReady) in queries.0.iter(&world0) {
-				command_buffer.remove(entity);
-
-				if let Ok(weapon_state) = queries.1.get_mut(&mut world, target) {
+			for (&event, WeaponReady) in queries.0.iter(&world0) {
+				if let Ok(weapon_state) = queries.1.get_mut(&mut world, event.entity) {
 					if weapon_state.switch_to.is_some() {
 						let state_name = (StateName::from("down").unwrap(), 0);
-						weapon_state.slots[slot as usize].action = StateAction::Set(state_name);
+						weapon_state.slots[event.slot as usize].action =
+							StateAction::Set(state_name);
 					} else if client.command.attack {
 						if weapon_state.can_fire(&asset_storage) {
 							let state_name = (StateName::from("attack").unwrap(), 0);
-							weapon_state.slots[slot as usize].action = StateAction::Set(state_name);
+							weapon_state.slots[event.slot as usize].action =
+								StateAction::Set(state_name);
 						}
 					}
 				}
@@ -921,20 +924,19 @@ pub fn weapon_refire(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("weapon_refire")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
-		.with_query(<(Entity, &Entity, &WeaponSpriteSlot, &WeaponReFire)>::query())
+		.with_query(<(&WeaponStateEvent, &WeaponReFire)>::query())
 		.with_query(<&mut WeaponState>::query().filter(component::<WeaponState>()))
-		.build(move |command_buffer, world, resources, queries| {
+		.build(move |_command_buffer, world, resources, queries| {
 			let (asset_storage, client) = resources;
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, &target, &slot, WeaponReFire) in queries.0.iter(&world0) {
-				command_buffer.remove(entity);
-
-				if let Ok(weapon_state) = queries.1.get_mut(&mut world, target) {
+			for (&event, WeaponReFire) in queries.0.iter(&world0) {
+				if let Ok(weapon_state) = queries.1.get_mut(&mut world, event.entity) {
 					if client.command.attack {
 						if weapon_state.can_fire(&asset_storage) {
 							let state_name = (StateName::from("attack").unwrap(), 0);
-							weapon_state.slots[slot as usize].action = StateAction::Set(state_name);
+							weapon_state.slots[event.slot as usize].action =
+								StateAction::Set(state_name);
 							weapon_state.inaccurate = true;
 						} else {
 							weapon_state.inaccurate = false;

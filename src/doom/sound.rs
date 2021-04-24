@@ -3,7 +3,7 @@ use crate::{
 		assets::{AssetHandle, AssetStorage, ImportData},
 		geometry::Angle,
 		sound::{SoundController, SoundSource},
-		spawn::SpawnMergerHandlerSet,
+		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
 	},
 	doom::{client::Client, components::Transform, data::sounds::SOUNDS},
 };
@@ -12,7 +12,7 @@ use byteorder::{ReadBytesExt, LE};
 use crossbeam_channel::Sender;
 use legion::{
 	systems::{ResourceSet, Runnable},
-	Entity, IntoQuery, Resources, SystemBuilder, Write,
+	Entity, IntoQuery, Read, Resources, SystemBuilder, Write,
 };
 use nalgebra::Vector2;
 use rand::{thread_rng, Rng};
@@ -82,7 +82,33 @@ pub fn import_raw_sound(
 }
 
 #[derive(Clone, Debug)]
-pub struct StartSound(pub AssetHandle<Sound>);
+pub struct StartSoundEvent {
+	pub handle: AssetHandle<Sound>,
+	pub entity: Option<Entity>,
+}
+
+#[derive(Clone, Debug)]
+pub struct StartSoundEventDef {
+	pub handle: AssetHandle<Sound>,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct StartSoundEventEntity(pub Option<Entity>);
+
+impl SpawnFrom<StartSoundEventDef> for StartSoundEvent {
+	fn spawn(
+		component: &StartSoundEventDef,
+		_accessor: ComponentAccessor,
+		resources: &Resources,
+	) -> Self {
+		StartSoundEvent {
+			handle: component.handle.clone(),
+			entity: <Read<SpawnContext<StartSoundEventEntity>>>::fetch(resources)
+				.0
+				 .0,
+		}
+	}
+}
 
 #[derive(Clone, Debug)]
 pub struct SoundPlaying {
@@ -92,27 +118,26 @@ pub struct SoundPlaying {
 
 type SoundSender = Sender<Box<dyn Source<Item = f32> + Send>>;
 
-pub fn start_sound_system(resources: &mut Resources) -> impl Runnable {
+pub fn start_sound(resources: &mut Resources) -> impl Runnable {
 	let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
-	handler_set.register_clone::<StartSound>();
+	handler_set.register_clone::<StartSoundEvent>();
+	handler_set.register_spawn::<StartSoundEventDef, StartSoundEvent>();
 
-	SystemBuilder::new("start_sound_system")
+	SystemBuilder::new("start_sound")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
 		.read_resource::<SoundSender>()
 		.write_resource::<Vec<SoundPlaying>>()
 		.with_query(<&Transform>::query())
-		.with_query(<(Entity, Option<&Entity>, &StartSound)>::query())
-		.build(move |command_buffer, world, resources, queries| {
+		.with_query(<&StartSoundEvent>::query())
+		.build(move |_command_buffer, world, resources, queries| {
 			let (asset_storage, client, sound_sender, sounds_playing) = resources;
 			let client_transform = *queries.0.get(world, client.entity.unwrap()).unwrap();
 			let (world1, mut world) = world.split_for_query(&queries.1);
 
-			for (&entity, target, start_sound) in queries.1.iter(&world1) {
-				command_buffer.remove(entity);
-
+			for event in queries.1.iter(&world1) {
 				// Create new sound controller
-				let sound = asset_storage.get(&start_sound.0).unwrap();
+				let sound = asset_storage.get(&event.handle).unwrap();
 				let index = match sound.sounds.len() {
 					0 => continue,
 					1 => 0,
@@ -122,7 +147,7 @@ pub fn start_sound_system(resources: &mut Resources) -> impl Runnable {
 				let (controller, source) = SoundController::new(SoundSource::new(&raw_sound));
 				let sound_playing = SoundPlaying {
 					controller,
-					entity: target.copied(),
+					entity: event.entity,
 				};
 
 				if let Some(entity) = sound_playing.entity {
@@ -148,11 +173,11 @@ pub fn start_sound_system(resources: &mut Resources) -> impl Runnable {
 		})
 }
 
-pub fn sound_playing_system(resources: &mut Resources) -> impl Runnable {
+pub fn update_sound(resources: &mut Resources) -> impl Runnable {
 	let sounds_playing: Vec<SoundPlaying> = Vec::new();
 	resources.insert(sounds_playing);
 
-	SystemBuilder::new("sound_playing_system")
+	SystemBuilder::new("update_sound")
 		.read_resource::<Client>()
 		.write_resource::<Vec<SoundPlaying>>()
 		.with_query(<&Transform>::query())

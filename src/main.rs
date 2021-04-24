@@ -147,7 +147,7 @@ fn main() -> anyhow::Result<()> {
 				lines: Vec::new(),
 				font: hexfont,
 			},
-			//doom::ui::Hidden,
+			doom::ui::Hidden,
 		));
 
 		world.push((

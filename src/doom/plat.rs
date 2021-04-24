@@ -10,7 +10,7 @@ use crate::{
 		map::{LinedefRef, Map, MapDynamic},
 		physics::{BoxCollider, TouchEvent, Touchable},
 		sectormove::{FloorMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
-		sound::{Sound, StartSound},
+		sound::{Sound, StartSoundEvent},
 		state::weapon::Owner,
 		switch::{SwitchActive, SwitchParams},
 	},
@@ -91,7 +91,10 @@ pub fn plat_active(resources: &mut Resources) -> impl Runnable {
 
 				if plat_active.wait_timer.is_elapsed(**game_time) {
 					if let Some(sound) = &plat_active.start_sound {
-						command_buffer.push((entity, StartSound(sound.clone())));
+						command_buffer.push((StartSoundEvent {
+							handle: sound.clone(),
+							entity: Some(entity),
+						},));
 					}
 
 					if sector_move.target == plat_active.low_height {
@@ -131,7 +134,10 @@ pub fn plat_active(resources: &mut Resources) -> impl Runnable {
 							}
 
 							if let Some(sound) = &plat_active.start_sound {
-								command_buffer.push((event.entity, StartSound(sound.clone())));
+								command_buffer.push((StartSoundEvent {
+									handle: sound.clone(),
+									entity: Some(event.entity),
+								},));
 							}
 						}
 					}
@@ -139,7 +145,10 @@ pub fn plat_active(resources: &mut Resources) -> impl Runnable {
 						sector_move.velocity = 0.0;
 
 						if let Some(sound) = &plat_active.finish_sound {
-							command_buffer.push((event.entity, StartSound(sound.clone())));
+							command_buffer.push((StartSoundEvent {
+								handle: sound.clone(),
+								entity: Some(event.entity),
+							},));
 						}
 
 						if sector_move.target == plat_active.high_height {
@@ -170,7 +179,7 @@ pub fn plat_switch_use(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("plat_switch_use")
 		.read_resource::<AssetStorage>()
 		.read_resource::<GameTime>()
-		.with_query(<(Entity, &UseEvent, &PlatSwitchUse)>::query())
+		.with_query(<(&UseEvent, &PlatSwitchUse)>::query())
 		.with_query(<&LinedefRef>::query().filter(!component::<SwitchActive>()))
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<PlatActive>() // used by activate_with_tag
@@ -178,10 +187,8 @@ pub fn plat_switch_use(resources: &mut Resources) -> impl Runnable {
 			let (asset_storage, game_time) = resources;
 			let (mut world2, world) = world.split_for_query(&queries.2);
 
-			for (&entity, use_event, plat_switch_use) in queries.0.iter(&world) {
-				command_buffer.remove(entity);
-
-				if let Ok(linedef_ref) = queries.1.get(&world, use_event.entity) {
+			for (event, plat_switch_use) in queries.0.iter(&world) {
+				if let Ok(linedef_ref) = queries.1.get(&world, event.entity) {
 					let map_dynamic = queries
 						.2
 						.get_mut(&mut world2, linedef_ref.map_entity)
@@ -210,7 +217,7 @@ pub fn plat_switch_use(resources: &mut Resources) -> impl Runnable {
 						);
 
 						if plat_switch_use.switch_params.retrigger_time.is_none() {
-							command_buffer.remove_component::<Usable>(use_event.entity);
+							command_buffer.remove_component::<Usable>(event.entity);
 						}
 					}
 				}
@@ -234,7 +241,7 @@ pub fn plat_linedef_touch(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("plat_linedef_touch")
 		.read_resource::<AssetStorage>()
 		.read_resource::<GameTime>()
-		.with_query(<(Entity, &TouchEvent, &PlatLinedefTouch)>::query())
+		.with_query(<(&TouchEvent, &PlatLinedefTouch)>::query())
 		.with_query(<&LinedefRef>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<PlatActive>() // used by activate_with_tag
@@ -242,14 +249,12 @@ pub fn plat_linedef_touch(resources: &mut Resources) -> impl Runnable {
 			let (asset_storage, game_time) = resources;
 			let (mut world2, world) = world.split_for_query(&queries.2);
 
-			for (&entity, touch_event, plat_linedef_touch) in queries.0.iter(&world) {
-				command_buffer.remove(entity);
-
-				if touch_event.collision.is_some() {
+			for (event, plat_linedef_touch) in queries.0.iter(&world) {
+				if event.collision.is_some() {
 					continue;
 				}
 
-				if let Ok(linedef_ref) = queries.1.get(&world, touch_event.entity) {
+				if let Ok(linedef_ref) = queries.1.get(&world, event.entity) {
 					let map_dynamic = queries
 						.2
 						.get_mut(&mut world2, linedef_ref.map_entity)
@@ -267,7 +272,7 @@ pub fn plat_linedef_touch(resources: &mut Resources) -> impl Runnable {
 						map_dynamic,
 					) {
 						if !plat_linedef_touch.retrigger {
-							command_buffer.remove_component::<Touchable>(touch_event.entity);
+							command_buffer.remove_component::<Touchable>(event.entity);
 						}
 					}
 				}

@@ -9,14 +9,14 @@ use crate::{
 		map::{LinedefRef, Map, MapDynamic},
 		physics::{TouchEvent, Touchable},
 		sectormove::{FloorMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
-		sound::{Sound, StartSound},
+		sound::{Sound, StartSoundEvent},
 		switch::{SwitchActive, SwitchParams},
 	},
 };
 use legion::{
 	component,
 	systems::{CommandBuffer, ResourceSet, Runnable},
-	Entity, EntityStore, IntoQuery, Registry, Resources, SystemBuilder, Write,
+	EntityStore, IntoQuery, Registry, Resources, SystemBuilder, Write,
 };
 use serde::{Deserialize, Serialize};
 use shrev::EventChannel;
@@ -85,7 +85,10 @@ pub fn floor_active(resources: &mut Resources) -> impl Runnable {
 					}
 					SectorMoveEventType::TargetReached => {
 						if let Some(sound) = &floor_active.finish_sound {
-							command_buffer.push((event.entity, StartSound(sound.clone())));
+							command_buffer.push((StartSoundEvent {
+								handle: sound.clone(),
+								entity: Some(event.entity),
+							},));
 						}
 
 						command_buffer.remove_component::<FloorMove>(event.entity);
@@ -112,7 +115,7 @@ pub fn floor_switch_use(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("floor_switch_use")
 		.read_resource::<AssetStorage>()
 		.read_resource::<GameTime>()
-		.with_query(<(Entity, &UseEvent, &FloorSwitchUse)>::query())
+		.with_query(<(&UseEvent, &FloorSwitchUse)>::query())
 		.with_query(<&LinedefRef>::query().filter(!component::<SwitchActive>()))
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<FloorActive>() // used by activate_with_tag
@@ -120,10 +123,8 @@ pub fn floor_switch_use(resources: &mut Resources) -> impl Runnable {
 			let (asset_storage, game_time) = resources;
 			let (mut world2, world) = world.split_for_query(&queries.2);
 
-			for (&entity, use_event, floor_switch_use) in queries.0.iter(&world) {
-				command_buffer.remove(entity);
-
-				if let Ok(linedef_ref) = queries.1.get(&world, use_event.entity) {
+			for (event, floor_switch_use) in queries.0.iter(&world) {
+				if let Ok(linedef_ref) = queries.1.get(&world, event.entity) {
 					let map_dynamic = queries
 						.2
 						.get_mut(&mut world2, linedef_ref.map_entity)
@@ -152,7 +153,7 @@ pub fn floor_switch_use(resources: &mut Resources) -> impl Runnable {
 						);
 
 						if floor_switch_use.switch_params.retrigger_time.is_none() {
-							command_buffer.remove_component::<Usable>(use_event.entity);
+							command_buffer.remove_component::<Usable>(event.entity);
 						}
 					}
 				}
@@ -176,7 +177,7 @@ pub fn floor_linedef_touch(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("floor_linedef_touch")
 		.read_resource::<AssetStorage>()
 		.read_resource::<GameTime>()
-		.with_query(<(Entity, &TouchEvent, &FloorLinedefTouch)>::query())
+		.with_query(<(&TouchEvent, &FloorLinedefTouch)>::query())
 		.with_query(<&LinedefRef>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<FloorActive>() // used by activate_with_tag
@@ -184,14 +185,12 @@ pub fn floor_linedef_touch(resources: &mut Resources) -> impl Runnable {
 			let (asset_storage, game_time) = resources;
 			let (mut world2, world) = world.split_for_query(&queries.2);
 
-			for (&entity, touch_event, floor_linedef_touch) in queries.0.iter(&world) {
-				command_buffer.remove(entity);
-
-				if touch_event.collision.is_some() {
+			for (event, floor_linedef_touch) in queries.0.iter(&world) {
+				if event.collision.is_some() {
 					continue;
 				}
 
-				if let Ok(linedef_ref) = queries.1.get(&world, touch_event.entity) {
+				if let Ok(linedef_ref) = queries.1.get(&world, event.entity) {
 					let map_dynamic = queries
 						.2
 						.get_mut(&mut world2, linedef_ref.map_entity)
@@ -209,7 +208,7 @@ pub fn floor_linedef_touch(resources: &mut Resources) -> impl Runnable {
 						map_dynamic,
 					) {
 						if !floor_linedef_touch.retrigger {
-							command_buffer.remove_component::<Touchable>(touch_event.entity);
+							command_buffer.remove_component::<Touchable>(event.entity);
 						}
 					}
 				}

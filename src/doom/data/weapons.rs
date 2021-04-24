@@ -4,14 +4,14 @@ use crate::{
 	doom::{
 		data::FRAME_TIME,
 		draw::sprite::SpriteRender,
-		sound::StartSound,
+		sound::StartSoundEventDef,
 		state::{
 			weapon::{
 				ChangeAmmoCount, ExtraLight, LineAttack, NextWeaponState, SetWeaponSprite,
 				SetWeaponState, SpawnProjectile, WeaponPosition, WeaponReFire, WeaponReady,
-				WeaponSpriteSlot, WeaponSpriteSlotDef,
+				WeaponSpriteSlot, WeaponStateEventDef, WeaponStateEventDefSlot,
 			},
-			EntityDef, StateName,
+			StateName,
 		},
 		template::{AmmoTemplate, WeaponAmmo, WeaponTemplate},
 	},
@@ -33,25 +33,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("up").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("pung.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Up,
 					));
 					world
@@ -61,25 +52,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("down").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("pung.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Down,
 					));
 					world
@@ -89,30 +71,17 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("pung.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Bob,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReady,
 					));
 					world
@@ -122,16 +91,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("pung.sprite"),
 							frame: 1,
@@ -143,25 +107,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 2),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("pung.sprite"),
 							frame: 2,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						LineAttack {
 							count: 1,
 							damage_range: (1..=10).into(),
@@ -182,16 +137,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 5 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 3),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("pung.sprite"),
 							frame: 3,
@@ -203,16 +153,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 4),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("pung.sprite"),
 							frame: 2,
@@ -224,25 +169,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 5 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("pung.sprite"),
 							frame: 1,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReFire,
 					));
 					world
@@ -265,25 +201,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("up").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("pisg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Up,
 					));
 					world
@@ -293,25 +220,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("down").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("pisg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Down,
 					));
 					world
@@ -321,30 +239,17 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("pisg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Bob,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReady,
 					));
 					world
@@ -354,16 +259,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("pisg.sprite"),
 							frame: 0,
@@ -375,30 +275,22 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						StartSoundEventDef {
+							handle: asset_storage.load("dspistol.sound"),
+						},
+					));
+					world.push((
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 6 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 2),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("pisg.sprite"),
 							frame: 1,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ChangeAmmoCount,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						LineAttack {
 							count: 1,
 							damage_range: (1..=3).into(),
@@ -415,13 +307,7 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 						},
 					));
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						StartSound(asset_storage.load("dspistol.sound")),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlot::Flash,
+						WeaponStateEventDefSlot(WeaponSpriteSlot::Flash),
 						SetWeaponState((StateName::from("flash").unwrap(), 0)),
 					));
 					world
@@ -429,16 +315,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 3),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("pisg.sprite"),
 							frame: 2,
@@ -450,25 +331,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 5 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("pisg.sprite"),
 							frame: 1,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReFire,
 					));
 					world
@@ -478,25 +350,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 7 * FRAME_TIME,
 							state: (StateName::from("flash").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("pisf.sprite"),
 							frame: 0,
 							full_bright: true,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0625),
 					));
 					world
@@ -504,13 +367,8 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						SetWeaponSprite(None),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0),
 					));
 					world
@@ -533,25 +391,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("up").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("shtg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Up,
 					));
 					world
@@ -561,25 +410,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("down").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("shtg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Down,
 					));
 					world
@@ -589,30 +429,17 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("shtg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Bob,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReady,
 					));
 					world
@@ -622,16 +449,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 3 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("shtg.sprite"),
 							frame: 0,
@@ -643,30 +465,26 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDefSlot(WeaponSpriteSlot::Flash),
+						SetWeaponState((StateName::from("flash").unwrap(), 0)),
+					));
+					world.push((
+						StartSoundEventDef {
+							handle: asset_storage.load("dsshotgn.sound"),
+						},
+					));
+					world.push((
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 7 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 2),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("shtg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ChangeAmmoCount,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						LineAttack {
 							count: 7,
 							damage_range: (1..=3).into(),
@@ -682,31 +500,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 							miss_sound: None,
 						},
 					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						StartSound(asset_storage.load("dsshotgn.sound")),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlot::Flash,
-						SetWeaponState((StateName::from("flash").unwrap(), 0)),
-					));
 					world
 				},
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 5 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 3),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("shtg.sprite"),
 							frame: 1,
@@ -718,16 +521,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 5 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 4),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("shtg.sprite"),
 							frame: 2,
@@ -739,16 +537,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 5),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("shtg.sprite"),
 							frame: 3,
@@ -760,16 +553,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 5 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 6),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("shtg.sprite"),
 							frame: 2,
@@ -781,16 +569,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 5 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 7),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("shtg.sprite"),
 							frame: 1,
@@ -802,16 +585,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 3 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 8),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("shtg.sprite"),
 							frame: 0,
@@ -823,25 +601,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 7 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("shtg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReFire,
 					));
 					world
@@ -851,25 +620,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("flash").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("shtf.sprite"),
 							frame: 0,
 							full_bright: true,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0625),
 					));
 					world
@@ -877,25 +637,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 3 * FRAME_TIME,
 							state: (StateName::from("flash").unwrap(), 2),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("shtf.sprite"),
 							frame: 1,
 							full_bright: true,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.125),
 					));
 					world
@@ -903,13 +654,8 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						SetWeaponSprite(None),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0),
 					));
 					world
@@ -932,25 +678,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("up").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("chgg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Up,
 					));
 					world
@@ -960,25 +697,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("down").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("chgg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Down,
 					));
 					world
@@ -988,30 +716,17 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("chgg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Bob,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReady,
 					));
 					world
@@ -1021,30 +736,26 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						StartSoundEventDef {
+							handle: asset_storage.load("dspistol.sound"),
+						},
+					));
+					world.push((
+						WeaponStateEventDefSlot(WeaponSpriteSlot::Flash),
+						SetWeaponState((StateName::from("flash").unwrap(), 0)),
+					));
+					world.push((
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("chgg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ChangeAmmoCount,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						LineAttack {
 							count: 1,
 							damage_range: (1..=3).into(),
@@ -1059,46 +770,28 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 							hit_sound: None,
 							miss_sound: None,
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						StartSound(asset_storage.load("dspistol.sound")),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlot::Flash,
-						SetWeaponState((StateName::from("flash").unwrap(), 0)),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						StartSoundEventDef {
+							handle: asset_storage.load("dspistol.sound"),
+						},
+					));
+					world.push((
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 2),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("chgg.sprite"),
 							frame: 1,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ChangeAmmoCount,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						LineAttack {
 							count: 1,
 							damage_range: (1..=3).into(),
@@ -1115,13 +808,7 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 						},
 					));
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						StartSound(asset_storage.load("dspistol.sound")),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlot::Flash,
+						WeaponStateEventDefSlot(WeaponSpriteSlot::Flash),
 						SetWeaponState((StateName::from("flash2").unwrap(), 0)),
 					));
 					world
@@ -1129,25 +816,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 0 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("chgg.sprite"),
 							frame: 1,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReFire,
 					));
 					world
@@ -1157,25 +835,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 5 * FRAME_TIME,
 							state: (StateName::from("flash").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("chgf.sprite"),
 							frame: 0,
 							full_bright: true,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0625),
 					));
 					world
@@ -1183,13 +852,8 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						SetWeaponSprite(None),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0),
 					));
 					world
@@ -1199,25 +863,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 5 * FRAME_TIME,
 							state: (StateName::from("flash2").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("chgf.sprite"),
 							frame: 1,
 							full_bright: true,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.125),
 					));
 					world
@@ -1225,13 +880,8 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						SetWeaponSprite(None),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0),
 					));
 					world
@@ -1254,25 +904,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("up").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("misg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Up,
 					));
 					world
@@ -1282,25 +923,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("down").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("misg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Down,
 					));
 					world
@@ -1310,30 +942,17 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("misg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Bob,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReady,
 					));
 					world
@@ -1343,16 +962,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 8 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("misg.sprite"),
 							frame: 1,
@@ -1360,8 +974,7 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 						})),
 					));
 					world.push((
-						EntityDef,
-						WeaponSpriteSlot::Flash,
+						WeaponStateEventDefSlot(WeaponSpriteSlot::Flash),
 						SetWeaponState((StateName::from("flash").unwrap(), 0)),
 					));
 					world
@@ -1369,30 +982,17 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 12 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 2),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("misg.sprite"),
 							frame: 1,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ChangeAmmoCount,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SpawnProjectile(asset_storage.load("rocket.entity")),
 					));
 					world
@@ -1400,25 +1000,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 0 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("misg.sprite"),
 							frame: 1,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReFire,
 					));
 					world
@@ -1428,25 +1019,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 3 * FRAME_TIME,
 							state: (StateName::from("flash").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("misf.sprite"),
 							frame: 0,
 							full_bright: true,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0625),
 					));
 					world
@@ -1454,16 +1036,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("flash").unwrap(), 2),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("misf.sprite"),
 							frame: 1,
@@ -1475,25 +1052,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("flash").unwrap(), 3),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("misf.sprite"),
 							frame: 2,
 							full_bright: true,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.125),
 					));
 					world
@@ -1501,25 +1069,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("flash").unwrap(), 4),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("misf.sprite"),
 							frame: 3,
 							full_bright: true,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.125),
 					));
 					world
@@ -1527,13 +1086,8 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						SetWeaponSprite(None),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0),
 					));
 					world
@@ -1556,25 +1110,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("up").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("plsg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Up,
 					));
 					world
@@ -1584,25 +1129,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("down").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("plsg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Down,
 					));
 					world
@@ -1612,30 +1148,17 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("plsg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Bob,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReady,
 					));
 					world
@@ -1645,61 +1168,38 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDefSlot(WeaponSpriteSlot::Flash),
+						SetWeaponState((StateName::from("flash").unwrap(), 0)),
+					));
+					world.push((
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 3 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("plsg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ChangeAmmoCount,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SpawnProjectile(asset_storage.load("plasma.entity")),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlot::Flash,
-						SetWeaponState((StateName::from("flash").unwrap(), 0)),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 20 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("plsg.sprite"),
 							frame: 1,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReFire,
 					));
 					world
@@ -1709,25 +1209,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("flash").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("plsf.sprite"),
 							frame: 0,
 							full_bright: true,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0625),
 					));
 					world
@@ -1735,13 +1226,8 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						SetWeaponSprite(None),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0),
 					));
 					world
@@ -1751,25 +1237,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("flash2").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("plsf.sprite"),
 							frame: 1,
 							full_bright: true,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0625),
 					));
 					world
@@ -1777,13 +1254,8 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						SetWeaponSprite(None),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0),
 					));
 					world
@@ -1806,25 +1278,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("up").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("bfgg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Up,
 					));
 					world
@@ -1834,25 +1297,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("down").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("bfgg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Down,
 					));
 					world
@@ -1862,30 +1316,17 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("bfgg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Bob,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReady,
 					));
 					world
@@ -1895,16 +1336,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 20 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("bfgg.sprite"),
 							frame: 0,
@@ -1912,25 +1348,20 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 						})),
 					));
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						StartSound(asset_storage.load("dsbfg.sound")),
+						StartSoundEventDef {
+							handle: asset_storage.load("dsbfg.sound"),
+						},
 					));
 					world
 				},
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 10 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 2),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("bfgg.sprite"),
 							frame: 1,
@@ -1938,8 +1369,7 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 						})),
 					));
 					world.push((
-						EntityDef,
-						WeaponSpriteSlot::Flash,
+						WeaponStateEventDefSlot(WeaponSpriteSlot::Flash),
 						SetWeaponState((StateName::from("flash").unwrap(), 0)),
 					));
 					world
@@ -1947,30 +1377,17 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 10 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 3),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("bfgg.sprite"),
 							frame: 1,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ChangeAmmoCount,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SpawnProjectile(asset_storage.load("bfg.entity")),
 					));
 					world
@@ -1978,25 +1395,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 20 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("bfgg.sprite"),
 							frame: 1,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReFire,
 					));
 					world
@@ -2006,25 +1414,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 11 * FRAME_TIME,
 							state: (StateName::from("flash").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("bfgf.sprite"),
 							frame: 0,
 							full_bright: true,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0625),
 					));
 					world
@@ -2032,25 +1431,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 6 * FRAME_TIME,
 							state: (StateName::from("flash").unwrap(), 2),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("bfgf.sprite"),
 							frame: 1,
 							full_bright: true,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.125),
 					));
 					world
@@ -2058,13 +1448,8 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						SetWeaponSprite(None),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0),
 					));
 					world
@@ -2083,51 +1468,37 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						StartSoundEventDef {
+							handle: asset_storage.load("dssawup.sound"),
+						},
+					));
+					world.push((
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 0 * FRAME_TIME,
 							state: (StateName::from("up").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sawg.sprite"),
 							frame: 2,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						StartSound(asset_storage.load("dssawup.sound")),
 					));
 					world
 				},
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("up").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sawg.sprite"),
 							frame: 2,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Up,
 					));
 					world
@@ -2137,25 +1508,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("down").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sawg.sprite"),
 							frame: 2,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Down,
 					));
 					world
@@ -2165,35 +1527,22 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						StartSoundEventDef {
+							handle: asset_storage.load("dssawidl.sound"),
+						},
+					));
+					world.push((
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sawg.sprite"),
 							frame: 2,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						StartSound(asset_storage.load("dssawidl.sound")),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Bob,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReady,
 					));
 					world
@@ -2201,30 +1550,17 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sawg.sprite"),
 							frame: 3,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Bob,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReady,
 					));
 					world
@@ -2234,25 +1570,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sawg.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						LineAttack {
 							count: 1,
 							damage_range: (1..=10).into(),
@@ -2273,25 +1600,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 2),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sawg.sprite"),
 							frame: 1,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						LineAttack {
 							count: 1,
 							damage_range: (1..=10).into(),
@@ -2312,25 +1630,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 0 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sawg.sprite"),
 							frame: 1,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReFire,
 					));
 					world
@@ -2353,25 +1662,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("up").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sht2.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Up,
 					));
 					world
@@ -2381,25 +1681,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("down").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sht2.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Down,
 					));
 					world
@@ -2409,30 +1700,17 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 1 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sht2.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponPosition::Bob,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReady,
 					));
 					world
@@ -2442,16 +1720,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 3 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sht2.sprite"),
 							frame: 0,
@@ -2463,30 +1736,21 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDefSlot(WeaponSpriteSlot::Flash),
+						SetWeaponState((StateName::from("flash").unwrap(), 0)),
+					));
+					world.push((
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 7 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 2),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sht2.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ChangeAmmoCount,
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						LineAttack {
 							count: 20,
 							damage_range: (1..=3).into(),
@@ -2503,30 +1767,20 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 						},
 					));
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						StartSound(asset_storage.load("dsdshtgn.sound")),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlot::Flash,
-						SetWeaponState((StateName::from("flash").unwrap(), 0)),
+						StartSoundEventDef {
+							handle: asset_storage.load("dsdshtgn.sound"),
+						},
 					));
 					world
 				},
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 7 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 3),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sht2.sprite"),
 							frame: 1,
@@ -2538,16 +1792,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 7 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 4),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sht2.sprite"),
 							frame: 2,
@@ -2559,16 +1808,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 7 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 5),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sht2.sprite"),
 							frame: 3,
@@ -2576,25 +1820,20 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 						})),
 					));
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						StartSound(asset_storage.load("dsdbopn.sound")),
+						StartSoundEventDef {
+							handle: asset_storage.load("dsdbopn.sound"),
+						},
 					));
 					world
 				},
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 7 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 6),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sht2.sprite"),
 							frame: 4,
@@ -2606,42 +1845,32 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						StartSoundEventDef {
+							handle: asset_storage.load("dsdbload.sound"),
+						},
+					));
+					world.push((
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 7 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 7),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sht2.sprite"),
 							frame: 5,
 							full_bright: false,
 						})),
 					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						StartSound(asset_storage.load("dsdbload.sound")),
-					));
 					world
 				},
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 6 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 8),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sht2.sprite"),
 							frame: 6,
@@ -2653,16 +1882,11 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 6 * FRAME_TIME,
 							state: (StateName::from("attack").unwrap(), 9),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sht2.sprite"),
 							frame: 7,
@@ -2670,34 +1894,25 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 						})),
 					));
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
-						StartSound(asset_storage.load("dsdbcls.sound")),
+						StartSoundEventDef {
+							handle: asset_storage.load("dbcls.sound"),
+						},
 					));
 					world
 				},
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 5 * FRAME_TIME,
 							state: (StateName::from("ready").unwrap(), 0),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sht2.sprite"),
 							frame: 0,
 							full_bright: false,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						WeaponReFire,
 					));
 					world
@@ -2707,25 +1922,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 5 * FRAME_TIME,
 							state: (StateName::from("flash").unwrap(), 1),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sht2.sprite"),
 							frame: 8,
 							full_bright: true,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0625),
 					));
 					world
@@ -2733,25 +1939,16 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						NextWeaponState {
 							time: 4 * FRAME_TIME,
 							state: (StateName::from("flash").unwrap(), 2),
 						},
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						SetWeaponSprite(Some(SpriteRender {
 							sprite: asset_storage.load("sht2.sprite"),
 							frame: 9,
 							full_bright: true,
 						})),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.125),
 					));
 					world
@@ -2759,13 +1956,8 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 				{
 					let mut world = World::default();
 					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
+						WeaponStateEventDef,
 						SetWeaponSprite(None),
-					));
-					world.push((
-						EntityDef,
-						WeaponSpriteSlotDef,
 						ExtraLight(0.0),
 					));
 					world

@@ -1,12 +1,9 @@
 use crate::{
-	common::{
-		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
-		time::Timer,
-	},
+	common::time::Timer,
 	doom::state::{entity::entity_state, weapon::weapon_state},
 };
 use arrayvec::ArrayString;
-use legion::{systems::ResourceSet, Entity, Read, Resources, Schedule, World, Write};
+use legion::{systems::ResourceSet, Read, Resources, Schedule, World};
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -28,15 +25,6 @@ pub enum StateAction {
 	None,
 }
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct EntityDef;
-
-impl SpawnFrom<EntityDef> for Entity {
-	fn spawn(_component: &EntityDef, _accessor: ComponentAccessor, resources: &Resources) -> Self {
-		<Read<SpawnContext<Entity>>>::fetch(resources).0
-	}
-}
-
 #[derive(Default, Debug)]
 pub struct StateSystemsRun(AtomicBool);
 
@@ -44,11 +32,6 @@ pub fn state(
 	resources: &mut Resources,
 	mut actions: Schedule,
 ) -> impl FnMut(&mut World, &mut Resources) {
-	{
-		let mut handler_set = <Write<SpawnMergerHandlerSet>>::fetch_mut(resources);
-		handler_set.register_spawn::<EntityDef, Entity>();
-	}
-
 	let mut schedule = Schedule::builder()
 		.add_system(entity_state(resources))
 		.add_system(weapon_state(resources))

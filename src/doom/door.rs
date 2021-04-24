@@ -10,7 +10,7 @@ use crate::{
 		map::{LinedefRef, Map, MapDynamic},
 		physics::{TouchEvent, Touchable},
 		sectormove::{CeilingMove, SectorMove, SectorMoveEvent, SectorMoveEventType},
-		sound::{Sound, StartSound},
+		sound::{Sound, StartSoundEvent},
 		switch::{SwitchActive, SwitchParams},
 	},
 };
@@ -98,7 +98,10 @@ pub fn door_active(resources: &mut Resources) -> impl Runnable {
 					};
 
 					if let Some(sound) = sound {
-						command_buffer.push((entity, StartSound(sound.clone())));
+						command_buffer.push((StartSoundEvent {
+							handle: sound.clone(),
+							entity: Some(entity),
+						},));
 					}
 				}
 			}
@@ -134,7 +137,10 @@ pub fn door_active(resources: &mut Resources) -> impl Runnable {
 							};
 
 							if let Some(sound) = sound {
-								command_buffer.push((event.entity, StartSound(sound.clone())));
+								command_buffer.push((StartSoundEvent {
+									handle: sound.clone(),
+									entity: Some(event.entity),
+								},));
 							}
 						}
 					}
@@ -175,7 +181,7 @@ pub fn door_use(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("door_use")
 		.read_resource::<AssetStorage>()
 		.read_resource::<GameTime>()
-		.with_query(<(Entity, &UseEvent, &DoorUse)>::query())
+		.with_query(<(&UseEvent, &DoorUse)>::query())
 		.with_query(<&LinedefRef>::query())
 		.with_query(<&MapDynamic>::query())
 		.with_query(<(&mut CeilingMove, &mut DoorActive)>::query())
@@ -183,10 +189,8 @@ pub fn door_use(resources: &mut Resources) -> impl Runnable {
 			let (asset_storage, game_time) = resources;
 			let (mut world3, world) = world.split_for_query(&queries.3);
 
-			for (&entity, use_event, door_use) in queries.0.iter(&world) {
-				command_buffer.remove(entity);
-
-				if let Ok(linedef_ref) = queries.1.get(&world, use_event.entity) {
+			for (event, door_use) in queries.0.iter(&world) {
+				if let Ok(linedef_ref) = queries.1.get(&world, event.entity) {
 					let map_dynamic = queries.2.get(&world, linedef_ref.map_entity).unwrap();
 					let map = asset_storage.get(&map_dynamic.map).unwrap();
 					let linedef = &map.linedefs[linedef_ref.index];
@@ -236,7 +240,7 @@ pub fn door_use(resources: &mut Resources) -> impl Runnable {
 						);
 
 						if !door_use.retrigger {
-							command_buffer.remove_component::<Usable>(use_event.entity);
+							command_buffer.remove_component::<Usable>(event.entity);
 						}
 					}
 				}
@@ -260,7 +264,7 @@ pub fn door_switch_use(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("door_switch_use")
 		.read_resource::<AssetStorage>()
 		.read_resource::<GameTime>()
-		.with_query(<(Entity, &UseEvent, &DoorSwitchUse)>::query())
+		.with_query(<(&UseEvent, &DoorSwitchUse)>::query())
 		.with_query(<&LinedefRef>::query().filter(!component::<SwitchActive>()))
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<DoorActive>() // used by activate_with_tag
@@ -268,10 +272,8 @@ pub fn door_switch_use(resources: &mut Resources) -> impl Runnable {
 			let (asset_storage, game_time) = resources;
 			let (mut world2, world) = world.split_for_query(&queries.2);
 
-			for (&entity, use_event, door_switch_use) in queries.0.iter(&world) {
-				command_buffer.remove(entity);
-
-				if let Ok(linedef_ref) = queries.1.get(&world, use_event.entity) {
+			for (event, door_switch_use) in queries.0.iter(&world) {
+				if let Ok(linedef_ref) = queries.1.get(&world, event.entity) {
 					let map_dynamic = queries
 						.2
 						.get_mut(&mut world2, linedef_ref.map_entity)
@@ -300,7 +302,7 @@ pub fn door_switch_use(resources: &mut Resources) -> impl Runnable {
 						);
 
 						if door_switch_use.switch_params.retrigger_time.is_none() {
-							command_buffer.remove_component::<Usable>(use_event.entity);
+							command_buffer.remove_component::<Usable>(event.entity);
 						}
 					}
 				}
@@ -324,7 +326,7 @@ pub fn door_linedef_touch(resources: &mut Resources) -> impl Runnable {
 	SystemBuilder::new("door_linedef_touch")
 		.read_resource::<AssetStorage>()
 		.read_resource::<GameTime>()
-		.with_query(<(Entity, &TouchEvent, &DoorLinedefTouch)>::query())
+		.with_query(<(&TouchEvent, &DoorLinedefTouch)>::query())
 		.with_query(<&LinedefRef>::query())
 		.with_query(<&mut MapDynamic>::query())
 		.read_component::<DoorActive>() // used by activate_with_tag
@@ -332,14 +334,12 @@ pub fn door_linedef_touch(resources: &mut Resources) -> impl Runnable {
 			let (asset_storage, game_time) = resources;
 			let (mut world2, world) = world.split_for_query(&queries.2);
 
-			for (&entity, touch_event, door_linedef_touch) in queries.0.iter(&world) {
-				command_buffer.remove(entity);
-
-				if touch_event.collision.is_some() {
+			for (event, door_linedef_touch) in queries.0.iter(&world) {
+				if event.collision.is_some() {
 					continue;
 				}
 
-				if let Ok(linedef_ref) = queries.1.get(&world, touch_event.entity) {
+				if let Ok(linedef_ref) = queries.1.get(&world, event.entity) {
 					let map_dynamic = queries
 						.2
 						.get_mut(&mut world2, linedef_ref.map_entity)
@@ -357,7 +357,7 @@ pub fn door_linedef_touch(resources: &mut Resources) -> impl Runnable {
 						map_dynamic,
 					) {
 						if !door_linedef_touch.retrigger {
-							command_buffer.remove_component::<Touchable>(touch_event.entity);
+							command_buffer.remove_component::<Touchable>(event.entity);
 						}
 					}
 				}

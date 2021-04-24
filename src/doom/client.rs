@@ -14,7 +14,7 @@ use crate::{
 		input::UserCommand,
 		map::MapDynamic,
 		physics::{BoxCollider, Physics, TouchEvent},
-		sound::{Sound, StartSound},
+		sound::{Sound, StartSoundEvent},
 		spawn::spawn_helper,
 		state::weapon::{Owner, WeaponState},
 		template::{EntityTemplateRef, WeaponTemplate},
@@ -258,7 +258,7 @@ impl SpawnFrom<UseEventDef> for UseEvent {
 	}
 }
 
-pub fn player_use_system(resources: &mut Resources) -> impl Runnable {
+pub fn player_use(resources: &mut Resources) -> impl Runnable {
 	let (mut handler_set, mut registry) =
 		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 
@@ -269,7 +269,7 @@ pub fn player_use_system(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<Usable>();
 	handler_set.register_spawn::<UseEventDef, UseEvent>();
 
-	SystemBuilder::new("player_use_system")
+	SystemBuilder::new("player_use")
 		.read_resource::<AssetStorage>()
 		.read_resource::<Client>()
 		.with_query(<(&Transform, &User)>::query())
@@ -330,19 +330,22 @@ pub fn player_use_system(resources: &mut Resources) -> impl Runnable {
 						let linedef_entity = map_dynamic.linedefs[linedef_index].entity;
 
 						if let Ok((template_ref, Usable)) = queries.2.get(world, linedef_entity) {
-							let use_event = UseEvent {
+							let event = UseEvent {
 								entity: linedef_entity,
 								other: entity,
 							};
 							let handle = template_ref.0.clone();
 							command_buffer.exec_mut(move |world, resources| {
-								resources.insert(SpawnContext(use_event));
+								resources.insert(SpawnContext(event));
 								let asset_storage = <Read<AssetStorage>>::fetch(resources);
 								let use_world = &asset_storage.get(&handle).unwrap().r#use;
 								spawn_helper(&use_world, world, resources);
 							});
 						} else {
-							command_buffer.push((entity, StartSound(user.error_sound.clone())));
+							command_buffer.push((StartSoundEvent {
+								handle: user.error_sound.clone(),
+								entity: Some(entity),
+							},));
 						}
 					}
 				}
@@ -388,26 +391,25 @@ pub fn player_touch(resources: &mut Resources) -> impl Runnable {
 	handler_set.register_clone::<PlayerTouch>();
 
 	SystemBuilder::new("player_touch")
-		.with_query(<(Entity, &TouchEvent, &PlayerTouch)>::query())
+		.with_query(<(&TouchEvent, &PlayerTouch)>::query())
 		.with_query(<&mut Camera>::query())
 		.build(move |command_buffer, world, _resources, queries| {
 			let (world0, mut world) = world.split_for_query(&queries.0);
 
-			for (&entity, touch_event, PlayerTouch) in queries.0.iter(&world0) {
-				command_buffer.remove(entity);
-
+			for (&event, PlayerTouch) in queries.0.iter(&world0) {
 				// Shift the camera downwards if hitting the ground
-				if let (Ok(camera), Some(collision)) = (
-					queries.1.get_mut(&mut world, touch_event.entity),
-					touch_event.collision,
-				) {
+				if let (Ok(camera), Some(collision)) =
+					(queries.1.get_mut(&mut world, event.entity), event.collision)
+				{
 					let speed = -collision.velocity.dot(&collision.normal);
 					let down_speed = collision.normal[2] * speed;
 
 					if down_speed >= 8.0 * FRAME_RATE {
 						camera.deviation_velocity = -down_speed / 8.0;
-						command_buffer
-							.push((touch_event.entity, StartSound(camera.impact_sound.clone())));
+						command_buffer.push((StartSoundEvent {
+							handle: camera.impact_sound.clone(),
+							entity: Some(event.entity),
+						},));
 					}
 				}
 			}

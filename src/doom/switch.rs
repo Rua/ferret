@@ -7,7 +7,7 @@ use crate::{
 	doom::{
 		image::Image,
 		map::{textures::TextureType, LinedefRef, Map, MapDynamic, SidedefSlot},
-		sound::{Sound, StartSound},
+		sound::{Sound, StartSoundEvent},
 	},
 };
 use legion::{
@@ -65,7 +65,10 @@ pub fn switch_active_system(resources: &mut Resources) -> impl Runnable {
 						TextureType::Normal(switch_active.texture.clone());
 
 					if let Some(sound) = &switch_active.sound {
-						command_buffer.push((sector_entity, StartSound(sound.clone())));
+						command_buffer.push((StartSoundEvent {
+							handle: sound.clone(),
+							entity: Some(sector_entity),
+						},));
 					}
 
 					command_buffer.remove_component::<SwitchActive>(entity);
@@ -99,7 +102,10 @@ pub fn activate(
 				// Play sound
 				if let Some(sound) = &params.sound {
 					let sector_entity = map_dynamic.sectors[sidedef.sector_index].entity;
-					command_buffer.push((sector_entity, StartSound(sound.clone())));
+					command_buffer.push((StartSoundEvent {
+						handle: sound.clone(),
+						entity: Some(sector_entity),
+					},));
 				}
 
 				if let Some(time_left) = params.retrigger_time {

@@ -9,7 +9,7 @@ use crate::{
 		components::Transform,
 		map::{MapDynamic, SectorRef},
 		physics::BoxCollider,
-		sound::{Sound, StartSound},
+		sound::{Sound, StartSoundEvent},
 		state::weapon::Owner,
 		trace::SectorTracer,
 	},
@@ -97,10 +97,10 @@ pub fn sector_move_system(resources: &mut Resources) -> impl Runnable {
 
 				if sector_move.sound_timer.is_elapsed(**game_time) && sector_move.sound.is_some() {
 					sector_move.sound_timer.restart(**game_time);
-					command_buffer.push((
-						entity,
-						StartSound(sector_move.sound.as_ref().unwrap().clone()),
-					));
+					command_buffer.push((StartSoundEvent {
+						handle: sector_move.sound.as_ref().unwrap().clone(),
+						entity: Some(entity),
+					},));
 				}
 
 				let mut move_step = sector_move.velocity * delta_time.0.as_secs_f32();

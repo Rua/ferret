@@ -42,10 +42,10 @@ use crate::{
 	doom::{
 		camera::{camera_system, movement_bob_system},
 		client::{
-			player_command_system, player_move_system, player_touch, player_use_system,
-			player_weapon_system, Client,
+			player_command_system, player_move_system, player_touch, player_use,
+			player_weapon_system, Client, UseEvent,
 		},
-		components::{register_components, Transform},
+		components::{clear_event, register_components, Transform},
 		data::{iwads::IWADINFO, FRAME_TIME},
 		door::{door_active, door_linedef_touch, door_switch_use, door_use},
 		draw::{
@@ -54,7 +54,7 @@ use crate::{
 		},
 		exit::exit_switch_use,
 		floor::{floor_active, floor_linedef_touch, floor_switch_use},
-		health::apply_damage,
+		health::{apply_damage, DamageEvent},
 		hud::{ammo_stat, arms_stat, health_stat},
 		image::{import_palette, import_patch, process_images, Image, ImageData, Palette},
 		light::{light_flash_system, light_glow_system},
@@ -65,24 +65,24 @@ use crate::{
 			},
 			LinedefRef, Map, MapDynamic, SectorRef,
 		},
-		physics::{physics, BoxCollider},
+		physics::{physics, BoxCollider, TouchEvent},
 		plat::{plat_active, plat_linedef_touch, plat_switch_use},
 		sectormove::sector_move_system,
 		sound::{
-			import_raw_sound, import_sound, sound_playing_system, start_sound_system, RawSound,
-			Sound,
+			import_raw_sound, import_sound, start_sound, update_sound, RawSound, Sound,
+			StartSoundEvent,
 		},
 		sprite::{import_sprite, Sprite},
 		state::{
 			entity::{
 				next_entity_state, remove_entity, set_blocks_types, set_entity_sprite,
-				set_solid_type,
+				set_solid_type, EntityStateEvent,
 			},
 			state,
 			weapon::{
 				change_ammo_count, extra_light, line_attack, next_weapon_state, projectile_touch,
 				radius_attack, set_weapon_sprite, set_weapon_state, spawn_projectile, spray_attack,
-				weapon_position, weapon_ready, weapon_refire,
+				weapon_position, weapon_ready, weapon_refire, WeaponStateEvent,
 			},
 		},
 		switch::switch_active_system,
@@ -222,22 +222,27 @@ pub fn add_update_systems(builder: &mut Builder, resources: &mut Resources) -> a
 		.add_thread_local(player_command_system(resources)).flush()
 		.add_thread_local(player_move_system(resources)).flush()
 		.add_thread_local(player_weapon_system(resources)).flush()
-		.add_thread_local(player_use_system(resources)).flush()
 
-		.add_thread_local(physics(resources)).flush()
-		.add_thread_local(door_linedef_touch(resources)).flush()
-		.add_thread_local(floor_linedef_touch(resources)).flush()
-		.add_thread_local(plat_linedef_touch(resources)).flush()
-		.add_thread_local(player_touch(resources)).flush()
-		.add_thread_local(projectile_touch(resources)).flush()
+		.add_system(player_use(resources)).flush()
+		.add_system(door_use(resources))
+		.add_system(door_switch_use(resources))
+		.add_system(exit_switch_use(resources))
+		.add_system(floor_switch_use(resources))
+		.add_system(plat_switch_use(resources))
+		.add_system(clear_event::<UseEvent>())
+		.flush()
+
+		.add_system(physics(resources)).flush()
+		.add_system(door_linedef_touch(resources))
+		.add_system(floor_linedef_touch(resources))
+		.add_system(plat_linedef_touch(resources))
+		.add_system(player_touch(resources))
+		.add_system(projectile_touch(resources))
+		.add_system(clear_event::<TouchEvent>())
+		.flush()
 
 		.add_thread_local(movement_bob_system(resources)).flush()
 		.add_thread_local(camera_system(resources)).flush()
-		.add_thread_local(door_use(resources)).flush()
-		.add_thread_local(door_switch_use(resources)).flush()
-		.add_thread_local(exit_switch_use(resources)).flush()
-		.add_thread_local(floor_switch_use(resources)).flush()
-		.add_thread_local(plat_switch_use(resources)).flush()
 		.add_thread_local(sector_move_system(resources)).flush()
 		.add_thread_local(door_active(resources)).flush()
 		.add_thread_local(floor_active(resources)).flush()
@@ -247,7 +252,11 @@ pub fn add_update_systems(builder: &mut Builder, resources: &mut Resources) -> a
 		.add_thread_local(switch_active_system(resources)).flush()
 		.add_thread_local(texture_animation_system(resources)).flush()
 		.add_thread_local(texture_scroll_system(resources)).flush()
-		.add_thread_local(apply_damage(resources)).flush()
+		
+		.add_system(apply_damage(resources))
+		.add_system(clear_event::<DamageEvent>())
+		.flush()
+
 		.add_thread_local_fn({
 			let actions = Schedule::builder()
 				.add_system(change_ammo_count(resources))
@@ -267,6 +276,9 @@ pub fn add_update_systems(builder: &mut Builder, resources: &mut Resources) -> a
 				.add_system(weapon_position(resources))
 				.add_system(weapon_ready(resources))
 				.add_system(weapon_refire(resources))
+				.add_system(clear_event::<EntityStateEvent>())
+				.add_system(clear_event::<WeaponStateEvent>())
+				.flush()
 				.build();
 
 			state(resources, actions)
@@ -288,8 +300,9 @@ pub fn add_output_systems(builder: &mut Builder, resources: &mut Resources) -> a
 		.add_thread_local(draw_weapon_sprites(resources)?)
 		.add_thread_local(draw_ui(resources)?)
 		.add_thread_local(finish_draw(resources)?)
-		.add_thread_local(start_sound_system(resources)).flush()
-		.add_thread_local(sound_playing_system(resources)).flush();
+		.add_system(start_sound(resources))
+		.add_system(clear_event::<StartSoundEvent>()).flush()
+		.add_system(update_sound(resources)).flush();
 
 	Ok(())
 }
