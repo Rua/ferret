@@ -1,9 +1,6 @@
 //! Various types and functions used for geometry calculations.
 
-use nalgebra::{
-	allocator::Allocator, storage::Owned, DefaultAllocator, DimName, Matrix4, Vector2, Vector3,
-	VectorN, U2, U3,
-};
+use nalgebra::{Matrix4, SVector, Vector2, Vector3};
 use num_traits::identities::Zero;
 use serde::{Deserialize, Serialize};
 
@@ -11,30 +8,20 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`Line2`] and [`Line3`] are type aliases for lines in 2D and 3D space, respectively.
 #[derive(Debug, Clone, Copy)]
-pub struct Line<D>
-where
-	D: DimName,
-	DefaultAllocator: Allocator<f32, D>,
-	Owned<f32, D>: Copy,
-{
-	pub point: VectorN<f32, D>,
-	pub dir: VectorN<f32, D>,
+pub struct Line<const D: usize> {
+	pub point: SVector<f32, D>,
+	pub dir: SVector<f32, D>,
 }
 
 /// A [`Line`] in 2D space.
-pub type Line2 = Line<U2>;
+pub type Line2 = Line<2>;
 /// A [`Line`] in 3D space.
-pub type Line3 = Line<U3>;
+pub type Line3 = Line<3>;
 
-impl<D> Line<D>
-where
-	D: DimName,
-	DefaultAllocator: Allocator<f32, D>,
-	Owned<f32, D>: Copy,
-{
+impl<const D: usize> Line<D> {
 	/// Constructs a new `Line` from a start point and a direction vector.
 	#[inline]
-	pub fn new(point: VectorN<f32, D>, dir: VectorN<f32, D>) -> Line<D> {
+	pub fn new(point: SVector<f32, D>, dir: SVector<f32, D>) -> Line<D> {
 		Line { point, dir }
 	}
 
@@ -49,7 +36,7 @@ where
 
 	/// Returns the end point of the line segment, `self.point` + `self.dir`.
 	#[inline]
-	pub fn end_point(&self) -> VectorN<f32, D> {
+	pub fn end_point(&self) -> SVector<f32, D> {
 		self.point + self.dir
 	}
 }
@@ -117,30 +104,20 @@ impl From<Line3> for Line2 {
 ///
 /// [`Plane2`] and [`Plane3`] are type aliases for planes in 2D and 3D space, respectively.
 #[derive(Clone, Copy, Debug)]
-pub struct Plane<D>
-where
-	D: DimName,
-	DefaultAllocator: Allocator<f32, D>,
-	Owned<f32, D>: Copy,
-{
-	pub normal: VectorN<f32, D>,
+pub struct Plane<const D: usize> {
+	pub normal: SVector<f32, D>,
 	pub distance: f32,
 }
 
 /// A [`Plane`] in 2D space; that is, an infinite line.
-pub type Plane2 = Plane<U2>;
+pub type Plane2 = Plane<2>;
 /// A [`Plane`] in 3D space.
-pub type Plane3 = Plane<U3>;
+pub type Plane3 = Plane<3>;
 
-impl<D> Plane<D>
-where
-	D: DimName,
-	DefaultAllocator: Allocator<f32, D>,
-	Owned<f32, D>: Copy,
-{
+impl<const D: usize> Plane<D> {
 	/// Constructs a new `Plane` from a normal vector and the shortest distance from the origin.
 	#[inline]
-	pub fn new(normal: VectorN<f32, D>, distance: f32) -> Plane<D> {
+	pub fn new(normal: SVector<f32, D>, distance: f32) -> Plane<D> {
 		assert!(!normal.is_zero());
 		Plane { normal, distance }
 	}
@@ -378,57 +355,36 @@ impl std::fmt::Display for Interval {
 ///
 /// [`AABB2`] and [`AABB3`] are type aliases for bounding boxes in 2D and 3D space, respectively.
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct AABB<D>(VectorN<Interval, D>)
-where
-	D: DimName,
-	DefaultAllocator: Allocator<Interval, D>,
-	Owned<Interval, D>: Copy;
+pub struct AABB<const D: usize>(SVector<Interval, D>);
 
 /// An [`AABB`] in 2D space.
-pub type AABB2 = AABB<U2>;
+pub type AABB2 = AABB<2>;
 /// An [`AABB`] in 3D space.
-pub type AABB3 = AABB<U3>;
+pub type AABB3 = AABB<3>;
 
-impl<D> AABB<D>
-where
-	D: DimName,
-	DefaultAllocator: Allocator<Interval, D>,
-	Owned<Interval, D>: Copy,
-{
+impl<const D: usize> AABB<D> {
 	/// Constructs a new empty `AABB`, with an empty interval for each axis.
 	#[inline]
 	pub fn empty() -> AABB<D> {
-		AABB(VectorN::repeat(Interval::empty()))
+		AABB(SVector::repeat(Interval::empty()))
 	}
 
 	/// Constructs an `AABB` from a single point,
 	/// with `min` and `max` set to that point along each axis.
 	#[inline]
-	pub fn from_point(point: VectorN<f32, D>) -> AABB<D>
-	where
-		DefaultAllocator: Allocator<f32, D>,
-		Owned<f32, D>: Copy,
-	{
+	pub fn from_point(point: SVector<f32, D>) -> AABB<D> {
 		AABB(point.map(Interval::from_point))
 	}
 
 	/// Constructs an `AABB` directly from a vector of intervals.
 	#[inline]
-	pub fn from_intervals(intervals: VectorN<Interval, D>) -> AABB<D>
-	where
-		DefaultAllocator: Allocator<f32, D>,
-		Owned<f32, D>: Copy,
-	{
+	pub fn from_intervals(intervals: SVector<Interval, D>) -> AABB<D> {
 		AABB(intervals)
 	}
 
 	/// Constructs an `AABB` from the minimum and maximum extent of the bounding box.
 	#[inline]
-	pub fn from_minmax(min: VectorN<f32, D>, max: VectorN<f32, D>) -> AABB<D>
-	where
-		DefaultAllocator: Allocator<f32, D>,
-		Owned<f32, D>: Copy,
-	{
+	pub fn from_minmax(min: SVector<f32, D>, max: SVector<f32, D>) -> AABB<D> {
 		AABB(min.zip_map(&max, |min, max| Interval { min, max }))
 	}
 
@@ -447,74 +403,46 @@ where
 
 	/// Returns a vector containing the `min` value of each axis.
 	#[inline]
-	pub fn min(&self) -> VectorN<f32, D>
-	where
-		DefaultAllocator: Allocator<f32, D>,
-		Owned<f32, D>: Copy,
-	{
+	pub fn min(&self) -> SVector<f32, D> {
 		self.0.map(|i| i.min)
 	}
 
 	/// Returns a vector containing the `max` value of each axis.
 	#[inline]
-	pub fn max(&self) -> VectorN<f32, D>
-	where
-		DefaultAllocator: Allocator<f32, D>,
-		Owned<f32, D>: Copy,
-	{
+	pub fn max(&self) -> SVector<f32, D> {
 		self.0.map(|i| i.max)
 	}
 
 	/// Returns the point containing the middle value of each axis, as given by [`Interval::middle()`].
 	#[inline]
-	pub fn middle(&self) -> VectorN<f32, D>
-	where
-		DefaultAllocator: Allocator<f32, D>,
-		Owned<f32, D>: Copy,
-	{
+	pub fn middle(&self) -> SVector<f32, D> {
 		self.0.map(|i| i.middle())
 	}
 
 	/// Returns a reference to the internal vector of `Interval`s.
 	#[inline]
-	pub fn vector(&self) -> &VectorN<Interval, D>
-	where
-		DefaultAllocator: Allocator<Interval, D>,
-		Owned<Interval, D>: Copy,
-	{
+	pub fn vector(&self) -> &SVector<Interval, D> {
 		&self.0
 	}
 
 	/// Returns a new `AABB`,
 	/// expanded to cover the given point if it is not within the box already.
 	#[inline]
-	pub fn add_point(&mut self, point: VectorN<f32, D>)
-	where
-		DefaultAllocator: Allocator<f32, D>,
-		Owned<f32, D>: Copy,
-	{
+	pub fn add_point(&mut self, point: SVector<f32, D>) {
 		self.0.zip_apply(&point, |s, p| s.add_point(p));
 	}
 
 	/// Returns a new `AABB` with each axis of `offset` added to both `min` and `max` on the
 	/// corresponding axis of the bounding box.
 	#[inline]
-	pub fn offset(&self, offset: VectorN<f32, D>) -> AABB<D>
-	where
-		DefaultAllocator: Allocator<f32, D>,
-		Owned<f32, D>: Copy,
-	{
+	pub fn offset(&self, offset: SVector<f32, D>) -> AABB<D> {
 		AABB(self.0.zip_map(&offset, |s, o| s.offset(o)))
 	}
 
 	/// Returns a new `AABB` with each axis of `offset` added to `min` or `max` of the
 	/// corresponding axis of the bounding box, depending on the sign.
 	#[inline]
-	pub fn extend(&self, offset: VectorN<f32, D>) -> AABB<D>
-	where
-		DefaultAllocator: Allocator<f32, D>,
-		Owned<f32, D>: Copy,
-	{
+	pub fn extend(&self, offset: SVector<f32, D>) -> AABB<D> {
 		AABB(self.0.zip_map(&offset, |s, o| s.extend(o)))
 	}
 
@@ -523,11 +451,7 @@ where
 	/// Each axis of the return value is positive if the interval on that axis is above the point,
 	/// negative if the interval is below, 0.0 if the point is inside the interval.
 	#[inline]
-	pub fn direction_from(&self, point: VectorN<f32, D>) -> VectorN<f32, D>
-	where
-		DefaultAllocator: Allocator<f32, D>,
-		Owned<f32, D>: Copy,
-	{
+	pub fn direction_from(&self, point: SVector<f32, D>) -> SVector<f32, D> {
 		self.0.zip_map(&point, |i, p| i.direction_from(p))
 	}
 
@@ -551,16 +475,11 @@ where
 	/// Equivalent to `!self.intersection(other).is_empty()`.
 	#[inline]
 	pub fn overlaps(&self, other: &AABB<D>) -> bool {
-		(0..D::dim()).all(|i| self.0[i].overlaps(other.0[i]))
+		(0..D).all(|i| self.0[i].overlaps(other.0[i]))
 	}
 }
 
-impl<D> std::ops::Index<usize> for AABB<D>
-where
-	D: DimName,
-	DefaultAllocator: Allocator<Interval, D>,
-	Owned<Interval, D>: Copy,
-{
+impl<const D: usize> std::ops::Index<usize> for AABB<D> {
 	type Output = Interval;
 
 	#[inline]
@@ -569,12 +488,7 @@ where
 	}
 }
 
-impl<D> std::fmt::Display for AABB<D>
-where
-	D: DimName,
-	DefaultAllocator: Allocator<Interval, D>,
-	Owned<Interval, D>: Copy,
-{
+impl<const D: usize> std::fmt::Display for AABB<D> {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(f, "[")?;
 		for dim in self.0.iter() {
