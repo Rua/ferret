@@ -12,6 +12,35 @@ use anyhow::Context;
 use legion::{systems::Runnable, Resources, SystemBuilder};
 use vulkano::command_buffer::{AutoCommandBufferBuilder, PrimaryCommandBuffer, SubpassContents};
 
+#[derive(Clone, Copy, Debug, Default)]
+pub struct FramebufferResizeEvent;
+
+pub fn check_recreate() -> impl Runnable {
+	SystemBuilder::new("check_recreate")
+		.read_resource::<RenderContext>()
+		.write_resource::<DrawTarget>()
+		.write_resource::<PresentTarget>()
+		.write_resource::<UiParams>()
+		.build(move |command_buffer, _world, resources, _queries| {
+			let (render_context, draw_target, present_target, ui_params) = resources;
+
+			if present_target.needs_recreate() {
+				present_target
+					.recreate()
+					.expect("Couldn't recreate PresentTarget");
+
+				if present_target.dimensions() != draw_target.dimensions() {
+					draw_target
+						.resize(&render_context, present_target.dimensions())
+						.expect("Couldn't resize DrawTarget");
+
+					**ui_params = UiParams::new(present_target.dimensions());
+					command_buffer.push((FramebufferResizeEvent,));
+				}
+			}
+		})
+}
+
 pub fn start_draw(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 	resources.insert::<Option<DrawContext>>(None);
 
@@ -19,26 +48,9 @@ pub fn start_draw(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 		.read_resource::<RenderContext>()
 		.write_resource::<Option<DrawContext>>()
 		.write_resource::<DrawTarget>()
-		.write_resource::<PresentTarget>()
-		.write_resource::<UiParams>()
 		.build(move |_command_buffer, _world, resources, _queries| {
 			(|| -> anyhow::Result<()> {
-				let (render_context, draw_context, draw_target, present_target, ui_params) =
-					resources;
-
-				if present_target.needs_recreate() {
-					present_target
-						.recreate()
-						.expect("Couldn't recreate PresentTarget");
-
-					if present_target.dimensions() != draw_target.dimensions() {
-						draw_target
-							.resize(&render_context, present_target.dimensions())
-							.expect("Couldn't resize DrawTarget");
-
-						**ui_params = UiParams::new(present_target.dimensions());
-					}
-				}
+				let (render_context, draw_context, draw_target) = resources;
 
 				let graphics_queue = &render_context.queues().graphics;
 

@@ -1,6 +1,9 @@
 use crate::{
 	common::assets::AssetStorage,
-	doom::ui::{UiHexFontText, UiParams, UiTransform},
+	doom::{
+		draw::FramebufferResizeEvent,
+		ui::{UiHexFontText, UiParams, UiTransform},
+	},
 };
 use anyhow::{bail, Context};
 use clap::{App, AppSettings, ArgMatches};
@@ -195,7 +198,7 @@ fn tokenize(mut text: &str) -> anyhow::Result<Vec<String>> {
 }
 */
 
-pub fn update_console(receiver: Receiver<String>, _resources: &mut Resources) -> impl Runnable {
+pub fn update_console(receiver: Receiver<String>) -> impl Runnable {
 	SystemBuilder::new("update_console")
 		.read_resource::<AssetStorage>()
 		.read_resource::<UiParams>()
@@ -220,5 +223,28 @@ pub fn update_console(receiver: Receiver<String>, _resources: &mut Resources) ->
 					console.lines.push(line.into());
 				}
 			}
+		})
+}
+
+pub fn check_resize_console() -> impl Runnable {
+	SystemBuilder::new("check_resize_console")
+		.read_resource::<AssetStorage>()
+		.read_resource::<UiParams>()
+		.with_query(<&FramebufferResizeEvent>::query())
+		.with_query(<(&UiTransform, &mut UiHexFontText)>::query())
+		.build(move |_command_buffer, world, resources, queries| {
+			if queries.0.iter(world).next().is_none() {
+				return;
+			}
+
+			let (asset_storage, ui_params) = resources;
+			let (ui_transform, console) = queries.1.iter_mut(world).next().unwrap();
+			let font = asset_storage.get(&console.font).unwrap();
+			let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
+
+			console.lines = font
+				.wrap_lines(size[0] as usize, &console.lines.concat())
+				.map(|s| s.to_owned())
+				.collect();
 		})
 }

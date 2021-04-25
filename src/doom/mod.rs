@@ -33,6 +33,7 @@ pub mod wad;
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage, ImportData, ASSET_SERIALIZER},
+		console::check_resize_console,
 		geometry::AABB2,
 		input::InputState,
 		quadtree::Quadtree,
@@ -48,8 +49,8 @@ use crate::{
 		data::{iwads::IWADINFO, FRAME_TIME},
 		door::{door_active, door_linedef_touch, door_switch_use, door_use},
 		draw::{
-			finish_draw, map::draw_map, sprite::draw_sprites, start_draw, ui::draw_ui,
-			world::draw_world, wsprite::draw_weapon_sprites,
+			check_recreate, finish_draw, map::draw_map, sprite::draw_sprites, start_draw,
+			ui::draw_ui, world::draw_world, wsprite::draw_weapon_sprites, FramebufferResizeEvent,
 		},
 		exit::exit_switch_use,
 		floor::{floor_active, floor_linedef_touch, floor_switch_use},
@@ -295,6 +296,11 @@ pub fn add_update_systems(builder: &mut Builder, resources: &mut Resources) -> a
 pub fn add_output_systems(builder: &mut Builder, resources: &mut Resources) -> anyhow::Result<()> {
 	#[rustfmt::skip]
 	builder
+		.add_system(check_recreate())
+		.flush()
+		.add_system(check_resize_console())
+		.add_system(clear_event::<FramebufferResizeEvent>())
+
 		.add_thread_local(start_draw(resources)?)
 		.add_thread_local(draw_world(resources)?)
 		.add_thread_local(draw_map(resources)?)

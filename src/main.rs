@@ -120,7 +120,7 @@ fn main() -> anyhow::Result<()> {
 	#[rustfmt::skip]
 	let mut output_systems = {
 		let mut builder = Schedule::builder();
-		builder.add_system(update_console(log_receiver, &mut resources));
+		builder.add_system(update_console(log_receiver));
 		doom::add_output_systems(&mut builder, &mut resources)
 			.context("Couldn't initialise output systems")?;
 		builder.build()
@@ -147,7 +147,7 @@ fn main() -> anyhow::Result<()> {
 				lines: Vec::new(),
 				font: hexfont,
 			},
-			doom::ui::Hidden,
+			//doom::ui::Hidden,
 		));
 
 		world.push((
