@@ -57,6 +57,7 @@ pub enum UiAlignment {
 
 #[derive(Clone, Copy, Debug)]
 pub struct UiParams {
+	factors: Vector2<f32>,
 	dimensions: Vector2<f32>,
 	framebuffer_dimensions: Vector2<f32>,
 	viewport_dimensions: Vector2<f32>,
@@ -65,18 +66,23 @@ pub struct UiParams {
 }
 
 impl UiParams {
-	pub fn new(dimensions: [u32; 2]) -> UiParams {
-		let framebuffer_dimensions = Vector2::new(dimensions[0] as f32, dimensions[1] as f32);
-		let ratio = (framebuffer_dimensions[0] / framebuffer_dimensions[1]) / (4.0 / 3.0);
+	pub fn new(framebuffer_dimensions: [u32; 2]) -> UiParams {
+		let framebuffer_dimensions = Vector2::new(
+			framebuffer_dimensions[0] as f32,
+			framebuffer_dimensions[1] as f32,
+		);
 
 		// If the current aspect ratio is wider than 4:3, stretch horizontally.
 		// If narrower, stretch vertically.
-		let base_dimensions = Vector2::new(320.0, 200.0);
-		let dimensions = if ratio >= 1.0 {
-			Vector2::new(base_dimensions[0] * ratio, base_dimensions[1])
+		let ratio = (framebuffer_dimensions[0] / framebuffer_dimensions[1]) / (4.0 / 3.0);
+		let factors = if ratio >= 1.0 {
+			Vector2::new(ratio, 1.0)
 		} else {
-			Vector2::new(base_dimensions[0], base_dimensions[1] / ratio)
+			Vector2::new(1.0, 1.0 / ratio)
 		};
+
+		let base_dimensions = Vector2::new(320.0, 200.0);
+		let dimensions = base_dimensions.component_mul(&factors);
 		let alignment_offsets = [
 			Vector2::zeros(),
 			(dimensions - base_dimensions) * 0.5,
@@ -84,18 +90,22 @@ impl UiParams {
 		];
 		let stretch_offsets = [Vector2::zeros(), dimensions - base_dimensions];
 
-		let viewport_dimensions = Vector2::new(
-			framebuffer_dimensions[0],
-			(1.0 - 32.0 / dimensions[1]) * framebuffer_dimensions[1],
-		);
+		let viewport_dimensions =
+			Vector2::new(1.0, 1.0 - 32.0 / dimensions[1]).component_mul(&framebuffer_dimensions);
 
 		UiParams {
+			factors,
 			dimensions,
 			framebuffer_dimensions,
 			viewport_dimensions,
 			alignment_offsets,
 			stretch_offsets,
 		}
+	}
+
+	#[inline]
+	pub fn factors(&self) -> Vector2<f32> {
+		self.factors
 	}
 
 	#[inline]

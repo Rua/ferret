@@ -12,7 +12,7 @@ use legion::{
 	systems::{ResourceSet, Runnable},
 	IntoQuery, Read, Resources, SystemBuilder,
 };
-use nalgebra::{Matrix4, Vector3};
+use nalgebra::{Matrix4, Vector2, Vector3};
 use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
@@ -68,9 +68,10 @@ pub fn draw_world(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 				// screen. This caused everything to be stretched vertically by some degree, and the game
 				// art was made with that in mind.
 				// The 1.2 factor here applies the same stretching as in the original.
-				let viewport_dimensions = ui_params.viewport_dimensions();
-				let aspect_ratio = (viewport_dimensions[0] / viewport_dimensions[1]) * 1.2;
-				let proj = perspective_matrix(90.0, aspect_ratio, Interval::new(4.0, 20000.0));
+				let proj = perspective_matrix(
+					Vector2::new(1.0, 168.0 / 320.0).component_mul(&ui_params.factors()),
+					Interval::new(4.0, 20000.0),
+				);
 
 				// View matrix
 				let (

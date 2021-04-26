@@ -125,17 +125,15 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 					.into_iter()
 					.filter_map(|(_, entity)| queries.1.get(world, entity).ok())
 				{
+					let position = ui_transform.position + ui_params.align(ui_transform.alignment);
 					let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
 
 					if let Some(ui_image) = ui_image {
 						// Set up instance data
 						let image = asset_storage.get(&ui_image.image).unwrap();
-						let position = ui_transform.position
-							+ ui_params.align(ui_transform.alignment)
-							- image.offset;
 
 						let instance_data = InstanceData {
-							in_position: position.into(),
+							in_position: (position - image.offset).into(),
 							in_size: size.into(),
 							in_texture_offset: [0.0; 2],
 						};
@@ -150,8 +148,7 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 
 					if let Some(ui_text) = ui_text {
 						let font = asset_storage.get(&ui_text.font).unwrap();
-						let mut position =
-							ui_transform.position + ui_params.align(ui_transform.alignment);
+						let mut cursor_position = position;
 
 						for ch in ui_text.text.chars() {
 							if ch == ' ' {
@@ -159,11 +156,11 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 									FontSpacing::FixedWidth { width } => width,
 									FontSpacing::VariableWidth { space_width } => space_width,
 								};
-								position[0] += width;
+								cursor_position[0] += width;
 							} else if let Some(image_handle) = font.characters.get(&ch) {
 								let image = asset_storage.get(image_handle).unwrap();
 								let instance_data = InstanceData {
-									in_position: (position - image.offset).into(),
+									in_position: (cursor_position - image.offset).into(),
 									in_size: image.size().into(),
 									in_texture_offset: [0.0; 2],
 								};
@@ -172,7 +169,7 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 									FontSpacing::FixedWidth { width } => width,
 									FontSpacing::VariableWidth { .. } => image.size()[0],
 								};
-								position[0] += width;
+								cursor_position[0] += width;
 
 								// Add to batches
 								let image_view = &image.image_view;
@@ -186,8 +183,7 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 
 					if let Some(ui_text) = ui_hexfont_text {
 						let font = asset_storage.get(&ui_text.font).unwrap();
-						let mut cursor_position =
-							ui_transform.position + ui_params.align(ui_transform.alignment);
+						let mut cursor_position = position;
 						let start_of_line = cursor_position[0];
 
 						for line in ui_text.lines.iter().map(|line| line.trim_end()) {

@@ -791,18 +791,16 @@ pub fn angles_to_axes(angles: Vector3<Angle>) -> [Vector3<f32>; 3] {
 /// * Index 1 represents the camera left axis
 /// * Index 2 represents the camera up axis
 #[rustfmt::skip]
-pub fn perspective_matrix(fovx: f32, aspect: f32, depth_range: Interval) -> Matrix4<f32> {
-	let fovx = fovx.to_radians();
+pub fn perspective_matrix(ratios: Vector2<f32>, depth_range: Interval) -> Matrix4<f32> {
 	let near = depth_range.min;
 	let far = depth_range.max;
 	let nmf = near - far;
-	let f = 1.0 / (fovx * 0.5).tan();
 
 	Matrix4::new(
-		0.0       , -f , 0.0        , 0.0               ,
-		0.0       , 0.0, -f * aspect, 0.0               ,
-		-far / nmf, 0.0, 0.0        , (near * far) / nmf,
-		1.0       , 0.0, 0.0        , 0.0               ,
+		0.0       , -1.0 / ratios[0], 0.0             , 0.0               ,
+		0.0       , 0.0             , -1.0 / ratios[1], 0.0               ,
+		-far / nmf, 0.0             , 0.0             , (near * far) / nmf,
+		1.0       , 0.0             , 0.0             , 0.0               ,
 	)
 }
 
