@@ -60,7 +60,6 @@ pub struct UiParams {
 	factors: Vector2<f32>,
 	dimensions: Vector2<f32>,
 	framebuffer_dimensions: Vector2<f32>,
-	viewport_dimensions: Vector2<f32>,
 	alignment_offsets: [Vector2<f32>; 3],
 	stretch_offsets: [Vector2<f32>; 2],
 }
@@ -90,14 +89,10 @@ impl UiParams {
 		];
 		let stretch_offsets = [Vector2::zeros(), dimensions - base_dimensions];
 
-		let viewport_dimensions =
-			Vector2::new(1.0, 1.0 - 32.0 / dimensions[1]).component_mul(&framebuffer_dimensions);
-
 		UiParams {
 			factors,
 			dimensions,
 			framebuffer_dimensions,
-			viewport_dimensions,
 			alignment_offsets,
 			stretch_offsets,
 		}
@@ -116,11 +111,6 @@ impl UiParams {
 	#[inline]
 	pub fn framebuffer_dimensions(&self) -> Vector2<f32> {
 		self.framebuffer_dimensions
-	}
-
-	#[inline]
-	pub fn viewport_dimensions(&self) -> Vector2<f32> {
-		self.viewport_dimensions
 	}
 
 	#[inline]

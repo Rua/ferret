@@ -18,21 +18,21 @@ layout(location = 4) in float in_flip;
 layout(location = 5) in float in_light_level;
 
 // Output
-layout(location = 0) out vec2 frag_texture_coord;
-layout(location = 1) out float frag_light_level;
+layout(location = 0) out vec2 vert_texture_coord;
+layout(location = 1) out float vert_light_level;
 
 out gl_PerVertex {
 	vec4 gl_Position;
 };
 
 void main() {
-	frag_texture_coord.x = gl_VertexIndex >> 1;
-	frag_texture_coord.y = (gl_VertexIndex & 1) ^ (gl_VertexIndex >> 1);
+	vert_texture_coord.x = gl_VertexIndex >> 1;
+	vert_texture_coord.y = (gl_VertexIndex & 1) ^ (gl_VertexIndex >> 1);
 
-	vec4 vert = image_matrix * vec4(frag_texture_coord, 0.0, 1.0);
+	vec4 vert = image_matrix * vec4(vert_texture_coord, 0.0, 1.0);
 	vert = vec4(0.0, -vert.x, -vert.y, 1.0);
 	gl_Position = proj * view * in_transform * billboard * vert;
 
-	frag_texture_coord.x *= in_flip;
-	frag_light_level = in_light_level + extra_light;
+	vert_texture_coord.x *= in_flip;
+	vert_light_level = in_light_level + extra_light;
 }

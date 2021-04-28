@@ -7,8 +7,13 @@ use crate::{
 		},
 	},
 	doom::{
-		client::Client, components::Transform, draw::world::normal_frag, image::Image,
-		map::MapDynamic, sprite::Sprite, ui::UiParams,
+		client::Client,
+		components::Transform,
+		draw::world::normal_frag,
+		image::Image,
+		map::MapDynamic,
+		sprite::Sprite,
+		ui::{UiAlignment, UiParams, UiTransform},
 	},
 };
 use anyhow::Context;
@@ -81,17 +86,30 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 				let (asset_storage, client, sampler, ui_params, draw_context) = resources;
 				let draw_context = draw_context.as_mut().unwrap();
 
-				let camera_transform = queries.0.get(world, client.entity.unwrap()).unwrap();
-				let map_dynamic = queries.1.iter(world).next().unwrap();
-				let map = asset_storage.get(&map_dynamic.map).unwrap();
+				let ui_transform = UiTransform {
+					position: Vector2::new(0.0, 0.0),
+					depth: 0.0,
+					alignment: [UiAlignment::Near, UiAlignment::Near],
+					size: Vector2::new(320.0, 168.0),
+					stretch: [true, true],
+				};
+				let ratio = ui_params
+					.framebuffer_dimensions()
+					.component_div(&ui_params.dimensions());
+				let position = ui_transform.position + ui_params.align(ui_transform.alignment);
+				let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
+
 				let dynamic_state = DynamicState {
 					viewports: Some(vec![Viewport {
-						origin: [0.0; 2],
-						dimensions: ui_params.viewport_dimensions().into(),
+						origin: position.component_mul(&ratio).into(),
+						dimensions: size.component_mul(&ratio).into(),
 						depth_range: 0.0..1.0,
 					}]),
 					..DynamicState::none()
 				};
+				let camera_transform = queries.0.get(world, client.entity.unwrap()).unwrap();
+				let map_dynamic = queries.1.iter(world).next().unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
 
 				// Group draws into batches by texture
 				let mut batches: FnvHashMap<&AssetHandle<Image>, Vec<InstanceData>> =

@@ -87,10 +87,13 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 				};
 
 				let proj = ortho_matrix(AABB3::from_intervals(Vector3::new(
-					Interval::new(0.0, ui_params.dimensions()[0]),
-					Interval::new(0.0, ui_params.dimensions()[1]),
+					Interval::new(0.0, ui_params.framebuffer_dimensions()[0]),
+					Interval::new(0.0, ui_params.framebuffer_dimensions()[1]),
 					Interval::new(1000.0, 0.0),
 				)));
+				let ratio = ui_params
+					.framebuffer_dimensions()
+					.component_div(&ui_params.dimensions());
 
 				// Create matrix UBO
 				draw_context.descriptor_sets.truncate(0);
@@ -133,9 +136,10 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 						let image = asset_storage.get(&ui_image.image).unwrap();
 
 						let instance_data = InstanceData {
-							in_position: (position - image.offset).into(),
-							in_size: size.into(),
-							in_texture_offset: [0.0; 2],
+							in_position: (position - image.offset).component_mul(&ratio).into(),
+							in_size: size.component_mul(&ratio).into(),
+							in_texture_position: [0.0; 2],
+							in_texture_size: size.into(),
 						};
 
 						// Add to batches
@@ -160,9 +164,12 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 							} else if let Some(image_handle) = font.characters.get(&ch) {
 								let image = asset_storage.get(image_handle).unwrap();
 								let instance_data = InstanceData {
-									in_position: (cursor_position - image.offset).into(),
-									in_size: image.size().into(),
-									in_texture_offset: [0.0; 2],
+									in_position: (cursor_position - image.offset)
+										.component_mul(&ratio)
+										.into(),
+									in_size: image.size().component_mul(&ratio).into(),
+									in_texture_position: [0.0; 2],
+									in_texture_size: image.size().into(),
 								};
 
 								let width = match font.spacing {
@@ -191,9 +198,10 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 								line.chars().filter_map(|ch| font.locations.get(&ch))
 							{
 								let instance_data = InstanceData {
-									in_position: cursor_position.into(),
-									in_size: ch_size.map(|x| x as f32).into(),
-									in_texture_offset: ch_position.map(|x| x as f32).into(),
+									in_position: cursor_position.component_mul(&ratio).into(),
+									in_size: ch_size.map(|x| x as f32).component_mul(&ratio).into(),
+									in_texture_position: ch_position.map(|x| x as f32).into(),
+									in_texture_size: ch_size.map(|x| x as f32).into(),
 								};
 
 								match batches.last_mut() {
@@ -275,6 +283,13 @@ pub mod ui_frag {
 pub struct InstanceData {
 	pub in_position: [f32; 2],
 	pub in_size: [f32; 2],
-	pub in_texture_offset: [f32; 2],
+	pub in_texture_position: [f32; 2],
+	pub in_texture_size: [f32; 2],
 }
-impl_vertex!(InstanceData, in_position, in_size, in_texture_offset);
+impl_vertex!(
+	InstanceData,
+	in_position,
+	in_size,
+	in_texture_position,
+	in_texture_size
+);

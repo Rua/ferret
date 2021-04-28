@@ -147,7 +147,8 @@ pub fn draw_weapon_sprites(resources: &mut Resources) -> anyhow::Result<impl Run
 					let instance_data = InstanceData {
 						in_position: position.into(),
 						in_size: image.size().into(),
-						in_texture_offset: [0.0; 2],
+						in_texture_position: [0.0; 2],
+						in_texture_size: image.size().into(),
 					};
 
 					// Add to batches
