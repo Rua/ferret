@@ -2,9 +2,7 @@ use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
 		geometry::Angle,
-		video::{
-			definition::NumberedInstanceBufferDefinition, DrawContext, DrawTarget, RenderContext,
-		},
+		video::{DrawContext, DrawTarget, RenderContext},
 	},
 	doom::{
 		client::Client,
@@ -26,11 +24,14 @@ use nalgebra::{Matrix4, Vector2};
 use serde::{Deserialize, Serialize};
 use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
-	buffer::{BufferUsage, CpuBufferPool},
+	buffer::{BufferUsage, CpuBufferPool, ImmutableBuffer},
 	command_buffer::DynamicState,
 	descriptor::{descriptor_set::FixedSizeDescriptorSetsPool, PipelineLayoutAbstract},
 	impl_vertex,
-	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
+	pipeline::{
+		vertex::OneVertexOneInstanceDefinition, viewport::Viewport, GraphicsPipeline,
+		GraphicsPipelineAbstract,
+	},
 	render_pass::Subpass,
 	sampler::Sampler,
 };
@@ -56,7 +57,7 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 				Subpass::from(draw_target.render_pass().clone(), 0)
 					.context("Subpass index out of range")?,
 			)
-			.vertex_input(NumberedInstanceBufferDefinition::<InstanceData>::new(4))
+			.vertex_input(OneVertexOneInstanceDefinition::<Vertex, Instance>::new())
 			.vertex_shader(vert.main_entry_point(), ())
 			.fragment_shader(frag.main_entry_point(), ())
 			.triangle_fan()
@@ -64,13 +65,35 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 			.viewports_dynamic_scissors_irrelevant(1)
 			.depth_stencil_simple_depth()
 			.build(device.clone())
-			.context("Couldn't create pipeline")?,
+			.context("Couldn't create sprite pipeline")?,
 	) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
+	let (vertex_buffer, _future) = ImmutableBuffer::from_iter(
+		std::array::IntoIter::new([
+			Vertex {
+				in_position: [0.0, 0.0, 0.0],
+				in_texture_coord: [0.0, 0.0],
+			},
+			Vertex {
+				in_position: [0.0, 1.0, 0.0],
+				in_texture_coord: [0.0, 1.0],
+			},
+			Vertex {
+				in_position: [1.0, 1.0, 0.0],
+				in_texture_coord: [1.0, 1.0],
+			},
+			Vertex {
+				in_position: [1.0, 0.0, 0.0],
+				in_texture_coord: [1.0, 0.0],
+			},
+		]),
+		BufferUsage::vertex_buffer(),
+		render_context.queues().graphics.clone(),
+	)
+	.context("Couldn't create vertex buffer")?;
 	let instance_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer());
 	let mut texture_set_pool =
 		FixedSizeDescriptorSetsPool::new(pipeline.descriptor_set_layout(1).unwrap().clone());
-	let texture_uniform_pool = CpuBufferPool::new(device.clone(), BufferUsage::uniform_buffer());
 
 	Ok(SystemBuilder::new("draw_sprites")
 		.read_resource::<AssetStorage>()
@@ -111,8 +134,23 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 				let map_dynamic = queries.1.iter(world).next().unwrap();
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 
+				// Billboard matrix
+				let rot = queries
+					.0
+					.get(world, client.entity.unwrap())
+					.unwrap()
+					.rotation[2]
+					.to_radians() as f32;
+				#[rustfmt::skip]
+				let billboard = Matrix4::new(
+					 rot.sin(),  0.0, rot.cos(), 0.0,
+					-rot.cos(),  0.0, rot.sin(), 0.0,
+					 0.0      , -1.0, 0.0      , 0.0,
+					 0.0      ,  0.0, 0.0      , 1.0,
+				);
+
 				// Group draws into batches by texture
-				let mut batches: FnvHashMap<&AssetHandle<Image>, Vec<InstanceData>> =
+				let mut batches: FnvHashMap<&AssetHandle<Image>, Vec<Instance>> =
 					FnvHashMap::default();
 
 				for (&entity, sprite_render, transform) in queries.2.iter(world) {
@@ -147,6 +185,7 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 					};
 
 					let image_info = &frame[index];
+					let image = asset_storage.get(&image_info.handle).unwrap();
 
 					// Determine light level
 					let light_level = if sprite_render.full_bright {
@@ -160,8 +199,13 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 					};
 
 					// Set up instance data
-					let instance_data = InstanceData {
-						in_transform: Matrix4::new_translation(&transform.position).into(),
+					let in_transform =
+						Matrix4::new_translation(&transform.position)
+							* billboard * Matrix4::new_translation(&-image.offset.fixed_resize(0.0))
+							* Matrix4::new_nonuniform_scaling(&image.size().fixed_resize(1.0));
+
+					let instance_data = Instance {
+						in_transform: in_transform.into(),
 						in_flip: image_info.flip,
 						in_light_level: light_level,
 					};
@@ -180,8 +224,6 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 				// Draw the batches
 				for (image_handle, instance_data) in batches {
 					let image = asset_storage.get(image_handle).unwrap();
-					let matrix = Matrix4::new_translation(&-image.offset.fixed_resize(0.0))
-						* Matrix4::new_nonuniform_scaling(&image.size().fixed_resize(1.0));
 
 					draw_context.descriptor_sets.truncate(1);
 					draw_context.descriptor_sets.push(Arc::new(
@@ -189,28 +231,20 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 							.next()
 							.add_sampled_image(image.image_view.clone(), sampler.clone())
 							.context("Couldn't add image to descriptor set")?
-							.add_buffer(
-								texture_uniform_pool
-									.next(ImageMatrix {
-										image_matrix: matrix.into(),
-									})
-									.context("Couldn't create buffer")?,
-							)
-							.context("Couldn't add buffer to descriptor set")?
 							.build()
 							.context("Couldn't create descriptor set")?,
 					));
 
 					let instance_buffer = instance_buffer_pool
 						.chunk(instance_data)
-						.context("Couldn't create buffer")?;
+						.context("Couldn't create instance buffer")?;
 
 					draw_context
 						.commands
 						.draw(
 							pipeline.clone(),
 							&dynamic_state,
-							vec![Arc::new(instance_buffer)],
+							vec![vertex_buffer.clone(), Arc::new(instance_buffer)],
 							draw_context.descriptor_sets.clone(),
 							(),
 							std::iter::empty(),
@@ -231,19 +265,17 @@ mod sprite_vert {
 	}
 }
 
-use sprite_vert::ty::ImageMatrix;
-
-#[derive(Clone, Debug, Default)]
-pub struct VertexData {
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Vertex {
 	pub in_position: [f32; 3],
 	pub in_texture_coord: [f32; 2],
 }
-impl_vertex!(VertexData, in_position, in_texture_coord);
+impl_vertex!(Vertex, in_position, in_texture_coord);
 
-#[derive(Clone, Debug, Default)]
-pub struct InstanceData {
-	pub in_transform: [[f32; 4]; 4],
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Instance {
 	pub in_flip: f32,
 	pub in_light_level: f32,
+	pub in_transform: [[f32; 4]; 4],
 }
-impl_vertex!(InstanceData, in_transform, in_flip, in_light_level);
+impl_vertex!(Instance, in_flip, in_light_level, in_transform);

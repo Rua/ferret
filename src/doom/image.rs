@@ -69,7 +69,7 @@ pub fn import_palette(
 #[derive(Clone, Debug)]
 pub struct ImageData {
 	pub data: Vec<IAColor>,
-	pub size: [usize; 2],
+	pub size: Vector2<usize>,
 	pub offset: Vector2<isize>,
 }
 
@@ -91,10 +91,10 @@ pub fn import_patch(
 ) -> anyhow::Result<Box<dyn ImportData>> {
 	let mut reader = Cursor::new(asset_storage.source().load(path)?);
 
-	let size = [
+	let size = Vector2::new(
 		reader.read_u16::<LE>()? as usize,
 		reader.read_u16::<LE>()? as usize,
-	];
+	);
 	let offset = Vector2::new(
 		reader.read_i16::<LE>()? as isize,
 		reader.read_i16::<LE>()? as isize,

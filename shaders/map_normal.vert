@@ -3,14 +3,17 @@
 layout(set = 0, binding = 0) uniform Matrices {
 	mat4 proj;
 	mat4 view;
-	mat4 billboard;
 	float extra_light;
 };
 
+// Per-vertex
 layout(location = 0) in vec3 in_position;
 layout(location = 1) in vec2 in_texture_coord;
+
+// Per-instance
 layout(location = 2) in float in_light_level;
 
+// Input
 layout(location = 0) out vec2 vert_texture_coord;
 layout(location = 1) out float vert_light_level;
 

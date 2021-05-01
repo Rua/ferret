@@ -27,7 +27,7 @@ pub fn import_flat(
 
 	Ok(Box::new(ImageData {
 		data: pixels.iter().map(|&i| IAColor { i, a: 0xFF }).collect(),
-		size: [64, 64],
+		size: Vector2::new(64, 64),
 		offset: Vector2::zeros(),
 	}))
 }
@@ -64,9 +64,9 @@ pub fn import_wall(
 				}
 			},
 			&patch.data,
-			patch.size,
+			patch.size.into(),
 			&mut data,
-			texture_info.size,
+			texture_info.size.into(),
 			patch_info.offset.into(),
 		);
 	}
@@ -103,7 +103,7 @@ pub struct PatchInfo {
 
 #[derive(Clone, Debug)]
 pub struct TextureInfo {
-	pub size: [usize; 2],
+	pub size: Vector2<usize>,
 	pub patches: Vec<PatchInfo>,
 }
 
@@ -132,7 +132,10 @@ pub fn import_textures(
 
 				let name = read_string(&mut reader)?;
 				reader.read_u32::<LE>()?; // unused
-				let size = [reader.read_u16::<LE>()?, reader.read_u16::<LE>()?];
+				let size = Vector2::new(
+					reader.read_u16::<LE>()? as usize,
+					reader.read_u16::<LE>()? as usize,
+				);
 				reader.read_u32::<LE>()?; // unused
 				let patch_count = reader.read_u16::<LE>()? as usize;
 
@@ -149,13 +152,7 @@ pub fn import_textures(
 					patches.push(PatchInfo { offset, name })
 				}
 
-				Ok((
-					name.as_str().to_owned(),
-					TextureInfo {
-						size: [size[0] as usize, size[1] as usize],
-						patches,
-					},
-				))
+				Ok((name.as_str().to_owned(), TextureInfo { size, patches }))
 			})
 			.collect::<anyhow::Result<Textures>>()?,
 	))

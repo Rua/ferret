@@ -1,7 +1,7 @@
 use anyhow::Context;
 use std::sync::Arc;
 use vulkano::{
-	command_buffer::AutoCommandBufferBuilder,
+	command_buffer::{AutoCommandBufferBuilder, CommandBufferUsage},
 	device::{Device, DeviceOwned, Queue},
 	format::Format,
 	image::{swapchain::SwapchainImage, AttachmentImage, ImageAccess, ImageUsage},
@@ -148,9 +148,10 @@ impl PresentTarget {
 		// Blit colour attachment onto swapchain
 		let blit_command = {
 			let [width, height, depth] = image.dimensions().width_height_depth();
-			let mut builder = AutoCommandBufferBuilder::primary_one_time_submit(
+			let mut builder = AutoCommandBufferBuilder::primary(
 				self.swapchain.device().clone(),
 				queue.family(),
+				CommandBufferUsage::OneTimeSubmit,
 			)?;
 			builder.blit_image(
 				image,

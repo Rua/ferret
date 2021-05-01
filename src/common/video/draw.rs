@@ -3,7 +3,10 @@ use anyhow::Context;
 use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuAccessibleBuffer},
-	command_buffer::{AutoCommandBufferBuilder, PrimaryAutoCommandBuffer, PrimaryCommandBuffer},
+	command_buffer::{
+		AutoCommandBufferBuilder, CommandBufferUsage, PrimaryAutoCommandBuffer,
+		PrimaryCommandBuffer,
+	},
 	descriptor::descriptor_set::DescriptorSet,
 	device::Device,
 	format::Format,
@@ -204,9 +207,10 @@ impl DrawTarget {
 				BufferUsage::transfer_destination(),
 				true,
 			)?;
-			let mut builder = AutoCommandBufferBuilder::primary_one_time_submit(
+			let mut builder = AutoCommandBufferBuilder::primary(
 				render_context.device().clone(),
 				graphics_queue.family(),
+				CommandBufferUsage::OneTimeSubmit,
 			)?;
 			builder.copy_image_to_buffer(
 				ImageView::image(&self.colour_attachment).clone(),

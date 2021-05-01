@@ -10,7 +10,9 @@ use crate::{
 };
 use anyhow::Context;
 use legion::{systems::Runnable, Resources, SystemBuilder};
-use vulkano::command_buffer::{AutoCommandBufferBuilder, PrimaryCommandBuffer, SubpassContents};
+use vulkano::command_buffer::{
+	AutoCommandBufferBuilder, CommandBufferUsage, PrimaryCommandBuffer, SubpassContents,
+};
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct FramebufferResizeEvent;
@@ -58,9 +60,10 @@ pub fn start_draw(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 
 				let draw_context: &mut Option<DrawContext> = &mut *draw_context;
 				*draw_context = Some(DrawContext {
-					commands: AutoCommandBufferBuilder::primary_one_time_submit(
+					commands: AutoCommandBufferBuilder::primary(
 						render_context.device().clone(),
 						graphics_queue.family(),
+						CommandBufferUsage::OneTimeSubmit,
 					)
 					.context("Couldn't create command buffer builder")?,
 					descriptor_sets: Vec::with_capacity(12),

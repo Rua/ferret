@@ -100,10 +100,6 @@ pub fn draw_world(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 						-rotation[2].to_radians() as f32,
 					)) * Matrix4::new_translation(&-position);
 
-				// Billboard matrix
-				let billboard =
-					Matrix4::new_rotation(Vector3::new(0.0, 0.0, rotation[2].to_radians() as f32));
-
 				// Create matrix UBO
 				draw_context.descriptor_sets.truncate(0);
 				draw_context.descriptor_sets.push(Arc::new(
@@ -114,7 +110,6 @@ pub fn draw_world(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 								.next(Matrices {
 									proj: proj.into(),
 									view: view.into(),
-									billboard: billboard.into(),
 									extra_light,
 								})
 								.context("Couldn't create buffer")?,
