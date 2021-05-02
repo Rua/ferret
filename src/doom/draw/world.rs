@@ -3,9 +3,7 @@ use crate::{
 		geometry::{perspective_matrix, Interval},
 		video::{DrawContext, RenderContext},
 	},
-	doom::{
-		camera::Camera, client::Client, components::Transform, draw::map::Matrices, ui::UiParams,
-	},
+	doom::{camera::Camera, client::Client, components::Transform, ui::UiParams},
 };
 use anyhow::Context;
 use legion::{
@@ -74,31 +72,26 @@ pub fn draw_world(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 				);
 
 				// View matrix
-				let (
-					camera,
-					Transform {
-						mut position,
-						rotation,
-					},
-				) = query.get(world, client.entity.unwrap()).unwrap();
-				let mut extra_light = 0.0;
+				let (camera, &(mut camera_transform)) =
+					query.get(world, client.entity.unwrap()).unwrap();
 
 				if let Some(camera) = camera {
-					position += camera.base + camera.offset;
-					extra_light = camera.extra_light;
+					camera_transform.position += camera.base + camera.offset;
 				}
 
-				let view =
-					Matrix4::new_rotation(Vector3::new(-rotation[0].to_radians() as f32, 0.0, 0.0))
-						* Matrix4::new_rotation(Vector3::new(
-							0.0,
-							-rotation[1].to_radians() as f32,
-							0.0,
-						)) * Matrix4::new_rotation(Vector3::new(
-						0.0,
-						0.0,
-						-rotation[2].to_radians() as f32,
-					)) * Matrix4::new_translation(&-position);
+				let view = Matrix4::new_rotation(Vector3::new(
+					-camera_transform.rotation[0].to_radians() as f32,
+					0.0,
+					0.0,
+				)) * Matrix4::new_rotation(Vector3::new(
+					0.0,
+					-camera_transform.rotation[1].to_radians() as f32,
+					0.0,
+				)) * Matrix4::new_rotation(Vector3::new(
+					0.0,
+					0.0,
+					-camera_transform.rotation[2].to_radians() as f32,
+				)) * Matrix4::new_translation(&-camera_transform.position);
 
 				// Create matrix UBO
 				draw_context.descriptor_sets.truncate(0);
@@ -107,10 +100,9 @@ pub fn draw_world(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 						.next()
 						.add_buffer(
 							matrix_uniform_pool
-								.next(Matrices {
+								.next(world_vert::ty::Matrices {
 									proj: proj.into(),
 									view: view.into(),
-									extra_light,
 								})
 								.context("Couldn't create buffer")?,
 						)
@@ -125,9 +117,16 @@ pub fn draw_world(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 		}))
 }
 
-pub mod normal_frag {
+pub mod world_vert {
+	vulkano_shaders::shader! {
+		ty: "vertex",
+		path: "shaders/world.vert",
+	}
+}
+
+pub mod world_frag {
 	vulkano_shaders::shader! {
 		ty: "fragment",
-		path: "shaders/normal.frag",
+		path: "shaders/world.frag",
 	}
 }

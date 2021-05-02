@@ -5,9 +5,10 @@ use crate::{
 		video::{DrawContext, DrawTarget, RenderContext},
 	},
 	doom::{
+		camera::Camera,
 		client::Client,
 		components::Transform,
-		draw::world::normal_frag,
+		draw::world::{world_frag, world_vert},
 		image::Image,
 		map::MapDynamic,
 		sprite::Sprite,
@@ -20,7 +21,7 @@ use legion::{
 	systems::{ResourceSet, Runnable},
 	Entity, IntoQuery, Read, Resources, SystemBuilder,
 };
-use nalgebra::{Matrix4, Vector2};
+use nalgebra::{Matrix4, Vector2, Vector3};
 use serde::{Deserialize, Serialize};
 use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
@@ -48,8 +49,8 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 	let device = render_context.device();
 
 	// Create pipeline
-	let vert = sprite_vert::Shader::load(device.clone()).context("Couldn't load shader")?;
-	let frag = normal_frag::Shader::load(device.clone()).context("Couldn't load shader")?;
+	let vert = world_vert::Shader::load(device.clone()).context("Couldn't load shader")?;
+	let frag = world_frag::Shader::load(device.clone()).context("Couldn't load shader")?;
 
 	let pipeline = Arc::new(
 		GraphicsPipeline::start()
@@ -101,14 +102,17 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 		.read_resource::<Arc<Sampler>>()
 		.read_resource::<UiParams>()
 		.write_resource::<Option<DrawContext>>()
-		.with_query(<&Transform>::query())
+		.with_query(<(Option<&Camera>, &Transform)>::query())
 		.with_query(<&MapDynamic>::query())
 		.with_query(<(Entity, &SpriteRender, &Transform)>::query())
 		.build(move |_command_buffer, world, resources, queries| {
 			(|| -> anyhow::Result<()> {
 				let (asset_storage, client, sampler, ui_params, draw_context) = resources;
 				let draw_context = draw_context.as_mut().unwrap();
+				let map_dynamic = queries.1.iter(world).next().unwrap();
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
 
+				// Viewport
 				let ui_transform = UiTransform {
 					position: Vector2::new(0.0, 0.0),
 					depth: 0.0,
@@ -121,7 +125,6 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 					.component_div(&ui_params.dimensions());
 				let position = ui_transform.position + ui_params.align(ui_transform.alignment);
 				let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
-
 				let dynamic_state = DynamicState {
 					viewports: Some(vec![Viewport {
 						origin: position.component_mul(&ratio).into(),
@@ -130,17 +133,19 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 					}]),
 					..DynamicState::none()
 				};
-				let camera_transform = queries.0.get(world, client.entity.unwrap()).unwrap();
-				let map_dynamic = queries.1.iter(world).next().unwrap();
-				let map = asset_storage.get(&map_dynamic.map).unwrap();
+
+				// Camera
+				let (camera, &(mut camera_transform)) =
+					queries.0.get(world, client.entity.unwrap()).unwrap();
+				let mut extra_light = 0.0;
+
+				if let Some(camera) = camera {
+					camera_transform.position += camera.base + camera.offset;
+					extra_light = camera.extra_light;
+				}
 
 				// Billboard matrix
-				let rot = queries
-					.0
-					.get(world, client.entity.unwrap())
-					.unwrap()
-					.rotation[2]
-					.to_radians() as f32;
+				let rot = camera_transform.rotation[2].to_radians() as f32;
 				#[rustfmt::skip]
 				let billboard = Matrix4::new(
 					 rot.sin(),  0.0, rot.cos(), 0.0,
@@ -148,6 +153,11 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 					 0.0      , -1.0, 0.0      , 0.0,
 					 0.0      ,  0.0, 0.0      , 1.0,
 				);
+
+				// Horizontal flip matrix
+				#[rustfmt::skip]
+				let flip = Matrix4::new_translation(&Vector3::new(1.0, 0.0, 0.0))
+							* Matrix4::new_nonuniform_scaling(&Vector3::new(-1.0, 1.0, 1.0));
 
 				// Group draws into batches by texture
 				let mut batches: FnvHashMap<&AssetHandle<Image>, Vec<Instance>> =
@@ -184,8 +194,16 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 						(delta.to_units_unsigned() * frame.len() as f64) as usize % frame.len()
 					};
 
+					// Get image
 					let image_info = &frame[index];
 					let image = asset_storage.get(&image_info.handle).unwrap();
+					let mut image_matrix =
+						Matrix4::new_translation(&-image.offset.fixed_resize(0.0))
+							* Matrix4::new_nonuniform_scaling(&image.size().fixed_resize(1.0));
+
+					if image_info.flip < 0.0 {
+						image_matrix = image_matrix * flip;
+					}
 
 					// Determine light level
 					let light_level = if sprite_render.full_bright {
@@ -200,14 +218,11 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 
 					// Set up instance data
 					let in_transform =
-						Matrix4::new_translation(&transform.position)
-							* billboard * Matrix4::new_translation(&-image.offset.fixed_resize(0.0))
-							* Matrix4::new_nonuniform_scaling(&image.size().fixed_resize(1.0));
+						Matrix4::new_translation(&transform.position) * billboard * image_matrix;
 
 					let instance_data = Instance {
 						in_transform: in_transform.into(),
-						in_flip: image_info.flip,
-						in_light_level: light_level,
+						in_light_level: light_level + extra_light,
 					};
 
 					// Add to batches
@@ -258,13 +273,6 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 		}))
 }
 
-mod sprite_vert {
-	vulkano_shaders::shader! {
-		ty: "vertex",
-		path: "shaders/sprite.vert",
-	}
-}
-
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Vertex {
 	pub in_position: [f32; 3],
@@ -274,8 +282,7 @@ impl_vertex!(Vertex, in_position, in_texture_coord);
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Instance {
-	pub in_flip: f32,
 	pub in_light_level: f32,
 	pub in_transform: [[f32; 4]; 4],
 }
-impl_vertex!(Instance, in_flip, in_light_level, in_transform);
+impl_vertex!(Instance, in_light_level, in_transform);

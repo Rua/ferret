@@ -12,31 +12,32 @@ use nalgebra::Vector2;
 use vulkano::{image::ImageDimensions, impl_vertex};
 
 #[derive(Clone, Debug, Default)]
-pub struct VertexData {
+pub struct Vertex {
 	pub in_position: [f32; 3],
 	pub in_texture_coord: [f32; 2],
 	pub in_light_level: f32,
 }
-impl_vertex!(VertexData, in_position, in_texture_coord, in_light_level);
+impl_vertex!(Vertex, in_position, in_texture_coord, in_light_level);
 
 #[derive(Clone, Debug, Default)]
-pub struct SkyVertexData {
+pub struct SkyVertex {
 	pub in_position: [f32; 3],
 }
-impl_vertex!(SkyVertexData, in_position);
+impl_vertex!(SkyVertex, in_position);
 
 pub fn make_meshes(
 	map: &Map,
 	map_dynamic: &MapDynamic,
+	extra_light: f32,
 	asset_storage: &AssetStorage,
 ) -> anyhow::Result<(
-	FnvHashMap<AssetHandle<Image>, (Vec<VertexData>, Vec<u32>)>,
-	FnvHashMap<AssetHandle<Image>, (Vec<VertexData>, Vec<u32>)>,
-	(Vec<SkyVertexData>, Vec<u32>),
+	FnvHashMap<AssetHandle<Image>, (Vec<Vertex>, Vec<u32>)>,
+	FnvHashMap<AssetHandle<Image>, (Vec<Vertex>, Vec<u32>)>,
+	(Vec<SkyVertex>, Vec<u32>),
 )> {
 	#[inline]
 	fn push_wall(
-		vertices: &mut Vec<VertexData>,
+		vertices: &mut Vec<Vertex>,
 		indices: &mut Vec<u32>,
 		vert_h: [Vector2<f32>; 2],
 		vert_v: [f32; 2],
@@ -50,7 +51,7 @@ pub fn make_meshes(
 
 		for (h, v) in [(1, 0), (0, 0), (0, 1), (1, 1)].iter().copied() {
 			indices.push(vertices.len() as u32);
-			vertices.push(VertexData {
+			vertices.push(Vertex {
 				in_position: [vert_h[h][0], vert_h[h][1], vert_v[v]],
 				in_texture_coord: [
 					(offset[0] + width * h as f32) / dimensions.width() as f32,
@@ -63,7 +64,7 @@ pub fn make_meshes(
 
 	#[inline]
 	fn push_sky_wall(
-		vertices: &mut Vec<SkyVertexData>,
+		vertices: &mut Vec<SkyVertex>,
 		indices: &mut Vec<u32>,
 		vert_h: [Vector2<f32>; 2],
 		vert_v: [f32; 2],
@@ -72,7 +73,7 @@ pub fn make_meshes(
 
 		for (h, v) in [(1, 0), (0, 0), (0, 1), (1, 1)].iter().copied() {
 			indices.push(vertices.len() as u32);
-			vertices.push(SkyVertexData {
+			vertices.push(SkyVertex {
 				in_position: [vert_h[h][0], vert_h[h][1], vert_v[v]],
 			});
 		}
@@ -80,7 +81,7 @@ pub fn make_meshes(
 
 	#[inline]
 	fn push_flat<'a>(
-		vertices: &mut Vec<VertexData>,
+		vertices: &mut Vec<Vertex>,
 		indices: &mut Vec<u32>,
 		iter: impl Iterator<Item = &'a Vector2<f32>>,
 		vert_z: f32,
@@ -91,7 +92,7 @@ pub fn make_meshes(
 
 		for vert in iter {
 			indices.push(vertices.len() as u32);
-			vertices.push(VertexData {
+			vertices.push(Vertex {
 				in_position: [vert[0], vert[1], vert_z],
 				in_texture_coord: [
 					vert[0] / dimensions.width() as f32,
@@ -104,7 +105,7 @@ pub fn make_meshes(
 
 	#[inline]
 	fn push_sky_flat<'a>(
-		vertices: &mut Vec<SkyVertexData>,
+		vertices: &mut Vec<SkyVertex>,
 		indices: &mut Vec<u32>,
 		iter: impl Iterator<Item = &'a Vector2<f32>>,
 		vert_z: f32,
@@ -113,17 +114,17 @@ pub fn make_meshes(
 
 		for vert in iter {
 			indices.push(vertices.len() as u32);
-			vertices.push(SkyVertexData {
+			vertices.push(SkyVertex {
 				in_position: [vert[0], vert[1], vert_z],
 			});
 		}
 	}
 
-	let mut flat_meshes: FnvHashMap<AssetHandle<Image>, (Vec<VertexData>, Vec<u32>)> =
+	let mut flat_meshes: FnvHashMap<AssetHandle<Image>, (Vec<Vertex>, Vec<u32>)> =
 		FnvHashMap::default();
-	let mut wall_meshes: FnvHashMap<AssetHandle<Image>, (Vec<VertexData>, Vec<u32>)> =
+	let mut wall_meshes: FnvHashMap<AssetHandle<Image>, (Vec<Vertex>, Vec<u32>)> =
 		FnvHashMap::default();
-	let mut sky_mesh: (Vec<SkyVertexData>, Vec<u32>) = (Vec::new(), Vec::new());
+	let mut sky_mesh: (Vec<SkyVertex>, Vec<u32>) = (Vec::new(), Vec::new());
 
 	// Walls
 	for (linedef_index, linedef) in map.linedefs.iter().enumerate() {
@@ -199,7 +200,7 @@ pub fn make_meshes(
 							tex_v,
 							texture_offset,
 							dimensions,
-							front_sector_dynamic.light_level,
+							front_sector_dynamic.light_level + extra_light,
 						);
 					}
 				}
@@ -236,7 +237,7 @@ pub fn make_meshes(
 							tex_v,
 							texture_offset,
 							dimensions,
-							front_sector_dynamic.light_level,
+							front_sector_dynamic.light_level + extra_light,
 						);
 					}
 				}
@@ -270,7 +271,7 @@ pub fn make_meshes(
 							tex_v,
 							texture_offset,
 							dimensions,
-							front_sector_dynamic.light_level,
+							front_sector_dynamic.light_level + extra_light,
 						);
 					}
 				}
@@ -306,7 +307,7 @@ pub fn make_meshes(
 							tex_v,
 							texture_offset,
 							dimensions,
-							front_sector_dynamic.light_level,
+							front_sector_dynamic.light_level + extra_light,
 						);
 					}
 				}
@@ -347,7 +348,7 @@ pub fn make_meshes(
 						iter,
 						sector_dynamic.interval.min,
 						dimensions,
-						sector_dynamic.light_level,
+						sector_dynamic.light_level + extra_light,
 					);
 				}
 			}
@@ -380,7 +381,7 @@ pub fn make_meshes(
 						iter,
 						sector_dynamic.interval.max,
 						dimensions,
-						sector_dynamic.light_level,
+						sector_dynamic.light_level + extra_light,
 					);
 				}
 			}

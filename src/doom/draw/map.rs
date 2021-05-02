@@ -4,11 +4,12 @@ use crate::{
 		video::{AsBytes, DrawContext, DrawTarget, RenderContext},
 	},
 	doom::{
+		camera::Camera,
 		client::Client,
 		components::Transform,
-		draw::world::normal_frag,
+		draw::world::{world_frag, world_vert},
 		map::{
-			meshes::{SkyVertexData, VertexData},
+			meshes::{SkyVertex, Vertex},
 			MapDynamic,
 		},
 		ui::{UiAlignment, UiParams, UiTransform},
@@ -19,13 +20,17 @@ use legion::{
 	systems::{ResourceSet, Runnable},
 	IntoQuery, Read, Resources, SystemBuilder,
 };
-use nalgebra::Vector2;
+use nalgebra::{Matrix4, Vector2};
 use std::sync::Arc;
 use vulkano::{
-	buffer::{BufferUsage, CpuBufferPool},
+	buffer::{BufferUsage, CpuBufferPool, ImmutableBuffer},
 	command_buffer::DynamicState,
 	descriptor::{descriptor_set::FixedSizeDescriptorSetsPool, PipelineLayoutAbstract},
-	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
+	impl_vertex,
+	pipeline::{
+		vertex::OneVertexOneInstanceDefinition, viewport::Viewport, GraphicsPipeline,
+		GraphicsPipelineAbstract,
+	},
 	render_pass::Subpass,
 	sampler::Sampler,
 };
@@ -35,8 +40,8 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 	let device = render_context.device();
 
 	// Create pipeline for normal parts of the map
-	let normal_vert = normal_vert::Shader::load(device.clone()).context("Couldn't load shader")?;
-	let normal_frag = normal_frag::Shader::load(device.clone()).context("Couldn't load shader")?;
+	let world_vert = world_vert::Shader::load(device.clone()).context("Couldn't load shader")?;
+	let world_frag = world_frag::Shader::load(device.clone()).context("Couldn't load shader")?;
 
 	let normal_pipeline = Arc::new(
 		GraphicsPipeline::start()
@@ -44,9 +49,9 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 				Subpass::from(draw_target.render_pass().clone(), 0)
 					.ok_or(anyhow!("Subpass index out of range"))?,
 			)
-			.vertex_input_single_buffer::<VertexData>()
-			.vertex_shader(normal_vert.main_entry_point(), ())
-			.fragment_shader(normal_frag.main_entry_point(), ())
+			.vertex_input(OneVertexOneInstanceDefinition::<Vertex, Instance>::new())
+			.vertex_shader(world_vert.main_entry_point(), ())
+			.fragment_shader(world_frag.main_entry_point(), ())
 			.triangle_fan()
 			.primitive_restart(true)
 			.viewports_dynamic_scissors_irrelevant(1)
@@ -66,7 +71,7 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 				Subpass::from(draw_target.render_pass().clone(), 0)
 					.context("Subpass index out of range")?,
 			)
-			.vertex_input_single_buffer::<SkyVertexData>()
+			.vertex_input_single_buffer::<SkyVertex>()
 			.vertex_shader(sky_vert.main_entry_point(), ())
 			.fragment_shader(sky_frag.main_entry_point(), ())
 			.triangle_fan()
@@ -80,6 +85,14 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 
 	let index_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::index_buffer());
 	let vertex_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer());
+	let (instance_buffer, _future) = ImmutableBuffer::from_iter(
+		std::array::IntoIter::new([Instance {
+			in_transform: Matrix4::identity().into(),
+		}]),
+		BufferUsage::vertex_buffer(),
+		render_context.queues().graphics.clone(),
+	)
+	.context("Couldn't create instance buffer")?;
 
 	let mut normal_texture_set_pool =
 		FixedSizeDescriptorSetsPool::new(normal_pipeline.descriptor_set_layout(1).unwrap().clone());
@@ -94,13 +107,14 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 		.read_resource::<Arc<Sampler>>()
 		.read_resource::<UiParams>()
 		.write_resource::<Option<DrawContext>>()
-		.with_query(<&Transform>::query())
+		.with_query(<(Option<&Camera>, &Transform)>::query())
 		.with_query(<&MapDynamic>::query())
 		.build(move |_command_buffer, world, resources, queries| {
 			(|| -> anyhow::Result<()> {
 				let (asset_storage, client, sampler, ui_params, draw_context) = resources;
 				let draw_context = draw_context.as_mut().unwrap();
 
+				// Viewport
 				let ui_transform = UiTransform {
 					position: Vector2::new(0.0, 0.0),
 					depth: 0.0,
@@ -113,7 +127,6 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 					.component_div(&ui_params.dimensions());
 				let position = ui_transform.position + ui_params.align(ui_transform.alignment);
 				let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
-
 				let dynamic_state = DynamicState {
 					viewports: Some(vec![Viewport {
 						origin: position.component_mul(&ratio).into(),
@@ -122,13 +135,27 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 					}]),
 					..DynamicState::none()
 				};
-				let camera_transform = queries.0.get(world, client.entity.unwrap()).unwrap();
+
+				// Camera
+				let (camera, &(mut camera_transform)) =
+					queries.0.get(world, client.entity.unwrap()).unwrap();
+				let mut extra_light = 0.0;
+
+				if let Some(camera) = camera {
+					camera_transform.position += camera.base + camera.offset;
+					extra_light = camera.extra_light;
+				}
 
 				for map_dynamic in queries.1.iter(world) {
 					let map = asset_storage.get(&map_dynamic.map).unwrap();
 					let (flat_meshes, wall_meshes, sky_mesh) =
-						crate::doom::map::meshes::make_meshes(map, map_dynamic, asset_storage)
-							.context("Couldn't generate map mesh")?;
+						crate::doom::map::meshes::make_meshes(
+							map,
+							map_dynamic,
+							extra_light,
+							asset_storage,
+						)
+						.context("Couldn't generate map mesh")?;
 
 					// Draw the walls
 					for (handle, mesh) in wall_meshes {
@@ -164,7 +191,7 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 							.draw_indexed(
 								normal_pipeline.clone(),
 								&dynamic_state,
-								vec![Arc::new(vertex_buffer)],
+								vec![Arc::new(vertex_buffer), instance_buffer.clone()],
 								index_buffer,
 								draw_context.descriptor_sets.clone(),
 								(),
@@ -207,7 +234,7 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 							.draw_indexed(
 								normal_pipeline.clone(),
 								&dynamic_state,
-								vec![Arc::new(vertex_buffer)],
+								vec![Arc::new(vertex_buffer), instance_buffer.clone()],
 								index_buffer,
 								draw_context.descriptor_sets.clone(),
 								(),
@@ -263,19 +290,16 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 		}))
 }
 
-mod normal_vert {
-	vulkano_shaders::shader! {
-		ty: "vertex",
-		path: "shaders/map_normal.vert",
-	}
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Instance {
+	pub in_transform: [[f32; 4]; 4],
 }
-
-pub use normal_vert::ty::Matrices;
+impl_vertex!(Instance, in_transform);
 
 mod sky_vert {
 	vulkano_shaders::shader! {
 		ty: "vertex",
-		path: "shaders/map_sky.vert",
+		path: "shaders/sky.vert",
 	}
 }
 
