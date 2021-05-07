@@ -9,7 +9,6 @@ use crate::{
 		client::Client,
 		components::Transform,
 		draw::world::{world_frag, world_vert},
-		image::Image,
 		map::MapDynamic,
 		sprite::Sprite,
 		ui::{UiAlignment, UiParams, UiTransform},
@@ -21,17 +20,19 @@ use legion::{
 	systems::{ResourceSet, Runnable},
 	Entity, IntoQuery, Read, Resources, SystemBuilder,
 };
+use memoffset::offset_of;
 use nalgebra::{Matrix4, Vector2, Vector3};
 use serde::{Deserialize, Serialize};
 use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
-	buffer::{BufferUsage, CpuBufferPool, ImmutableBuffer},
+	buffer::{BufferUsage, CpuBufferPool},
 	command_buffer::DynamicState,
 	descriptor::{descriptor_set::FixedSizeDescriptorSetsPool, PipelineLayoutAbstract},
-	impl_vertex,
+	image::view::ImageViewAbstract,
 	pipeline::{
-		vertex::OneVertexOneInstanceDefinition, viewport::Viewport, GraphicsPipeline,
-		GraphicsPipelineAbstract,
+		vertex::{SingleBufferDefinition, Vertex as VertexTrait, VertexMemberInfo, VertexMemberTy},
+		viewport::Viewport,
+		GraphicsPipeline, GraphicsPipelineAbstract,
 	},
 	render_pass::Subpass,
 	sampler::Sampler,
@@ -58,41 +59,17 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 				Subpass::from(draw_target.render_pass().clone(), 0)
 					.context("Subpass index out of range")?,
 			)
-			.vertex_input(OneVertexOneInstanceDefinition::<Vertex, Instance>::new())
+			.vertex_input(SingleBufferDefinition::<Vertex>::new())
 			.vertex_shader(vert.main_entry_point(), ())
 			.fragment_shader(frag.main_entry_point(), ())
-			.triangle_fan()
-			.primitive_restart(true)
+			.triangle_list()
 			.viewports_dynamic_scissors_irrelevant(1)
 			.depth_stencil_simple_depth()
 			.build(device.clone())
 			.context("Couldn't create sprite pipeline")?,
 	) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
-	let (vertex_buffer, _future) = ImmutableBuffer::from_iter(
-		std::array::IntoIter::new([
-			Vertex {
-				in_position: [0.0, 0.0, 0.0],
-				in_texture_coord: [0.0, 0.0],
-			},
-			Vertex {
-				in_position: [0.0, 1.0, 0.0],
-				in_texture_coord: [0.0, 1.0],
-			},
-			Vertex {
-				in_position: [1.0, 1.0, 0.0],
-				in_texture_coord: [1.0, 1.0],
-			},
-			Vertex {
-				in_position: [1.0, 0.0, 0.0],
-				in_texture_coord: [1.0, 0.0],
-			},
-		]),
-		BufferUsage::vertex_buffer(),
-		render_context.queues().graphics.clone(),
-	)
-	.context("Couldn't create vertex buffer")?;
-	let instance_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer());
+	let vertex_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer());
 	let mut texture_set_pool =
 		FixedSizeDescriptorSetsPool::new(pipeline.descriptor_set_layout(1).unwrap().clone());
 
@@ -154,13 +131,8 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 					 0.0      ,  0.0, 0.0      , 1.0,
 				);
 
-				// Horizontal flip matrix
-				#[rustfmt::skip]
-				let flip = Matrix4::new_translation(&Vector3::new(1.0, 0.0, 0.0))
-							* Matrix4::new_nonuniform_scaling(&Vector3::new(-1.0, 1.0, 1.0));
-
 				// Group draws into batches by texture
-				let mut batches: FnvHashMap<&AssetHandle<Image>, Vec<Instance>> =
+				let mut batches: FnvHashMap<Arc<dyn ImageViewAbstract + Send + Sync>, Vec<Vertex>> =
 					FnvHashMap::default();
 
 				for (&entity, sprite_render, transform) in queries.2.iter(world) {
@@ -197,13 +169,7 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 					// Get image
 					let image_info = &frame[index];
 					let image = asset_storage.get(&image_info.handle).unwrap();
-					let mut image_matrix =
-						Matrix4::new_translation(&-image.offset.fixed_resize(0.0))
-							* Matrix4::new_nonuniform_scaling(&image.size().fixed_resize(1.0));
-
-					if image_info.flip < 0.0 {
-						image_matrix = image_matrix * flip;
-					}
+					let image_view = &image.image_view;
 
 					// Determine light level
 					let light_level = if sprite_render.full_bright {
@@ -216,42 +182,64 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 						map_dynamic.sectors[ssect.sector_index].light_level
 					};
 
-					// Set up instance data
-					let in_transform =
-						Matrix4::new_translation(&transform.position) * billboard * image_matrix;
-
-					let instance_data = Instance {
-						in_transform: in_transform.into(),
-						in_light_level: light_level + extra_light,
-					};
+					// Set up vertices
+					let mut vertices = [
+						Vertex {
+							in_position: Vector3::new(0.0, 0.0, 0.0),
+							in_texture_coord: Vector2::new(0.0, 0.0),
+							in_light_level: light_level + extra_light,
+						},
+						Vertex {
+							in_position: Vector3::new(0.0, 1.0, 0.0),
+							in_texture_coord: Vector2::new(0.0, 1.0),
+							in_light_level: light_level + extra_light,
+						},
+						Vertex {
+							in_position: Vector3::new(1.0, 1.0, 0.0),
+							in_texture_coord: Vector2::new(image_info.flip, 1.0),
+							in_light_level: light_level + extra_light,
+						},
+						Vertex {
+							in_position: Vector3::new(1.0, 0.0, 0.0),
+							in_texture_coord: Vector2::new(image_info.flip, 0.0),
+							in_light_level: light_level + extra_light,
+						},
+					];
+					let transform =
+						Matrix4::new_translation(&transform.position)
+							* billboard * Matrix4::new_translation(&-image.offset.fixed_resize(0.0))
+							* Matrix4::new_nonuniform_scaling(&image.size().fixed_resize(1.0));
+					vertices.iter_mut().for_each(|v| {
+						v.in_position =
+							(transform * v.in_position.fixed_resize::<4, 1>(1.0)).fixed_resize(0.0)
+					});
+					let vertices = [0, 1, 2, 0, 2, 3].iter().map(|&i| vertices[i]);
 
 					// Add to batches
-					match batches.entry(&image_info.handle) {
+					match batches.entry(image_view.clone()) {
 						Entry::Occupied(mut entry) => {
-							entry.get_mut().push(instance_data);
+							entry.get_mut().extend(vertices);
 						}
 						Entry::Vacant(entry) => {
-							entry.insert(vec![instance_data]);
+							entry.insert(vertices.collect());
 						}
 					}
 				}
 
 				// Draw the batches
-				for (image_handle, instance_data) in batches {
-					let image = asset_storage.get(image_handle).unwrap();
-
+				for (image_view, vertices) in batches {
 					draw_context.descriptor_sets.truncate(1);
 					draw_context.descriptor_sets.push(Arc::new(
 						texture_set_pool
 							.next()
-							.add_sampled_image(image.image_view.clone(), sampler.clone())
+							.add_sampled_image(image_view, sampler.clone())
 							.context("Couldn't add image to descriptor set")?
 							.build()
 							.context("Couldn't create descriptor set")?,
 					));
 
-					let instance_buffer = instance_buffer_pool
-						.chunk(instance_data)
+					let vertex_buffer = vertex_buffer_pool
+						.chunk(vertices)
 						.context("Couldn't create instance buffer")?;
 
 					draw_context
@@ -259,7 +247,7 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 						.draw(
 							pipeline.clone(),
 							&dynamic_state,
-							vec![vertex_buffer.clone(), Arc::new(instance_buffer)],
+							vec![Arc::new(vertex_buffer)],
 							draw_context.descriptor_sets.clone(),
 							(),
 							std::iter::empty(),
@@ -275,14 +263,31 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Vertex {
-	pub in_position: [f32; 3],
-	pub in_texture_coord: [f32; 2],
-}
-impl_vertex!(Vertex, in_position, in_texture_coord);
-
-#[derive(Clone, Copy, Debug, Default)]
-pub struct Instance {
+	pub in_position: Vector3<f32>,
+	pub in_texture_coord: Vector2<f32>,
 	pub in_light_level: f32,
-	pub in_transform: [[f32; 4]; 4],
 }
-impl_vertex!(Instance, in_light_level, in_transform);
+
+unsafe impl VertexTrait for Vertex {
+	#[inline(always)]
+	fn member(name: &str) -> Option<VertexMemberInfo> {
+		match name {
+			"in_position" => Some(VertexMemberInfo {
+				offset: offset_of!(Vertex, in_position),
+				ty: VertexMemberTy::F32,
+				array_size: 3,
+			}),
+			"in_texture_coord" => Some(VertexMemberInfo {
+				offset: offset_of!(Vertex, in_texture_coord),
+				ty: VertexMemberTy::F32,
+				array_size: 2,
+			}),
+			"in_light_level" => Some(VertexMemberInfo {
+				offset: offset_of!(Vertex, in_light_level),
+				ty: VertexMemberTy::F32,
+				array_size: 1,
+			}),
+			_ => None,
+		}
+	}
+}

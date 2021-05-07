@@ -4,7 +4,7 @@ use crate::{
 		blit::blit,
 		video::RenderContext,
 	},
-	doom::{data::FONTS, image::Image},
+	doom::{data::FONTS, draw::ui::Vertex, image::Image},
 };
 use anyhow::{bail, Context};
 use derivative::Derivative;
@@ -156,13 +156,13 @@ pub fn import_font(
 #[derive(Clone)]
 pub struct HexFont {
 	pub image_view: Arc<dyn ImageViewAbstract + Send + Sync>,
-	pub locations: HashMap<char, (Vector2<usize>, Vector2<usize>)>,
-	pub line_height: usize,
+	pub chars: HashMap<char, HexFontChar>,
+	pub line_height: f32,
 }
 
 impl HexFont {
 	#[inline]
-	pub fn wrap_lines<'a>(&'a self, line_width: usize, slice: &'a str) -> WrapLines<'a> {
+	pub fn wrap_lines<'a>(&'a self, line_width: f32, slice: &'a str) -> WrapLines<'a> {
 		WrapLines {
 			font: self,
 			line_width,
@@ -171,10 +171,16 @@ impl HexFont {
 	}
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct HexFontChar {
+	pub vertices: [Vertex; 4],
+	pub width: f32,
+}
+
 #[derive(Clone)]
 pub struct WrapLines<'a> {
 	font: &'a HexFont,
-	line_width: usize,
+	line_width: f32,
 	slice: &'a str,
 }
 
@@ -182,7 +188,7 @@ impl<'a> Iterator for WrapLines<'a> {
 	type Item = &'a str;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		let mut current_width = 0; // The current accumulated length of the line.
+		let mut current_width = 0.0; // The current accumulated length of the line.
 		let mut breakpoint = 0; // The most recent location for a wrapping break.
 
 		for (index, ch) in self.slice.char_indices() {
@@ -200,7 +206,7 @@ impl<'a> Iterator for WrapLines<'a> {
 				self.slice = slice;
 				return Some(line);
 			} else {
-				let ch_width = self.font.locations[&ch].1[0];
+				let ch_width = self.font.chars[&ch].width;
 				current_width += ch_width;
 
 				// Overflowed the line?
@@ -230,8 +236,8 @@ impl<'a> Iterator for WrapLines<'a> {
 pub struct HexFontData {
 	pub image_data: Vec<u8>,
 	pub image_size: Vector2<usize>,
-	pub locations: HashMap<char, (Vector2<usize>, Vector2<usize>)>,
-	pub line_height: usize,
+	pub chars: HashMap<char, HexFontChar>,
+	pub line_height: f32,
 }
 
 pub fn import_hexfont(
@@ -291,27 +297,61 @@ pub fn import_hexfont(
 		bail!("Texture height exceeded maximum");
 	}
 
-	// Now that we know how big the final texture will be, blit all the characters onto it
+	// Now that we know how big the final texture will be, blit all the characters onto it and
+	// create vertices.
 	let image_size = Vector2::new(IMAGE_WIDTH, image_height);
+	let image_size_f32 = image_size.map(|x| x as f32);
 	let mut image_data = vec![0u8; image_size[0] * image_size[1]];
 
-	for (ch, &(ch_position, ch_size)) in &locations {
-		let ch_pixels = &pixels[ch];
-		blit(
-			|src, dst| *dst = *src,
-			ch_pixels,
-			ch_size.into(),
-			&mut image_data,
-			[IMAGE_WIDTH, image_height],
-			ch_position.map(|x| x as isize).into(),
-		);
-	}
+	let chars = locations
+		.iter()
+		.map(|(&ch, &(ch_position, ch_size))| {
+			let ch_pixels = &pixels[&ch];
+			blit(
+				|src, dst| *dst = *src,
+				ch_pixels,
+				ch_size.into(),
+				&mut image_data,
+				[IMAGE_WIDTH, image_height],
+				ch_position.map(|x| x as isize).into(),
+			);
+
+			let width = ch_size[0] as f32;
+			let ch_position = ch_position.map(|x| x as f32);
+			let ch_size = ch_size.map(|x| x as f32);
+			let mut vertices = [
+				Vertex {
+					in_position: Vector2::new(0.0, 0.0),
+					in_texture_coord: Vector2::new(0.0, 0.0),
+				},
+				Vertex {
+					in_position: Vector2::new(0.0, 1.0),
+					in_texture_coord: Vector2::new(0.0, 1.0),
+				},
+				Vertex {
+					in_position: Vector2::new(1.0, 1.0),
+					in_texture_coord: Vector2::new(1.0, 1.0),
+				},
+				Vertex {
+					in_position: Vector2::new(1.0, 0.0),
+					in_texture_coord: Vector2::new(1.0, 0.0),
+				},
+			];
+			// TODO use array::map when it's stable
+			vertices.iter_mut().for_each(|v| {
+				v.in_position = v.in_position.component_mul(&ch_size);
+				v.in_texture_coord = (v.in_texture_coord.component_mul(&ch_size) + ch_position)
+					.component_div(&image_size_f32);
+			});
+			(ch, HexFontChar { vertices, width })
+		})
+		.collect();
 
 	Ok(Box::new(HexFontData {
 		image_data,
 		image_size,
-		locations,
-		line_height,
+		chars,
+		line_height: line_height as f32,
 	}))
 }
 
@@ -342,7 +382,7 @@ pub fn process_hexfonts(render_context: &RenderContext, asset_storage: &mut Asse
 
 		Ok(HexFont {
 			image_view,
-			locations: hexfont_data.locations,
+			chars: hexfont_data.chars,
 			line_height: hexfont_data.line_height,
 		})
 	})

@@ -1,5 +1,4 @@
 mod context;
-pub mod definition;
 mod draw;
 mod present;
 

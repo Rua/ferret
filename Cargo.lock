@@ -628,6 +628,7 @@ dependencies = [
  "hex",
  "legion",
  "log",
+ "memoffset",
  "nalgebra",
  "num-traits",
  "once_cell",
@@ -931,6 +932,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9b70ca2a6103ac8b665dc150b142ef0e4e89df640c9e6cf295d189c3caebe5a"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "memoffset"
+version = "0.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f83fb6581e8ed1f85fd45c116db8405483899489e38406156c25eb743554361d"
+dependencies = [
+ "autocfg",
 ]
 
 [[package]]

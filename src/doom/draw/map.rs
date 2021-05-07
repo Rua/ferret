@@ -58,7 +58,7 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 			.cull_mode_back()
 			.depth_stencil_simple_depth()
 			.build(device.clone())
-			.context("Couldn't create pipeline")?,
+			.context("Couldn't create map pipeline")?,
 	) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
 	// Create pipeline for sky
@@ -80,7 +80,7 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 			.cull_mode_back()
 			.depth_stencil_simple_depth()
 			.build(device.clone())
-			.context("Couldn't create pipeline")?,
+			.context("Couldn't create sky pipeline")?,
 	) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
 	let index_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::index_buffer());

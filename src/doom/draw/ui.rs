@@ -2,19 +2,19 @@ use crate::{
 	common::{
 		assets::AssetStorage,
 		geometry::{ortho_matrix, Interval, AABB3},
-		video::{
-			definition::NumberedInstanceBufferDefinition, DrawContext, DrawTarget, RenderContext,
-		},
+		video::{DrawContext, DrawTarget, RenderContext},
 	},
 	doom::ui::{FontSpacing, Hidden, UiHexFontText, UiImage, UiParams, UiText, UiTransform},
 };
 use anyhow::Context;
+use arrayvec::ArrayVec;
 use legion::{
 	component,
 	systems::{ResourceSet, Runnable},
 	Entity, IntoQuery, Read, Resources, SystemBuilder,
 };
-use nalgebra::Vector3;
+use memoffset::offset_of;
+use nalgebra::{Vector2, Vector3};
 use std::{cmp::Ordering, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
@@ -22,7 +22,11 @@ use vulkano::{
 	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
 	image::view::ImageViewAbstract,
 	impl_vertex,
-	pipeline::{viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract},
+	pipeline::{
+		vertex::{SingleBufferDefinition, Vertex as VertexTrait, VertexMemberInfo, VertexMemberTy},
+		viewport::Viewport,
+		GraphicsPipeline, GraphicsPipelineAbstract,
+	},
 	render_pass::Subpass,
 	sampler::Sampler,
 };
@@ -41,18 +45,18 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 				Subpass::from(draw_target.render_pass().clone(), 0)
 					.context("Subpass index out of range")?,
 			)
-			.vertex_input(NumberedInstanceBufferDefinition::<InstanceData>::new(4))
+			.vertex_input(SingleBufferDefinition::<Vertex>::new())
 			.vertex_shader(vert.main_entry_point(), ())
 			.fragment_shader(frag.main_entry_point(), ())
-			.triangle_fan()
+			.triangle_list()
 			.viewports_dynamic_scissors_irrelevant(1)
 			.build(device.clone())
-			.context("Couldn't create pipeline")?,
+			.context("Couldn't create UI pipeline")?,
 	) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
 	let layout = pipeline.descriptor_set_layout(0).unwrap();
 	let mut matrix_set_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
-	let instance_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer());
+	let vertex_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer());
 	let matrix_uniform_pool = CpuBufferPool::new(
 		render_context.device().clone(),
 		BufferUsage::uniform_buffer(),
@@ -91,7 +95,7 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 					Interval::new(0.0, ui_params.framebuffer_dimensions()[1]),
 					Interval::new(1000.0, 0.0),
 				)));
-				let ratio = ui_params
+				let framebuffer_ratio = ui_params
 					.framebuffer_dimensions()
 					.component_div(&ui_params.dimensions());
 
@@ -119,10 +123,8 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 				entities.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(Ordering::Equal));
 
 				// Group draws into batches by texture, preserving depth order
-				let mut batches: Vec<(
-					Arc<dyn ImageViewAbstract + Send + Sync>,
-					Vec<InstanceData>,
-				)> = Vec::new();
+				let mut batches: Vec<(Arc<dyn ImageViewAbstract + Send + Sync>, Vec<Vertex>)> =
+					Vec::new();
 
 				for (ui_transform, ui_image, ui_text, ui_hexfont_text) in entities
 					.into_iter()
@@ -132,21 +134,25 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 					let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
 
 					if let Some(ui_image) = ui_image {
-						// Set up instance data
 						let image = asset_storage.get(&ui_image.image).unwrap();
-
-						let instance_data = InstanceData {
-							in_position: (position - image.offset).component_mul(&ratio).into(),
-							in_size: size.component_mul(&ratio).into(),
-							in_texture_position: [0.0; 2],
-							in_texture_size: size.into(),
-						};
-
-						// Add to batches
 						let image_view = &image.image_view;
+						let position = position - image.offset;
+						// TODO use array::map when it's stable
+						let vertices = VERTICES
+							.iter()
+							.map(|v| Vertex {
+								in_position: (v.in_position.component_mul(&size) + position)
+									.component_mul(&framebuffer_ratio),
+								in_texture_coord: v
+									.in_texture_coord
+									.component_mul(&size)
+									.component_div(&image.size()),
+							})
+							.collect::<ArrayVec<_, 4>>();
+						let vertices = [0, 1, 2, 0, 2, 3].iter().map(|&i| vertices[i]);
 						match batches.last_mut() {
-							Some((i, id)) if i == image_view => id.push(instance_data),
-							_ => batches.push((image_view.clone(), vec![instance_data])),
+							Some((i, id)) if i == image_view => id.extend(vertices),
+							_ => batches.push((image_view.clone(), vertices.collect())),
 						}
 					}
 
@@ -163,59 +169,62 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 								cursor_position[0] += width;
 							} else if let Some(image_handle) = font.characters.get(&ch) {
 								let image = asset_storage.get(image_handle).unwrap();
-								let instance_data = InstanceData {
-									in_position: (cursor_position - image.offset)
-										.component_mul(&ratio)
-										.into(),
-									in_size: image.size().component_mul(&ratio).into(),
-									in_texture_position: [0.0; 2],
-									in_texture_size: image.size().into(),
-								};
+								let image_view = &image.image_view;
+								let position = cursor_position - image.offset;
+								// TODO use array::map when it's stable
+								let vertices = VERTICES
+									.iter()
+									.map(|v| Vertex {
+										in_position: (v.in_position.component_mul(&image.size())
+											+ position)
+											.component_mul(&framebuffer_ratio),
+										in_texture_coord: v.in_texture_coord,
+									})
+									.collect::<ArrayVec<_, 4>>();
+								let vertices = [0, 1, 2, 0, 2, 3].iter().map(|&i| vertices[i]);
+								match batches.last_mut() {
+									Some((i, id)) if i == image_view => id.extend(vertices),
+									_ => batches.push((image_view.clone(), vertices.collect())),
+								}
 
+								// Move cursor
 								let width = match font.spacing {
 									FontSpacing::FixedWidth { width } => width,
 									FontSpacing::VariableWidth { .. } => image.size()[0],
 								};
 								cursor_position[0] += width;
-
-								// Add to batches
-								let image_view = &image.image_view;
-								match batches.last_mut() {
-									Some((i, id)) if i == image_view => id.push(instance_data),
-									_ => batches.push((image_view.clone(), vec![instance_data])),
-								}
 							}
 						}
 					}
 
 					if let Some(ui_text) = ui_hexfont_text {
 						let font = asset_storage.get(&ui_text.font).unwrap();
+						let image_view = &font.image_view;
 						let mut cursor_position = position;
 						let start_of_line = cursor_position[0];
 
 						for line in ui_text.lines.iter().map(|line| line.trim_end()) {
-							for (ch_position, ch_size) in
-								line.chars().filter_map(|ch| font.locations.get(&ch))
-							{
-								let instance_data = InstanceData {
-									in_position: cursor_position.component_mul(&ratio).into(),
-									in_size: ch_size.map(|x| x as f32).component_mul(&ratio).into(),
-									in_texture_position: ch_position.map(|x| x as f32).into(),
-									in_texture_size: ch_size.map(|x| x as f32).into(),
-								};
-
+							for ch in line.chars().filter_map(|ch| font.chars.get(&ch)) {
+								// TODO use array::map when it's stable
+								let vertices = ch
+									.vertices
+									.iter()
+									.map(|v| Vertex {
+										in_position: (v.in_position + cursor_position)
+											.component_mul(&framebuffer_ratio),
+										in_texture_coord: v.in_texture_coord,
+									})
+									.collect::<ArrayVec<_, 4>>();
+								let vertices = [0, 1, 2, 0, 2, 3].iter().map(|&i| vertices[i]);
 								match batches.last_mut() {
-									Some((i, id)) if i == &font.image_view => {
-										id.push(instance_data)
-									}
-									_ => {
-										batches.push((font.image_view.clone(), vec![instance_data]))
-									}
+									Some((i, id)) if i == image_view => id.extend(vertices),
+									_ => batches.push((image_view.clone(), vertices.collect())),
 								}
 
-								cursor_position[0] += ch_size[0] as f32;
+								cursor_position[0] += ch.width;
 							}
 
+							// Move cursor
 							cursor_position[0] = start_of_line;
 							cursor_position[1] += font.line_height as f32;
 
@@ -228,8 +237,7 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 				}
 
 				// Draw the batches
-				for (image_view, instance_data) in batches {
-					//let image = asset_storage.get(&image_handle).unwrap();
+				for (image_view, vertices) in batches {
 					draw_context.descriptor_sets.truncate(1);
 					draw_context.descriptor_sets.push(Arc::new(
 						texture_set_pool
@@ -240,8 +248,8 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 							.context("Couldn't create descriptor set")?,
 					));
 
-					let instance_buffer = instance_buffer_pool
-						.chunk(instance_data)
+					let vertex_buffer = vertex_buffer_pool
+						.chunk(vertices)
 						.context("Couldn't create buffer")?;
 
 					draw_context
@@ -249,7 +257,7 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 						.draw(
 							pipeline.clone(),
 							&dynamic_state,
-							vec![Arc::new(instance_buffer)],
+							vec![Arc::new(vertex_buffer)],
 							draw_context.descriptor_sets.clone(),
 							(),
 							std::iter::empty(),
@@ -293,3 +301,47 @@ impl_vertex!(
 	in_texture_position,
 	in_texture_size
 );
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Vertex {
+	pub in_position: Vector2<f32>,
+	pub in_texture_coord: Vector2<f32>,
+}
+
+unsafe impl VertexTrait for Vertex {
+	#[inline(always)]
+	fn member(name: &str) -> Option<VertexMemberInfo> {
+		match name {
+			"in_position" => Some(VertexMemberInfo {
+				offset: offset_of!(Vertex, in_position),
+				ty: VertexMemberTy::F32,
+				array_size: 2,
+			}),
+			"in_texture_coord" => Some(VertexMemberInfo {
+				offset: offset_of!(Vertex, in_texture_coord),
+				ty: VertexMemberTy::F32,
+				array_size: 2,
+			}),
+			_ => None,
+		}
+	}
+}
+
+pub static VERTICES: [Vertex; 4] = [
+	Vertex {
+		in_position: Vector2::new(0.0, 0.0),
+		in_texture_coord: Vector2::new(0.0, 0.0),
+	},
+	Vertex {
+		in_position: Vector2::new(0.0, 1.0),
+		in_texture_coord: Vector2::new(0.0, 1.0),
+	},
+	Vertex {
+		in_position: Vector2::new(1.0, 1.0),
+		in_texture_coord: Vector2::new(1.0, 1.0),
+	},
+	Vertex {
+		in_position: Vector2::new(1.0, 0.0),
+		in_texture_coord: Vector2::new(1.0, 0.0),
+	},
+];

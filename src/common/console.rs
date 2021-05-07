@@ -219,7 +219,7 @@ pub fn update_console(receiver: Receiver<String>) -> impl Runnable {
 					text = console.lines.pop().unwrap() + &text;
 				}
 
-				for line in font.wrap_lines(size[0] as usize, &text) {
+				for line in font.wrap_lines(size[0], &text) {
 					console.lines.push(line.into());
 				}
 			}
@@ -243,7 +243,7 @@ pub fn check_resize_console() -> impl Runnable {
 			let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
 
 			console.lines = font
-				.wrap_lines(size[0] as usize, &console.lines.concat())
+				.wrap_lines(size[0], &console.lines.concat())
 				.map(|s| s.to_owned())
 				.collect();
 		})
