@@ -6,10 +6,10 @@ use vulkano::{
 	format::Format,
 	image::{swapchain::SwapchainImage, AttachmentImage, ImageAccess, ImageUsage},
 	swapchain::{
-		AcquireError, ColorSpace, CompositeAlpha, FullscreenExclusive, PresentMode, Surface,
-		SurfaceTransform, Swapchain, SwapchainCreationError,
+		AcquireError, ColorSpace, PresentMode, Surface, SurfaceTransform, Swapchain,
+		SwapchainCreationError,
 	},
-	sync::{FlushError, GpuFuture, SharingMode},
+	sync::{FlushError, GpuFuture},
 };
 use winit::window::Window;
 
@@ -29,26 +29,18 @@ impl PresentTarget {
 		log::debug!("Creating swapchain: {:?}", params);
 
 		// Create swapchain and images
-		let (swapchain, images) = Swapchain::new(
-			device.clone(),
-			surface,
-			params.num_images,
-			params.format,
-			params.dimensions,
-			1,
-			ImageUsage {
+		let (swapchain, images) = Swapchain::start(device.clone(), surface)
+			.num_images(params.num_images)
+			.format(params.format)
+			.dimensions(params.dimensions)
+			.usage(ImageUsage {
 				transfer_destination: true,
 				..ImageUsage::none()
-			},
-			SharingMode::Exclusive,
-			params.transform,
-			CompositeAlpha::Opaque,
-			params.present_mode,
-			FullscreenExclusive::Default,
-			true,
-			ColorSpace::SrgbNonLinear,
-		)
-		.context("Couldn't create swapchain")?;
+			})
+			.transform(params.transform)
+			.present_mode(params.present_mode)
+			.build()
+			.context("Couldn't create swapchain")?;
 
 		Ok(PresentTarget {
 			images,
@@ -65,26 +57,16 @@ impl PresentTarget {
 		)?;
 		log::debug!("Creating swapchain: {:?}", params);
 
-		let (swapchain, images) = match Swapchain::with_old_swapchain(
-			self.swapchain.device().clone(),
-			self.swapchain.surface().clone(),
-			params.num_images,
-			params.format,
-			params.dimensions,
-			1,
-			ImageUsage {
-				transfer_destination: true,
-				..ImageUsage::none()
-			},
-			SharingMode::Exclusive,
-			params.transform,
-			CompositeAlpha::Opaque,
-			params.present_mode,
-			FullscreenExclusive::Default,
-			true,
-			ColorSpace::SrgbNonLinear,
-			self.swapchain.clone(),
-		) {
+		let (swapchain, images) = match self
+			.swapchain
+			.recreate()
+			.num_images(params.num_images)
+			.format(params.format)
+			.dimensions(params.dimensions)
+			.transform(params.transform)
+			.present_mode(params.present_mode)
+			.build()
+		{
 			Ok(ok) => ok,
 			Err(SwapchainCreationError::UnsupportedDimensions) => {
 				log::debug!("Swapchain recreation returned UnsupportedDimensions");
