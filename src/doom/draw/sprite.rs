@@ -27,7 +27,7 @@ use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
 	command_buffer::DynamicState,
-	descriptor::{descriptor_set::FixedSizeDescriptorSetsPool, PipelineLayoutAbstract},
+	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
 	image::view::ImageViewAbstract,
 	pipeline::{
 		vertex::{SingleBufferDefinition, Vertex as VertexTrait, VertexMemberInfo, VertexMemberTy},
@@ -70,8 +70,9 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 	) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
 	let vertex_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer());
-	let mut texture_set_pool =
-		FixedSizeDescriptorSetsPool::new(pipeline.descriptor_set_layout(1).unwrap().clone());
+	let mut texture_set_pool = FixedSizeDescriptorSetsPool::new(
+		pipeline.layout().descriptor_set_layout(1).unwrap().clone(),
+	);
 
 	Ok(SystemBuilder::new("draw_sprites")
 		.read_resource::<AssetStorage>()

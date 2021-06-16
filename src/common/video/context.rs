@@ -1,13 +1,14 @@
 use anyhow::Context;
-use std::sync::Arc;
+use std::{ffi::CString, sync::Arc};
 use vulkano::{
 	app_info_from_cargo_toml,
-	device::{Device, DeviceExtensions, Features, Queue, RawDeviceExtensions},
+	device::{Device, DeviceExtensions, Features, Queue},
 	instance::{
 		debug::{DebugCallback, MessageSeverity, MessageType},
-		Instance, InstanceExtensions, PhysicalDevice, QueueFamily, RawInstanceExtensions,
+		Instance, InstanceExtensions, PhysicalDevice, QueueFamily,
 	},
 	swapchain::Surface,
+	Version,
 };
 use vulkano_win::VkSurfaceBuild;
 use winit::{
@@ -117,10 +118,10 @@ fn create_instance() -> anyhow::Result<Arc<Instance>> {
 	};
 
 	if extensions != InstanceExtensions::none() {
-		let raw_extensions = RawInstanceExtensions::from(&extensions);
+		let extension_names = <Vec<CString>>::from(&extensions);
 		log::info!("Enabled Vulkan instance extensions:");
 
-		for extension in raw_extensions.iter() {
+		for extension in extension_names.iter() {
 			log::info!("- {}", extension.to_string_lossy());
 		}
 	}
@@ -150,6 +151,7 @@ fn create_instance() -> anyhow::Result<Arc<Instance>> {
 
 	let instance = Instance::new(
 		Some(&app_info_from_cargo_toml!()),
+		Version::V1_2,
 		&extensions,
 		layers.iter().map(|layer| layer.name()),
 	)?;
@@ -210,7 +212,10 @@ fn create_device(
 	let (physical_device, family) = find_suitable_physical_device(&instance, &surface)?
 		.context("No suitable physical device found")?;
 
-	log::info!("Selected Vulkan device: {}", physical_device.name());
+	log::info!(
+		"Selected Vulkan device: {}",
+		physical_device.properties().device_name.as_ref().unwrap()
+	);
 
 	let features = Features::none();
 	let extensions = DeviceExtensions {
@@ -219,10 +224,10 @@ fn create_device(
 	};
 
 	if extensions != DeviceExtensions::none() {
-		let raw_extensions = RawDeviceExtensions::from(&extensions);
+		let extension_names = <Vec<CString>>::from(&extensions);
 		log::info!("Enabled Vulkan device extensions:");
 
-		for extension in raw_extensions.iter() {
+		for extension in extension_names.iter() {
 			log::info!("- {}", extension.to_string_lossy());
 		}
 	}

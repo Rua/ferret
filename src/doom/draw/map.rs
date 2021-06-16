@@ -25,7 +25,7 @@ use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool, ImmutableBuffer},
 	command_buffer::DynamicState,
-	descriptor::{descriptor_set::FixedSizeDescriptorSetsPool, PipelineLayoutAbstract},
+	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
 	impl_vertex,
 	pipeline::{
 		vertex::OneVertexOneInstanceDefinition, viewport::Viewport, GraphicsPipeline,
@@ -94,12 +94,22 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 	)
 	.context("Couldn't create instance buffer")?;
 
-	let mut normal_texture_set_pool =
-		FixedSizeDescriptorSetsPool::new(normal_pipeline.descriptor_set_layout(1).unwrap().clone());
+	let mut normal_texture_set_pool = FixedSizeDescriptorSetsPool::new(
+		normal_pipeline
+			.layout()
+			.descriptor_set_layout(1)
+			.unwrap()
+			.clone(),
+	);
 
 	let sky_uniform_pool = CpuBufferPool::new(device.clone(), BufferUsage::uniform_buffer());
-	let mut sky_texture_set_pool =
-		FixedSizeDescriptorSetsPool::new(sky_pipeline.descriptor_set_layout(1).unwrap().clone());
+	let mut sky_texture_set_pool = FixedSizeDescriptorSetsPool::new(
+		sky_pipeline
+			.layout()
+			.descriptor_set_layout(1)
+			.unwrap()
+			.clone(),
+	);
 
 	Ok(SystemBuilder::new("draw_map")
 		.read_resource::<AssetStorage>()

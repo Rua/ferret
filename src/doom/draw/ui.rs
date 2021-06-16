@@ -54,15 +54,16 @@ pub fn draw_ui(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 			.context("Couldn't create UI pipeline")?,
 	) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
-	let layout = pipeline.descriptor_set_layout(0).unwrap();
+	let layout = pipeline.layout().descriptor_set_layout(0).unwrap();
 	let mut matrix_set_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
 	let vertex_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer());
 	let matrix_uniform_pool = CpuBufferPool::new(
 		render_context.device().clone(),
 		BufferUsage::uniform_buffer(),
 	);
-	let mut texture_set_pool =
-		FixedSizeDescriptorSetsPool::new(pipeline.descriptor_set_layout(1).unwrap().clone());
+	let mut texture_set_pool = FixedSizeDescriptorSetsPool::new(
+		pipeline.layout().descriptor_set_layout(1).unwrap().clone(),
+	);
 
 	Ok(SystemBuilder::new("draw_ui")
 		.read_resource::<AssetStorage>()
