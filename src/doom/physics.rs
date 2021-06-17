@@ -371,7 +371,7 @@ fn step_slide_move<W: EntityStore>(
 	// Limit the number of move-steps to avoid bumping back and forth between things forever
 	let mut range = 0..4;
 
-	while range.next().is_some() && time_left != Duration::default() {
+	while range.next().is_some() && !time_left.is_zero() {
 		let trace = tracer.trace(
 			&bbox,
 			solid_type,

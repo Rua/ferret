@@ -237,7 +237,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 2.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsdoropn.sound")),
@@ -272,7 +272,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 2.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsdoropn.sound")),
@@ -307,7 +307,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 2.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsdoropn.sound")),
@@ -342,7 +342,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 2.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsdoropn.sound")),
@@ -376,7 +376,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 8.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsbdopn.sound")),
@@ -566,7 +566,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 2.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsdoropn.sound")),
@@ -603,7 +603,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 8.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsbdopn.sound")),
@@ -641,7 +641,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 8.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsbdopn.sound")),
@@ -679,7 +679,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 8.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsbdopn.sound")),
@@ -717,7 +717,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 8.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsbdopn.sound")),
@@ -754,7 +754,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 2.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsdoropn.sound")),
@@ -791,7 +791,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 8.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsbdopn.sound")),
@@ -829,7 +829,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 8.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsbdopn.sound")),
@@ -867,7 +867,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 8.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsbdopn.sound")),
@@ -905,7 +905,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 8.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsbdopn.sound")),
@@ -946,7 +946,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Open,
 						end_state: DoorState::Closed,
 						speed: 2.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsdoropn.sound")),
@@ -983,7 +983,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Open,
 						end_state: DoorState::Closed,
 						speed: 8.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsbdopn.sound")),
@@ -1020,7 +1020,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Open,
 						end_state: DoorState::Closed,
 						speed: 2.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsdoropn.sound")),
@@ -1057,7 +1057,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Open,
 						end_state: DoorState::Closed,
 						speed: 8.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsbdopn.sound")),
@@ -1238,7 +1238,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 2.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsdoropn.sound")),
@@ -1272,7 +1272,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 8.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsbdopn.sound")),
@@ -1306,7 +1306,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 2.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsdoropn.sound")),
@@ -1340,7 +1340,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Closed,
 						end_state: DoorState::Open,
 						speed: 8.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsbdopn.sound")),
@@ -1378,7 +1378,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Open,
 						end_state: DoorState::Closed,
 						speed: 2.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsdoropn.sound")),
@@ -1412,7 +1412,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Open,
 						end_state: DoorState::Closed,
 						speed: 8.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsbdopn.sound")),
@@ -1446,7 +1446,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Open,
 						end_state: DoorState::Closed,
 						speed: 2.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsdoropn.sound")),
@@ -1480,7 +1480,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 						start_state: DoorState::Open,
 						end_state: DoorState::Closed,
 						speed: 8.0 * FRAME_RATE,
-						wait_time: Duration::default(),
+						wait_time: Duration::ZERO,
 						can_reverse: false,
 
 						open_sound: Some(asset_storage.load("dsbdopn.sound")),

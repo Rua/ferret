@@ -575,7 +575,7 @@ fn main() -> anyhow::Result<()> {
 	}
 
 	let mut old_time = Instant::now();
-	let mut leftover_time = Duration::default();
+	let mut leftover_time = Duration::ZERO;
 
 	while !resources.contains::<ShouldQuit>() {
 		let mut delta;

@@ -59,7 +59,7 @@ impl SpawnFrom<StateDef> for State {
 			.expect("Entity template has no spawn state");
 
 		State {
-			timer: Timer::new_elapsed(*game_time, Duration::default()),
+			timer: Timer::new_elapsed(*game_time, Duration::ZERO),
 			action: StateAction::Set(spawn_state_name),
 		}
 	}

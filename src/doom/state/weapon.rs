@@ -126,11 +126,11 @@ impl SpawnFrom<WeaponStateDef> for WeaponState {
 		WeaponState {
 			slots: [
 				State {
-					timer: Timer::new_elapsed(*game_time, Duration::default()),
+					timer: Timer::new_elapsed(*game_time, Duration::ZERO),
 					action: StateAction::Set((StateName::from("up").unwrap(), 0)),
 				},
 				State {
-					timer: Timer::new_elapsed(*game_time, Duration::default()),
+					timer: Timer::new_elapsed(*game_time, Duration::ZERO),
 					action: StateAction::None,
 				},
 			],

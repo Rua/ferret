@@ -382,7 +382,7 @@ fn activate(
 			velocity: 0.0,
 			target: sector_dynamic.interval.max,
 			sound: None,
-			sound_timer: Timer::new_elapsed(game_time, Duration::default()),
+			sound_timer: Timer::new_elapsed(game_time, Duration::ZERO),
 		}),
 	);
 
