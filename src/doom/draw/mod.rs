@@ -10,8 +10,11 @@ use crate::{
 };
 use anyhow::Context;
 use legion::{systems::Runnable, Resources, SystemBuilder};
-use vulkano::command_buffer::{
-	AutoCommandBufferBuilder, CommandBufferUsage, PrimaryCommandBuffer, SubpassContents,
+use vulkano::{
+	command_buffer::{
+		AutoCommandBufferBuilder, CommandBufferUsage, PrimaryCommandBuffer, SubpassContents,
+	},
+	format::ClearValue,
 };
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -53,11 +56,7 @@ pub fn start_draw(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 		.build(move |_command_buffer, _world, resources, _queries| {
 			(|| -> anyhow::Result<()> {
 				let (render_context, draw_context, draw_target) = resources;
-
 				let graphics_queue = &render_context.queues().graphics;
-
-				let clear_value = vec![[0.0, 0.0, 1.0, 1.0].into(), 1.0.into()];
-
 				let draw_context: &mut Option<DrawContext> = &mut *draw_context;
 				*draw_context = Some(DrawContext {
 					commands: AutoCommandBufferBuilder::primary(
@@ -76,7 +75,10 @@ pub fn start_draw(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 					.begin_render_pass(
 						draw_target.framebuffer().clone(),
 						SubpassContents::Inline,
-						clear_value,
+						std::array::IntoIter::new([
+							ClearValue::Float([0.0, 0.0, 1.0, 1.0]),
+							ClearValue::DepthStencil((1.0, 0)),
+						]),
 					)
 					.context("Couldn't begin render pass")?;
 

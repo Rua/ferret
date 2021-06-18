@@ -7,7 +7,7 @@ layout(set = 1, binding = 1) uniform FragParams {
 	vec2 screenSize;
 } fp;
 
-layout(location = 0) in vec2 vert_texture_coord;
+layout(location = 0) in vec2 in_texture_coord;
 
 layout(location = 0) out vec4 out_color;
 
