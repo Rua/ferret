@@ -25,11 +25,10 @@ use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
 	command_buffer::DynamicState,
-	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
+	descriptor_set::FixedSizeDescriptorSetsPool,
 	image::view::ImageViewAbstract,
 	pipeline::{
-		vertex::SingleBufferDefinition, viewport::Viewport, GraphicsPipeline,
-		GraphicsPipelineAbstract,
+		vertex::BuffersDefinition, viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract,
 	},
 	render_pass::Subpass,
 	sampler::Sampler,
@@ -55,7 +54,7 @@ pub fn draw_weapon_sprites(resources: &mut Resources) -> anyhow::Result<impl Run
 				Subpass::from(draw_target.render_pass().clone(), 0)
 					.context("Subpass index out of range")?,
 			)
-			.vertex_input(SingleBufferDefinition::<Vertex>::new())
+			.vertex_input(BuffersDefinition::new().vertex::<Vertex>())
 			.vertex_shader(vert.main_entry_point(), ())
 			.fragment_shader(frag.main_entry_point(), ())
 			.triangle_list()
@@ -64,16 +63,15 @@ pub fn draw_weapon_sprites(resources: &mut Resources) -> anyhow::Result<impl Run
 			.context("Couldn't create weapon sprite pipeline")?,
 	) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
 
-	let layout = pipeline.layout().descriptor_set_layout(0).unwrap();
+	let layout = &pipeline.layout().descriptor_set_layouts()[0];
 	let mut matrix_set_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
 	let vertex_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer());
 	let matrix_uniform_pool = CpuBufferPool::new(
 		render_context.device().clone(),
 		BufferUsage::uniform_buffer(),
 	);
-	let mut texture_set_pool = FixedSizeDescriptorSetsPool::new(
-		pipeline.layout().descriptor_set_layout(1).unwrap().clone(),
-	);
+	let mut texture_set_pool =
+		FixedSizeDescriptorSetsPool::new(pipeline.layout().descriptor_set_layouts()[1].clone());
 
 	Ok(SystemBuilder::new("draw_weapon_sprites")
 		.read_resource::<AssetStorage>()
@@ -188,7 +186,6 @@ pub fn draw_weapon_sprites(resources: &mut Resources) -> anyhow::Result<impl Run
 							vec![Arc::new(vertex_buffer)],
 							draw_context.descriptor_sets.clone(),
 							(),
-							std::iter::empty(),
 						)
 						.context("Couldn't issue draw to command buffer")?;
 				}

@@ -14,10 +14,11 @@ use nalgebra::{Matrix4, Vector2, Vector3};
 use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
-	descriptor::{
-		descriptor::{DescriptorBufferDesc, DescriptorDesc, DescriptorDescTy, ShaderStages},
-		descriptor_set::{FixedSizeDescriptorSetsPool, UnsafeDescriptorSetLayout},
+	descriptor_set::{
+		layout::{DescriptorBufferDesc, DescriptorDesc, DescriptorDescTy, DescriptorSetLayout},
+		FixedSizeDescriptorSetsPool,
 	},
+	pipeline::shader::ShaderStages,
 };
 
 pub fn draw_world(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
@@ -38,11 +39,8 @@ pub fn draw_world(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 	})];
 
 	let layout = Arc::new(
-		UnsafeDescriptorSetLayout::new(
-			render_context.device().clone(),
-			descriptors.iter().cloned(),
-		)
-		.context("Couldn't create descriptor set layout")?,
+		DescriptorSetLayout::new(render_context.device().clone(), descriptors.iter().cloned())
+			.context("Couldn't create descriptor set layout")?,
 	);
 	let mut matrix_set_pool = FixedSizeDescriptorSetsPool::new(layout);
 

@@ -7,7 +7,7 @@ use vulkano::{
 		AutoCommandBufferBuilder, CommandBufferUsage, PrimaryAutoCommandBuffer,
 		PrimaryCommandBuffer,
 	},
-	descriptor::descriptor_set::DescriptorSet,
+	descriptor_set::DescriptorSet,
 	device::Device,
 	format::Format,
 	image::{
@@ -17,6 +17,7 @@ use vulkano::{
 	render_pass::{Framebuffer, FramebufferAbstract, RenderPass},
 	single_pass_renderpass,
 	sync::GpuFuture,
+	DeviceSize,
 };
 
 pub struct DrawTarget {
@@ -203,7 +204,7 @@ impl DrawTarget {
 			// TODO: Would be nice to have a CpuAccessibleImage in Vulkano?
 			let buffer = CpuAccessibleBuffer::<[u8]>::uninitialized_array(
 				render_context.device().clone(),
-				format.size().unwrap() * dimensions.num_texels() as usize,
+				format.size().unwrap() * dimensions.num_texels() as DeviceSize,
 				BufferUsage::transfer_destination(),
 				true,
 			)?;

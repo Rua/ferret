@@ -2,10 +2,13 @@ use anyhow::Context;
 use std::{ffi::CString, sync::Arc};
 use vulkano::{
 	app_info_from_cargo_toml,
-	device::{Device, DeviceExtensions, Features, Queue},
+	device::{
+		physical::{PhysicalDevice, QueueFamily},
+		Device, DeviceExtensions, Features, Queue,
+	},
 	instance::{
 		debug::{DebugCallback, MessageSeverity, MessageType},
-		Instance, InstanceExtensions, PhysicalDevice, QueueFamily,
+		Instance, InstanceExtensions,
 	},
 	swapchain::Surface,
 	Version,
@@ -181,7 +184,7 @@ fn find_suitable_physical_device<'a>(
 			continue;
 		}
 
-		let supported_extensions = DeviceExtensions::supported_by_device(physical_device);
+		let supported_extensions = physical_device.supported_extensions();
 
 		if !supported_extensions.khr_swapchain {
 			continue;
@@ -214,13 +217,13 @@ fn create_device(
 
 	log::info!(
 		"Selected Vulkan device: {}",
-		physical_device.properties().device_name.as_ref().unwrap()
+		physical_device.properties().device_name
 	);
 
 	let features = Features::none();
 	let extensions = DeviceExtensions {
 		khr_swapchain: true,
-		..DeviceExtensions::required_extensions(physical_device)
+		..*physical_device.required_extensions()
 	};
 
 	if extensions != DeviceExtensions::none() {

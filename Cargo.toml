@@ -9,7 +9,7 @@ edition = "2018"
 [dependencies]
 anyhow = "1.0"
 arrayvec = { version = "0.7", features = ["serde"] }
-bitflags = "1.2"
+bitflags = "1.3"
 byteorder = "1.3"
 chrono = "0.4"
 clap = "2.33"
@@ -22,22 +22,22 @@ hex = "0.4"
 legion = { version = "0.4", default-features = false, features = ["extended-tuple-impls", "serialize"] }
 log = { version = "0.4", features = ["std"] }
 memoffset = "0.6"
-nalgebra = { version = "0.27", features = ["serde-serialize"] }
+nalgebra = { version = "0.29", features = ["serde-serialize"] }
 num-traits = "0.2"
 once_cell = "1.8"
-png = "0.16"
+png = "0.17"
 rand = "0.8"
 regex = "1.5"
-relative-path = "1.4"
+relative-path = "1.5"
 rmp-serde = { version = "0.15", features = ["serde128"] }
 rodio = { version = "0.14", default-features = false }
 scoped-tls-hkt = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 smallvec = "1.6"
-vulkano = { git = "https://github.com/vulkano-rs/vulkano" }
-vulkano-shaders = { git = "https://github.com/vulkano-rs/vulkano" }
-vulkano-win = { git = "https://github.com/vulkano-rs/vulkano" }
+vulkano = "0.25"
+vulkano-shaders = "0.25"
+vulkano-win = "0.25"
 winit = { version = "0.25", features = ["serde"] }
 
 [profile.dev]

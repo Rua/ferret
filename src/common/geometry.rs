@@ -429,7 +429,7 @@ impl<const D: usize> AABB<D> {
 	/// expanded to cover the given point if it is not within the box already.
 	#[inline]
 	pub fn add_point(&mut self, point: SVector<f32, D>) {
-		self.0.zip_apply(&point, |s, p| s.add_point(p));
+		self.0.zip_apply(&point, |s, p| *s = s.add_point(p));
 	}
 
 	/// Returns a new `AABB` with each axis of `offset` added to both `min` and `max` on the

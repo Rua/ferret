@@ -603,7 +603,7 @@ pub fn take_screenshot(resources: &Resources) {
 			dimensions[0],
 			dimensions[1],
 		);
-		encoder.set_color(png::ColorType::RGBA);
+		encoder.set_color(png::ColorType::Rgba);
 		encoder.set_depth(png::BitDepth::Eight);
 		let mut writer = encoder.write_header()?;
 		writer.write_image_data(&buffer.read()?)?;

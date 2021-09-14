@@ -25,11 +25,10 @@ use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool, ImmutableBuffer},
 	command_buffer::DynamicState,
-	descriptor::descriptor_set::FixedSizeDescriptorSetsPool,
+	descriptor_set::FixedSizeDescriptorSetsPool,
 	impl_vertex,
 	pipeline::{
-		vertex::OneVertexOneInstanceDefinition, viewport::Viewport, GraphicsPipeline,
-		GraphicsPipelineAbstract,
+		vertex::BuffersDefinition, viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract,
 	},
 	render_pass::Subpass,
 	sampler::Sampler,
@@ -49,7 +48,11 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 				Subpass::from(draw_target.render_pass().clone(), 0)
 					.ok_or(anyhow!("Subpass index out of range"))?,
 			)
-			.vertex_input(OneVertexOneInstanceDefinition::<Vertex, Instance>::new())
+			.vertex_input(
+				BuffersDefinition::new()
+					.vertex::<Vertex>()
+					.instance::<Instance>(),
+			)
 			.vertex_shader(world_vert.main_entry_point(), ())
 			.fragment_shader(world_frag.main_entry_point(), ())
 			.triangle_fan()
@@ -95,21 +98,12 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 	.context("Couldn't create instance buffer")?;
 
 	let mut normal_texture_set_pool = FixedSizeDescriptorSetsPool::new(
-		normal_pipeline
-			.layout()
-			.descriptor_set_layout(1)
-			.unwrap()
-			.clone(),
+		normal_pipeline.layout().descriptor_set_layouts()[1].clone(),
 	);
 
 	let sky_uniform_pool = CpuBufferPool::new(device.clone(), BufferUsage::uniform_buffer());
-	let mut sky_texture_set_pool = FixedSizeDescriptorSetsPool::new(
-		sky_pipeline
-			.layout()
-			.descriptor_set_layout(1)
-			.unwrap()
-			.clone(),
-	);
+	let mut sky_texture_set_pool =
+		FixedSizeDescriptorSetsPool::new(sky_pipeline.layout().descriptor_set_layouts()[1].clone());
 
 	Ok(SystemBuilder::new("draw_map")
 		.read_resource::<AssetStorage>()
@@ -205,7 +199,6 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 								index_buffer,
 								draw_context.descriptor_sets.clone(),
 								(),
-								std::iter::empty(),
 							)
 							.context("Couldn't issue draw to command buffer")?;
 					}
@@ -248,7 +241,6 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 								index_buffer,
 								draw_context.descriptor_sets.clone(),
 								(),
-								std::iter::empty(),
 							)
 							.context("Couldn't issue draw to command buffer")?;
 					}
@@ -289,7 +281,6 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 							index_buffer,
 							draw_context.descriptor_sets.clone(),
 							(),
-							std::iter::empty(),
 						)
 						.context("Couldn't issue draw to command buffer")?;
 				}
