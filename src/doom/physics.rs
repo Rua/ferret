@@ -194,6 +194,13 @@ pub fn physics(resources: &mut Resources) -> impl Runnable {
 							physics.velocity[0] *= factor;
 							physics.velocity[1] *= factor;
 
+							const STOP_EPSILON: f32 = 0.001;
+
+							if physics.velocity.fixed_rows::<2>(0).norm_squared() < STOP_EPSILON {
+								physics.velocity[0] = 0.0;
+								physics.velocity[1] = 0.0;
+							}
+
 							// Send touch event
 							touch_events.push(TouchEvent {
 								entity,

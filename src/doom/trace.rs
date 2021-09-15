@@ -140,7 +140,11 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 								}
 								TraceResult::Inside => {
 									trace_fraction = 0.0;
-									trace_collision = None;
+									trace_collision = Some(EntityTraceCollision {
+										entity: linedef_dynamic.entity,
+										normal: -move_step.dir.normalize(),
+										step_z: None,
+									});
 								}
 								_ => (),
 							}
@@ -176,7 +180,11 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 							}
 							TraceResult::Inside => {
 								trace_fraction = 0.0;
-								trace_collision = None;
+								trace_collision = Some(EntityTraceCollision {
+									entity: linedef_dynamic.entity,
+									normal: -move_step.dir.normalize(),
+									step_z: None,
+								});
 							}
 							_ => (),
 						}
@@ -215,7 +223,11 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 								}
 								TraceResult::Inside => {
 									trace_fraction = 0.0;
-									trace_collision = None;
+									trace_collision = Some(EntityTraceCollision {
+										entity: sector_dynamic.entity,
+										normal: -move_step.dir.normalize(),
+										step_z: None,
+									});
 								}
 								_ => (),
 							}
@@ -287,7 +299,11 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						}
 						TraceResult::Inside => {
 							trace_fraction = 0.0;
-							trace_collision = None;
+							trace_collision = Some(EntityTraceCollision {
+								entity,
+								normal: -move_step.dir.normalize(),
+								step_z: None,
+							});
 						}
 						_ => (),
 					}
