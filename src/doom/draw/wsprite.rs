@@ -15,10 +15,7 @@ use crate::{
 };
 use anyhow::{bail, Context};
 use arrayvec::ArrayVec;
-use legion::{
-	systems::{ResourceSet, Runnable},
-	IntoQuery, Read, Resources, SystemBuilder,
-};
+use legion::{systems::ResourceSet, IntoQuery, Read, Resources, World};
 use nalgebra::{Vector2, Vector3};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -40,7 +37,9 @@ pub struct WeaponSpriteRender {
 	pub slots: [Option<SpriteRender>; 2],
 }
 
-pub fn draw_weapon_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
+pub fn draw_weapon_sprites(
+	resources: &mut Resources,
+) -> anyhow::Result<impl FnMut(&mut DrawContext, &World, &Resources)> {
 	let (draw_target, render_context) = <(Read<DrawTarget>, Read<RenderContext>)>::fetch(resources);
 	let device = render_context.device();
 
@@ -73,17 +72,17 @@ pub fn draw_weapon_sprites(resources: &mut Resources) -> anyhow::Result<impl Run
 	let mut texture_set_pool =
 		FixedSizeDescriptorSetsPool::new(pipeline.layout().descriptor_set_layouts()[1].clone());
 
-	Ok(SystemBuilder::new("draw_weapon_sprites")
-		.read_resource::<AssetStorage>()
-		.read_resource::<Client>()
-		.read_resource::<Arc<Sampler>>()
-		.read_resource::<UiParams>()
-		.write_resource::<Option<DrawContext>>()
-		.with_query(<&WeaponSpriteRender>::query())
-		.build(move |_command_buffer, world, resources, query| {
+	let mut query = <&WeaponSpriteRender>::query();
+
+	Ok(
+		move |draw_context: &mut DrawContext, world: &World, resources: &Resources| {
 			(|| -> anyhow::Result<()> {
-				let (asset_storage, client, sampler, ui_params, draw_context) = resources;
-				let draw_context = draw_context.as_mut().unwrap();
+				let (asset_storage, client, sampler, ui_params) = <(
+					Read<AssetStorage>,
+					Read<Client>,
+					Read<Arc<Sampler>>,
+					Read<UiParams>,
+				)>::fetch(resources);
 
 				let dynamic_state = DynamicState {
 					viewports: Some(vec![Viewport {
@@ -193,5 +192,6 @@ pub fn draw_weapon_sprites(resources: &mut Resources) -> anyhow::Result<impl Run
 				Ok(())
 			})()
 			.unwrap_or_else(|e| panic!("{:?}", e));
-		}))
+		},
+	)
 }

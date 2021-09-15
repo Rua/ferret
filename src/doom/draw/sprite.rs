@@ -16,10 +16,7 @@ use crate::{
 };
 use anyhow::Context;
 use fnv::FnvHashMap;
-use legion::{
-	systems::{ResourceSet, Runnable},
-	Entity, IntoQuery, Read, Resources, SystemBuilder,
-};
+use legion::{systems::ResourceSet, Entity, IntoQuery, Read, Resources, World};
 use memoffset::offset_of;
 use nalgebra::{Matrix4, Vector2, Vector3};
 use serde::{Deserialize, Serialize};
@@ -45,7 +42,9 @@ pub struct SpriteRender {
 	pub full_bright: bool,
 }
 
-pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
+pub fn draw_sprites(
+	resources: &mut Resources,
+) -> anyhow::Result<impl FnMut(&mut DrawContext, &World, &Resources)> {
 	let (draw_target, render_context) = <(Read<DrawTarget>, Read<RenderContext>)>::fetch(resources);
 	let device = render_context.device();
 
@@ -73,19 +72,21 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 	let mut texture_set_pool =
 		FixedSizeDescriptorSetsPool::new(pipeline.layout().descriptor_set_layouts()[1].clone());
 
-	Ok(SystemBuilder::new("draw_sprites")
-		.read_resource::<AssetStorage>()
-		.read_resource::<Client>()
-		.read_resource::<Arc<Sampler>>()
-		.read_resource::<UiParams>()
-		.write_resource::<Option<DrawContext>>()
-		.with_query(<(Option<&Camera>, &Transform)>::query())
-		.with_query(<&MapDynamic>::query())
-		.with_query(<(Entity, &SpriteRender, &Transform)>::query())
-		.build(move |_command_buffer, world, resources, queries| {
+	let mut queries = (
+		<(Option<&Camera>, &Transform)>::query(),
+		<&MapDynamic>::query(),
+		<(Entity, &SpriteRender, &Transform)>::query(),
+	);
+
+	Ok(
+		move |draw_context: &mut DrawContext, world: &World, resources: &Resources| {
 			(|| -> anyhow::Result<()> {
-				let (asset_storage, client, sampler, ui_params, draw_context) = resources;
-				let draw_context = draw_context.as_mut().unwrap();
+				let (asset_storage, client, sampler, ui_params) = <(
+					Read<AssetStorage>,
+					Read<Client>,
+					Read<Arc<Sampler>>,
+					Read<UiParams>,
+				)>::fetch(resources);
 				let map_dynamic = queries.1.iter(world).next().unwrap();
 				let map = asset_storage.get(&map_dynamic.map).unwrap();
 
@@ -257,7 +258,8 @@ pub fn draw_sprites(resources: &mut Resources) -> anyhow::Result<impl Runnable> 
 				Ok(())
 			})()
 			.unwrap_or_else(|e| panic!("{:?}", e));
-		}))
+		},
+	)
 }
 
 #[derive(Clone, Copy, Debug, Default)]

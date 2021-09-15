@@ -16,10 +16,7 @@ use crate::{
 	},
 };
 use anyhow::{anyhow, Context};
-use legion::{
-	systems::{ResourceSet, Runnable},
-	IntoQuery, Read, Resources, SystemBuilder,
-};
+use legion::{systems::ResourceSet, IntoQuery, Read, Resources, World};
 use nalgebra::{Matrix4, Vector2};
 use std::sync::Arc;
 use vulkano::{
@@ -34,7 +31,9 @@ use vulkano::{
 	sampler::Sampler,
 };
 
-pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
+pub fn draw_map(
+	resources: &mut Resources,
+) -> anyhow::Result<impl FnMut(&mut DrawContext, &World, &Resources)> {
 	let (draw_target, render_context) = <(Read<DrawTarget>, Read<RenderContext>)>::fetch(resources);
 	let device = render_context.device();
 
@@ -105,18 +104,20 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 	let mut sky_texture_set_pool =
 		FixedSizeDescriptorSetsPool::new(sky_pipeline.layout().descriptor_set_layouts()[1].clone());
 
-	Ok(SystemBuilder::new("draw_map")
-		.read_resource::<AssetStorage>()
-		.read_resource::<Client>()
-		.read_resource::<Arc<Sampler>>()
-		.read_resource::<UiParams>()
-		.write_resource::<Option<DrawContext>>()
-		.with_query(<(Option<&Camera>, &Transform)>::query())
-		.with_query(<&MapDynamic>::query())
-		.build(move |_command_buffer, world, resources, queries| {
+	let mut queries = (
+		<(Option<&Camera>, &Transform)>::query(),
+		<&MapDynamic>::query(),
+	);
+
+	Ok(
+		move |draw_context: &mut DrawContext, world: &World, resources: &Resources| {
 			(|| -> anyhow::Result<()> {
-				let (asset_storage, client, sampler, ui_params, draw_context) = resources;
-				let draw_context = draw_context.as_mut().unwrap();
+				let (asset_storage, client, sampler, ui_params) = <(
+					Read<AssetStorage>,
+					Read<Client>,
+					Read<Arc<Sampler>>,
+					Read<UiParams>,
+				)>::fetch(resources);
 
 				// Viewport
 				let ui_transform = UiTransform {
@@ -157,7 +158,7 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 							map,
 							map_dynamic,
 							extra_light,
-							asset_storage,
+							&asset_storage,
 						)
 						.context("Couldn't generate map mesh")?;
 
@@ -288,7 +289,8 @@ pub fn draw_map(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 				Ok(())
 			})()
 			.unwrap_or_else(|e| panic!("{:?}", e));
-		}))
+		},
+	)
 }
 
 #[derive(Clone, Copy, Debug, Default)]

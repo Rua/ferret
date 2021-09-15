@@ -6,10 +6,7 @@ use crate::{
 	doom::{camera::Camera, client::Client, components::Transform, ui::UiParams},
 };
 use anyhow::Context;
-use legion::{
-	systems::{ResourceSet, Runnable},
-	IntoQuery, Read, Resources, SystemBuilder,
-};
+use legion::{systems::ResourceSet, IntoQuery, Read, Resources, World};
 use nalgebra::{Matrix4, Vector2, Vector3};
 use std::sync::Arc;
 use vulkano::{
@@ -21,7 +18,9 @@ use vulkano::{
 	pipeline::shader::ShaderStages,
 };
 
-pub fn draw_world(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
+pub fn draw_world(
+	resources: &mut Resources,
+) -> anyhow::Result<impl FnMut(&mut DrawContext, &World, &Resources)> {
 	let render_context = <Read<RenderContext>>::fetch(resources);
 
 	// Create descriptor sets pool for matrices
@@ -49,15 +48,12 @@ pub fn draw_world(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 		BufferUsage::uniform_buffer(),
 	);
 
-	Ok(SystemBuilder::new("draw_world")
-		.read_resource::<Client>()
-		.read_resource::<UiParams>()
-		.write_resource::<Option<DrawContext>>()
-		.with_query(<(Option<&Camera>, &Transform)>::query())
-		.build(move |_command_buffer, world, resources, query| {
+	let mut query = <(Option<&Camera>, &Transform)>::query();
+
+	Ok(
+		move |draw_context: &mut DrawContext, world: &World, resources: &Resources| {
 			(|| -> anyhow::Result<()> {
-				let (client, ui_params, draw_context) = resources;
-				let draw_context = draw_context.as_mut().unwrap();
+				let (client, ui_params) = <(Read<Client>, Read<UiParams>)>::fetch(resources);
 
 				// Projection matrix
 				// Doom had non-square pixels, with a resolution of 320x200 (16:10) running on a 4:3
@@ -112,7 +108,8 @@ pub fn draw_world(resources: &mut Resources) -> anyhow::Result<impl Runnable> {
 				Ok(())
 			})()
 			.unwrap_or_else(|e| panic!("{:?}", e));
-		}))
+		},
+	)
 }
 
 pub mod world_vert {

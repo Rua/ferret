@@ -48,10 +48,7 @@ use crate::{
 		components::{clear_event, register_components, Transform},
 		data::{iwads::IWADINFO, FRAME_TIME},
 		door::{door_active, door_linedef_touch, door_switch_use, door_use},
-		draw::{
-			check_recreate, finish_draw, map::draw_map, sprite::draw_sprites, start_draw,
-			ui::draw_ui, world::draw_world, wsprite::draw_weapon_sprites, FramebufferResizeEvent,
-		},
+		draw::{check_recreate, draw, FramebufferResizeEvent},
 		exit::exit_switch_use,
 		floor::{floor_active, floor_linedef_touch, floor_switch_use},
 		health::{apply_damage, DamageEvent},
@@ -301,13 +298,7 @@ pub fn add_output_systems(builder: &mut Builder, resources: &mut Resources) -> a
 		.add_system(check_resize_console())
 		.add_system(clear_event::<FramebufferResizeEvent>())
 
-		.add_thread_local(start_draw(resources)?)
-		.add_thread_local(draw_world(resources)?)
-		.add_thread_local(draw_map(resources)?)
-		.add_thread_local(draw_sprites(resources)?)
-		.add_thread_local(draw_weapon_sprites(resources)?)
-		.add_thread_local(draw_ui(resources)?)
-		.add_thread_local(finish_draw(resources)?)
+		.add_thread_local_fn(draw(resources)?)
 		.add_system(start_sound(resources))
 		.add_system(clear_event::<StartSoundEvent>())
 		.add_system(update_sound(resources));
