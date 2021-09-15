@@ -569,6 +569,7 @@ pub fn load_game(name: &str, world: &mut World, resources: &mut Resources) {
 				.as_deserialize_into_world(world, &*canon)
 				.deserialize(&mut deserializer)
 				.context("Couldn't deserialize world")?;
+
 			Ok(saved_resources)
 		})
 	}
@@ -581,6 +582,12 @@ pub fn load_game(name: &str, world: &mut World, resources: &mut Resources) {
 
 			let quadtree = create_quadtree(world, resources);
 			resources.insert(quadtree);
+
+			{
+				let (render_context, mut asset_storage) =
+					<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(resources);
+				process_images(&render_context, &mut asset_storage);
+			}
 
 			log::info!("Game loaded.");
 		}

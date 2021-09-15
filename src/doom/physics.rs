@@ -417,6 +417,7 @@ fn step_slide_move<W: EntityStore>(
 
 				if trace.collision.is_none() {
 					*position = trace.move_step.end_point();
+					velocity[2] = velocity[2].max(0.0); // Do not fall back down
 					step_events.push(StepEvent { entity, height });
 
 					// Touch nonsolids
