@@ -104,9 +104,9 @@ use legion::{
 use relative_path::RelativePath;
 use serde::{de::DeserializeSeed, Deserialize, Serialize};
 use std::{
-	fs::File,
+	fs::{create_dir_all, File},
 	io::{BufReader, BufWriter, Write as IOWrite},
-	path::Path,
+	path::{Path, PathBuf},
 };
 use vulkano::{
 	sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode},
@@ -208,7 +208,6 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 
 	let command_sender = <Read<Sender<String>>>::fetch(resources);
 	command_sender.send(format!("new {}", map)).ok();
-	command_sender.send("save foo".into()).ok();
 
 	Ok(())
 }
@@ -313,8 +312,11 @@ fn load_wads(resources: &mut Resources, arg_matches: &ArgMatches) -> anyhow::Res
 		.enumerate()
 		.flat_map(|(i, info)| info.files.iter().map(move |file| (i, *file)));
 
+	let mut dir = dirs::data_dir().unwrap_or_default();
+	dir.push("ferret");
+
 	let (index, iwad_path) = if let Some(iwad) = arg_matches.value_of("iwad") {
-		let iwad_path = Path::new(iwad);
+		let iwad_path = dir.join(iwad);
 		let iwad_file: &str = iwad_path
 			.file_name()
 			.with_context(|| format!("IWAD path \"{}\" does not contain a file name.", iwad))?
@@ -324,13 +326,13 @@ fn load_wads(resources: &mut Resources, arg_matches: &ArgMatches) -> anyhow::Res
 		if let Some((index, _)) = iter.find(|(_, file)| *file == iwad_file) {
 			(index, iwad_path)
 		} else {
-			bail!("IWAD \"{}\" is not a recognised game IWAD.", iwad);
+			bail!("File \"{}\" is not a recognised game IWAD.", iwad);
 		}
 	} else {
-		iter.map(|(i, file)| (i, Path::new(file)))
+		iter.map(|(i, file)| (i, dir.join(file)))
 			.find(|(_, file)| file.is_file())
 			.with_context(|| {
-				format!("No recognised game IWAD found. Try specifying one with the \"-i\" command line option.")
+				format!("No recognised game IWAD found in \"{}\". Try specifying one with the \"-i\" command line option.", dir.display())
 			})?
 	};
 
@@ -365,11 +367,11 @@ fn load_wads(resources: &mut Resources, arg_matches: &ArgMatches) -> anyhow::Res
 			Ok(())
 		};
 
-		add_with_gwa(iwad_path)?;
+		add_with_gwa(&iwad_path)?;
 
 		if let Some(iter) = arg_matches.values_of("PWADS") {
-			for pwad in iter.map(Path::new) {
-				add_with_gwa(pwad)?;
+			for pwad in iter.map(|file| dir.join(file)) {
+				add_with_gwa(&pwad)?;
 			}
 		}
 	}
@@ -489,46 +491,79 @@ struct SavedResources {
 	game_time: GameTime,
 }
 
+#[inline]
+fn save_path(name: &str, resources: &Resources) -> anyhow::Result<PathBuf> {
+	if name.contains("/") || name.contains("\\") {
+		bail!("Save names cannot contain \"/\" or \"\\\"");
+	}
+
+	let mut path = dirs::config_dir().unwrap_or_default();
+	path.push("ferret");
+	path.push(<Read<IWADInfo>>::fetch(resources).files[0]);
+	path.push(name);
+	path.set_extension("sav");
+	Ok(path)
+}
+
 pub fn save_game(name: &str, world: &mut World, resources: &mut Resources) {
 	if !resources.contains::<GameTime>() {
 		log::error!("Can't save game, not currently in a game.");
 		return;
 	}
 
-	let name = format!("{}.sav", name);
-	log::info!("Saving game to \"{}\"...", name);
-
-	let (canon, client, game_time, registry, mut asset_storage) = <(
-		Read<Canon>,
-		Read<Client>,
-		Read<GameTime>,
-		Read<Registry<String>>,
-		Write<AssetStorage>,
-	)>::fetch_mut(resources);
-
-	let saved_resources = SavedResources {
-		client: client.clone(),
-		game_time: *game_time,
+	let path = match save_path(name, resources) {
+		Ok(x) => x,
+		Err(err) => {
+			log::error!("{:?}", err);
+			return;
+		}
 	};
+	log::info!("Saving game to \"{}\"...", path.display());
 
-	let result = ASSET_SERIALIZER
-		.set(&mut asset_storage, || -> anyhow::Result<()> {
-			let mut file = BufWriter::new(
-				File::create(&name)
-					.with_context(|| format!("Couldn't open \"{}\" for writing", name))?,
-			);
-			let mut serializer = rmp_serde::encode::Serializer::new(&mut file);
-
-			set_entity_serializer(&*canon, || saved_resources.serialize(&mut serializer))
-				.context("Couldn't serialize resources")?;
-			world
-				.as_serializable(game_entities!(), &*registry, &*canon)
-				.serialize(&mut serializer)
-				.context("Couldn't serialize world")?;
-
-			file.flush().context("Couldn't flush file")?;
-			log::info!("Game saved.");
+	let result = Ok(())
+		.and_then(|_| {
+			if let Some(dir) = path.parent() {
+				if !dir.is_dir() {
+					create_dir_all(dir).with_context(|| {
+						format!("Couldn't create directory \"{}\"", dir.display())
+					})?;
+				}
+			}
 			Ok(())
+		})
+		.and_then(|_| {
+			File::create(&path)
+				.with_context(|| format!("Couldn't open \"{}\" for writing", path.display()))
+		})
+		.and_then(|file| {
+			let mut file = BufWriter::new(file);
+			let (canon, client, game_time, registry, mut asset_storage) = <(
+				Read<Canon>,
+				Read<Client>,
+				Read<GameTime>,
+				Read<Registry<String>>,
+				Write<AssetStorage>,
+			)>::fetch_mut(resources);
+
+			let saved_resources = SavedResources {
+				client: client.clone(),
+				game_time: *game_time,
+			};
+
+			ASSET_SERIALIZER.set(&mut asset_storage, || -> anyhow::Result<()> {
+				let mut serializer = rmp_serde::encode::Serializer::new(&mut file);
+
+				set_entity_serializer(&*canon, || saved_resources.serialize(&mut serializer))
+					.context("Couldn't serialize resources")?;
+				world
+					.as_serializable(game_entities!(), &*registry, &*canon)
+					.serialize(&mut serializer)
+					.context("Couldn't serialize world")?;
+
+				file.flush().context("Couldn't flush file")?;
+				log::info!("Game saved.");
+				Ok(())
+			})
 		})
 		.context("Couldn't save game");
 
@@ -538,33 +573,41 @@ pub fn save_game(name: &str, world: &mut World, resources: &mut Resources) {
 }
 
 pub fn load_game(name: &str, world: &mut World, resources: &mut Resources) {
-	clear_game(world, resources);
+	let path = match save_path(name, resources) {
+		Ok(x) => x,
+		Err(err) => {
+			log::error!("{:?}", err);
+			return;
+		}
+	};
+	log::info!("Loading game from \"{}\"...", path.display());
 
-	let name = format!("{}.sav", name);
-	log::info!("Loading game from \"{}\"...", name);
-
-	let result = {
-		let (canon, registry, mut asset_storage) =
-			<(Read<Canon>, Read<Registry<String>>, Write<AssetStorage>)>::fetch_mut(resources);
-
-		ASSET_SERIALIZER.set(&mut asset_storage, || -> anyhow::Result<_> {
-			let mut file = BufReader::new(
-				File::open(&name)
-					.with_context(|| format!("Couldn't open \"{}\" for reading", name))?,
-			);
-			let mut deserializer = rmp_serde::decode::Deserializer::new(&mut file);
-			let saved_resources =
-				set_entity_serializer(&*canon, || SavedResources::deserialize(&mut deserializer))
-					.context("Couldn't deserialize resources")?;
-			registry
-				.as_deserialize_into_world(world, &*canon)
-				.deserialize(&mut deserializer)
-				.context("Couldn't deserialize world")?;
-
-			Ok(saved_resources)
+	let result = Ok(())
+		.and_then(|_| {
+			File::open(&path)
+				.with_context(|| format!("Couldn't open \"{}\" for reading", path.display()))
 		})
-	}
-	.context("Couldn't load game");
+		.and_then(|file| {
+			clear_game(world, resources);
+			let mut file = BufReader::new(file);
+			let (canon, registry, mut asset_storage) =
+				<(Read<Canon>, Read<Registry<String>>, Write<AssetStorage>)>::fetch_mut(resources);
+
+			ASSET_SERIALIZER.set(&mut asset_storage, || -> anyhow::Result<_> {
+				let mut deserializer = rmp_serde::decode::Deserializer::new(&mut file);
+				let saved_resources = set_entity_serializer(&*canon, || {
+					SavedResources::deserialize(&mut deserializer)
+				})
+				.context("Couldn't deserialize resources")?;
+				registry
+					.as_deserialize_into_world(world, &*canon)
+					.deserialize(&mut deserializer)
+					.context("Couldn't deserialize world")?;
+
+				Ok(saved_resources)
+			})
+		})
+		.context("Couldn't load game");
 
 	match result {
 		Ok(saved_resources) => {
@@ -593,11 +636,15 @@ pub fn take_screenshot(resources: &Resources) {
 		let (buffer, dimensions, future) = draw_target.copy_to_cpu(&render_context)?;
 		future.then_signal_fence_and_flush()?.wait(None)?;
 
-		let filename = Local::now()
-			.format("screenshot %Y-%m-%d %H-%M-%S %f.png")
-			.to_string();
+		let mut path = dirs::picture_dir().unwrap_or_default();
+		path.push(
+			Local::now()
+				.format("Ferret %Y-%m-%d %H-%M-%S %f.png")
+				.to_string(),
+		);
+
 		let mut encoder = png::Encoder::new(
-			BufWriter::new(File::create(&filename)?),
+			BufWriter::new(File::create(&path)?),
 			dimensions[0],
 			dimensions[1],
 		);
@@ -605,7 +652,7 @@ pub fn take_screenshot(resources: &Resources) {
 		encoder.set_depth(png::BitDepth::Eight);
 		let mut writer = encoder.write_header()?;
 		writer.write_image_data(&buffer.read()?)?;
-		log::info!("Screenshot saved to \"{}\"", filename);
+		log::info!("Screenshot saved to \"{}\"", path.display());
 		Ok(())
 	}()
 	.context("Couldn't take screenshot");
