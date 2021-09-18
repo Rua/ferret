@@ -1,11 +1,15 @@
 use crate::{
 	common::assets::AssetStorage,
 	doom::{
-		components::TransformDef,
+		assets::template::{EntityTemplate, EntityTemplateRefDef},
 		data::{FRAME_RATE, FRAME_TIME},
-		light::{LightFlashDef, LightFlashType, LightGlow},
-		map::SectorRefDef,
-		template::{EntityTemplate, EntityTemplateRefDef},
+		game::{
+			map::{
+				anim::{LightFlashDef, LightFlashType, LightGlow},
+				SectorRefDef,
+			},
+			TransformDef,
+		},
 	},
 };
 use legion::World;

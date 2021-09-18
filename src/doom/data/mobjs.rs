@@ -2,28 +2,30 @@
 use crate::{
 	common::{assets::AssetStorage, geometry::Angle},
 	doom::{
-		camera::{Camera, MovementBob},
-		client::{PlayerTouch, User},
-		components::{RandomTransformDef, SpawnPoint, TransformDef},
+		assets::template::{EntityTemplate, EntityTemplateRefDef},
 		data::{FRAME_RATE, FRAME_TIME},
 		draw::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
-		health::HealthDef,
-		physics::{
-			BoxCollider, CollisionResponse, DamageParticle, Physics, PhysicsDef, SolidBits,
-			SolidType, TouchEventDef, Touchable,
+		game::{
+			camera::{Camera, MovementBob},
+			client::{PlayerTouch, User},
+			combat::{
+				weapon::{AmmoState, WeaponStateDef},
+				HealthDef, OwnerDef, ProjectileTouch, RadiusAttack, SprayAttack,
+			},
+			map::SpawnPoint,
+			physics::{
+				BoxCollider, CollisionResponse, DamageParticle, Physics, PhysicsDef,
+				SetBlocksTypes, SetSolidType, SolidBits, SolidType, TouchEventDef, Touchable,
+			},
+			state::{
+				entity::{
+					EntityStateEventDef, NextState, NextStateRandomTimeDef, RemoveEntity, StateDef,
+				},
+				StateName,
+			},
+			RandomTransformDef, SetEntitySprite, TransformDef,
 		},
 		sound::StartSoundEventDef,
-		state::{
-			entity::{
-				EntityStateEventDef, NextState, NextStateRandomTimeDef, RemoveEntity,
-				SetBlocksTypes, SetEntitySprite, SetSolidType, StateDef,
-			},
-			weapon::{
-				AmmoState, OwnerDef, ProjectileTouch, RadiusAttack, SprayAttack, WeaponStateDef,
-			},
-			StateName,
-		},
-		template::{EntityTemplate, EntityTemplateRefDef},
 	},
 };
 use legion::World;

@@ -1,33 +1,32 @@
 use crate::{
-	common::{
-		geometry::{Angle, Interval},
-		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
-	},
+	common::spawn::SpawnMergerHandlerSet,
 	doom::{
+		assets::template::{EntityTemplateRef, EntityTemplateRefDef},
 		draw::{sprite::SpriteRender, wsprite::WeaponSpriteRender},
-		map::{LinedefRef, LinedefRefDef, MapDynamic, SectorRef, SectorRefDef},
-		physics::{BoxCollider, DISTANCE_EPSILON},
-		template::{EntityTemplateRef, EntityTemplateRefDef},
-		ui::{UiImage, UiTransform},
+		game::{
+			map::{LinedefRef, LinedefRefDef, MapDynamic, SectorRef, SectorRefDef, SpawnPoint},
+			RandomTransformDef, Transform, TransformDef,
+		},
+		ui::{
+			hud::{AmmoStat, ArmsStat, HealthStat},
+			UiImage, UiText, UiTransform,
+		},
 	},
 };
-use legion::{
-	component,
-	storage::Component,
-	systems::{ResourceSet, Runnable},
-	Entity, IntoQuery, Read, Registry, Resources, SystemBuilder, Write,
-};
-use nalgebra::Vector3;
-use rand::{distributions::Uniform, thread_rng, Rng};
-use serde::{Deserialize, Serialize};
-use std::any::type_name;
+use legion::{systems::ResourceSet, Registry, Resources, Write};
 
 pub fn register_components(resources: &mut Resources) {
 	let (mut handler_set, mut registry) =
 		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 
+	handler_set.register_clone::<AmmoStat>();
+
+	handler_set.register_clone::<ArmsStat>();
+
 	registry.register::<EntityTemplateRef>("EntityTemplateRef".into());
 	handler_set.register_spawn::<EntityTemplateRefDef, EntityTemplateRef>();
+
+	handler_set.register_clone::<HealthStat>();
 
 	registry.register::<LinedefRef>("LinedefRef".into());
 	handler_set.register_clone::<LinedefRef>();
@@ -50,76 +49,12 @@ pub fn register_components(resources: &mut Resources) {
 	handler_set.register_spawn::<TransformDef, Transform>();
 	handler_set.register_spawn::<RandomTransformDef, Transform>();
 
-	handler_set.register_clone::<UiTransform>();
-
 	handler_set.register_clone::<UiImage>();
+
+	handler_set.register_clone::<UiText>();
+
+	handler_set.register_clone::<UiTransform>();
 
 	registry.register::<WeaponSpriteRender>("WeaponSpriteRender".into());
 	handler_set.register_clone::<WeaponSpriteRender>();
-}
-
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub struct SpawnPoint {
-	pub player_num: usize,
-}
-
-#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
-pub struct Transform {
-	pub position: Vector3<f32>,
-	pub rotation: Vector3<Angle>,
-}
-
-#[derive(Clone, Copy, Debug, Default)]
-pub struct TransformDef {
-	pub spawn_on_ceiling: bool,
-}
-
-impl SpawnFrom<TransformDef> for Transform {
-	fn spawn(component: &TransformDef, accessor: ComponentAccessor, resources: &Resources) -> Self {
-		let transform = <Read<SpawnContext<Transform>>>::fetch(resources);
-		let mut transform = transform.0;
-
-		if transform.position[2].is_nan() {
-			let sector_interval = <Read<SpawnContext<Interval>>>::fetch(resources);
-
-			if component.spawn_on_ceiling {
-				transform.position[2] = sector_interval.0.max - DISTANCE_EPSILON;
-
-				if let Some(box_collider) = accessor.get::<BoxCollider>() {
-					transform.position[2] -= box_collider.height;
-				}
-			} else {
-				transform.position[2] = sector_interval.0.min + DISTANCE_EPSILON;
-			}
-		}
-
-		transform
-	}
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct RandomTransformDef(pub [Uniform<f32>; 3]);
-
-impl SpawnFrom<RandomTransformDef> for Transform {
-	fn spawn(
-		component: &RandomTransformDef,
-		_accessor: ComponentAccessor,
-		resources: &Resources,
-	) -> Self {
-		let transform = <Read<SpawnContext<Transform>>>::fetch(resources);
-		let mut transform = transform.0;
-		let offset = Vector3::from_iterator(component.0.iter().map(|u| thread_rng().sample(u)));
-		transform.position += offset;
-		transform
-	}
-}
-
-pub fn clear_event<E: Component>() -> impl Runnable {
-	SystemBuilder::new(format!("clear_event::<{}>", type_name::<E>()))
-		.with_query(<Entity>::query().filter(component::<E>()))
-		.build(move |command_buffer, world, _resources, query| {
-			for &entity in query.iter(world) {
-				command_buffer.remove(entity);
-			}
-		})
 }

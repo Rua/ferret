@@ -1,6 +1,9 @@
 use crate::{
 	common::input::{bind_axis, bind_button},
-	doom::{change_map, cheats::give_all, load_game, new_game, save_game, take_screenshot},
+	doom::{
+		game::{change_map, cheats::give_all, load_game, new_game, save_game},
+		take_screenshot,
+	},
 	ShouldQuit,
 };
 use clap::{App, AppSettings, Arg, ArgMatches};

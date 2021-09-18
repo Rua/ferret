@@ -3,7 +3,10 @@ use crate::{
 		geometry::{perspective_matrix, Interval},
 		video::{DrawContext, RenderContext},
 	},
-	doom::{camera::Camera, client::Client, components::Transform, ui::UiParams},
+	doom::{
+		game::{camera::Camera, client::Client, Transform},
+		ui::UiParams,
+	},
 };
 use anyhow::Context;
 use legion::{systems::ResourceSet, IntoQuery, Read, Resources, World};

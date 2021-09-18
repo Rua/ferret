@@ -4,14 +4,9 @@ use crate::{
 		video::{AsBytes, DrawContext, DrawTarget, RenderContext},
 	},
 	doom::{
-		camera::Camera,
-		client::Client,
-		components::Transform,
+		assets::map::meshes::{make_meshes, SkyVertex, Vertex},
 		draw::world::{world_frag, world_vert},
-		map::{
-			meshes::{SkyVertex, Vertex},
-			MapDynamic,
-		},
+		game::{camera::Camera, client::Client, map::MapDynamic, Transform},
 		ui::{UiAlignment, UiParams, UiTransform},
 	},
 };
@@ -154,13 +149,8 @@ pub fn draw_map(
 				for map_dynamic in queries.1.iter(world) {
 					let map = asset_storage.get(&map_dynamic.map).unwrap();
 					let (flat_meshes, wall_meshes, sky_mesh) =
-						crate::doom::map::meshes::make_meshes(
-							map,
-							map_dynamic,
-							extra_light,
-							&asset_storage,
-						)
-						.context("Couldn't generate map mesh")?;
+						make_meshes(map, map_dynamic, extra_light, &asset_storage)
+							.context("Couldn't generate map mesh")?;
 
 					// Draw the walls
 					for (handle, mesh) in wall_meshes {

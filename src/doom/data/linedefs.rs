@@ -1,17 +1,21 @@
 use crate::{
 	common::assets::AssetStorage,
 	doom::{
-		client::{Usable, UseEventDef},
+		assets::template::{EntityTemplate, EntityTemplateRefDef},
 		data::{FRAME_RATE, FRAME_TIME},
-		door::{DoorLinedefTouch, DoorParams, DoorState, DoorSwitchUse, DoorUse},
-		exit::{ExitSwitchUse, NextMapDef},
-		floor::{FloorLinedefTouch, FloorParams, FloorSwitchUse, FloorTargetHeight},
-		map::LinedefRefDef,
-		physics::{TouchEventDef, Touchable},
-		plat::{PlatLinedefTouch, PlatParams, PlatSwitchUse, PlatTargetHeight},
-		switch::SwitchParams,
-		template::{EntityTemplate, EntityTemplateRefDef},
-		texture::TextureScroll,
+		game::{
+			client::{Usable, UseEventDef},
+			map::{
+				anim::TextureScroll,
+				door::{DoorLinedefTouch, DoorParams, DoorState, DoorSwitchUse, DoorUse},
+				exit::{ExitSwitchUse, NextMapDef},
+				floor::{FloorLinedefTouch, FloorParams, FloorSwitchUse, FloorTargetHeight},
+				plat::{PlatLinedefTouch, PlatParams, PlatSwitchUse, PlatTargetHeight},
+				switch::SwitchParams,
+				LinedefRefDef,
+			},
+			physics::{TouchEventDef, Touchable},
+		},
 	},
 };
 use legion::World;

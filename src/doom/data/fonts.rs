@@ -1,6 +1,6 @@
 use crate::{
 	common::assets::AssetStorage,
-	doom::ui::{Font, FontSpacing},
+	doom::assets::font::{Font, FontSpacing},
 };
 use fnv::FnvHashMap;
 use once_cell::sync::Lazy;

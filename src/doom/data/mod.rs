@@ -6,6 +6,7 @@ mod linedefs;
 mod mobjs;
 mod sectors;
 pub mod sounds;
+mod ui;
 mod weapons;
 
 pub use bindings::get_bindings;
@@ -13,6 +14,7 @@ pub use fonts::FONTS;
 pub use linedefs::LINEDEFS;
 pub use mobjs::{DOOMEDNUMS, MOBJS};
 pub use sectors::SECTORS;
+pub use ui::UI;
 pub use weapons::{AMMO, WEAPONS};
 
 use once_cell::sync::Lazy;

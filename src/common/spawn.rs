@@ -2,8 +2,23 @@ use legion::storage::{
 	Archetype, ArchetypeWriter, Component, ComponentStorage, ComponentTypeId, Components,
 	EntityLayout,
 };
-use legion::{world::Merger, Resources};
+use legion::{
+	any,
+	systems::ResourceSet,
+	world::{EntityHasher, Merger},
+	Entity, Read, Resources, World,
+};
 use std::{collections::HashMap, ops::Range};
+
+pub fn spawn_helper(
+	src_world: &World,
+	dst_world: &mut World,
+	resources: &Resources,
+) -> HashMap<Entity, Entity, EntityHasher> {
+	let handler_set = <Read<SpawnMergerHandlerSet>>::fetch(resources);
+	let mut merger = SpawnMerger::new(&handler_set, &resources);
+	dst_world.clone_from(&src_world, &any(), &mut merger)
+}
 
 pub trait SpawnFrom<FromT: Sized>
 where
@@ -31,7 +46,16 @@ impl<'a, 'b> Merger for SpawnMerger<'a, 'b> {
 	fn convert_layout(&mut self, source_layout: EntityLayout) -> EntityLayout {
 		let mut dest_layout = EntityLayout::default();
 		for component_type in source_layout.component_types() {
-			let (_, register_fn) = &self.handler_set.handlers[&component_type];
+			let (_, register_fn) = &self
+				.handler_set
+				.handlers
+				.get(&component_type)
+				.unwrap_or_else(|| {
+					panic!(
+						"No spawn handler found for component type \"{}\"",
+						component_type
+					)
+				});
 			register_fn(&mut dest_layout);
 		}
 

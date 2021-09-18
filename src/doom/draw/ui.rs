@@ -4,7 +4,10 @@ use crate::{
 		geometry::{ortho_matrix, Interval, AABB3},
 		video::{DrawContext, DrawTarget, RenderContext},
 	},
-	doom::ui::{FontSpacing, Hidden, UiHexFontText, UiImage, UiParams, UiText, UiTransform},
+	doom::{
+		assets::font::FontSpacing,
+		ui::{Hidden, UiHexFontText, UiImage, UiParams, UiText, UiTransform},
+	},
 };
 use anyhow::Context;
 use arrayvec::ArrayVec;

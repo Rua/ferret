@@ -5,11 +5,11 @@ use crate::{
 		video::{DrawContext, DrawTarget, RenderContext},
 	},
 	doom::{
-		client::Client,
 		draw::{
 			sprite::SpriteRender,
 			ui::{ui_frag, ui_vert, Matrices, Vertex, VERTICES},
 		},
+		game::client::Client,
 		ui::{UiAlignment, UiParams},
 	},
 };

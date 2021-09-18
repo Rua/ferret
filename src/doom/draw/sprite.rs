@@ -5,12 +5,9 @@ use crate::{
 		video::{DrawContext, DrawTarget, RenderContext},
 	},
 	doom::{
-		camera::Camera,
-		client::Client,
-		components::Transform,
+		assets::sprite::Sprite,
 		draw::world::{world_frag, world_vert},
-		map::MapDynamic,
-		sprite::Sprite,
+		game::{camera::Camera, client::Client, map::MapDynamic, Transform},
 		ui::{UiAlignment, UiParams, UiTransform},
 	},
 };
