@@ -1,7 +1,7 @@
 use crate::common::input::{Axis, Bindings, Button, MouseAxis};
 use winit::event::{MouseButton, VirtualKeyCode};
 
-pub fn get_bindings() -> Bindings {
+pub fn default_bindings() -> Bindings {
 	let mut bindings = Bindings::new();
 
 	bindings.bind_axis(Axis::Mouse(MouseAxis::X), ("yaw".into(), 3.0));

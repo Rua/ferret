@@ -15,7 +15,6 @@ use crate::{
 	common::{
 		assets::{AssetStorage, ASSET_SERIALIZER},
 		console::check_resize_console,
-		input::InputState,
 		time::DeltaTime,
 		video::{DrawTarget, RenderContext},
 	},
@@ -68,11 +67,6 @@ pub fn init_resources(resources: &mut Resources, arg_matches: &ArgMatches) -> an
 		)
 		.context("Couldn't create texture sampler")?,
 	);
-
-	{
-		let mut input_state = <Write<InputState>>::fetch_mut(resources);
-		input_state.bindings = data::get_bindings();
-	}
 
 	register_assets(resources);
 	register_components(resources);

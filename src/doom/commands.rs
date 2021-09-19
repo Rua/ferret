@@ -1,5 +1,8 @@
 use crate::{
-	common::input::{bind_axis, bind_button},
+	common::{
+		console::execute_file,
+		input::{bind_axis, bind_button},
+	},
 	doom::{
 		game::{change_map, cheats::give_all, load_game, new_game, save_game},
 		take_screenshot,
@@ -76,14 +79,14 @@ pub fn commands() -> Vec<(
 			},
 		),
 		(
-			App::new("load").about("Load a previously saved game").arg(
-				Arg::with_name("NAME")
-					.help("Name of the saved game to load")
+			App::new("exec").about("Execute commands from a file").arg(
+				Arg::with_name("FILE")
+					.help("File containing commands to execute")
 					.empty_values(false)
 					.required(true),
 			),
-			|matches, world, resources| {
-				load_game(matches.value_of("NAME").unwrap(), world, resources);
+			|matches, _world, resources| {
+				execute_file(matches.value_of("FILE").unwrap(), resources);
 			},
 		),
 		(
@@ -96,6 +99,17 @@ pub fn commands() -> Vec<(
 			App::new("idkfa").about("[Cheat] Give all weapons, ammo, armor and keys"),
 			|_matches, world, resources| {
 				give_all(world, resources, true);
+			},
+		),
+		(
+			App::new("load").about("Load a previously saved game").arg(
+				Arg::with_name("NAME")
+					.help("Name of the saved game to load")
+					.empty_values(false)
+					.required(true),
+			),
+			|matches, world, resources| {
+				load_game(matches.value_of("NAME").unwrap(), world, resources);
 			},
 		),
 		(

@@ -1,9 +1,14 @@
+use crate::common::console::quote_escape;
 use crossbeam_channel::Sender;
 use fnv::FnvHashMap;
 use legion::{systems::ResourceSet, Resources, Write};
-use serde::{de::value::BorrowedStrDeserializer, Deserialize};
+use serde::{de::value::BorrowedStrDeserializer, Deserialize, Serialize};
 use smallvec::SmallVec;
-use std::{fmt::Debug, hash::Hash};
+use std::{
+	fmt::{self, Debug, Display, Formatter},
+	hash::Hash,
+	io::{self, Write as IOWrite},
+};
 use winit::event::{
 	DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, VirtualKeyCode, WindowEvent,
 };
@@ -66,16 +71,48 @@ pub enum Button {
 	Mouse(MouseButton),
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Deserialize)]
+impl Display for Button {
+	fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+		match self {
+			Self::Key(key) => {
+				key.serialize(f)?;
+			}
+			Self::Mouse(button) => {
+				f.write_str("Mouse")?;
+				button.serialize(f)?;
+			}
+		}
+		Ok(())
+	}
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize)]
 #[serde(untagged)]
 pub enum Axis {
 	Mouse(MouseAxis),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize)]
+impl Display for Axis {
+	fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+		match self {
+			Self::Mouse(axis) => write!(f, "Mouse{}", axis),
+		}
+	}
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize)]
 pub enum MouseAxis {
 	X = 0,
 	Y = 1,
+}
+
+impl Display for MouseAxis {
+	fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+		match self {
+			Self::X => write!(f, "X"),
+			Self::Y => write!(f, "Y"),
+		}
+	}
 }
 
 #[derive(Clone, Debug)]
@@ -270,6 +307,11 @@ impl Bindings {
 	}
 
 	#[inline]
+	pub fn is_empty(&self) -> bool {
+		self.button_bindings.is_empty() && self.axis_bindings.is_empty()
+	}
+
+	#[inline]
 	pub fn get_button(&self, button: Button) -> Option<&ButtonBinding> {
 		self.button_bindings.get(&button)
 	}
@@ -289,6 +331,34 @@ impl Bindings {
 	pub fn bind_axis(&mut self, axis: Axis, binding: AxisBinding) {
 		debug_assert!(!binding.0.is_empty());
 		self.axis_bindings.insert(axis, binding);
+	}
+
+	pub fn write(&self, writer: &mut impl IOWrite) -> io::Result<()> {
+		let mut commands = self
+			.axis_bindings
+			.iter()
+			.map(|(axis, (binding, scale))| {
+				vec![
+					"bind_axis".into(),
+					axis.to_string(),
+					quote_escape(&binding.to_string()),
+					scale.to_string(),
+				]
+			})
+			.chain(self.button_bindings.iter().map(|(button, binding)| {
+				vec![
+					"bind_button".into(),
+					button.to_string(),
+					quote_escape(&binding.to_string()),
+				]
+			}))
+			.collect::<Vec<_>>();
+		commands.sort_unstable();
+
+		for command in commands {
+			writeln!(writer, "{}", command.join(" "))?;
+		}
+		Ok(())
 	}
 }
 

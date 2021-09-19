@@ -9,7 +9,7 @@ pub mod sounds;
 mod ui;
 mod weapons;
 
-pub use bindings::get_bindings;
+pub use bindings::default_bindings;
 pub use fonts::FONTS;
 pub use linedefs::LINEDEFS;
 pub use mobjs::{DOOMEDNUMS, MOBJS};

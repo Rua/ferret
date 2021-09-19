@@ -8,10 +8,18 @@ use crate::{
 use anyhow::{bail, Context};
 use clap::{App, AppSettings, ArgMatches};
 use crossbeam_channel::{Receiver, Sender};
-use legion::{systems::Runnable, IntoQuery, Resources, SystemBuilder, World};
+use legion::{
+	systems::{ResourceSet, Runnable},
+	IntoQuery, Read, Resources, SystemBuilder, World,
+};
 use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
-use std::{collections::HashMap, io::BufRead, thread::Builder};
+use std::{
+	collections::HashMap,
+	fs::File,
+	io::{BufRead, BufReader, Read as _},
+	thread::Builder,
+};
 
 pub fn init() -> anyhow::Result<(Sender<String>, Receiver<String>)> {
 	let (sender, receiver) = crossbeam_channel::unbounded();
@@ -43,6 +51,27 @@ pub fn init() -> anyhow::Result<(Sender<String>, Receiver<String>)> {
 
 const MAIN_TEMPLATE: &'static str = "{subcommands}";
 const SUBCOMMAND_TEMPLATE: &'static str = "{usage}\n{about}\n\n{all-args}";
+
+pub fn execute_file(name: &str, resources: &Resources) {
+	let mut path = dirs::config_dir().unwrap_or_default();
+	path.push("ferret");
+	path.push(name);
+
+	let result = File::open(&path)
+		.and_then(|file| {
+			let mut buf = String::new();
+			BufReader::new(file).read_to_string(&mut buf)?;
+			Ok(buf)
+		})
+		.map(|text| {
+			let command_sender = <Read<Sender<String>>>::fetch(resources);
+			command_sender.send(text).unwrap();
+		});
+
+	if let Err(e) = result {
+		log::error!("Couldn't execute \"{}\": {}", path.display(), e);
+	}
+}
 
 pub fn execute_commands<'a>(
 	receiver: Receiver<String>,
@@ -181,22 +210,11 @@ fn tokenize(mut text: &str) -> anyhow::Result<Vec<String>> {
 	Ok(tokens)
 }
 
-/*pub fn quote_escape(text: &str) -> Cow<'_, str> {
-	lazy_static! {
-		// As above, but anchored to end of string as well
-		static ref RE_UNQUOTED : Regex = Regex::new(r#"^[+-]?[.0-9A-Za-z_]+$"#).unwrap();
-
-		// Characters that need escaping
-		static ref RE_ESCAPE   : Regex = Regex::new(r#"[\\"]"#).unwrap();
-	}
-
-	if RE_UNQUOTED.is_match(text) {
-		Cow::from(text)
-	} else {
-		Cow::from(format!("\"{}\"", RE_ESCAPE.replace_all(text, "\\$0")))
-	}
+pub fn quote_escape(text: &str) -> String {
+	// Characters that need escaping
+	static RE_ESCAPE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"[\\"]"#).unwrap());
+	format!("\"{}\"", RE_ESCAPE.replace_all(text, "\\$0"))
 }
-*/
 
 pub fn update_console(receiver: Receiver<String>) -> impl Runnable {
 	SystemBuilder::new("update_console")
