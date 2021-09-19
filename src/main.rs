@@ -6,6 +6,7 @@ mod doom;
 use crate::common::{
 	assets::AssetStorage,
 	console::{execute_commands, update_console},
+	dirs::config_dir,
 	input::{InputState, RepeatTracker},
 	spawn::{spawn_helper, SpawnMergerHandlerSet},
 	time::increment_game_time,
@@ -215,8 +216,7 @@ fn main() -> anyhow::Result<()> {
 
 	// Write configuration
 	{
-		let mut path = dirs::config_dir().unwrap_or_default();
-		path.push("ferret");
+		let mut path = config_dir();
 		path.push("config.cfg");
 		let result = File::create(&path)
 			.with_context(|| format!("Couldn't open \"{}\" for writing", path.display()))

@@ -3,6 +3,7 @@
 pub mod assets;
 pub mod blit;
 pub mod console;
+pub mod dirs;
 pub mod geometry;
 pub mod input;
 pub mod logger;

@@ -15,6 +15,7 @@ use crate::{
 	common::{
 		assets::{AssetStorage, ASSET_SERIALIZER},
 		console::check_resize_console,
+		dirs::{data_dir, screenshot_dir},
 		time::DeltaTime,
 		video::{DrawTarget, RenderContext},
 	},
@@ -114,8 +115,7 @@ fn load_wads(resources: &mut Resources, arg_matches: &ArgMatches) -> anyhow::Res
 		.enumerate()
 		.flat_map(|(i, info)| info.files.iter().map(move |file| (i, *file)));
 
-	let mut dir = dirs::data_dir().unwrap_or_default();
-	dir.push("ferret");
+	let dir = data_dir();
 
 	let (index, iwad_path) = if let Some(iwad) = arg_matches.value_of("iwad") {
 		let iwad_path = dir.join(iwad);
@@ -188,7 +188,7 @@ pub fn take_screenshot(resources: &Resources) {
 		let (buffer, dimensions, future) = draw_target.copy_to_cpu(&render_context)?;
 		future.then_signal_fence_and_flush()?.wait(None)?;
 
-		let mut path = dirs::picture_dir().unwrap_or_default();
+		let mut path = screenshot_dir();
 		path.push(
 			Local::now()
 				.format("Ferret %Y-%m-%d %H-%M-%S %f.png")

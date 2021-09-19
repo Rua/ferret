@@ -1,5 +1,5 @@
 use crate::{
-	common::assets::AssetStorage,
+	common::{assets::AssetStorage, dirs::config_dir},
 	doom::{
 		draw::FramebufferResizeEvent,
 		ui::{UiHexFontText, UiParams, UiTransform},
@@ -53,8 +53,7 @@ const MAIN_TEMPLATE: &'static str = "{subcommands}";
 const SUBCOMMAND_TEMPLATE: &'static str = "{usage}\n{about}\n\n{all-args}";
 
 pub fn execute_file(name: &str, resources: &Resources) {
-	let mut path = dirs::config_dir().unwrap_or_default();
-	path.push("ferret");
+	let mut path = config_dir();
 	path.push(name);
 
 	let result = File::open(&path)

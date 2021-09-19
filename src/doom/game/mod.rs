@@ -11,6 +11,7 @@ pub mod trace;
 use crate::{
 	common::{
 		assets::{AssetHandle, AssetStorage},
+		dirs::config_dir,
 		geometry::{Angle, Interval, AABB2},
 		quadtree::Quadtree,
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
@@ -233,8 +234,7 @@ fn save_path(name: &str, resources: &Resources) -> anyhow::Result<PathBuf> {
 		bail!("Save names cannot contain \"/\" or \"\\\"");
 	}
 
-	let mut path = dirs::config_dir().unwrap_or_default();
-	path.push("ferret");
+	let mut path = config_dir();
 	path.push(<Read<IWADInfo>>::fetch(resources).files[0]);
 	path.push(name);
 	path.set_extension("sav");
