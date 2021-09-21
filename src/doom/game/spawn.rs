@@ -14,7 +14,7 @@ use crate::{
 		data::DOOMEDNUMS,
 		game::{
 			map::{
-				exit::NextMap, AnimState, LinedefDynamic, LinedefRef, MapDynamic, SectorDynamic,
+				exit::MapExits, AnimState, LinedefDynamic, LinedefRef, MapDynamic, SectorDynamic,
 				SectorRef, SidedefDynamic, SpawnPoint,
 			},
 			physics::BoxCollider,
@@ -148,9 +148,10 @@ pub fn spawn_map_entities(
 	resources: &mut Resources,
 	map_handle: &AssetHandle<Map>,
 ) -> anyhow::Result<()> {
-	let (map_entity, num_linedefs, num_sectors) = {
+	let (map_entity, num_linedefs, num_sectors, exit, secret_exit) = {
 		let (asset_storage, game_time) = <(Read<AssetStorage>, Read<GameTime>)>::fetch(resources);
 		let map = asset_storage.get(&map_handle).unwrap();
+		let name = asset_storage.name_for(&map_handle).unwrap();
 
 		// Create map entity
 		let anim_states = map
@@ -176,10 +177,16 @@ pub fn spawn_map_entities(
 			sectors: Vec::with_capacity(num_sectors),
 		},));
 
-		(map_entity, num_linedefs, num_sectors)
+		(
+			map_entity,
+			num_linedefs,
+			num_sectors,
+			map.exit.clone().unwrap_or_else(|| name.to_owned()),
+			map.secret_exit.clone().unwrap_or_else(|| name.to_owned()),
+		)
 	};
 
-	resources.insert(SpawnContext(NextMap("e1m2".into())));
+	resources.insert(SpawnContext(MapExits { exit, secret_exit }));
 	let mut query = <&mut MapDynamic>::query();
 
 	// Create linedef entities
@@ -302,6 +309,6 @@ pub fn spawn_map_entities(
 		});
 	}
 
-	resources.remove::<SpawnContext<NextMap>>();
+	resources.remove::<SpawnContext<MapExits>>();
 	Ok(())
 }

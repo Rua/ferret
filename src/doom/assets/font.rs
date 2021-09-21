@@ -249,8 +249,8 @@ pub fn import_hexfont(
 	}))
 }
 
-pub fn process_hexfonts(render_context: &RenderContext, asset_storage: &mut AssetStorage) {
-	asset_storage.process::<HexFont, _>(|data, _asset_storage| {
+pub fn process_hexfonts(asset_storage: &mut AssetStorage, render_context: &RenderContext) {
+	asset_storage.process::<HexFont, _>(|_name, data, _asset_storage| {
 		let hexfont_data: HexFontData = *data.downcast().ok().expect("Not a HexFontData");
 
 		// Create the image

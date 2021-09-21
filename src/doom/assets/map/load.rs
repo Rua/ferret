@@ -10,10 +10,11 @@ use crate::{
 				textures::TextureType, Anim, Linedef, Map, Node, NodeChild, Sector, SectorSlot,
 				Seg, Sidedef, SidedefSlot, Subsector, Thing, ThingFlags,
 			},
+			wad::read_string,
 		},
 		data::anims::{AnimData, ANIMS, SWITCHES},
 		game::{physics::SolidBits, trace::CollisionPlane},
-		wad::read_string,
+		iwad::IWADInfo,
 	},
 };
 use anyhow::{bail, ensure};
@@ -26,21 +27,10 @@ use serde::Deserialize;
 use std::{cmp::Ordering, io::Read};
 
 pub struct MapData {
-	pub linedefs: Vec<u8>,
-	pub sidedefs: Vec<u8>,
-	pub vertexes: Vec<u8>,
-	pub segs: Vec<u8>,
-	pub ssectors: Vec<u8>,
-	pub nodes: Vec<u8>,
-	pub sectors: Vec<u8>,
-	pub gl_data: Option<GLMapData>,
-}
-
-pub struct GLMapData {
-	pub gl_vert: Vec<u8>,
-	pub gl_segs: Vec<u8>,
-	pub gl_ssect: Vec<u8>,
-	pub gl_nodes: Vec<u8>,
+	pub linedefs: Vec<Linedef>,
+	pub subsectors: Vec<Subsector>,
+	pub nodes: Vec<Node>,
+	pub sectors: Vec<Sector>,
 }
 
 pub fn import_map(
@@ -49,78 +39,45 @@ pub fn import_map(
 ) -> anyhow::Result<Box<dyn ImportData>> {
 	let source = asset_storage.source();
 
+	// Load GL nodes if available
 	let gl_path = path.with_file_name(format!("gl_{}", path));
-	let gl_data = (|| -> Option<GLMapData> {
-		Some(GLMapData {
-			gl_vert: source.load(&gl_path.with_extension("gl_vert")).ok()?,
-			gl_segs: source.load(&gl_path.with_extension("gl_segs")).ok()?,
-			gl_ssect: source.load(&gl_path.with_extension("gl_ssect")).ok()?,
-			gl_nodes: source.load(&gl_path.with_extension("gl_nodes")).ok()?,
-		})
+	let gl_data = (|| -> Option<[Vec<u8>; 4]> {
+		let gl_vert = source.load(&gl_path.with_extension("gl_vert")).ok()?;
+		let gl_segs = source.load(&gl_path.with_extension("gl_segs")).ok()?;
+		let gl_ssect = source.load(&gl_path.with_extension("gl_ssect")).ok()?;
+		let gl_nodes = source.load(&gl_path.with_extension("gl_nodes")).ok()?;
+
+		Some([gl_vert, gl_segs, gl_ssect, gl_nodes])
 	})();
 
-	let map_data = MapData {
-		linedefs: source.load(&path.with_extension("linedefs"))?,
-		sidedefs: source.load(&path.with_extension("sidedefs"))?,
-		vertexes: source.load(&path.with_extension("vertexes"))?,
-		segs: source.load(&path.with_extension("segs"))?,
-		ssectors: source.load(&path.with_extension("ssectors"))?,
-		nodes: source.load(&path.with_extension("nodes"))?,
-		sectors: source.load(&path.with_extension("sectors"))?,
-		gl_data,
-	};
+	let linedefs = source.load(&path.with_extension("linedefs"))?;
+	let sidedefs = source.load(&path.with_extension("sidedefs"))?;
+	let vertexes = source.load(&path.with_extension("vertexes"))?;
+	let segs = source.load(&path.with_extension("segs"))?;
+	let ssectors = source.load(&path.with_extension("ssectors"))?;
+	let nodes = source.load(&path.with_extension("nodes"))?;
+	let sectors = source.load(&path.with_extension("sectors"))?;
 
-	Ok(Box::new(build_map(
-		map_data,
-		"sky1.texture",
-		asset_storage,
-	)?))
-}
+	let vertexes = build_vertexes(vertexes)?;
+	let mut sectors = build_sectors(sectors, asset_storage)?;
+	let mut sidedefs = build_sidedefs(sidedefs, &sectors, asset_storage)?;
+	let linedefs = build_linedefs(linedefs, &vertexes, &mut sectors, &mut sidedefs)?;
 
-pub fn build_map(
-	map_data: MapData,
-	sky_name: &str,
-	asset_storage: &mut AssetStorage,
-) -> anyhow::Result<Map> {
-	let sky = asset_storage.load(sky_name);
-
-	let MapData {
-		linedefs: linedefs_data,
-		sidedefs: sidedefs_data,
-		vertexes: vertexes_data,
-		segs: segs_data,
-		ssectors: ssectors_data,
-		nodes: nodes_data,
-		sectors: sectors_data,
-		gl_data,
-	} = map_data;
-
-	let vertexes = build_vertexes(&vertexes_data)?;
-	let mut sectors = build_sectors(&sectors_data, asset_storage)?;
-	let mut sidedefs = build_sidedefs(&sidedefs_data, &sectors, asset_storage)?;
-	let linedefs = build_linedefs(&linedefs_data, &vertexes, &mut sectors, &mut sidedefs)?;
-
-	// Load GL nodes if available
-	let (mut subsectors, mut nodes) = if let Some(gl_data) = gl_data {
-		let GLMapData {
-			gl_vert: gl_vert_data,
-			gl_segs: gl_segs_data,
-			gl_ssect: gl_ssect_data,
-			gl_nodes: gl_nodes_data,
-		} = gl_data;
-
-		let gl_vert = build_gl_vert(&gl_vert_data)?;
-		let gl_segs = build_gl_segs(&gl_segs_data, &vertexes, &gl_vert, &linedefs)?;
-		let gl_ssect = build_gl_ssect(&gl_ssect_data, &gl_segs, &linedefs)?;
-		let gl_nodes = build_gl_nodes(&gl_nodes_data, &gl_ssect)?;
+	let (mut subsectors, mut nodes) = if let Some([gl_vert, gl_segs, gl_ssect, gl_nodes]) = gl_data
+	{
+		let gl_vert = build_gl_vert(gl_vert)?;
+		let gl_segs = build_gl_segs(gl_segs, &vertexes, &gl_vert, &linedefs)?;
+		let gl_ssect = build_gl_ssect(gl_ssect, &gl_segs, &linedefs)?;
+		let gl_nodes = build_gl_nodes(gl_nodes, &gl_ssect)?;
 
 		(gl_ssect, gl_nodes)
 	} else {
-		log::warn!("GL nodes are not available for map, falling back to standard nodes");
 		// GL nodes are not available, so use the regular nodes
-		let segs = build_segs(&segs_data, &vertexes, &linedefs)?;
-		let mut ssectors = build_ssectors(&ssectors_data, &segs, &linedefs)?;
-		let nodes = build_nodes(&nodes_data, &ssectors)?;
+		log::warn!("GL nodes are not available for map, falling back to standard nodes");
+
+		let segs = build_segs(segs, &vertexes, &linedefs)?;
+		let mut ssectors = build_ssectors(ssectors, &segs, &linedefs)?;
+		let nodes = build_nodes(nodes, &ssectors)?;
 
 		// Add floating point precision to segs,
 		// and create extra segs to make full convex polygons
@@ -143,27 +100,17 @@ pub fn build_map(
 	// Add linedefs to nodes
 	add_node_linedefs(&mut nodes, &mut subsectors, &linedefs);
 
-	// Create map-wide bounding box
-	let mut bbox = AABB2::empty();
-
-	for linedef in &linedefs {
-		bbox.add_point(linedef.line.point);
-		bbox.add_point(linedef.line.end_point());
-	}
-
-	Ok(Map {
-		anims: get_anims(&ANIMS, asset_storage),
-		bbox,
+	let map_data = MapData {
 		linedefs,
+		subsectors,
 		nodes,
 		sectors,
-		subsectors,
-		sky,
-		switches: get_switches(asset_storage),
-	})
+	};
+
+	Ok(Box::new(map_data))
 }
 
-fn build_vertexes(data: &[u8]) -> anyhow::Result<Vec<Vector2<f32>>> {
+fn build_vertexes(data: Vec<u8>) -> anyhow::Result<Vec<Vector2<f32>>> {
 	let chunks = data.chunks(4);
 	let mut ret = Vec::with_capacity(chunks.len());
 
@@ -177,7 +124,7 @@ fn build_vertexes(data: &[u8]) -> anyhow::Result<Vec<Vector2<f32>>> {
 	Ok(ret)
 }
 
-fn build_sectors(data: &[u8], asset_storage: &mut AssetStorage) -> anyhow::Result<Vec<Sector>> {
+fn build_sectors(data: Vec<u8>, asset_storage: &mut AssetStorage) -> anyhow::Result<Vec<Sector>> {
 	let chunks = data.chunks(26);
 	let mut ret = Vec::with_capacity(chunks.len());
 
@@ -228,7 +175,7 @@ fn build_sectors(data: &[u8], asset_storage: &mut AssetStorage) -> anyhow::Resul
 }
 
 fn build_sidedefs(
-	data: &[u8],
+	data: Vec<u8>,
 	sectors: &[Sector],
 	asset_storage: &mut AssetStorage,
 ) -> anyhow::Result<Vec<Option<Sidedef>>> {
@@ -315,7 +262,7 @@ bitflags! {
 }
 
 fn build_linedefs(
-	data: &[u8],
+	data: Vec<u8>,
 	vertexes: &[Vector2<f32>],
 	sectors: &mut [Sector],
 	sidedefs: &mut [Option<Sidedef>],
@@ -456,7 +403,7 @@ fn build_linedefs(
 }
 
 fn build_segs(
-	data: &[u8],
+	data: Vec<u8>,
 	vertexes: &[Vector2<f32>],
 	linedefs: &[Linedef],
 ) -> anyhow::Result<Vec<Seg>> {
@@ -515,7 +462,7 @@ fn build_segs(
 }
 
 fn build_ssectors(
-	data: &[u8],
+	data: Vec<u8>,
 	segs: &[Seg],
 	linedefs: &[Linedef],
 ) -> anyhow::Result<Vec<Subsector>> {
@@ -568,7 +515,7 @@ fn build_ssectors(
 	Ok(ret)
 }
 
-fn build_nodes(data: &[u8], ssectors: &[Subsector]) -> anyhow::Result<Vec<Node>> {
+fn build_nodes(data: Vec<u8>, ssectors: &[Subsector]) -> anyhow::Result<Vec<Node>> {
 	let chunks = data.chunks(28);
 	let mut ret = Vec::with_capacity(chunks.len());
 	let len = chunks.len();
@@ -654,7 +601,8 @@ fn build_nodes(data: &[u8], ssectors: &[Subsector]) -> anyhow::Result<Vec<Node>>
 	Ok(ret.into_iter().rev().collect())
 }
 
-fn build_gl_vert(mut data: &[u8]) -> anyhow::Result<Vec<Vector2<f32>>> {
+fn build_gl_vert(data: Vec<u8>) -> anyhow::Result<Vec<Vector2<f32>>> {
+	let mut data = data.as_slice();
 	let mut buf = [0u8; 4];
 	data.read_exact(&mut buf)?;
 
@@ -674,7 +622,7 @@ fn build_gl_vert(mut data: &[u8]) -> anyhow::Result<Vec<Vector2<f32>>> {
 }
 
 fn build_gl_segs(
-	data: &[u8],
+	data: Vec<u8>,
 	vertexes: &[Vector2<f32>],
 	gl_vert: &[Vector2<f32>],
 	linedefs: &[Linedef],
@@ -766,7 +714,7 @@ fn build_gl_segs(
 }
 
 fn build_gl_ssect(
-	data: &[u8],
+	data: Vec<u8>,
 	gl_segs: &[Seg],
 	linedefs: &[Linedef],
 ) -> anyhow::Result<Vec<Subsector>> {
@@ -821,7 +769,7 @@ fn build_gl_ssect(
 	Ok(ret)
 }
 
-fn build_gl_nodes(data: &[u8], gl_ssect: &[Subsector]) -> anyhow::Result<Vec<Node>> {
+fn build_gl_nodes(data: Vec<u8>, gl_ssect: &[Subsector]) -> anyhow::Result<Vec<Node>> {
 	let chunks = data.chunks(28);
 	let mut ret = Vec::with_capacity(chunks.len());
 	let len = chunks.len();
@@ -1300,4 +1248,41 @@ fn add_node_linedefs<'a>(
 				.retain(|x| *x != linedef_index);
 		}
 	}
+}
+
+pub fn process_map(asset_storage: &mut AssetStorage, iwadinfo: &IWADInfo) {
+	asset_storage.process::<Map, _>(|name, data, asset_storage| {
+		let map_data: MapData = *data.downcast().ok().expect("Not a MapData");
+		let map_info = iwadinfo.maps.get(name).unwrap(); // TODO handle missing info
+
+		let MapData {
+			linedefs,
+			subsectors,
+			nodes,
+			sectors,
+		} = map_data;
+
+		// Create map-wide bounding box
+		let mut bbox = AABB2::empty();
+
+		for linedef in &linedefs {
+			bbox.add_point(linedef.line.point);
+			bbox.add_point(linedef.line.end_point());
+		}
+
+		Ok(Map {
+			name: map_info.name.to_owned(),
+			anims: get_anims(&ANIMS, asset_storage),
+			bbox,
+			sky: asset_storage.load(map_info.sky),
+			switches: get_switches(asset_storage),
+			exit: map_info.exit.map(|s| s.to_owned()),
+			secret_exit: map_info.secret_exit.map(|s| s.to_owned()),
+
+			linedefs,
+			nodes,
+			sectors,
+			subsectors,
+		})
+	});
 }

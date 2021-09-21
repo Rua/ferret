@@ -8,7 +8,7 @@ use crate::{
 			map::{
 				anim::TextureScroll,
 				door::{DoorLinedefTouch, DoorParams, DoorState, DoorSwitchUse, DoorUse},
-				exit::{ExitSwitchUse, NextMapDef},
+				exit::{ExitMapDef, ExitSwitchUse},
 				floor::{FloorLinedefTouch, FloorParams, FloorSwitchUse, FloorTargetHeight},
 				plat::{PlatLinedefTouch, PlatParams, PlatSwitchUse, PlatTargetHeight},
 				switch::SwitchParams,
@@ -3116,7 +3116,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 	});
 
 	/*
-		Other
+		Exit triggers
 	*/
 
 	linedefs.insert("linedef11.entity", |asset_storage| EntityTemplate {
@@ -3125,7 +3125,7 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 			world.push((
 				EntityTemplateRefDef,
 				LinedefRefDef,
-				NextMapDef,
+				ExitMapDef { secret: false },
 				Usable,
 			));
 			world
@@ -3145,6 +3145,37 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 		},
 		.. EntityTemplate::default()
 	});
+
+	linedefs.insert("linedef51.entity", |asset_storage| EntityTemplate {
+		world: {
+			let mut world = World::default();
+			world.push((
+				EntityTemplateRefDef,
+				LinedefRefDef,
+				ExitMapDef { secret: true },
+				Usable,
+			));
+			world
+		},
+		r#use: {
+			let mut world = World::default();
+			world.push((
+				UseEventDef,
+				ExitSwitchUse {
+					switch_params: SwitchParams {
+						sound: Some(asset_storage.load("dsswtchx.sound")),
+						retrigger_time: None,
+					},
+				},
+			));
+			world
+		},
+		.. EntityTemplate::default()
+	});
+
+	/*
+		Other
+	*/
 
 	linedefs.insert("linedef6.entity", |asset_storage| EntityTemplate {
 		world: {
@@ -3426,18 +3457,6 @@ pub static LINEDEFS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityT
 	});
 
 	linedefs.insert("linedef49.entity", |asset_storage| EntityTemplate {
-		world: {
-			let mut world = World::default();
-			world.push((
-				EntityTemplateRefDef,
-				LinedefRefDef,
-			));
-			world
-		},
-		.. EntityTemplate::default()
-	});
-
-	linedefs.insert("linedef51.entity", |asset_storage| EntityTemplate {
 		world: {
 			let mut world = World::default();
 			world.push((

@@ -26,23 +26,37 @@ pub struct ExitSwitchUse {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct NextMap(pub String);
+pub struct ExitMap(String);
 
 #[derive(Clone, Copy, Debug, Default)]
-pub struct NextMapDef;
+pub struct ExitMapDef {
+	pub secret: bool,
+}
 
-impl SpawnFrom<NextMapDef> for NextMap {
-	fn spawn(_component: &NextMapDef, _accessor: ComponentAccessor, resources: &Resources) -> Self {
-		<Read<SpawnContext<NextMap>>>::fetch(resources).0.clone()
+impl SpawnFrom<ExitMapDef> for ExitMap {
+	fn spawn(component: &ExitMapDef, _accessor: ComponentAccessor, resources: &Resources) -> Self {
+		let exits = <Read<SpawnContext<MapExits>>>::fetch(resources);
+
+		ExitMap(if component.secret {
+			exits.0.secret_exit.clone()
+		} else {
+			exits.0.exit.clone()
+		})
 	}
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct MapExits {
+	pub exit: String,
+	pub secret_exit: String,
 }
 
 pub fn exit_switch_use(resources: &mut Resources) -> impl Runnable {
 	let (mut handler_set, mut registry) =
 		<(Write<SpawnMergerHandlerSet>, Write<Registry<String>>)>::fetch_mut(resources);
 
-	registry.register::<NextMap>("NextMap".into());
-	handler_set.register_spawn::<NextMapDef, NextMap>();
+	registry.register::<ExitMap>("ExitMap".into());
+	handler_set.register_spawn::<ExitMapDef, ExitMap>();
 	handler_set.register_clone::<ExitSwitchUse>();
 
 	SystemBuilder::new("exit_switch_use")
@@ -50,14 +64,14 @@ pub fn exit_switch_use(resources: &mut Resources) -> impl Runnable {
 		.read_resource::<Sender<String>>()
 		.read_resource::<GameTime>()
 		.with_query(<(&UseEvent, &ExitSwitchUse)>::query())
-		.with_query(<(&LinedefRef, &NextMap)>::query().filter(!component::<SwitchActive>()))
+		.with_query(<(&LinedefRef, &ExitMap)>::query().filter(!component::<SwitchActive>()))
 		.with_query(<&mut MapDynamic>::query())
 		.build(move |command_buffer, world, resources, queries| {
 			let (asset_storage, command_sender, game_time) = resources;
 			let (mut world2, world) = world.split_for_query(&queries.2);
 
 			for (event, exit_switch_use) in queries.0.iter(&world) {
-				if let Ok((linedef_ref, NextMap(next_map))) = queries.1.get(&world, event.entity) {
+				if let Ok((linedef_ref, ExitMap(next_map))) = queries.1.get(&world, event.entity) {
 					let map_dynamic = queries
 						.2
 						.get_mut(&mut world2, linedef_ref.map_entity)

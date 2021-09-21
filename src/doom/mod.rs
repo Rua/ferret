@@ -7,9 +7,9 @@ pub mod data;
 pub mod draw;
 pub mod game;
 pub mod input;
+pub mod iwad;
 pub mod sound;
 pub mod ui;
-pub mod wad;
 
 use crate::{
 	common::{
@@ -20,13 +20,13 @@ use crate::{
 		video::{DrawTarget, RenderContext},
 	},
 	doom::{
-		assets::register_assets,
+		assets::{register_assets, wad::WadLoader},
 		components::register_components,
 		data::{iwads::IWADINFO, FRAME_TIME},
 		draw::{check_recreate, draw, FramebufferResizeEvent},
+		iwad::IWADInfo,
 		sound::{start_sound, update_sound, StartSoundEvent},
 		ui::UiParams,
-		wad::{IWADInfo, WadLoader},
 	},
 };
 use anyhow::{bail, Context};

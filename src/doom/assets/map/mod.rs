@@ -23,14 +23,18 @@ use std::{fmt::Debug, time::Duration};
 
 #[derive(Debug)]
 pub struct Map {
+	pub name: String,
 	pub anims: FnvHashMap<AssetHandle<Image>, Anim>,
 	pub bbox: AABB2,
+	pub sky: AssetHandle<Image>,
+	pub switches: FnvHashMap<AssetHandle<Image>, AssetHandle<Image>>,
+	pub exit: Option<String>,
+	pub secret_exit: Option<String>,
+
 	pub linedefs: Vec<Linedef>,
 	pub nodes: Vec<Node>,
 	pub sectors: Vec<Sector>,
 	pub subsectors: Vec<Subsector>,
-	pub sky: AssetHandle<Image>,
-	pub switches: FnvHashMap<AssetHandle<Image>, AssetHandle<Image>>,
 }
 
 #[derive(Clone, Debug)]
@@ -39,6 +43,7 @@ pub struct Anim {
 	pub frame_time: Duration,
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct Thing {
 	pub position: Vector2<f32>,
 	pub angle: Angle,

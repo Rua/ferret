@@ -4,15 +4,19 @@ pub mod map;
 pub mod sound;
 pub mod sprite;
 pub mod template;
+pub mod wad;
 
 use crate::{
-	common::assets::{AssetStorage, ImportData},
+	common::{
+		assets::{AssetStorage, ImportData},
+		video::RenderContext,
+	},
 	doom::{
 		assets::{
-			font::{import_font, import_hexfont, Font, HexFont},
-			image::{import_palette, import_patch, Image, ImageData, Palette},
+			font::{import_font, import_hexfont, process_hexfonts, Font, HexFont},
+			image::{import_palette, import_patch, process_images, Image, ImageData, Palette},
 			map::{
-				load::import_map,
+				load::{import_map, process_map},
 				textures::{
 					import_flat, import_pnames, import_textures, import_wall, PNames, Textures,
 				},
@@ -24,12 +28,13 @@ use crate::{
 				import_ammo, import_entity, import_weapon, AmmoTemplate, EntityTemplate,
 				WeaponTemplate,
 			},
+			wad::WadLoader,
 		},
-		wad::WadLoader,
+		iwad::IWADInfo,
 	},
 };
 use anyhow::bail;
-use legion::Resources;
+use legion::{systems::ResourceSet, Read, Resources, Write};
 use relative_path::RelativePath;
 
 pub fn register_assets(resources: &mut Resources) {
@@ -40,7 +45,7 @@ pub fn register_assets(resources: &mut Resources) {
 	asset_storage.add_storage::<HexFont>(true);
 	asset_storage.add_storage::<Image>(true);
 	asset_storage.add_storage::<ImageData>(false);
-	asset_storage.add_storage::<Map>(false);
+	asset_storage.add_storage::<Map>(true);
 	asset_storage.add_storage::<Palette>(false);
 	asset_storage.add_storage::<PNames>(false);
 	asset_storage.add_storage::<RawSound>(false);
@@ -79,4 +84,12 @@ pub fn import(
 	};
 
 	function(path, asset_storage)
+}
+
+pub fn process_assets(resources: &mut Resources) {
+	let (iwad_info, render_context, mut asset_storage) =
+		<(Read<IWADInfo>, Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(resources);
+	process_hexfonts(&mut asset_storage, &render_context);
+	process_images(&mut asset_storage, &render_context);
+	process_map(&mut asset_storage, &iwad_info);
 }

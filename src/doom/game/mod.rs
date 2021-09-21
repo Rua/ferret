@@ -16,12 +16,11 @@ use crate::{
 		quadtree::Quadtree,
 		spawn::{ComponentAccessor, SpawnContext, SpawnFrom, SpawnMergerHandlerSet},
 		time::GameTime,
-		video::RenderContext,
 	},
 	doom::{
 		assets::{
-			image::process_images,
 			map::{load::build_things, Map},
+			process_assets,
 		},
 		clear_event,
 		draw::sprite::SpriteRender,
@@ -61,8 +60,8 @@ use crate::{
 				state,
 			},
 		},
+		iwad::IWADInfo,
 		ui::hud::{ammo_stat, arms_stat, health_stat},
-		wad::IWADInfo,
 		ASSET_SERIALIZER,
 	},
 };
@@ -75,7 +74,7 @@ use legion::{
 };
 use nalgebra::Vector3;
 use rand::{distributions::Uniform, thread_rng, Rng};
-use relative_path::RelativePath;
+use relative_path::RelativePathBuf;
 use serde::{de::DeserializeSeed, Deserialize, Serialize};
 use std::{
 	fs::{create_dir_all, File},
@@ -161,8 +160,10 @@ pub fn add_update_systems(builder: &mut Builder, resources: &mut Resources) -> a
 }
 
 pub fn new_game(map: &str, world: &mut World, resources: &mut Resources) {
-	let map = map.to_ascii_lowercase();
-	log::info!("Starting new game on map {}...", map);
+	let mut map = RelativePathBuf::from(map.to_ascii_lowercase());
+	map.set_extension("map");
+
+	log::info!("Starting new game on {}...", map);
 
 	clear_game(world, resources);
 
@@ -172,8 +173,9 @@ pub fn new_game(map: &str, world: &mut World, resources: &mut Resources) {
 		log::info!("Loading map...");
 		let map_handle: AssetHandle<Map> = {
 			let mut asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-			asset_storage.load(&format!("{}.map", map))
+			asset_storage.load(map.as_str())
 		};
+		process_assets(resources);
 		spawn_map_entities(world, resources, &map_handle)?;
 
 		let quadtree = create_quadtree(world, resources);
@@ -182,11 +184,7 @@ pub fn new_game(map: &str, world: &mut World, resources: &mut Resources) {
 		log::info!("Spawning entities...");
 		let things = {
 			let asset_storage = <Write<AssetStorage>>::fetch_mut(resources);
-			build_things(
-				&asset_storage
-					.source()
-					.load(&RelativePath::new(&map).with_extension("things"))?,
-			)?
+			build_things(&asset_storage.source().load(&map.with_extension("things"))?)?
 		};
 		spawn_things(things, world, resources)?;
 
@@ -197,11 +195,7 @@ pub fn new_game(map: &str, world: &mut World, resources: &mut Resources) {
 			..Client::default()
 		});
 
-		{
-			let (render_context, mut asset_storage) =
-				<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(resources);
-			process_images(&render_context, &mut asset_storage);
-		}
+		process_assets(resources);
 
 		Ok(())
 	}();
@@ -362,11 +356,7 @@ pub fn load_game(name: &str, world: &mut World, resources: &mut Resources) {
 			let quadtree = create_quadtree(world, resources);
 			resources.insert(quadtree);
 
-			{
-				let (render_context, mut asset_storage) =
-					<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(resources);
-				process_images(&render_context, &mut asset_storage);
-			}
+			process_assets(resources);
 
 			log::info!("Game loaded.");
 		}

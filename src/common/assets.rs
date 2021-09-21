@@ -182,7 +182,7 @@ impl AssetStorage {
 	#[inline]
 	pub fn process<
 		A: Asset,
-		F: FnMut(Box<dyn ImportData>, &mut AssetStorage) -> anyhow::Result<A>,
+		F: FnMut(&str, Box<dyn ImportData>, &mut AssetStorage) -> anyhow::Result<A>,
 	>(
 		&mut self,
 		mut process_func: F,
@@ -196,7 +196,7 @@ impl AssetStorage {
 
 		for (handle, data, name) in unprocessed {
 			// Build the asset
-			let asset = match data.and_then(|d| process_func(d, self)) {
+			let asset = match data.and_then(|d| process_func(&name, d, self)) {
 				Ok(asset) => {
 					log::trace!("Loaded \"{}\" with id {}", name, handle.id());
 					asset

@@ -163,10 +163,3 @@ pub fn read_string<R: Read>(reader: &mut R) -> anyhow::Result<ArrayString<8>> {
 	string.make_ascii_lowercase();
 	Ok(string)
 }
-
-#[derive(Clone, Copy)]
-pub struct IWADInfo {
-	pub files: &'static [&'static str],
-	pub map: &'static str,
-	pub weapons: &'static [&'static str],
-}

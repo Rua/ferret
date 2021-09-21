@@ -3,8 +3,8 @@ use crate::{
 		assets::{AssetHandle, AssetStorage, ImportData},
 		blit::blit,
 	},
-	doom::{
-		assets::image::{IAColor, Image, ImageData},
+	doom::assets::{
+		image::{IAColor, Image, ImageData},
 		wad::read_string,
 	},
 };

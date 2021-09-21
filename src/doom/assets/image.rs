@@ -133,10 +133,10 @@ pub fn import_patch(
 	Ok(Box::new(ImageData { data, size, offset }))
 }
 
-pub fn process_images(render_context: &RenderContext, asset_storage: &mut AssetStorage) {
+pub fn process_images(asset_storage: &mut AssetStorage, render_context: &RenderContext) {
 	let palette_handle: AssetHandle<Palette> = asset_storage.load("playpal.palette");
 
-	asset_storage.process::<Image, _>(|data, asset_storage| {
+	asset_storage.process::<Image, _>(|_name, data, asset_storage| {
 		let image_data: ImageData = *data.downcast().ok().expect("Not an ImageData");
 		let palette = asset_storage.get(&palette_handle).unwrap();
 		let data: Vec<_> = image_data

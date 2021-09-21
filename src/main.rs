@@ -136,10 +136,8 @@ fn main() -> anyhow::Result<()> {
 	let mut world = World::default();
 
 	{
-		let (render_context, mut asset_storage) =
-			<(Read<RenderContext>, Write<AssetStorage>)>::fetch_mut(&mut resources);
+		let mut asset_storage = <Write<AssetStorage>>::fetch_mut(&mut resources);
 		let hexfont = asset_storage.load::<doom::assets::font::HexFont>("console.hex");
-		doom::assets::font::process_hexfonts(&render_context, &mut asset_storage);
 
 		world.push((
 			doom::ui::UiTransform {
@@ -164,6 +162,8 @@ fn main() -> anyhow::Result<()> {
 		let hud_template = asset_storage.get(&hud_handle).unwrap();
 		spawn_helper(&hud_template.world, &mut world, &resources);
 	}
+
+	doom::assets::process_assets(&mut resources);
 
 	// Run the input once to execute pending commands
 	input_systems.execute(&mut world, &mut resources);
