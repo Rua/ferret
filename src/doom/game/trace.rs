@@ -284,11 +284,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						continue;
 					}
 
-					let other_planes = other_bbox
-						.planes()
-						.iter()
-						.map(|p| CollisionPlane(*p, true))
-						.collect::<Vec<_>>(); // TODO make this not allocate
+					let other_planes = other_bbox.planes().map(|p| CollisionPlane(p, true));
 
 					match trace_planes(&start_bbox, move_step.dir, other_planes.iter()) {
 						TraceResult::Touched { fraction, normal } if fraction < trace_fraction => {
@@ -427,11 +423,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						continue;
 					}
 
-					let other_planes = other_bbox
-						.planes()
-						.iter()
-						.map(|p| CollisionPlane(*p, true))
-						.collect::<Vec<_>>(); // TODO make this not allocate
+					let other_planes = other_bbox.planes().map(|p| CollisionPlane(p, true));
 
 					match trace_planes(&start_bbox, move_step.dir, other_planes.iter()) {
 						TraceResult::Touched { .. } => trace_touched.push(entity),
@@ -503,11 +495,7 @@ impl<'a, W: EntityStore> EntityTracer<'a, W> {
 						continue;
 					}
 
-					let other_planes = other_bbox
-						.planes()
-						.iter()
-						.map(|p| CollisionPlane(*p, true))
-						.collect::<Vec<_>>(); // TODO make this not allocate
+					let other_planes = other_bbox.planes().map(|p| CollisionPlane(p, true));
 
 					match trace_planes(&start_bbox, move_step.dir, other_planes.iter()) {
 						TraceResult::Touched { fraction, normal } if fraction < trace.fraction => {

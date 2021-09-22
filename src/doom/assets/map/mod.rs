@@ -179,13 +179,13 @@ impl Map {
 			let start_interval = if bbox.is_point() {
 				Interval::from_point(bbox.min().dot(&node.plane.normal))
 			} else {
-				let points = [
+				std::array::IntoIter::new([
 					Vector2::new(bbox[0].min, bbox[1].min),
 					Vector2::new(bbox[0].min, bbox[1].max),
 					Vector2::new(bbox[0].max, bbox[1].min),
 					Vector2::new(bbox[0].max, bbox[1].max),
-				];
-				points.iter().copied().fold(Interval::empty(), |i, p| {
+				])
+				.fold(Interval::empty(), |i, p| {
 					i.add_point(p.dot(&node.plane.normal))
 				})
 			}

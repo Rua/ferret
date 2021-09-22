@@ -5,12 +5,9 @@ pub mod world;
 pub mod wsprite;
 
 use crate::{
-	common::video::{DrawContext, DrawTarget, PresentTarget, RenderContext},
+	common::video::{DrawTarget, PresentTarget, RenderContext},
 	doom::{
-		draw::{
-			map::draw_map, sprite::draw_sprites, ui::draw_ui, world::draw_world,
-			wsprite::draw_weapon_sprites,
-		},
+		draw::{ui::draw_ui, world::draw_world, wsprite::draw_weapon_sprites},
 		ui::UiParams,
 	},
 };
@@ -56,76 +53,65 @@ pub fn check_recreate() -> impl Runnable {
 }
 
 pub fn draw(resources: &mut Resources) -> anyhow::Result<impl FnMut(&mut World, &mut Resources)> {
-	resources.insert::<Option<DrawContext>>(None);
-
 	let mut draw_world = draw_world(resources)?;
-	let mut draw_map = draw_map(resources)?;
-	let mut draw_sprites = draw_sprites(resources)?;
 	let mut draw_weapon_sprites = draw_weapon_sprites(resources)?;
 	let mut draw_ui = draw_ui(resources)?;
 
 	Ok(move |world: &mut World, resources: &mut Resources| {
-		let mut draw_context = (|| -> anyhow::Result<DrawContext> {
-			let (draw_target, render_context) =
-				<(Read<DrawTarget>, Read<RenderContext>)>::fetch(resources);
-			let graphics_queue = &render_context.queues().graphics;
-			let mut draw_context = DrawContext {
-				commands: AutoCommandBufferBuilder::primary(
+		(|| -> anyhow::Result<()> {
+			let mut command_buffer = {
+				let (draw_target, render_context) =
+					<(Read<DrawTarget>, Read<RenderContext>)>::fetch(resources);
+				let graphics_queue = &render_context.queues().graphics;
+
+				let mut command_buffer = AutoCommandBufferBuilder::primary(
 					render_context.device().clone(),
 					graphics_queue.family(),
 					CommandBufferUsage::OneTimeSubmit,
 				)
-				.context("Couldn't create command buffer builder")?,
-				descriptor_sets: Vec::with_capacity(12),
+				.context("Couldn't create command buffer builder")?;
+				command_buffer
+					.begin_render_pass(
+						draw_target.framebuffer().clone(),
+						SubpassContents::Inline,
+						std::array::IntoIter::new([
+							ClearValue::Float([0.0, 0.0, 1.0, 1.0]),
+							ClearValue::DepthStencil((1.0, 0)),
+						]),
+					)
+					.context("Couldn't begin render pass")?;
+				command_buffer
 			};
 
-			draw_context
-				.commands
-				.begin_render_pass(
-					draw_target.framebuffer().clone(),
-					SubpassContents::Inline,
-					std::array::IntoIter::new([
-						ClearValue::Float([0.0, 0.0, 1.0, 1.0]),
-						ClearValue::DepthStencil((1.0, 0)),
-					]),
-				)
-				.context("Couldn't begin render pass")?;
+			draw_world(&mut command_buffer, world, resources)?;
+			draw_weapon_sprites(&mut command_buffer, world, resources)?;
+			draw_ui(&mut command_buffer, world, resources)?;
 
-			Ok(draw_context)
-		})()
-		.unwrap_or_else(|e| panic!("{:?}", e));
+			{
+				let (draw_target, render_context, mut present_target) =
+					<(Read<DrawTarget>, Read<RenderContext>, Write<PresentTarget>)>::fetch_mut(
+						resources,
+					);
+				let graphics_queue = &render_context.queues().graphics;
 
-		draw_world(&mut draw_context, world, resources);
-		draw_map(&mut draw_context, world, resources);
-		draw_sprites(&mut draw_context, world, resources);
-		draw_weapon_sprites(&mut draw_context, world, resources);
-		draw_ui(&mut draw_context, world, resources);
+				command_buffer
+					.end_render_pass()
+					.context("Couldn't end render pass")?;
+				let future = command_buffer
+					.build()
+					.context("Couldn't build command buffer")?
+					.execute(graphics_queue.clone())
+					.context("Couldn't execute command buffer")?;
 
-		(|| -> anyhow::Result<()> {
-			let (draw_target, render_context, mut present_target) =
-				<(Read<DrawTarget>, Read<RenderContext>, Write<PresentTarget>)>::fetch_mut(
-					resources,
-				);
-			let graphics_queue = &render_context.queues().graphics;
+				present_target
+					.present(
+						&render_context.queues().graphics,
+						draw_target.colour_attachment().image().clone(),
+						future,
+					)
+					.context("Couldn't present swapchain")?;
+			}
 
-			draw_context
-				.commands
-				.end_render_pass()
-				.context("Couldn't end render pass")?;
-			let future = draw_context
-				.commands
-				.build()
-				.context("Couldn't build command buffer")?
-				.execute(graphics_queue.clone())
-				.context("Couldn't execute command buffer")?;
-
-			present_target
-				.present(
-					&render_context.queues().graphics,
-					draw_target.colour_attachment().image().clone(),
-					future,
-				)
-				.context("Couldn't present swapchain")?;
 			Ok(())
 		})()
 		.unwrap_or_else(|e| panic!("{:?}", e));

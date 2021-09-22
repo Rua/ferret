@@ -1,35 +1,39 @@
 use crate::{
 	common::{
 		assets::AssetStorage,
-		video::{AsBytes, DrawContext, DrawTarget, RenderContext},
+		video::{AsBytes, DrawTarget, RenderContext},
 	},
 	doom::{
 		assets::map::meshes::{make_meshes, SkyVertex, Vertex},
 		draw::world::{world_frag, world_vert},
 		game::{camera::Camera, client::Client, map::MapDynamic, Transform},
-		ui::{UiAlignment, UiParams, UiTransform},
 	},
 };
 use anyhow::{anyhow, Context};
 use legion::{systems::ResourceSet, IntoQuery, Read, Resources, World};
-use nalgebra::{Matrix4, Vector2};
+use nalgebra::Matrix4;
 use std::sync::Arc;
 use vulkano::{
-	buffer::{BufferUsage, CpuBufferPool, ImmutableBuffer},
-	command_buffer::DynamicState,
-	descriptor_set::FixedSizeDescriptorSetsPool,
+	buffer::{BufferUsage, CpuBufferPool, ImmutableBuffer, TypedBufferAccess},
+	command_buffer::{AutoCommandBufferBuilder, PrimaryAutoCommandBuffer},
+	descriptor_set::SingleLayoutDescSetPool,
 	impl_vertex,
-	pipeline::{
-		vertex::BuffersDefinition, viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract,
-	},
+	pipeline::{vertex::BuffersDefinition, GraphicsPipeline, PipelineBindPoint},
 	render_pass::Subpass,
 	sampler::Sampler,
 };
 
 pub fn draw_map(
 	resources: &mut Resources,
-) -> anyhow::Result<impl FnMut(&mut DrawContext, &World, &Resources)> {
-	let (draw_target, render_context) = <(Read<DrawTarget>, Read<RenderContext>)>::fetch(resources);
+) -> anyhow::Result<
+	impl FnMut(
+		&mut AutoCommandBufferBuilder<PrimaryAutoCommandBuffer>,
+		&World,
+		&Resources,
+	) -> anyhow::Result<()>,
+> {
+	let (draw_target, render_context, sampler) =
+		<(Read<DrawTarget>, Read<RenderContext>, Read<Arc<Sampler>>)>::fetch(resources);
 	let device = render_context.device();
 
 	// Create pipeline for normal parts of the map
@@ -54,9 +58,11 @@ pub fn draw_map(
 			.viewports_dynamic_scissors_irrelevant(1)
 			.cull_mode_back()
 			.depth_stencil_simple_depth()
-			.build(device.clone())
+			.with_auto_layout(device.clone(), |set_descs| {
+				set_descs[1].set_immutable_samplers(0, [sampler.clone()]);
+			})
 			.context("Couldn't create map pipeline")?,
-	) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
+	);
 
 	// Create pipeline for sky
 	let sky_vert = sky_vert::Shader::load(device.clone())?;
@@ -76,9 +82,11 @@ pub fn draw_map(
 			.viewports_dynamic_scissors_irrelevant(1)
 			.cull_mode_back()
 			.depth_stencil_simple_depth()
-			.build(device.clone())
+			.with_auto_layout(device.clone(), |set_descs| {
+				set_descs[1].set_immutable_samplers(0, [sampler.clone()]);
+			})
 			.context("Couldn't create sky pipeline")?,
-	) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
+	);
 
 	let index_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::index_buffer());
 	let vertex_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer());
@@ -90,14 +98,14 @@ pub fn draw_map(
 		render_context.queues().graphics.clone(),
 	)
 	.context("Couldn't create instance buffer")?;
+	let instance_count = instance_buffer.len() as u32;
 
-	let mut normal_texture_set_pool = FixedSizeDescriptorSetsPool::new(
-		normal_pipeline.layout().descriptor_set_layouts()[1].clone(),
-	);
+	let mut normal_texture_set_pool =
+		SingleLayoutDescSetPool::new(normal_pipeline.layout().descriptor_set_layouts()[1].clone());
 
 	let sky_uniform_pool = CpuBufferPool::new(device.clone(), BufferUsage::uniform_buffer());
 	let mut sky_texture_set_pool =
-		FixedSizeDescriptorSetsPool::new(sky_pipeline.layout().descriptor_set_layouts()[1].clone());
+		SingleLayoutDescSetPool::new(sky_pipeline.layout().descriptor_set_layouts()[1].clone());
 
 	let mut queries = (
 		<(Option<&Camera>, &Transform)>::query(),
@@ -105,180 +113,161 @@ pub fn draw_map(
 	);
 
 	Ok(
-		move |draw_context: &mut DrawContext, world: &World, resources: &Resources| {
-			(|| -> anyhow::Result<()> {
-				let (asset_storage, client, sampler, ui_params) = <(
-					Read<AssetStorage>,
-					Read<Client>,
-					Read<Arc<Sampler>>,
-					Read<UiParams>,
-				)>::fetch(resources);
+		move |command_buffer: &mut AutoCommandBufferBuilder<PrimaryAutoCommandBuffer>,
+		      world: &World,
+		      resources: &Resources|
+		      -> anyhow::Result<()> {
+			let (asset_storage, client) = <(Read<AssetStorage>, Read<Client>)>::fetch(resources);
 
-				// Viewport
-				let ui_transform = UiTransform {
-					position: Vector2::new(0.0, 0.0),
-					depth: 0.0,
-					alignment: [UiAlignment::Near, UiAlignment::Near],
-					size: Vector2::new(320.0, 168.0),
-					stretch: [true, true],
-				};
-				let ratio = ui_params
-					.framebuffer_dimensions()
-					.component_div(&ui_params.dimensions());
-				let position = ui_transform.position + ui_params.align(ui_transform.alignment);
-				let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
-				let dynamic_state = DynamicState {
-					viewports: Some(vec![Viewport {
-						origin: position.component_mul(&ratio).into(),
-						dimensions: size.component_mul(&ratio).into(),
-						depth_range: 0.0..1.0,
-					}]),
-					..DynamicState::none()
-				};
+			// Camera
+			let (camera, &(mut camera_transform)) =
+				queries.0.get(world, client.entity.unwrap()).unwrap();
+			let mut extra_light = 0.0;
 
-				// Camera
-				let (camera, &(mut camera_transform)) =
-					queries.0.get(world, client.entity.unwrap()).unwrap();
-				let mut extra_light = 0.0;
+			if let Some(camera) = camera {
+				camera_transform.position += camera.base + camera.offset;
+				extra_light = camera.extra_light;
+			}
 
-				if let Some(camera) = camera {
-					camera_transform.position += camera.base + camera.offset;
-					extra_light = camera.extra_light;
+			// Draw
+			for map_dynamic in queries.1.iter(world) {
+				let map = asset_storage.get(&map_dynamic.map).unwrap();
+				let (flat_meshes, wall_meshes, sky_mesh) =
+					make_meshes(map, map_dynamic, extra_light, &asset_storage)
+						.context("Couldn't generate map mesh")?;
+
+				command_buffer.bind_vertex_buffers(1, instance_buffer.clone());
+				command_buffer.bind_pipeline_graphics(normal_pipeline.clone());
+
+				// Draw the walls
+				for (handle, mesh) in wall_meshes {
+					// Redirect animation frames
+					let handle = if let Some(anim_state) = map_dynamic.anim_states.get(&handle) {
+						let anim = &map.anims[&handle];
+						&anim.frames[anim_state.frame]
+					} else {
+						&handle
+					};
+					let image_view = &asset_storage.get(&handle).unwrap().image_view;
+
+					// Draw
+					let descriptor_set = {
+						let mut builder = normal_texture_set_pool.next();
+						builder
+							.add_image(image_view.clone())
+							.context("Couldn't add image to descriptor set")?;
+						builder.build().context("Couldn't create descriptor set")?
+					};
+					command_buffer.bind_descriptor_sets(
+						PipelineBindPoint::Graphics,
+						normal_pipeline.layout().clone(),
+						1,
+						descriptor_set,
+					);
+
+					let vertex_buffer = vertex_buffer_pool
+						.chunk(mesh.0.as_bytes().iter().copied())
+						.context("Couldn't create buffer")?;
+					command_buffer.bind_vertex_buffers(0, vertex_buffer);
+
+					let index_buffer = index_buffer_pool
+						.chunk(mesh.1)
+						.context("Couldn't create buffer")?;
+					let index_count = index_buffer.len() as u32;
+					command_buffer.bind_index_buffer(index_buffer);
+
+					command_buffer
+						.draw_indexed(index_count, instance_count, 0, 0, 0)
+						.context("Couldn't issue wall draw to command buffer")?;
 				}
 
-				for map_dynamic in queries.1.iter(world) {
-					let map = asset_storage.get(&map_dynamic.map).unwrap();
-					let (flat_meshes, wall_meshes, sky_mesh) =
-						make_meshes(map, map_dynamic, extra_light, &asset_storage)
-							.context("Couldn't generate map mesh")?;
+				// Draw the flats
+				for (handle, mesh) in flat_meshes {
+					// Redirect animation frames
+					let handle = if let Some(anim_state) = map_dynamic.anim_states.get(&handle) {
+						let anim = &map.anims[&handle];
+						&anim.frames[anim_state.frame]
+					} else {
+						&handle
+					};
+					let image = asset_storage.get(handle).unwrap();
 
-					// Draw the walls
-					for (handle, mesh) in wall_meshes {
-						let vertex_buffer = vertex_buffer_pool
-							.chunk(mesh.0.as_bytes().iter().copied())
-							.context("Couldn't create buffer")?;
-						let index_buffer = index_buffer_pool
-							.chunk(mesh.1)
-							.context("Couldn't create buffer")?;
+					let descriptor_set = {
+						let mut builder = normal_texture_set_pool.next();
+						builder
+							.add_image(image.image_view.clone())
+							.context("Couldn't add image to descriptor set")?;
+						builder.build().context("Couldn't create descriptor set")?
+					};
+					command_buffer.bind_descriptor_sets(
+						PipelineBindPoint::Graphics,
+						normal_pipeline.layout().clone(),
+						1,
+						descriptor_set,
+					);
 
-						// Redirect animation frames
-						let handle = if let Some(anim_state) = map_dynamic.anim_states.get(&handle)
-						{
-							let anim = &map.anims[&handle];
-							&anim.frames[anim_state.frame]
-						} else {
-							&handle
-						};
-						let image_view = &asset_storage.get(&handle).unwrap().image_view;
-
-						draw_context.descriptor_sets.truncate(1);
-						draw_context.descriptor_sets.push(Arc::new(
-							normal_texture_set_pool
-								.next()
-								.add_sampled_image(image_view.clone(), sampler.clone())
-								.context("Couldn't add image to descriptor set")?
-								.build()
-								.context("Couldn't create descriptor set")?,
-						));
-
-						draw_context
-							.commands
-							.draw_indexed(
-								normal_pipeline.clone(),
-								&dynamic_state,
-								vec![Arc::new(vertex_buffer), instance_buffer.clone()],
-								index_buffer,
-								draw_context.descriptor_sets.clone(),
-								(),
-							)
-							.context("Couldn't issue draw to command buffer")?;
-					}
-
-					// Draw the flats
-					for (handle, mesh) in flat_meshes {
-						let vertex_buffer = vertex_buffer_pool
-							.chunk(mesh.0.as_bytes().iter().copied())
-							.context("Couldn't create buffer")?;
-						let index_buffer = index_buffer_pool
-							.chunk(mesh.1)
-							.context("Couldn't create buffer")?;
-
-						// Redirect animation frames
-						let handle = if let Some(anim_state) = map_dynamic.anim_states.get(&handle)
-						{
-							let anim = &map.anims[&handle];
-							&anim.frames[anim_state.frame]
-						} else {
-							&handle
-						};
-						let image = asset_storage.get(handle).unwrap();
-
-						draw_context.descriptor_sets.truncate(1);
-						draw_context.descriptor_sets.push(Arc::new(
-							normal_texture_set_pool
-								.next()
-								.add_sampled_image(image.image_view.clone(), sampler.clone())
-								.context("Couldn't add image to descriptor set")?
-								.build()
-								.context("Couldn't create descriptor set")?,
-						));
-
-						draw_context
-							.commands
-							.draw_indexed(
-								normal_pipeline.clone(),
-								&dynamic_state,
-								vec![Arc::new(vertex_buffer), instance_buffer.clone()],
-								index_buffer,
-								draw_context.descriptor_sets.clone(),
-								(),
-							)
-							.context("Couldn't issue draw to command buffer")?;
-					}
-
-					// Draw the sky
 					let vertex_buffer = vertex_buffer_pool
-						.chunk(sky_mesh.0.as_bytes().iter().copied())
+						.chunk(mesh.0.as_bytes().iter().copied())
 						.context("Couldn't create buffer")?;
+					command_buffer.bind_vertex_buffers(0, vertex_buffer);
+
 					let index_buffer = index_buffer_pool
-						.chunk(sky_mesh.1)
+						.chunk(mesh.1)
 						.context("Couldn't create buffer")?;
-					let image = asset_storage.get(&map.sky).unwrap();
-					let sky_buffer = sky_uniform_pool
+					let index_count = index_buffer.len() as u32;
+					command_buffer.bind_index_buffer(index_buffer);
+
+					command_buffer
+						.draw_indexed(index_count, instance_count, 0, 0, 0)
+						.context("Couldn't issue flat draw to command buffer")?;
+				}
+
+				// Draw the sky
+				command_buffer.bind_pipeline_graphics(sky_pipeline.clone());
+
+				let image = asset_storage.get(&map.sky).unwrap();
+				let sky_buffer = Arc::new(
+					sky_uniform_pool
 						.next(sky_frag::ty::FragParams {
 							screenSize: [800.0, 600.0],
 							pitch: camera_transform.rotation[1].to_degrees() as f32,
 							yaw: camera_transform.rotation[2].to_degrees() as f32,
 						})
-						.context("Couldn't create buffer")?;
+						.context("Couldn't create buffer")?,
+				);
+				let descriptor_set = {
+					let mut builder = sky_texture_set_pool.next();
+					builder
+						.add_image(image.image_view.clone())
+						.context("Couldn't add image to descriptor set")?
+						.add_buffer(sky_buffer)
+						.context("Couldn't add buffer to descriptor set")?;
+					builder.build().context("Couldn't create descriptor set")?
+				};
+				command_buffer.bind_descriptor_sets(
+					PipelineBindPoint::Graphics,
+					sky_pipeline.layout().clone(),
+					1,
+					descriptor_set,
+				);
 
-					draw_context.descriptor_sets.truncate(1);
-					draw_context.descriptor_sets.push(Arc::new(
-						sky_texture_set_pool
-							.next()
-							.add_sampled_image(image.image_view.clone(), sampler.clone())
-							.context("Couldn't add image to descriptor set")?
-							.add_buffer(sky_buffer)?
-							.build()
-							.context("Couldn't create descriptor set")?,
-					));
+				let vertex_buffer = vertex_buffer_pool
+					.chunk(sky_mesh.0.as_bytes().iter().copied())
+					.context("Couldn't create buffer")?;
+				command_buffer.bind_vertex_buffers(0, vertex_buffer);
 
-					draw_context
-						.commands
-						.draw_indexed(
-							sky_pipeline.clone(),
-							&dynamic_state,
-							vec![Arc::new(vertex_buffer)],
-							index_buffer,
-							draw_context.descriptor_sets.clone(),
-							(),
-						)
-						.context("Couldn't issue draw to command buffer")?;
-				}
+				let index_buffer = index_buffer_pool
+					.chunk(sky_mesh.1)
+					.context("Couldn't create buffer")?;
+				let index_count = index_buffer.len() as u32;
+				command_buffer.bind_index_buffer(index_buffer);
 
-				Ok(())
-			})()
-			.unwrap_or_else(|e| panic!("{:?}", e));
+				command_buffer
+					.draw_indexed(index_count, 1, 0, 0, 0)
+					.context("Couldn't issue sky draw to command buffer")?;
+			}
+
+			Ok(())
 		},
 	)
 }

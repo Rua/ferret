@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::AssetStorage,
 		geometry::{ortho_matrix, Interval, AABB3},
-		video::{DrawContext, DrawTarget, RenderContext},
+		video::{DrawTarget, RenderContext},
 	},
 	doom::{
 		draw::{
@@ -14,18 +14,17 @@ use crate::{
 	},
 };
 use anyhow::{bail, Context};
-use arrayvec::ArrayVec;
 use legion::{systems::ResourceSet, IntoQuery, Read, Resources, World};
 use nalgebra::{Vector2, Vector3};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use vulkano::{
-	buffer::{BufferUsage, CpuBufferPool},
-	command_buffer::DynamicState,
-	descriptor_set::FixedSizeDescriptorSetsPool,
+	buffer::{BufferUsage, CpuBufferPool, TypedBufferAccess},
+	command_buffer::{AutoCommandBufferBuilder, PrimaryAutoCommandBuffer},
+	descriptor_set::SingleLayoutDescSetPool,
 	image::view::ImageViewAbstract,
 	pipeline::{
-		vertex::BuffersDefinition, viewport::Viewport, GraphicsPipeline, GraphicsPipelineAbstract,
+		vertex::BuffersDefinition, viewport::Viewport, GraphicsPipeline, PipelineBindPoint,
 	},
 	render_pass::Subpass,
 	sampler::Sampler,
@@ -39,8 +38,15 @@ pub struct WeaponSpriteRender {
 
 pub fn draw_weapon_sprites(
 	resources: &mut Resources,
-) -> anyhow::Result<impl FnMut(&mut DrawContext, &World, &Resources)> {
-	let (draw_target, render_context) = <(Read<DrawTarget>, Read<RenderContext>)>::fetch(resources);
+) -> anyhow::Result<
+	impl FnMut(
+		&mut AutoCommandBufferBuilder<PrimaryAutoCommandBuffer>,
+		&World,
+		&Resources,
+	) -> anyhow::Result<()>,
+> {
+	let (draw_target, render_context, sampler) =
+		<(Read<DrawTarget>, Read<RenderContext>, Read<Arc<Sampler>>)>::fetch(resources);
 	let device = render_context.device();
 
 	// Create pipeline
@@ -58,140 +64,139 @@ pub fn draw_weapon_sprites(
 			.fragment_shader(frag.main_entry_point(), ())
 			.triangle_list()
 			.viewports_dynamic_scissors_irrelevant(1)
-			.build(device.clone())
+			.with_auto_layout(device.clone(), |set_descs| {
+				set_descs[1].set_immutable_samplers(0, [sampler.clone()]);
+			})
 			.context("Couldn't create weapon sprite pipeline")?,
-	) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
+	);
 
 	let layout = &pipeline.layout().descriptor_set_layouts()[0];
-	let mut matrix_set_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
+	let mut matrix_set_pool = SingleLayoutDescSetPool::new(layout.clone());
 	let vertex_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer());
 	let matrix_uniform_pool = CpuBufferPool::new(
 		render_context.device().clone(),
 		BufferUsage::uniform_buffer(),
 	);
 	let mut texture_set_pool =
-		FixedSizeDescriptorSetsPool::new(pipeline.layout().descriptor_set_layouts()[1].clone());
+		SingleLayoutDescSetPool::new(pipeline.layout().descriptor_set_layouts()[1].clone());
 
 	let mut query = <&WeaponSpriteRender>::query();
 
 	Ok(
-		move |draw_context: &mut DrawContext, world: &World, resources: &Resources| {
-			(|| -> anyhow::Result<()> {
-				let (asset_storage, client, sampler, ui_params) = <(
-					Read<AssetStorage>,
-					Read<Client>,
-					Read<Arc<Sampler>>,
-					Read<UiParams>,
-				)>::fetch(resources);
+		move |command_buffer: &mut AutoCommandBufferBuilder<PrimaryAutoCommandBuffer>,
+		      world: &World,
+		      resources: &Resources|
+		      -> anyhow::Result<()> {
+			let (asset_storage, client, ui_params) =
+				<(Read<AssetStorage>, Read<Client>, Read<UiParams>)>::fetch(resources);
 
-				let dynamic_state = DynamicState {
-					viewports: Some(vec![Viewport {
-						origin: [0.0; 2],
-						dimensions: ui_params.framebuffer_dimensions().into(),
-						depth_range: 0.0..1.0,
-					}]),
-					..DynamicState::none()
-				};
+			command_buffer.set_viewport(
+				0,
+				[Viewport {
+					origin: [0.0; 2],
+					dimensions: ui_params.framebuffer_dimensions().into(),
+					depth_range: 0.0..1.0,
+				}],
+			);
+			command_buffer.bind_pipeline_graphics(pipeline.clone());
 
-				let proj = ortho_matrix(AABB3::from_intervals(Vector3::new(
-					Interval::new(0.0, ui_params.framebuffer_dimensions()[0]),
-					Interval::new(0.0, ui_params.framebuffer_dimensions()[1]),
-					Interval::new(1000.0, 0.0),
-				)));
-				let framebuffer_ratio = ui_params
-					.framebuffer_dimensions()
-					.component_div(&ui_params.dimensions());
+			let proj = ortho_matrix(AABB3::from_intervals(Vector3::new(
+				Interval::new(0.0, ui_params.framebuffer_dimensions()[0]),
+				Interval::new(0.0, ui_params.framebuffer_dimensions()[1]),
+				Interval::new(1000.0, 0.0),
+			)));
+			let framebuffer_ratio = ui_params
+				.framebuffer_dimensions()
+				.component_div(&ui_params.dimensions());
 
-				// Create matrix UBO
-				draw_context.descriptor_sets.truncate(0);
-				draw_context.descriptor_sets.push(Arc::new(
-					matrix_set_pool
-						.next()
-						.add_buffer(
-							matrix_uniform_pool
-								.next(Matrices { proj: proj.into() })
-								.context("Couldn't create buffer")?,
-						)
-						.context("Couldn't add buffer to descriptor set")?
-						.build()
-						.context("Couldn't create descriptor set")?,
-				));
+			// Create matrix uniform buffer
+			let uniform_buffer = Arc::new(
+				matrix_uniform_pool
+					.next(Matrices { proj: proj.into() })
+					.context("Couldn't create buffer")?,
+			);
+			let descriptor_set = {
+				let mut builder = matrix_set_pool.next();
+				builder
+					.add_buffer(uniform_buffer)
+					.context("Couldn't add buffer to descriptor set")?;
+				builder.build().context("Couldn't create descriptor set")?
+			};
+			command_buffer.bind_descriptor_sets(
+				PipelineBindPoint::Graphics,
+				pipeline.layout().clone(),
+				0,
+				descriptor_set,
+			);
 
-				let client_entity = match client.entity {
-					Some(e) => e,
-					None => return Ok(()),
-				};
+			let client_entity = match client.entity {
+				Some(e) => e,
+				None => return Ok(()),
+			};
 
-				let weapon_sprite_render = match query.get(world, client_entity) {
-					Ok(x) => x,
-					Err(_) => return Ok(()),
-				};
+			let weapon_sprite_render = match query.get(world, client_entity) {
+				Ok(x) => x,
+				Err(_) => return Ok(()),
+			};
 
-				let mut batches: Vec<(Arc<dyn ImageViewAbstract + Send + Sync>, Vec<Vertex>)> =
-					Vec::new();
+			let mut batches: Vec<(Arc<dyn ImageViewAbstract + Send + Sync>, Vec<Vertex>)> =
+				Vec::new();
 
-				for sprite_render in weapon_sprite_render.slots.iter().flatten() {
-					let sprite = asset_storage.get(&sprite_render.sprite).unwrap();
-					let frame = &sprite.frames()[sprite_render.frame];
+			for sprite_render in weapon_sprite_render.slots.iter().flatten() {
+				let sprite = asset_storage.get(&sprite_render.sprite).unwrap();
+				let frame = &sprite.frames()[sprite_render.frame];
 
-					// This frame has no images, nothing to draw
-					if frame.is_empty() {
-						continue;
-					} else if frame.len() > 1 {
-						bail!("Player sprite has rotation images");
-					}
-
-					let image_handle = &frame[0].handle;
-					let image = asset_storage.get(image_handle).unwrap();
-					let image_view = &image.image_view;
-					let position = weapon_sprite_render.position
-						+ ui_params.align([UiAlignment::Middle, UiAlignment::Far])
-						- image.offset + Vector2::new(0.0, 16.0);
-					// TODO use array::map when it's stable
-					let vertices = VERTICES
-						.iter()
-						.map(|v| Vertex {
-							in_position: (v.in_position.component_mul(&image.size()) + position)
-								.component_mul(&framebuffer_ratio),
-							in_texture_coord: v.in_texture_coord,
-						})
-						.collect::<ArrayVec<_, 4>>();
-					let vertices = [0, 1, 2, 0, 2, 3].iter().map(|&i| vertices[i]);
-					match batches.last_mut() {
-						Some((i, id)) if i == image_view => id.extend(vertices),
-						_ => batches.push((image_view.clone(), vertices.collect())),
-					}
+				// This frame has no images, nothing to draw
+				if frame.is_empty() {
+					continue;
+				} else if frame.len() > 1 {
+					bail!("Player sprite has rotation images");
 				}
 
-				// Draw the batches
-				for (image_view, vertices) in batches {
-					draw_context.descriptor_sets.truncate(1);
-					draw_context.descriptor_sets.push(Arc::new(
-						texture_set_pool
-							.next()
-							.add_sampled_image(image_view, sampler.clone())
-							.context("Couldn't add image to descriptor set")?
-							.build()
-							.context("Couldn't create descriptor set")?,
-					));
-
-					let vertex_buffer = vertex_buffer_pool.chunk(vertices)?;
-
-					draw_context
-						.commands
-						.draw(
-							pipeline.clone(),
-							&dynamic_state,
-							vec![Arc::new(vertex_buffer)],
-							draw_context.descriptor_sets.clone(),
-							(),
-						)
-						.context("Couldn't issue draw to command buffer")?;
+				let image_handle = &frame[0].handle;
+				let image = asset_storage.get(image_handle).unwrap();
+				let image_view = &image.image_view;
+				let position = weapon_sprite_render.position
+					+ ui_params.align([UiAlignment::Middle, UiAlignment::Far])
+					- image.offset + Vector2::new(0.0, 16.0);
+				let vertices = VERTICES.map(|v| Vertex {
+					in_position: (v.in_position.component_mul(&image.size()) + position)
+						.component_mul(&framebuffer_ratio),
+					in_texture_coord: v.in_texture_coord,
+				});
+				let vertices = std::array::IntoIter::new([0, 1, 2, 0, 2, 3]).map(|i| vertices[i]);
+				match batches.last_mut() {
+					Some((i, id)) if i == image_view => id.extend(vertices),
+					_ => batches.push((image_view.clone(), vertices.collect())),
 				}
+			}
 
-				Ok(())
-			})()
-			.unwrap_or_else(|e| panic!("{:?}", e));
+			// Draw the batches
+			for (image_view, vertices) in batches {
+				let descriptor_set = {
+					let mut builder = texture_set_pool.next();
+					builder
+						.add_image(image_view)
+						.context("Couldn't add image to descriptor set")?;
+					builder.build().context("Couldn't create descriptor set")?
+				};
+				command_buffer.bind_descriptor_sets(
+					PipelineBindPoint::Graphics,
+					pipeline.layout().clone(),
+					1,
+					descriptor_set,
+				);
+
+				let vertex_buffer = vertex_buffer_pool.chunk(vertices)?;
+				let vertex_count = vertex_buffer.len() as u32;
+				command_buffer.bind_vertex_buffers(0, vertex_buffer);
+
+				command_buffer
+					.draw(vertex_count, 1, 0, 0)
+					.context("Couldn't issue draw to command buffer")?;
+			}
+
+			Ok(())
 		},
 	)
 }

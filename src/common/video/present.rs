@@ -193,13 +193,11 @@ fn choose_swapchain_params(
 			capabilities.min_image_count + 1,
 			capabilities.max_image_count.unwrap_or(std::u32::MAX),
 		),
-		format: [
-			Format::R8G8B8A8Unorm,
-			Format::B8G8R8A8Unorm,
-			Format::A8B8G8R8UnormPack32,
-		]
-		.iter()
-		.cloned()
+		format: std::array::IntoIter::new([
+			Format::R8G8B8A8_UNORM,
+			Format::B8G8R8A8_UNORM,
+			Format::A8B8G8R8_UNORM_PACK32,
+		])
 		.find(|format| {
 			let features = format.properties(physical_device).optimal_tiling_features;
 			capabilities
@@ -210,9 +208,7 @@ fn choose_swapchain_params(
 		.context("No suitable format found")?,
 		dimensions: capabilities.current_extent.unwrap_or(dimensions),
 		transform: capabilities.current_transform,
-		present_mode: [PresentMode::Mailbox, PresentMode::Fifo]
-			.iter()
-			.copied()
+		present_mode: std::array::IntoIter::new([PresentMode::Mailbox, PresentMode::Fifo])
 			.find(|mode| capabilities.present_modes.supports(*mode))
 			.context("No suitable present mode found")?,
 	})

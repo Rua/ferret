@@ -94,9 +94,8 @@ pub fn activate(
 	let linedef_dynamic = &mut map_dynamic.linedefs[linedef_index];
 	let sidedef_dynamic = linedef_dynamic.sidedefs[0].as_mut().unwrap();
 
-	for slot in [SidedefSlot::Top, SidedefSlot::Middle, SidedefSlot::Bottom]
-		.iter()
-		.copied()
+	for slot in
+		std::array::IntoIter::new([SidedefSlot::Top, SidedefSlot::Middle, SidedefSlot::Bottom])
 	{
 		if let TextureType::Normal(texture) = &mut sidedef_dynamic.textures[slot as usize] {
 			if let Some(new) = map.switches.get(texture) {

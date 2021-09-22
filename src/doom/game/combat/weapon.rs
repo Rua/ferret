@@ -168,7 +168,7 @@ pub fn weapon_state(resources: &mut Resources) -> impl Runnable {
 			let (game_time, state_systems_run) = resources;
 
 			for (&entity, weapon_state) in query.iter_mut(world) {
-				for slot in SLOTS.iter().copied() {
+				for slot in std::array::IntoIter::new(SLOTS) {
 					let state = &mut weapon_state.slots[slot as usize];
 
 					if let StateAction::Wait(state_name) = state.action {

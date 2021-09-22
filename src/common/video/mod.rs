@@ -2,11 +2,7 @@ mod context;
 mod draw;
 mod present;
 
-pub use {
-	context::RenderContext,
-	draw::{DrawContext, DrawTarget},
-	present::PresentTarget,
-};
+pub use {context::RenderContext, draw::DrawTarget, present::PresentTarget};
 
 pub trait AsBytes {
 	fn as_bytes(&self) -> &[u8];

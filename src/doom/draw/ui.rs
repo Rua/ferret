@@ -2,7 +2,7 @@ use crate::{
 	common::{
 		assets::AssetStorage,
 		geometry::{ortho_matrix, Interval, AABB3},
-		video::{DrawContext, DrawTarget, RenderContext},
+		video::{DrawTarget, RenderContext},
 	},
 	doom::{
 		assets::font::FontSpacing,
@@ -10,21 +10,20 @@ use crate::{
 	},
 };
 use anyhow::Context;
-use arrayvec::ArrayVec;
 use legion::{component, systems::ResourceSet, Entity, IntoQuery, Read, Resources, World};
 use memoffset::offset_of;
 use nalgebra::{Vector2, Vector3};
 use std::{cmp::Ordering, sync::Arc};
 use vulkano::{
-	buffer::{BufferUsage, CpuBufferPool},
-	command_buffer::DynamicState,
-	descriptor_set::FixedSizeDescriptorSetsPool,
+	buffer::{BufferUsage, CpuBufferPool, TypedBufferAccess},
+	command_buffer::{AutoCommandBufferBuilder, PrimaryAutoCommandBuffer},
+	descriptor_set::SingleLayoutDescSetPool,
 	image::view::ImageViewAbstract,
 	impl_vertex,
 	pipeline::{
 		vertex::{BuffersDefinition, Vertex as VertexTrait, VertexMemberInfo, VertexMemberTy},
 		viewport::Viewport,
-		GraphicsPipeline, GraphicsPipelineAbstract,
+		GraphicsPipeline, PipelineBindPoint,
 	},
 	render_pass::Subpass,
 	sampler::Sampler,
@@ -32,8 +31,15 @@ use vulkano::{
 
 pub fn draw_ui(
 	resources: &mut Resources,
-) -> anyhow::Result<impl FnMut(&mut DrawContext, &World, &Resources)> {
-	let (draw_target, render_context) = <(Read<DrawTarget>, Read<RenderContext>)>::fetch(resources);
+) -> anyhow::Result<
+	impl FnMut(
+		&mut AutoCommandBufferBuilder<PrimaryAutoCommandBuffer>,
+		&World,
+		&Resources,
+	) -> anyhow::Result<()>,
+> {
+	let (draw_target, render_context, sampler) =
+		<(Read<DrawTarget>, Read<RenderContext>, Read<Arc<Sampler>>)>::fetch(resources);
 	let device = render_context.device();
 
 	// Create pipeline
@@ -51,19 +57,21 @@ pub fn draw_ui(
 			.fragment_shader(frag.main_entry_point(), ())
 			.triangle_list()
 			.viewports_dynamic_scissors_irrelevant(1)
-			.build(device.clone())
+			.with_auto_layout(device.clone(), |set_descs| {
+				set_descs[1].set_immutable_samplers(0, [sampler.clone()]);
+			})
 			.context("Couldn't create UI pipeline")?,
-	) as Arc<dyn GraphicsPipelineAbstract + Send + Sync>;
+	);
 
 	let layout = &pipeline.layout().descriptor_set_layouts()[0];
-	let mut matrix_set_pool = FixedSizeDescriptorSetsPool::new(layout.clone());
+	let mut matrix_set_pool = SingleLayoutDescSetPool::new(layout.clone());
 	let vertex_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer());
 	let matrix_uniform_pool = CpuBufferPool::new(
 		render_context.device().clone(),
 		BufferUsage::uniform_buffer(),
 	);
 	let mut texture_set_pool =
-		FixedSizeDescriptorSetsPool::new(pipeline.layout().descriptor_set_layouts()[1].clone());
+		SingleLayoutDescSetPool::new(pipeline.layout().descriptor_set_layouts()[1].clone());
 
 	let mut queries = (
 		<(Entity, &UiTransform)>::query().filter(!component::<Hidden>()),
@@ -76,197 +84,192 @@ pub fn draw_ui(
 	);
 
 	Ok(
-		move |draw_context: &mut DrawContext, world: &World, resources: &Resources| {
-			(|| -> anyhow::Result<()> {
-				let (asset_storage, sampler, ui_params) =
-					<(Read<AssetStorage>, Read<Arc<Sampler>>, Read<UiParams>)>::fetch(resources);
+		move |command_buffer: &mut AutoCommandBufferBuilder<PrimaryAutoCommandBuffer>,
+		      world: &World,
+		      resources: &Resources|
+		      -> anyhow::Result<()> {
+			let (asset_storage, ui_params) =
+				<(Read<AssetStorage>, Read<UiParams>)>::fetch(resources);
 
-				let dynamic_state = DynamicState {
-					viewports: Some(vec![Viewport {
-						origin: [0.0; 2],
-						dimensions: ui_params.framebuffer_dimensions().into(),
-						depth_range: 0.0..1.0,
-					}]),
-					..DynamicState::none()
-				};
+			command_buffer.set_viewport(
+				0,
+				[Viewport {
+					origin: [0.0; 2],
+					dimensions: ui_params.framebuffer_dimensions().into(),
+					depth_range: 0.0..1.0,
+				}],
+			);
+			command_buffer.bind_pipeline_graphics(pipeline.clone());
 
-				let proj = ortho_matrix(AABB3::from_intervals(Vector3::new(
-					Interval::new(0.0, ui_params.framebuffer_dimensions()[0]),
-					Interval::new(0.0, ui_params.framebuffer_dimensions()[1]),
-					Interval::new(1000.0, 0.0),
-				)));
-				let framebuffer_ratio = ui_params
-					.framebuffer_dimensions()
-					.component_div(&ui_params.dimensions());
+			let proj = ortho_matrix(AABB3::from_intervals(Vector3::new(
+				Interval::new(0.0, ui_params.framebuffer_dimensions()[0]),
+				Interval::new(0.0, ui_params.framebuffer_dimensions()[1]),
+				Interval::new(1000.0, 0.0),
+			)));
+			let framebuffer_ratio = ui_params
+				.framebuffer_dimensions()
+				.component_div(&ui_params.dimensions());
 
-				// Create matrix UBO
-				draw_context.descriptor_sets.truncate(0);
-				draw_context.descriptor_sets.push(Arc::new(
-					matrix_set_pool
-						.next()
-						.add_buffer(
-							matrix_uniform_pool
-								.next(Matrices { proj: proj.into() })
-								.context("Couldn't create buffer")?,
-						)
-						.context("Couldn't add buffer to descriptor set")?
-						.build()
-						.context("Couldn't create descriptor set")?,
-				));
+			// Create matrix uniform buffer
+			let uniform_buffer = Arc::new(
+				matrix_uniform_pool
+					.next(Matrices { proj: proj.into() })
+					.context("Couldn't create buffer")?,
+			);
+			let descriptor_set = {
+				let mut builder = matrix_set_pool.next();
+				builder
+					.add_buffer(uniform_buffer)
+					.context("Couldn't add buffer to descriptor set")?;
+				builder.build().context("Couldn't create descriptor set")?
+			};
+			command_buffer.bind_descriptor_sets(
+				PipelineBindPoint::Graphics,
+				pipeline.layout().clone(),
+				0,
+				descriptor_set,
+			);
 
-				// Sort UiTransform entities by depth
-				let mut entities: Vec<(f32, Entity)> = queries
-					.0
-					.iter(world)
-					.map(|(&entity, ui_transform)| (ui_transform.depth, entity))
-					.collect();
-				entities.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(Ordering::Equal));
+			// Sort UiTransform entities by depth
+			let mut entities: Vec<(f32, Entity)> = queries
+				.0
+				.iter(world)
+				.map(|(&entity, ui_transform)| (ui_transform.depth, entity))
+				.collect();
+			entities.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(Ordering::Equal));
 
-				// Group draws into batches by texture, preserving depth order
-				let mut batches: Vec<(Arc<dyn ImageViewAbstract + Send + Sync>, Vec<Vertex>)> =
-					Vec::new();
+			// Group draws into batches by texture, preserving depth order
+			let mut batches: Vec<(Arc<dyn ImageViewAbstract + Send + Sync>, Vec<Vertex>)> =
+				Vec::new();
 
-				for (ui_transform, ui_image, ui_text, ui_hexfont_text) in entities
-					.into_iter()
-					.filter_map(|(_, entity)| queries.1.get(world, entity).ok())
-				{
-					let position = ui_transform.position + ui_params.align(ui_transform.alignment);
-					let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
+			for (ui_transform, ui_image, ui_text, ui_hexfont_text) in entities
+				.into_iter()
+				.filter_map(|(_, entity)| queries.1.get(world, entity).ok())
+			{
+				let position = ui_transform.position + ui_params.align(ui_transform.alignment);
+				let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
 
-					if let Some(ui_image) = ui_image {
-						let image = asset_storage.get(&ui_image.image).unwrap();
-						let image_view = &image.image_view;
-						let position = position - image.offset;
-						// TODO use array::map when it's stable
-						let vertices = VERTICES
-							.iter()
-							.map(|v| Vertex {
-								in_position: (v.in_position.component_mul(&size) + position)
+				if let Some(ui_image) = ui_image {
+					let image = asset_storage.get(&ui_image.image).unwrap();
+					let image_view = &image.image_view;
+					let position = position - image.offset;
+					let vertices = VERTICES.map(|v| Vertex {
+						in_position: (v.in_position.component_mul(&size) + position)
+							.component_mul(&framebuffer_ratio),
+						in_texture_coord: v
+							.in_texture_coord
+							.component_mul(&size)
+							.component_div(&image.size()),
+					});
+					let vertices =
+						std::array::IntoIter::new([0, 1, 2, 0, 2, 3]).map(|i| vertices[i]);
+					match batches.last_mut() {
+						Some((i, id)) if i == image_view => id.extend(vertices),
+						_ => batches.push((image_view.clone(), vertices.collect())),
+					}
+				}
+
+				if let Some(ui_text) = ui_text {
+					let font = asset_storage.get(&ui_text.font).unwrap();
+					let mut cursor_position = position;
+
+					for ch in ui_text.text.chars() {
+						if ch == ' ' {
+							let width = match font.spacing {
+								FontSpacing::FixedWidth { width } => width,
+								FontSpacing::VariableWidth { space_width } => space_width,
+							};
+							cursor_position[0] += width;
+						} else if let Some(image_handle) = font.characters.get(&ch) {
+							let image = asset_storage.get(image_handle).unwrap();
+							let image_view = &image.image_view;
+							let position = cursor_position - image.offset;
+							let vertices = VERTICES.map(|v| Vertex {
+								in_position: (v.in_position.component_mul(&image.size())
+									+ position)
 									.component_mul(&framebuffer_ratio),
-								in_texture_coord: v
-									.in_texture_coord
-									.component_mul(&size)
-									.component_div(&image.size()),
-							})
-							.collect::<ArrayVec<_, 4>>();
-						let vertices = [0, 1, 2, 0, 2, 3].iter().map(|&i| vertices[i]);
-						match batches.last_mut() {
-							Some((i, id)) if i == image_view => id.extend(vertices),
-							_ => batches.push((image_view.clone(), vertices.collect())),
-						}
-					}
-
-					if let Some(ui_text) = ui_text {
-						let font = asset_storage.get(&ui_text.font).unwrap();
-						let mut cursor_position = position;
-
-						for ch in ui_text.text.chars() {
-							if ch == ' ' {
-								let width = match font.spacing {
-									FontSpacing::FixedWidth { width } => width,
-									FontSpacing::VariableWidth { space_width } => space_width,
-								};
-								cursor_position[0] += width;
-							} else if let Some(image_handle) = font.characters.get(&ch) {
-								let image = asset_storage.get(image_handle).unwrap();
-								let image_view = &image.image_view;
-								let position = cursor_position - image.offset;
-								// TODO use array::map when it's stable
-								let vertices = VERTICES
-									.iter()
-									.map(|v| Vertex {
-										in_position: (v.in_position.component_mul(&image.size())
-											+ position)
-											.component_mul(&framebuffer_ratio),
-										in_texture_coord: v.in_texture_coord,
-									})
-									.collect::<ArrayVec<_, 4>>();
-								let vertices = [0, 1, 2, 0, 2, 3].iter().map(|&i| vertices[i]);
-								match batches.last_mut() {
-									Some((i, id)) if i == image_view => id.extend(vertices),
-									_ => batches.push((image_view.clone(), vertices.collect())),
-								}
-
-								// Move cursor
-								let width = match font.spacing {
-									FontSpacing::FixedWidth { width } => width,
-									FontSpacing::VariableWidth { .. } => image.size()[0],
-								};
-								cursor_position[0] += width;
-							}
-						}
-					}
-
-					if let Some(ui_text) = ui_hexfont_text {
-						let font = asset_storage.get(&ui_text.font).unwrap();
-						let image_view = &font.image_view;
-						let mut cursor_position = position;
-						let start_of_line = cursor_position[0];
-
-						for line in ui_text.lines.iter().map(|line| line.trim_end()) {
-							for ch in line.chars().filter_map(|ch| font.chars.get(&ch)) {
-								// TODO use array::map when it's stable
-								let vertices = ch
-									.vertices
-									.iter()
-									.map(|v| Vertex {
-										in_position: (v.in_position + cursor_position)
-											.component_mul(&framebuffer_ratio),
-										in_texture_coord: v.in_texture_coord,
-									})
-									.collect::<ArrayVec<_, 4>>();
-								let vertices = [0, 1, 2, 0, 2, 3].iter().map(|&i| vertices[i]);
-								match batches.last_mut() {
-									Some((i, id)) if i == image_view => id.extend(vertices),
-									_ => batches.push((image_view.clone(), vertices.collect())),
-								}
-
-								cursor_position[0] += ch.width;
+								in_texture_coord: v.in_texture_coord,
+							});
+							let vertices =
+								std::array::IntoIter::new([0, 1, 2, 0, 2, 3]).map(|i| vertices[i]);
+							match batches.last_mut() {
+								Some((i, id)) if i == image_view => id.extend(vertices),
+								_ => batches.push((image_view.clone(), vertices.collect())),
 							}
 
 							// Move cursor
-							cursor_position[0] = start_of_line;
-							cursor_position[1] += font.line_height as f32;
-
-							if cursor_position[1] + font.line_height as f32 > ui_transform.size[1] {
-								// No more room for another line
-								break;
-							}
+							let width = match font.spacing {
+								FontSpacing::FixedWidth { width } => width,
+								FontSpacing::VariableWidth { .. } => image.size()[0],
+							};
+							cursor_position[0] += width;
 						}
 					}
 				}
 
-				// Draw the batches
-				for (image_view, vertices) in batches {
-					draw_context.descriptor_sets.truncate(1);
-					draw_context.descriptor_sets.push(Arc::new(
-						texture_set_pool
-							.next()
-							.add_sampled_image(image_view, sampler.clone())
-							.context("Couldn't add image to descriptor set")?
-							.build()
-							.context("Couldn't create descriptor set")?,
-					));
+				if let Some(ui_text) = ui_hexfont_text {
+					let font = asset_storage.get(&ui_text.font).unwrap();
+					let image_view = &font.image_view;
+					let mut cursor_position = position;
+					let start_of_line = cursor_position[0];
 
-					let vertex_buffer = vertex_buffer_pool
-						.chunk(vertices)
-						.context("Couldn't create buffer")?;
+					for line in ui_text.lines.iter().map(|line| line.trim_end()) {
+						for ch in line.chars().filter_map(|ch| font.chars.get(&ch)) {
+							let vertices = ch.vertices.map(|v| Vertex {
+								in_position: (v.in_position + cursor_position)
+									.component_mul(&framebuffer_ratio),
+								in_texture_coord: v.in_texture_coord,
+							});
+							let vertices =
+								std::array::IntoIter::new([0, 1, 2, 0, 2, 3]).map(|i| vertices[i]);
+							match batches.last_mut() {
+								Some((i, id)) if i == image_view => id.extend(vertices),
+								_ => batches.push((image_view.clone(), vertices.collect())),
+							}
 
-					draw_context
-						.commands
-						.draw(
-							pipeline.clone(),
-							&dynamic_state,
-							vec![Arc::new(vertex_buffer)],
-							draw_context.descriptor_sets.clone(),
-							(),
-						)
-						.context("Couldn't issue draw to command buffer")?;
+							cursor_position[0] += ch.width;
+						}
+
+						// Move cursor
+						cursor_position[0] = start_of_line;
+						cursor_position[1] += font.line_height as f32;
+
+						if cursor_position[1] + font.line_height as f32 > ui_transform.size[1] {
+							// No more room for another line
+							break;
+						}
+					}
 				}
+			}
 
-				Ok(())
-			})()
-			.unwrap_or_else(|e| panic!("{:?}", e));
+			// Draw the batches
+			for (image_view, vertices) in batches {
+				let descriptor_set = {
+					let mut builder = texture_set_pool.next();
+					builder
+						.add_image(image_view)
+						.context("Couldn't add image to descriptor set")?;
+					builder.build().context("Couldn't create descriptor set")?
+				};
+				command_buffer.bind_descriptor_sets(
+					PipelineBindPoint::Graphics,
+					pipeline.layout().clone(),
+					1,
+					descriptor_set,
+				);
+
+				let vertex_buffer = vertex_buffer_pool
+					.chunk(vertices)
+					.context("Couldn't create buffer")?;
+				let vertex_count = vertex_buffer.len() as u32;
+				command_buffer.bind_vertex_buffers(0, vertex_buffer);
+
+				command_buffer
+					.draw(vertex_count, 1, 0, 0)
+					.context("Couldn't issue draw to command buffer")?;
+			}
+
+			Ok(())
 		},
 	)
 }

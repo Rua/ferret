@@ -3,11 +3,7 @@ use anyhow::Context;
 use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuAccessibleBuffer},
-	command_buffer::{
-		AutoCommandBufferBuilder, CommandBufferUsage, PrimaryAutoCommandBuffer,
-		PrimaryCommandBuffer,
-	},
-	descriptor_set::DescriptorSet,
+	command_buffer::{AutoCommandBufferBuilder, CommandBufferUsage, PrimaryCommandBuffer},
 	device::Device,
 	format::Format,
 	image::{
@@ -31,9 +27,7 @@ impl DrawTarget {
 		log::debug!("Creating DrawTarget");
 
 		// Choose attachment formats
-		let colour_format = [Format::R8G8B8A8Unorm]
-			.iter()
-			.cloned()
+		let colour_format = std::array::IntoIter::new([Format::R8G8B8A8_UNORM])
 			.find(|format| {
 				let physical_device = render_context.device().physical_device();
 				let features = format.properties(physical_device).optimal_tiling_features;
@@ -41,13 +35,11 @@ impl DrawTarget {
 			})
 			.context("No supported colour buffer format found")?;
 
-		let depth_stencil_format = [
-			Format::D32Sfloat_S8Uint,
-			Format::D24Unorm_S8Uint,
-			Format::D16Unorm_S8Uint,
-		]
-		.iter()
-		.cloned()
+		let depth_stencil_format = std::array::IntoIter::new([
+			Format::D32_SFLOAT_S8_UINT,
+			Format::D24_UNORM_S8_UINT,
+			Format::D16_UNORM_S8_UINT,
+		])
 		.find(|format| {
 			let physical_device = render_context.device().physical_device();
 			let features = format.properties(physical_device).optimal_tiling_features;
@@ -221,9 +213,4 @@ impl DrawTarget {
 			Ok((buffer, dimensions.width_height(), future))
 		}
 	}
-}
-
-pub struct DrawContext {
-	pub commands: AutoCommandBufferBuilder<PrimaryAutoCommandBuffer>,
-	pub descriptor_sets: Vec<Arc<dyn DescriptorSet + Send + Sync>>,
 }

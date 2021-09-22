@@ -213,29 +213,16 @@ pub fn import_hexfont(
 			let width = ch_size[0] as f32;
 			let ch_position = ch_position.map(|x| x as f32);
 			let ch_size = ch_size.map(|x| x as f32);
-			let mut vertices = [
-				Vertex {
-					in_position: Vector2::new(0.0, 0.0),
-					in_texture_coord: Vector2::new(0.0, 0.0),
-				},
-				Vertex {
-					in_position: Vector2::new(0.0, 1.0),
-					in_texture_coord: Vector2::new(0.0, 1.0),
-				},
-				Vertex {
-					in_position: Vector2::new(1.0, 1.0),
-					in_texture_coord: Vector2::new(1.0, 1.0),
-				},
-				Vertex {
-					in_position: Vector2::new(1.0, 0.0),
-					in_texture_coord: Vector2::new(1.0, 0.0),
-				},
-			];
-			// TODO use array::map when it's stable
-			vertices.iter_mut().for_each(|v| {
-				v.in_position = v.in_position.component_mul(&ch_size);
-				v.in_texture_coord = (v.in_texture_coord.component_mul(&ch_size) + ch_position)
-					.component_div(&image_size_f32);
+			let vertices = [
+				Vector2::new(0.0, 0.0),
+				Vector2::new(0.0, 1.0),
+				Vector2::new(1.0, 1.0),
+				Vector2::new(1.0, 0.0),
+			]
+			.map(|v| Vertex {
+				in_position: v.component_mul(&ch_size),
+				in_texture_coord: (v.component_mul(&ch_size) + ch_position)
+					.component_div(&image_size_f32),
 			});
 			(ch, HexFontChar { vertices, width })
 		})
@@ -262,7 +249,7 @@ pub fn process_hexfonts(asset_storage: &mut AssetStorage, render_context: &Rende
 				array_layers: 1,
 			},
 			MipmapsCount::One,
-			Format::R8Unorm,
+			Format::R8_UNORM,
 			render_context.queues().graphics.clone(),
 		)?;
 		let image_view = ImageView::start(image)

@@ -28,7 +28,8 @@ pub fn import_sound(
 		}
 	} else {
 		Sound {
-			sounds: std::iter::once(asset_storage.load::<RawSound>(path.as_str())).collect(),
+			sounds: std::array::IntoIter::new([asset_storage.load::<RawSound>(path.as_str())])
+				.collect(),
 			global: false,
 		}
 	};

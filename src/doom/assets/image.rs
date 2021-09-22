@@ -160,7 +160,7 @@ pub fn process_images(asset_storage: &mut AssetStorage, render_context: &RenderC
 				array_layers: 1,
 			},
 			MipmapsCount::One,
-			Format::R8G8B8A8Unorm,
+			Format::R8G8B8A8_UNORM,
 			render_context.queues().graphics.clone(),
 		)?;
 		let image_view = ImageView::new(image)?;

@@ -50,7 +50,7 @@ pub fn make_meshes(
 		let width = (vert_h[1] - vert_h[0]).norm();
 		indices.push(u32::max_value());
 
-		for (h, v) in [(1, 0), (0, 0), (0, 1), (1, 1)].iter().copied() {
+		for (h, v) in std::array::IntoIter::new([(1, 0), (0, 0), (0, 1), (1, 1)]) {
 			indices.push(vertices.len() as u32);
 			vertices.push(Vertex {
 				in_position: [vert_h[h][0], vert_h[h][1], vert_v[v]],
@@ -72,7 +72,7 @@ pub fn make_meshes(
 	) {
 		indices.push(u32::max_value());
 
-		for (h, v) in [(1, 0), (0, 0), (0, 1), (1, 1)].iter().copied() {
+		for (h, v) in std::array::IntoIter::new([(1, 0), (0, 0), (0, 1), (1, 1)]) {
 			indices.push(vertices.len() as u32);
 			vertices.push(SkyVertex {
 				in_position: [vert_h[h][0], vert_h[h][1], vert_v[v]],
@@ -131,7 +131,7 @@ pub fn make_meshes(
 	for (linedef_index, linedef) in map.linedefs.iter().enumerate() {
 		let linedef_dynamic = &map_dynamic.linedefs[linedef_index];
 
-		for side in [Side::Right, Side::Left].iter().copied() {
+		for side in std::array::IntoIter::new([Side::Right, Side::Left]) {
 			let front_sidedef = match &linedef.sidedefs[side as usize] {
 				Some(x) => x,
 				None => continue,

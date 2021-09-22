@@ -35,10 +35,10 @@ rodio = { version = "0.14", default-features = false }
 scoped-tls-hkt = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-smallvec = "1.6"
-vulkano = "0.25"
-vulkano-shaders = "0.25"
-vulkano-win = "0.25"
+smallvec = { version = "1.6", features = ["const_generics"] }
+vulkano = { git = "https://github.com/Rua/vulkano.git", branch = "descriptor-set-bounds" }
+vulkano-shaders = { git = "https://github.com/Rua/vulkano.git", branch = "descriptor-set-bounds" }
+vulkano-win = { git = "https://github.com/Rua/vulkano.git", branch = "descriptor-set-bounds" }
 winit = { version = "0.25", features = ["serde"] }
 
 [profile.dev]
