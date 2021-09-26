@@ -91,9 +91,10 @@ pub fn draw_map(
 	let index_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::index_buffer());
 	let vertex_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer());
 	let (instance_buffer, _future) = ImmutableBuffer::from_iter(
-		std::array::IntoIter::new([Instance {
+		[Instance {
 			in_transform: Matrix4::identity().into(),
-		}]),
+		}]
+		.into_iter(),
 		BufferUsage::vertex_buffer(),
 		render_context.queues().graphics.clone(),
 	)

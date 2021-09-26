@@ -74,10 +74,10 @@ pub fn draw(resources: &mut Resources) -> anyhow::Result<impl FnMut(&mut World, 
 					.begin_render_pass(
 						draw_target.framebuffer().clone(),
 						SubpassContents::Inline,
-						std::array::IntoIter::new([
+						[
 							ClearValue::Float([0.0, 0.0, 1.0, 1.0]),
 							ClearValue::DepthStencil((1.0, 0)),
-						]),
+						],
 					)
 					.context("Couldn't begin render pass")?;
 				command_buffer

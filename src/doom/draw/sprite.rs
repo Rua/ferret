@@ -191,7 +191,7 @@ pub fn draw_sprites(
 					v.in_position =
 						(transform * v.in_position.fixed_resize::<4, 1>(1.0)).fixed_resize(0.0)
 				});
-				let vertices = std::array::IntoIter::new([0, 1, 2, 0, 2, 3]).map(|i| vertices[i]);
+				let vertices = [0, 1, 2, 0, 2, 3].into_iter().map(|i| vertices[i]);
 
 				// Add to batches
 				match batches.entry(image_view.clone()) {

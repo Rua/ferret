@@ -203,10 +203,7 @@ impl InputState {
 			Event::DeviceEvent { event, .. } => match *event {
 				DeviceEvent::MouseMotion { delta } => {
 					if self.mouse_delta_enabled {
-						for (axis, delta) in std::array::IntoIter::new([
-							(MouseAxis::X, delta.0),
-							(MouseAxis::Y, delta.1),
-						]) {
+						for (axis, delta) in [(MouseAxis::X, delta.0), (MouseAxis::Y, delta.1)] {
 							self.delta_event(Axis::Mouse(axis), delta);
 						}
 					}

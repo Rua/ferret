@@ -4,7 +4,7 @@ description = "Doom-compatible game engine"
 version = "0.1.0"
 authors = ["Rua <ruawhitepaw@gmail.com>"]
 publish = false
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 anyhow = "1.0"

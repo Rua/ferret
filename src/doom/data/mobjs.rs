@@ -180,12 +180,12 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 					},
 					WeaponStateDef {
 						current: asset_storage.load("pistol.weapon"),
-						inventory: std::array::IntoIter::new([
+						inventory: [
 							asset_storage.load("fist.weapon"),
 							asset_storage.load("pistol.weapon"),
-						])
-						.collect(),
-						ammo: std::array::IntoIter::new([
+						]
+						.into(),
+						ammo: [
 							(
 								asset_storage.load("bullets.ammo"),
 								AmmoState {
@@ -214,8 +214,8 @@ pub static MOBJS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemp
 									max: 300,
 								},
 							),
-						])
-						.collect(),
+						]
+						.into(),
 					},
 				));
 				world

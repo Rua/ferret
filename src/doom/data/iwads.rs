@@ -1,6 +1,6 @@
 use crate::doom::iwad::{IWADInfo, MapInfo};
 use once_cell::sync::Lazy;
-use std::{collections::HashMap, iter::FromIterator};
+use std::collections::HashMap;
 
 pub static IWADINFO: Lazy<Vec<IWADInfo>> = Lazy::new(|| {
 	vec![
@@ -19,7 +19,7 @@ pub static IWADINFO: Lazy<Vec<IWADInfo>> = Lazy::new(|| {
 				"plasma.weapon",
 				"bfg.weapon",
 			],
-			maps: HashMap::from_iter(std::array::IntoIter::new([
+			maps: HashMap::from([
 				(
 					"map01.map",
 					MapInfo {
@@ -340,7 +340,7 @@ pub static IWADINFO: Lazy<Vec<IWADInfo>> = Lazy::new(|| {
 						secret_exit: None,
 					},
 				),
-			])),
+			]),
 		},
 		IWADInfo {
 			files: &["plutonia.wad"],
@@ -357,7 +357,7 @@ pub static IWADINFO: Lazy<Vec<IWADInfo>> = Lazy::new(|| {
 				"plasma.weapon",
 				"bfg.weapon",
 			],
-			maps: HashMap::from_iter(std::array::IntoIter::new([
+			maps: HashMap::from([
 				(
 					"map01.map",
 					MapInfo {
@@ -678,7 +678,7 @@ pub static IWADINFO: Lazy<Vec<IWADInfo>> = Lazy::new(|| {
 						secret_exit: None,
 					},
 				),
-			])),
+			]),
 		},
 		IWADInfo {
 			files: &["tnt.wad"],
@@ -695,7 +695,7 @@ pub static IWADINFO: Lazy<Vec<IWADInfo>> = Lazy::new(|| {
 				"plasma.weapon",
 				"bfg.weapon",
 			],
-			maps: HashMap::from_iter(std::array::IntoIter::new([
+			maps: HashMap::from([
 				(
 					"map01.map",
 					MapInfo {
@@ -1016,7 +1016,7 @@ pub static IWADINFO: Lazy<Vec<IWADInfo>> = Lazy::new(|| {
 						secret_exit: None,
 					},
 				),
-			])),
+			]),
 		},
 		IWADInfo {
 			files: &["doom.wad", "doomu.wad"],
@@ -1032,7 +1032,7 @@ pub static IWADINFO: Lazy<Vec<IWADInfo>> = Lazy::new(|| {
 				"plasma.weapon",
 				"bfg.weapon",
 			],
-			maps: HashMap::from_iter(std::array::IntoIter::new([
+			maps: HashMap::from([
 				(
 					"e1m1.map",
 					MapInfo {
@@ -1393,7 +1393,7 @@ pub static IWADINFO: Lazy<Vec<IWADInfo>> = Lazy::new(|| {
 						secret_exit: None,
 					},
 				),
-			])),
+			]),
 		},
 		IWADInfo {
 			files: &["doom1.wad"],
@@ -1407,7 +1407,7 @@ pub static IWADINFO: Lazy<Vec<IWADInfo>> = Lazy::new(|| {
 				"chaingun.weapon",
 				"missile.weapon",
 			],
-			maps: HashMap::from_iter(std::array::IntoIter::new([
+			maps: HashMap::from([
 				(
 					"e1m1.map",
 					MapInfo {
@@ -1498,7 +1498,7 @@ pub static IWADINFO: Lazy<Vec<IWADInfo>> = Lazy::new(|| {
 						secret_exit: None,
 					},
 				),
-			])),
+			]),
 		},
 	]
 });

@@ -156,7 +156,7 @@ pub fn draw_weapon_sprites(
 						.component_mul(&framebuffer_ratio),
 					in_texture_coord: v.in_texture_coord,
 				});
-				let vertices = std::array::IntoIter::new([0, 1, 2, 0, 2, 3]).map(|i| vertices[i]);
+				let vertices = [0, 1, 2, 0, 2, 3].into_iter().map(|i| vertices[i]);
 				match batches.last_mut() {
 					Some((i, id)) if i == image_view => id.extend(vertices),
 					_ => batches.push((image_view.clone(), vertices.collect())),

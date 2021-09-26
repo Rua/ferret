@@ -1189,7 +1189,7 @@ fn add_node_linedefs<'a>(
 	) {
 		path.push(index);
 
-		for child in std::array::IntoIter::new(nodes[index].child_indices) {
+		for child in nodes[index].child_indices.into_iter() {
 			match child {
 				NodeChild::Subsector(index) => subsector_paths[index] = path.clone(),
 				NodeChild::Node(index) => traverse_nodes(index, path, subsector_paths, nodes),

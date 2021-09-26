@@ -28,7 +28,8 @@ pub fn import_sound(
 		}
 	} else {
 		Sound {
-			sounds: std::array::IntoIter::new([asset_storage.load::<RawSound>(path.as_str())])
+			sounds: [asset_storage.load::<RawSound>(path.as_str())]
+				.into_iter() // TODO change to into() once this is supported by SmallVec
 				.collect(),
 			global: false,
 		}

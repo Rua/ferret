@@ -46,11 +46,8 @@ pub fn draw_world(
 	})];
 
 	let descriptor_set_layout = Arc::new(
-		DescriptorSetLayout::new(
-			render_context.device().clone(),
-			std::array::IntoIter::new(descriptors),
-		)
-		.context("Couldn't create descriptor set layout")?,
+		DescriptorSetLayout::new(render_context.device().clone(), descriptors)
+			.context("Couldn't create descriptor set layout")?,
 	);
 	let mut matrix_set_pool = SingleLayoutDescSetPool::new(descriptor_set_layout.clone());
 	let pipeline_layout = Arc::new(
