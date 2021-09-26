@@ -21,6 +21,9 @@ pub struct UiTransform {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct UiGameView;
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UiImage {
 	pub image: AssetHandle<Image>,
 }
@@ -81,11 +84,6 @@ impl UiParams {
 			alignment_offsets,
 			stretch_offsets,
 		}
-	}
-
-	#[inline]
-	pub fn factors(&self) -> Vector2<f32> {
-		self.factors
 	}
 
 	#[inline]

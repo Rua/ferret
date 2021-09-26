@@ -9,7 +9,7 @@ use crate::{
 		},
 		ui::{
 			hud::{AmmoStat, ArmsStat, HealthStat},
-			UiImage, UiText, UiTransform,
+			UiGameView, UiImage, UiText, UiTransform,
 		},
 	},
 };
@@ -48,6 +48,8 @@ pub fn register_components(resources: &mut Resources) {
 	registry.register::<Transform>("Transform".into());
 	handler_set.register_spawn::<TransformDef, Transform>();
 	handler_set.register_spawn::<RandomTransformDef, Transform>();
+
+	handler_set.register_clone::<UiGameView>();
 
 	handler_set.register_clone::<UiImage>();
 

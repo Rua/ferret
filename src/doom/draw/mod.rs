@@ -6,10 +6,7 @@ pub mod wsprite;
 
 use crate::{
 	common::video::{DrawTarget, PresentTarget, RenderContext},
-	doom::{
-		draw::{ui::draw_ui, world::draw_world, wsprite::draw_weapon_sprites},
-		ui::UiParams,
-	},
+	doom::{draw::ui::draw_ui, ui::UiParams},
 };
 use anyhow::Context;
 use legion::{
@@ -22,6 +19,11 @@ use vulkano::{
 	},
 	format::ClearValue,
 };
+
+// Doom had non-square pixels, with a resolution of 320x200 (16:10) running on a 4:3
+// screen. This caused everything to be stretched vertically by some degree, and the game
+// art was made with that in mind.
+pub const NON_SQUARE_CORRECTION: f32 = (16.0 / 10.0) / (4.0 / 3.0);
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct FramebufferResizeEvent;
@@ -53,8 +55,6 @@ pub fn check_recreate() -> impl Runnable {
 }
 
 pub fn draw(resources: &mut Resources) -> anyhow::Result<impl FnMut(&mut World, &mut Resources)> {
-	let mut draw_world = draw_world(resources)?;
-	let mut draw_weapon_sprites = draw_weapon_sprites(resources)?;
 	let mut draw_ui = draw_ui(resources)?;
 
 	Ok(move |world: &mut World, resources: &mut Resources| {
@@ -83,8 +83,6 @@ pub fn draw(resources: &mut Resources) -> anyhow::Result<impl FnMut(&mut World, 
 				command_buffer
 			};
 
-			draw_world(&mut command_buffer, world, resources)?;
-			draw_weapon_sprites(&mut command_buffer, world, resources)?;
 			draw_ui(&mut command_buffer, world, resources)?;
 
 			{

@@ -4,7 +4,7 @@ use crate::{
 		assets::template::EntityTemplate,
 		ui::{
 			hud::{AmmoStat, ArmsStat, HealthStat},
-			UiAlignment, UiImage, UiText, UiTransform,
+			UiAlignment, UiGameView, UiImage, UiText, UiTransform,
 		},
 	},
 };
@@ -21,6 +21,18 @@ pub static UI: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> EntityTemplat
 			name: Some("hud"),
 			world: {
 				let mut world = World::default();
+
+				// Game view
+				world.push((
+					UiTransform {
+						position: Vector2::new(0.0, 0.0),
+						depth: 0.0,
+						alignment: [UiAlignment::Near, UiAlignment::Near],
+						size: Vector2::new(320.0, 168.0),
+						stretch: [true, true],
+					},
+					UiGameView,
+				));
 
 				// Tiled background
 				world.push((

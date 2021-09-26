@@ -23,9 +23,7 @@ use vulkano::{
 	command_buffer::{AutoCommandBufferBuilder, PrimaryAutoCommandBuffer},
 	descriptor_set::SingleLayoutDescSetPool,
 	image::view::ImageViewAbstract,
-	pipeline::{
-		vertex::BuffersDefinition, viewport::Viewport, GraphicsPipeline, PipelineBindPoint,
-	},
+	pipeline::{vertex::BuffersDefinition, GraphicsPipeline, PipelineBindPoint},
 	render_pass::Subpass,
 	sampler::Sampler,
 };
@@ -90,19 +88,13 @@ pub fn draw_weapon_sprites(
 			let (asset_storage, client, ui_params) =
 				<(Read<AssetStorage>, Read<Client>, Read<UiParams>)>::fetch(resources);
 
-			command_buffer.set_viewport(
-				0,
-				[Viewport {
-					origin: [0.0; 2],
-					dimensions: ui_params.framebuffer_dimensions().into(),
-					depth_range: 0.0..1.0,
-				}],
-			);
 			command_buffer.bind_pipeline_graphics(pipeline.clone());
+			let viewport = command_buffer.inner().current_viewport(0).unwrap();
 
+			// TODO make this work with nonstandard viewport sizes
 			let proj = ortho_matrix(AABB3::from_intervals(Vector3::new(
-				Interval::new(0.0, ui_params.framebuffer_dimensions()[0]),
-				Interval::new(0.0, ui_params.framebuffer_dimensions()[1]),
+				Interval::new(0.0, viewport.dimensions[0]),
+				Interval::new(0.0, viewport.dimensions[1]),
 				Interval::new(1000.0, 0.0),
 			)));
 			let framebuffer_ratio = ui_params

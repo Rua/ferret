@@ -4,9 +4,8 @@ use crate::{
 		video::RenderContext,
 	},
 	doom::{
-		draw::{map::draw_map, sprite::draw_sprites},
+		draw::{map::draw_map, sprite::draw_sprites, NON_SQUARE_CORRECTION},
 		game::{camera::Camera, client::Client, Transform},
-		ui::{UiAlignment, UiParams, UiTransform},
 	},
 };
 use anyhow::Context;
@@ -20,9 +19,7 @@ use vulkano::{
 		layout::{DescriptorDesc, DescriptorDescTy, DescriptorSetLayout},
 		SingleLayoutDescSetPool,
 	},
-	pipeline::{
-		layout::PipelineLayout, shader::ShaderStages, viewport::Viewport, PipelineBindPoint,
-	},
+	pipeline::{layout::PipelineLayout, shader::ShaderStages, PipelineBindPoint},
 };
 
 pub fn draw_world(
@@ -77,39 +74,21 @@ pub fn draw_world(
 		      world: &World,
 		      resources: &Resources|
 		      -> anyhow::Result<()> {
-			let (client, ui_params) = <(Read<Client>, Read<UiParams>)>::fetch(resources);
+			let client = <Read<Client>>::fetch(resources);
+			let viewport = command_buffer.inner().current_viewport(0).unwrap();
 
 			// Projection matrix
-			// Doom had non-square pixels, with a resolution of 320x200 (16:10) running on a 4:3
-			// screen. This caused everything to be stretched vertically by some degree, and the game
-			// art was made with that in mind.
-			// The 1.2 factor here applies the same stretching as in the original.
-			let proj = perspective_matrix(
-				Vector2::new(1.0, 168.0 / 320.0).component_mul(&ui_params.factors()),
-				Interval::new(4.0, 20000.0),
-			);
+			const MIN_ASPECT_RATIO: f32 = 168.0 / 320.0 * NON_SQUARE_CORRECTION;
+			let aspect_ratio = viewport.dimensions[1] / viewport.dimensions[0];
 
-			// Viewport
-			let ui_transform = UiTransform {
-				position: Vector2::new(0.0, 0.0),
-				depth: 0.0,
-				alignment: [UiAlignment::Near, UiAlignment::Near],
-				size: Vector2::new(320.0, 168.0),
-				stretch: [true, true],
-			};
-			let ratio = ui_params
-				.framebuffer_dimensions()
-				.component_div(&ui_params.dimensions());
-			let position = ui_transform.position + ui_params.align(ui_transform.alignment);
-			let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
-			command_buffer.set_viewport(
-				0,
-				[Viewport {
-					origin: position.component_mul(&ratio).into(),
-					dimensions: size.component_mul(&ratio).into(),
-					depth_range: 0.0..1.0,
-				}],
-			);
+			let fov = if aspect_ratio < MIN_ASPECT_RATIO {
+				Vector2::new(1.0 / aspect_ratio, 1.0) * MIN_ASPECT_RATIO
+			} else {
+				Vector2::new(1.0, aspect_ratio)
+			}
+			.component_div(&Vector2::new(1.0, NON_SQUARE_CORRECTION));
+
+			let proj = perspective_matrix(fov, Interval::new(4.0, 20000.0));
 
 			// View matrix
 			let (camera, &(mut camera_transform)) =

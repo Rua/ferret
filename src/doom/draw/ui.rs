@@ -6,7 +6,8 @@ use crate::{
 	},
 	doom::{
 		assets::font::FontSpacing,
-		ui::{Hidden, UiHexFontText, UiImage, UiParams, UiText, UiTransform},
+		draw::{world::draw_world, wsprite::draw_weapon_sprites},
+		ui::{Hidden, UiGameView, UiHexFontText, UiImage, UiParams, UiText, UiTransform},
 	},
 };
 use anyhow::Context;
@@ -77,11 +78,18 @@ pub fn draw_ui(
 		<(Entity, &UiTransform)>::query().filter(!component::<Hidden>()),
 		<(
 			&UiTransform,
+			Option<&UiGameView>,
 			Option<&UiImage>,
 			Option<&UiText>,
 			Option<&UiHexFontText>,
 		)>::query(),
 	);
+
+	drop(draw_target);
+	drop(render_context);
+	drop(sampler);
+	let mut draw_world = draw_world(resources)?;
+	let mut draw_weapon_sprites = draw_weapon_sprites(resources)?;
 
 	Ok(
 		move |command_buffer: &mut AutoCommandBufferBuilder<PrimaryAutoCommandBuffer>,
@@ -91,14 +99,12 @@ pub fn draw_ui(
 			let (asset_storage, ui_params) =
 				<(Read<AssetStorage>, Read<UiParams>)>::fetch(resources);
 
-			command_buffer.set_viewport(
-				0,
-				[Viewport {
-					origin: [0.0; 2],
-					dimensions: ui_params.framebuffer_dimensions().into(),
-					depth_range: 0.0..1.0,
-				}],
-			);
+			let viewport = Viewport {
+				origin: [0.0; 2],
+				dimensions: ui_params.framebuffer_dimensions().into(),
+				depth_range: 0.0..1.0,
+			};
+			command_buffer.set_viewport(0, [viewport.clone()]);
 			command_buffer.bind_pipeline_graphics(pipeline.clone());
 
 			let proj = ortho_matrix(AABB3::from_intervals(Vector3::new(
@@ -121,13 +127,13 @@ pub fn draw_ui(
 				builder
 					.add_buffer(uniform_buffer)
 					.context("Couldn't add buffer to descriptor set")?;
-				builder.build().context("Couldn't create descriptor set")?
+				Arc::new(builder.build().context("Couldn't create descriptor set")?)
 			};
 			command_buffer.bind_descriptor_sets(
 				PipelineBindPoint::Graphics,
 				pipeline.layout().clone(),
 				0,
-				descriptor_set,
+				descriptor_set.clone(),
 			);
 
 			// Sort UiTransform entities by depth
@@ -142,12 +148,34 @@ pub fn draw_ui(
 			let mut batches: Vec<(Arc<dyn ImageViewAbstract + Send + Sync>, Vec<Vertex>)> =
 				Vec::new();
 
-			for (ui_transform, ui_image, ui_text, ui_hexfont_text) in entities
+			for (ui_transform, ui_game_view, ui_image, ui_text, ui_hexfont_text) in entities
 				.into_iter()
 				.filter_map(|(_, entity)| queries.1.get(world, entity).ok())
 			{
 				let position = ui_transform.position + ui_params.align(ui_transform.alignment);
 				let size = ui_transform.size + ui_params.stretch(ui_transform.stretch);
+
+				if let Some(UiGameView) = ui_game_view {
+					command_buffer.set_viewport(
+						0,
+						[Viewport {
+							origin: position.component_mul(&framebuffer_ratio).into(),
+							dimensions: size.component_mul(&framebuffer_ratio).into(),
+							depth_range: 0.0..1.0,
+						}],
+					);
+					draw_world(command_buffer, world, resources)?;
+					draw_weapon_sprites(command_buffer, world, resources)?;
+
+					command_buffer.set_viewport(0, [viewport.clone()]);
+					command_buffer.bind_pipeline_graphics(pipeline.clone());
+					command_buffer.bind_descriptor_sets(
+						PipelineBindPoint::Graphics,
+						pipeline.layout().clone(),
+						0,
+						descriptor_set.clone(),
+					);
+				}
 
 				if let Some(ui_image) = ui_image {
 					let image = asset_storage.get(&ui_image.image).unwrap();
