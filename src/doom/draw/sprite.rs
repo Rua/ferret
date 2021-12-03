@@ -23,8 +23,11 @@ use vulkano::{
 	descriptor_set::SingleLayoutDescSetPool,
 	image::view::ImageViewAbstract,
 	pipeline::{
+		depth_stencil::DepthStencilState,
+		input_assembly::{InputAssemblyState, PrimitiveTopology},
 		vertex::{BuffersDefinition, Vertex as VertexTrait, VertexMemberInfo, VertexMemberTy},
-		GraphicsPipeline, PipelineBindPoint,
+		viewport::ViewportState,
+		GraphicsPipeline, Pipeline, PipelineBindPoint,
 	},
 	render_pass::Subpass,
 	sampler::Sampler,
@@ -51,26 +54,32 @@ pub fn draw_sprites(
 	let device = render_context.device();
 
 	// Create pipeline
-	let vert = world_vert::Shader::load(device.clone()).context("Couldn't load shader")?;
-	let frag = world_frag::Shader::load(device.clone()).context("Couldn't load shader")?;
+	let vert = world_vert::load(device.clone()).context("Couldn't load shader")?;
+	let frag = world_frag::load(device.clone()).context("Couldn't load shader")?;
 
-	let pipeline = Arc::new(
-		GraphicsPipeline::start()
-			.render_pass(
-				Subpass::from(draw_target.render_pass().clone(), 0)
-					.context("Subpass index out of range")?,
-			)
-			.vertex_input(BuffersDefinition::new().vertex::<Vertex>())
-			.vertex_shader(vert.main_entry_point(), ())
-			.fragment_shader(frag.main_entry_point(), ())
-			.triangle_list()
-			.viewports_dynamic_scissors_irrelevant(1)
-			.depth_stencil_simple_depth()
-			.with_auto_layout(device.clone(), |set_descs| {
-				set_descs[1].set_immutable_samplers(0, [sampler.clone()]);
-			})
-			.context("Couldn't create sprite pipeline")?,
-	);
+	let pipeline = GraphicsPipeline::start()
+		.render_pass(
+			Subpass::from(draw_target.render_pass().clone(), 0)
+				.context("Subpass index out of range")?,
+		)
+		.vertex_shader(
+			vert.entry_point("main")
+				.context("Couldn't find entry point \"main\"")?,
+			(),
+		)
+		.fragment_shader(
+			frag.entry_point("main")
+				.context("Couldn't find entry point \"main\"")?,
+			(),
+		)
+		.vertex_input(BuffersDefinition::new().vertex::<Vertex>())
+		.input_assembly_state(InputAssemblyState::new().topology(PrimitiveTopology::TriangleList))
+		.viewport_state(ViewportState::viewport_dynamic_scissor_irrelevant())
+		.depth_stencil_state(DepthStencilState::simple_depth_test())
+		.with_auto_layout(device.clone(), |set_descs| {
+			set_descs[1].set_immutable_samplers(0, [sampler.clone()]);
+		})
+		.context("Couldn't create sprite pipeline")?;
 
 	let vertex_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer());
 	let mut texture_set_pool =
@@ -112,7 +121,7 @@ pub fn draw_sprites(
 				);
 
 			// Group draws into batches by texture
-			let mut batches: FnvHashMap<Arc<dyn ImageViewAbstract + Send + Sync>, Vec<Vertex>> =
+			let mut batches: FnvHashMap<Arc<dyn ImageViewAbstract>, Vec<Vertex>> =
 				FnvHashMap::default();
 
 			for (&entity, sprite_render, transform) in queries.2.iter(world) {

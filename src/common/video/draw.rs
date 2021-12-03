@@ -8,18 +8,18 @@ use vulkano::{
 	format::Format,
 	image::{
 		view::{ImageView, ImageViewAbstract},
-		AttachmentImage, ImageUsage,
+		AttachmentImage, ImageAccess, ImageUsage,
 	},
-	render_pass::{Framebuffer, FramebufferAbstract, RenderPass},
+	render_pass::{Framebuffer, RenderPass},
 	single_pass_renderpass,
 	sync::GpuFuture,
 	DeviceSize,
 };
 
 pub struct DrawTarget {
-	colour_attachment: Arc<ImageView<Arc<AttachmentImage>>>,
-	depth_stencil_attachment: Arc<ImageView<Arc<AttachmentImage>>>,
-	framebuffer: Arc<dyn FramebufferAbstract + Send + Sync>,
+	colour_attachment: Arc<ImageView<AttachmentImage>>,
+	depth_stencil_attachment: Arc<ImageView<AttachmentImage>>,
+	framebuffer: Arc<Framebuffer>,
 }
 
 impl DrawTarget {
@@ -50,29 +50,27 @@ impl DrawTarget {
 		.context("No supported depth-stencil buffer format found")?;
 
 		// Create render pass
-		let render_pass = Arc::new(
-			single_pass_renderpass!(render_context.device().clone(),
-				attachments: {
-					color: {
-						load: Clear,
-						store: Store,
-						format: colour_format,
-						samples: 1,
-					},
-					depth_stencil: {
-						load: Clear,
-						store: DontCare,
-						format: depth_stencil_format,
-						samples: 1,
-					}
+		let render_pass = single_pass_renderpass!(render_context.device().clone(),
+			attachments: {
+				color: {
+					load: Clear,
+					store: Store,
+					format: colour_format,
+					samples: 1,
 				},
-				pass: {
-					color: [color],
-					depth_stencil: {depth_stencil}
+				depth_stencil: {
+					load: Clear,
+					store: DontCare,
+					format: depth_stencil_format,
+					samples: 1,
 				}
-			)
-			.context("Couldn't create render pass")?,
-		);
+			},
+			pass: {
+				color: [color],
+				depth_stencil: {depth_stencil}
+			}
+		)
+		.context("Couldn't create render pass")?;
 
 		let (colour_attachment, depth_stencil_attachment) = Self::create_attachments(
 			&render_context.device(),
@@ -82,13 +80,11 @@ impl DrawTarget {
 		)?;
 
 		// Create framebuffer
-		let framebuffer = Arc::new(
-			Framebuffer::start(render_pass)
-				.add(colour_attachment.clone())?
-				.add(depth_stencil_attachment.clone())?
-				.build()
-				.context("Couldn't create framebuffers")?,
-		);
+		let framebuffer = Framebuffer::start(render_pass)
+			.add(colour_attachment.clone())?
+			.add(depth_stencil_attachment.clone())?
+			.build()
+			.context("Couldn't create framebuffers")?;
 
 		Ok(DrawTarget {
 			colour_attachment,
@@ -115,13 +111,11 @@ impl DrawTarget {
 		self.depth_stencil_attachment = depth_attachment;
 
 		// Create framebuffer
-		self.framebuffer = Arc::new(
-			Framebuffer::start(self.framebuffer.render_pass().clone())
-				.add(self.colour_attachment.clone())?
-				.add(self.depth_stencil_attachment.clone())?
-				.build()
-				.context("Couldn't create framebuffers")?,
-		);
+		self.framebuffer = Framebuffer::start(self.framebuffer.render_pass().clone())
+			.add(self.colour_attachment.clone())?
+			.add(self.depth_stencil_attachment.clone())?
+			.build()
+			.context("Couldn't create framebuffers")?;
 
 		Ok(())
 	}
@@ -132,8 +126,8 @@ impl DrawTarget {
 		colour_format: Format,
 		depth_stencil_format: Format,
 	) -> anyhow::Result<(
-		Arc<ImageView<Arc<AttachmentImage>>>,
-		Arc<ImageView<Arc<AttachmentImage>>>,
+		Arc<ImageView<AttachmentImage>>,
+		Arc<ImageView<AttachmentImage>>,
 	)> {
 		// Create colour attachment
 		let colour_attachment = ImageView::new(
@@ -174,11 +168,11 @@ impl DrawTarget {
 		self.colour_attachment.image().dimensions().width_height()
 	}
 
-	pub fn framebuffer(&self) -> &Arc<dyn FramebufferAbstract + Send + Sync> {
+	pub fn framebuffer(&self) -> &Arc<Framebuffer> {
 		&self.framebuffer
 	}
 
-	pub fn colour_attachment(&self) -> &Arc<ImageView<Arc<AttachmentImage>>> {
+	pub fn colour_attachment(&self) -> &Arc<ImageView<AttachmentImage>> {
 		&self.colour_attachment
 	}
 

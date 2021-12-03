@@ -36,9 +36,9 @@ scoped-tls-hkt = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 smallvec = { version = "1.6", features = ["const_generics"] }
-vulkano = { git = "https://github.com/Rua/vulkano.git", branch = "descriptor-set-bounds" }
-vulkano-shaders = { git = "https://github.com/Rua/vulkano.git", branch = "descriptor-set-bounds" }
-vulkano-win = { git = "https://github.com/Rua/vulkano.git", branch = "descriptor-set-bounds" }
+vulkano = { git = "https://github.com/vulkano-rs/vulkano", rev = "3845925655b8b86cde8c4b270bb01f366300c4e7" }
+vulkano-shaders = { git = "https://github.com/vulkano-rs/vulkano", rev = "3845925655b8b86cde8c4b270bb01f366300c4e7" }
+vulkano-win = { git = "https://github.com/vulkano-rs/vulkano", rev = "3845925655b8b86cde8c4b270bb01f366300c4e7" }
 winit = { version = "0.25", features = ["serde"] }
 
 [profile.dev]

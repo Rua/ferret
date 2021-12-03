@@ -23,7 +23,12 @@ use vulkano::{
 	command_buffer::{AutoCommandBufferBuilder, PrimaryAutoCommandBuffer},
 	descriptor_set::SingleLayoutDescSetPool,
 	image::view::ImageViewAbstract,
-	pipeline::{vertex::BuffersDefinition, GraphicsPipeline, PipelineBindPoint},
+	pipeline::{
+		input_assembly::{InputAssemblyState, PrimitiveTopology},
+		vertex::BuffersDefinition,
+		viewport::ViewportState,
+		GraphicsPipeline, Pipeline, PipelineBindPoint,
+	},
 	render_pass::Subpass,
 	sampler::Sampler,
 };
@@ -48,25 +53,31 @@ pub fn draw_weapon_sprites(
 	let device = render_context.device();
 
 	// Create pipeline
-	let vert = ui_vert::Shader::load(device.clone()).context("Couldn't load shader")?;
-	let frag = ui_frag::Shader::load(device.clone()).context("Couldn't load shader")?;
+	let vert = ui_vert::load(device.clone()).context("Couldn't load shader")?;
+	let frag = ui_frag::load(device.clone()).context("Couldn't load shader")?;
 
-	let pipeline = Arc::new(
-		GraphicsPipeline::start()
-			.render_pass(
-				Subpass::from(draw_target.render_pass().clone(), 0)
-					.context("Subpass index out of range")?,
-			)
-			.vertex_input(BuffersDefinition::new().vertex::<Vertex>())
-			.vertex_shader(vert.main_entry_point(), ())
-			.fragment_shader(frag.main_entry_point(), ())
-			.triangle_list()
-			.viewports_dynamic_scissors_irrelevant(1)
-			.with_auto_layout(device.clone(), |set_descs| {
-				set_descs[1].set_immutable_samplers(0, [sampler.clone()]);
-			})
-			.context("Couldn't create weapon sprite pipeline")?,
-	);
+	let pipeline = GraphicsPipeline::start()
+		.render_pass(
+			Subpass::from(draw_target.render_pass().clone(), 0)
+				.context("Subpass index out of range")?,
+		)
+		.vertex_shader(
+			vert.entry_point("main")
+				.context("Couldn't find entry point \"main\"")?,
+			(),
+		)
+		.fragment_shader(
+			frag.entry_point("main")
+				.context("Couldn't find entry point \"main\"")?,
+			(),
+		)
+		.vertex_input(BuffersDefinition::new().vertex::<Vertex>())
+		.input_assembly_state(InputAssemblyState::new().topology(PrimitiveTopology::TriangleList))
+		.viewport_state(ViewportState::viewport_dynamic_scissor_irrelevant())
+		.with_auto_layout(device.clone(), |set_descs| {
+			set_descs[1].set_immutable_samplers(0, [sampler.clone()]);
+		})
+		.context("Couldn't create weapon sprite pipeline")?;
 
 	let layout = &pipeline.layout().descriptor_set_layouts()[0];
 	let mut matrix_set_pool = SingleLayoutDescSetPool::new(layout.clone());
@@ -89,7 +100,7 @@ pub fn draw_weapon_sprites(
 				<(Read<AssetStorage>, Read<Client>, Read<UiParams>)>::fetch(resources);
 
 			command_buffer.bind_pipeline_graphics(pipeline.clone());
-			let viewport = command_buffer.inner().current_viewport(0).unwrap();
+			let viewport = command_buffer.state().viewport(0).unwrap();
 
 			// TODO make this work with nonstandard viewport sizes
 			let proj = ortho_matrix(AABB3::from_intervals(Vector3::new(
@@ -102,11 +113,9 @@ pub fn draw_weapon_sprites(
 				.component_div(&ui_params.dimensions());
 
 			// Create matrix uniform buffer
-			let uniform_buffer = Arc::new(
-				matrix_uniform_pool
-					.next(Matrices { proj: proj.into() })
-					.context("Couldn't create buffer")?,
-			);
+			let uniform_buffer = matrix_uniform_pool
+				.next(Matrices { proj: proj.into() })
+				.context("Couldn't create buffer")?;
 			let descriptor_set = {
 				let mut builder = matrix_set_pool.next();
 				builder
@@ -131,8 +140,7 @@ pub fn draw_weapon_sprites(
 				Err(_) => return Ok(()),
 			};
 
-			let mut batches: Vec<(Arc<dyn ImageViewAbstract + Send + Sync>, Vec<Vertex>)> =
-				Vec::new();
+			let mut batches: Vec<(Arc<dyn ImageViewAbstract>, Vec<Vertex>)> = Vec::new();
 
 			for sprite_render in weapon_sprite_render.slots.iter().flatten() {
 				let sprite = asset_storage.get(&sprite_render.sprite).unwrap();

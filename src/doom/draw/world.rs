@@ -11,15 +11,15 @@ use crate::{
 use anyhow::Context;
 use legion::{systems::ResourceSet, IntoQuery, Read, Resources, World};
 use nalgebra::{Matrix4, Vector2, Vector3};
-use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool},
 	command_buffer::{AutoCommandBufferBuilder, PrimaryAutoCommandBuffer},
 	descriptor_set::{
-		layout::{DescriptorDesc, DescriptorDescTy, DescriptorSetLayout},
+		layout::{DescriptorDesc, DescriptorSetLayout, DescriptorType},
 		SingleLayoutDescSetPool,
 	},
-	pipeline::{layout::PipelineLayout, shader::ShaderStages, PipelineBindPoint},
+	pipeline::{layout::PipelineLayout, PipelineBindPoint},
+	shader::ShaderStages,
 };
 
 pub fn draw_world(
@@ -35,25 +35,23 @@ pub fn draw_world(
 
 	// Create descriptor sets pool for matrices
 	let descriptors = [Some(DescriptorDesc {
-		ty: DescriptorDescTy::UniformBuffer,
+		ty: DescriptorType::UniformBuffer,
 		descriptor_count: 1,
 		stages: ShaderStages {
 			vertex: true,
 			..ShaderStages::none()
 		},
-		mutable: false,
 		variable_count: false,
+		immutable_samplers: vec![],
 	})];
 
-	let descriptor_set_layout = Arc::new(
+	let descriptor_set_layout =
 		DescriptorSetLayout::new(render_context.device().clone(), descriptors)
-			.context("Couldn't create descriptor set layout")?,
-	);
+			.context("Couldn't create descriptor set layout")?;
 	let mut matrix_set_pool = SingleLayoutDescSetPool::new(descriptor_set_layout.clone());
-	let pipeline_layout = Arc::new(
+	let pipeline_layout =
 		PipelineLayout::new(render_context.device().clone(), [descriptor_set_layout], [])
-			.context("Couldn't create pipeline layout")?,
-	);
+			.context("Couldn't create pipeline layout")?;
 
 	let matrix_uniform_pool = CpuBufferPool::new(
 		render_context.device().clone(),
@@ -72,7 +70,7 @@ pub fn draw_world(
 		      resources: &Resources|
 		      -> anyhow::Result<()> {
 			let client = <Read<Client>>::fetch(resources);
-			let viewport = command_buffer.inner().current_viewport(0).unwrap();
+			let viewport = command_buffer.state().viewport(0).unwrap();
 
 			// Projection matrix
 			const MIN_ASPECT_RATIO: f32 = 168.0 / 320.0 * NON_SQUARE_CORRECTION;
@@ -110,14 +108,12 @@ pub fn draw_world(
 			)) * Matrix4::new_translation(&-camera_transform.position);
 
 			// Create matrix uniform buffer
-			let uniform_buffer = Arc::new(
-				matrix_uniform_pool
-					.next(world_vert::ty::Matrices {
-						proj: proj.into(),
-						view: view.into(),
-					})
-					.context("Couldn't create buffer")?,
-			);
+			let uniform_buffer = matrix_uniform_pool
+				.next(world_vert::ty::Matrices {
+					proj: proj.into(),
+					view: view.into(),
+				})
+				.context("Couldn't create buffer")?;
 			let descriptor_set = {
 				let mut builder = matrix_set_pool.next();
 				builder

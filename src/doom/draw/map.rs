@@ -18,7 +18,14 @@ use vulkano::{
 	command_buffer::{AutoCommandBufferBuilder, PrimaryAutoCommandBuffer},
 	descriptor_set::SingleLayoutDescSetPool,
 	impl_vertex,
-	pipeline::{vertex::BuffersDefinition, GraphicsPipeline, PipelineBindPoint},
+	pipeline::{
+		depth_stencil::DepthStencilState,
+		input_assembly::{InputAssemblyState, PrimitiveTopology},
+		rasterization::{CullMode, RasterizationState},
+		vertex::BuffersDefinition,
+		viewport::ViewportState,
+		GraphicsPipeline, Pipeline, PipelineBindPoint,
+	},
 	render_pass::Subpass,
 	sampler::Sampler,
 };
@@ -37,56 +44,78 @@ pub fn draw_map(
 	let device = render_context.device();
 
 	// Create pipeline for normal parts of the map
-	let world_vert = world_vert::Shader::load(device.clone()).context("Couldn't load shader")?;
-	let world_frag = world_frag::Shader::load(device.clone()).context("Couldn't load shader")?;
+	let world_vert = world_vert::load(device.clone()).context("Couldn't load shader")?;
+	let world_frag = world_frag::load(device.clone()).context("Couldn't load shader")?;
 
-	let normal_pipeline = Arc::new(
-		GraphicsPipeline::start()
-			.render_pass(
-				Subpass::from(draw_target.render_pass().clone(), 0)
-					.ok_or(anyhow!("Subpass index out of range"))?,
-			)
-			.vertex_input(
-				BuffersDefinition::new()
-					.vertex::<Vertex>()
-					.instance::<Instance>(),
-			)
-			.vertex_shader(world_vert.main_entry_point(), ())
-			.fragment_shader(world_frag.main_entry_point(), ())
-			.triangle_fan()
-			.primitive_restart(true)
-			.viewports_dynamic_scissors_irrelevant(1)
-			.cull_mode_back()
-			.depth_stencil_simple_depth()
-			.with_auto_layout(device.clone(), |set_descs| {
-				set_descs[1].set_immutable_samplers(0, [sampler.clone()]);
-			})
-			.context("Couldn't create map pipeline")?,
-	);
+	let normal_pipeline = GraphicsPipeline::start()
+		.render_pass(
+			Subpass::from(draw_target.render_pass().clone(), 0)
+				.ok_or(anyhow!("Subpass index out of range"))?,
+		)
+		.vertex_shader(
+			world_vert
+				.entry_point("main")
+				.context("Couldn't find entry point \"main\"")?,
+			(),
+		)
+		.fragment_shader(
+			world_frag
+				.entry_point("main")
+				.context("Couldn't find entry point \"main\"")?,
+			(),
+		)
+		.vertex_input(
+			BuffersDefinition::new()
+				.vertex::<Vertex>()
+				.instance::<Instance>(),
+		)
+		.input_assembly_state(
+			InputAssemblyState::new()
+				.topology(PrimitiveTopology::TriangleFan)
+				.primitive_restart_enable(),
+		)
+		.viewport_state(ViewportState::viewport_dynamic_scissor_irrelevant())
+		.rasterization_state(RasterizationState::new().cull_mode(CullMode::Back))
+		.depth_stencil_state(DepthStencilState::simple_depth_test())
+		.with_auto_layout(device.clone(), |set_descs| {
+			set_descs[1].set_immutable_samplers(0, [sampler.clone()]);
+		})
+		.context("Couldn't create map pipeline")?;
 
 	// Create pipeline for sky
-	let sky_vert = sky_vert::Shader::load(device.clone())?;
-	let sky_frag = sky_frag::Shader::load(device.clone())?;
+	let sky_vert = sky_vert::load(device.clone())?;
+	let sky_frag = sky_frag::load(device.clone())?;
 
-	let sky_pipeline = Arc::new(
-		GraphicsPipeline::start()
-			.render_pass(
-				Subpass::from(draw_target.render_pass().clone(), 0)
-					.context("Subpass index out of range")?,
-			)
-			.vertex_input_single_buffer::<SkyVertex>()
-			.vertex_shader(sky_vert.main_entry_point(), ())
-			.fragment_shader(sky_frag.main_entry_point(), ())
-			.triangle_fan()
-			.primitive_restart(true)
-			.viewports_dynamic_scissors_irrelevant(1)
-			.cull_mode_back()
-			.depth_stencil_simple_depth()
-			.with_auto_layout(device.clone(), |set_descs| {
-				set_descs[1].set_immutable_samplers(0, [sampler.clone()]);
-			})
-			.context("Couldn't create sky pipeline")?,
-	);
+	let sky_pipeline = GraphicsPipeline::start()
+		.render_pass(
+			Subpass::from(draw_target.render_pass().clone(), 0)
+				.context("Subpass index out of range")?,
+		)
+		.vertex_shader(
+			sky_vert
+				.entry_point("main")
+				.context("Couldn't find entry point \"main\"")?,
+			(),
+		)
+		.fragment_shader(
+			sky_frag
+				.entry_point("main")
+				.context("Couldn't find entry point \"main\"")?,
+			(),
+		)
+		.vertex_input_single_buffer::<SkyVertex>()
+		.input_assembly_state(
+			InputAssemblyState::new()
+				.topology(PrimitiveTopology::TriangleFan)
+				.primitive_restart_enable(),
+		)
+		.viewport_state(ViewportState::viewport_dynamic_scissor_irrelevant())
+		.rasterization_state(RasterizationState::new().cull_mode(CullMode::Back))
+		.depth_stencil_state(DepthStencilState::simple_depth_test())
+		.with_auto_layout(device.clone(), |set_descs| {
+			set_descs[1].set_immutable_samplers(0, [sampler.clone()]);
+		})
+		.context("Couldn't create sky pipeline")?;
 
 	let index_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::index_buffer());
 	let vertex_buffer_pool = CpuBufferPool::new(device.clone(), BufferUsage::vertex_buffer());
@@ -227,15 +256,13 @@ pub fn draw_map(
 				command_buffer.bind_pipeline_graphics(sky_pipeline.clone());
 
 				let image = asset_storage.get(&map.sky).unwrap();
-				let sky_buffer = Arc::new(
-					sky_uniform_pool
-						.next(sky_frag::ty::FragParams {
-							screenSize: [800.0, 600.0],
-							pitch: camera_transform.rotation[1].to_degrees() as f32,
-							yaw: camera_transform.rotation[2].to_degrees() as f32,
-						})
-						.context("Couldn't create buffer")?,
-				);
+				let sky_buffer = sky_uniform_pool
+					.next(sky_frag::ty::FragParams {
+						screenSize: [800.0, 600.0],
+						pitch: camera_transform.rotation[1].to_degrees() as f32,
+						yaw: camera_transform.rotation[2].to_degrees() as f32,
+					})
+					.context("Couldn't create buffer")?;
 				let descriptor_set = {
 					let mut builder = sky_texture_set_pool.next();
 					builder

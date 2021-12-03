@@ -1926,8 +1926,8 @@ dependencies = [
 
 [[package]]
 name = "vulkano"
-version = "0.25.0"
-source = "git+https://github.com/Rua/vulkano.git?branch=descriptor-set-bounds#b7d4936c2af3c9abb0fa7631f5c00605601da3ee"
+version = "0.26.0"
+source = "git+https://github.com/vulkano-rs/vulkano?rev=3845925655b8b86cde8c4b270bb01f366300c4e7#3845925655b8b86cde8c4b270bb01f366300c4e7"
 dependencies = [
  "ash",
  "crossbeam-queue",
@@ -1949,9 +1949,11 @@ dependencies = [
 
 [[package]]
 name = "vulkano-shaders"
-version = "0.25.0"
-source = "git+https://github.com/Rua/vulkano.git?branch=descriptor-set-bounds#b7d4936c2af3c9abb0fa7631f5c00605601da3ee"
+version = "0.26.0"
+source = "git+https://github.com/vulkano-rs/vulkano?rev=3845925655b8b86cde8c4b270bb01f366300c4e7#3845925655b8b86cde8c4b270bb01f366300c4e7"
 dependencies = [
+ "fnv",
+ "heck",
  "proc-macro2",
  "quote",
  "shaderc",
@@ -1961,8 +1963,8 @@ dependencies = [
 
 [[package]]
 name = "vulkano-win"
-version = "0.25.0"
-source = "git+https://github.com/Rua/vulkano.git?branch=descriptor-set-bounds#b7d4936c2af3c9abb0fa7631f5c00605601da3ee"
+version = "0.26.0"
+source = "git+https://github.com/vulkano-rs/vulkano?rev=3845925655b8b86cde8c4b270bb01f366300c4e7#3845925655b8b86cde8c4b270bb01f366300c4e7"
 dependencies = [
  "cocoa 0.20.2",
  "metal",

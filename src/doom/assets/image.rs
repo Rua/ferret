@@ -74,7 +74,7 @@ pub struct ImageData {
 }
 
 pub struct Image {
-	pub image_view: Arc<dyn ImageViewAbstract + Send + Sync>,
+	pub image_view: Arc<dyn ImageViewAbstract>,
 	pub offset: Vector2<f32>,
 }
 

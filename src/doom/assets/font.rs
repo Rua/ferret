@@ -49,7 +49,7 @@ pub fn import_font(
 
 #[derive(Clone)]
 pub struct HexFont {
-	pub image_view: Arc<dyn ImageViewAbstract + Send + Sync>,
+	pub image_view: Arc<dyn ImageViewAbstract>,
 	pub chars: HashMap<char, HexFontChar>,
 	pub line_height: f32,
 }

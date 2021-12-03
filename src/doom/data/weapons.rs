@@ -1991,7 +1991,7 @@ pub static WEAPONS: Lazy<HashMap<&'static str, fn(&mut AssetStorage) -> WeaponTe
 					));
 					world.push((
 						StartSoundEventDef {
-							handle: asset_storage.load("dbcls.sound"),
+							handle: asset_storage.load("dsdbcls.sound"),
 						},
 					));
 					world

@@ -22,9 +22,10 @@ use vulkano::{
 	image::view::ImageViewAbstract,
 	impl_vertex,
 	pipeline::{
+		input_assembly::{InputAssemblyState, PrimitiveTopology},
 		vertex::{BuffersDefinition, Vertex as VertexTrait, VertexMemberInfo, VertexMemberTy},
-		viewport::Viewport,
-		GraphicsPipeline, PipelineBindPoint,
+		viewport::{Viewport, ViewportState},
+		GraphicsPipeline, Pipeline, PipelineBindPoint,
 	},
 	render_pass::Subpass,
 	sampler::Sampler,
@@ -44,25 +45,31 @@ pub fn draw_ui(
 	let device = render_context.device();
 
 	// Create pipeline
-	let vert = ui_vert::Shader::load(device.clone()).context("Couldn't load shader")?;
-	let frag = ui_frag::Shader::load(device.clone()).context("Couldn't load shader")?;
+	let vert = ui_vert::load(device.clone()).context("Couldn't load shader")?;
+	let frag = ui_frag::load(device.clone()).context("Couldn't load shader")?;
 
-	let pipeline = Arc::new(
-		GraphicsPipeline::start()
-			.render_pass(
-				Subpass::from(draw_target.render_pass().clone(), 0)
-					.context("Subpass index out of range")?,
-			)
-			.vertex_input(BuffersDefinition::new().vertex::<Vertex>())
-			.vertex_shader(vert.main_entry_point(), ())
-			.fragment_shader(frag.main_entry_point(), ())
-			.triangle_list()
-			.viewports_dynamic_scissors_irrelevant(1)
-			.with_auto_layout(device.clone(), |set_descs| {
-				set_descs[1].set_immutable_samplers(0, [sampler.clone()]);
-			})
-			.context("Couldn't create UI pipeline")?,
-	);
+	let pipeline = GraphicsPipeline::start()
+		.render_pass(
+			Subpass::from(draw_target.render_pass().clone(), 0)
+				.context("Subpass index out of range")?,
+		)
+		.vertex_shader(
+			vert.entry_point("main")
+				.context("Couldn't find entry point \"main\"")?,
+			(),
+		)
+		.fragment_shader(
+			frag.entry_point("main")
+				.context("Couldn't find entry point \"main\"")?,
+			(),
+		)
+		.vertex_input(BuffersDefinition::new().vertex::<Vertex>())
+		.input_assembly_state(InputAssemblyState::new().topology(PrimitiveTopology::TriangleList))
+		.viewport_state(ViewportState::viewport_dynamic_scissor_irrelevant())
+		.with_auto_layout(device.clone(), |set_descs| {
+			set_descs[1].set_immutable_samplers(0, [sampler.clone()]);
+		})
+		.context("Couldn't create UI pipeline")?;
 
 	let layout = &pipeline.layout().descriptor_set_layouts()[0];
 	let mut matrix_set_pool = SingleLayoutDescSetPool::new(layout.clone());
@@ -117,17 +124,15 @@ pub fn draw_ui(
 				.component_div(&ui_params.dimensions());
 
 			// Create matrix uniform buffer
-			let uniform_buffer = Arc::new(
-				matrix_uniform_pool
-					.next(Matrices { proj: proj.into() })
-					.context("Couldn't create buffer")?,
-			);
+			let uniform_buffer = matrix_uniform_pool
+				.next(Matrices { proj: proj.into() })
+				.context("Couldn't create buffer")?;
 			let descriptor_set = {
 				let mut builder = matrix_set_pool.next();
 				builder
 					.add_buffer(uniform_buffer)
 					.context("Couldn't add buffer to descriptor set")?;
-				Arc::new(builder.build().context("Couldn't create descriptor set")?)
+				builder.build().context("Couldn't create descriptor set")?
 			};
 			command_buffer.bind_descriptor_sets(
 				PipelineBindPoint::Graphics,
@@ -145,8 +150,7 @@ pub fn draw_ui(
 			entities.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(Ordering::Equal));
 
 			// Group draws into batches by texture, preserving depth order
-			let mut batches: Vec<(Arc<dyn ImageViewAbstract + Send + Sync>, Vec<Vertex>)> =
-				Vec::new();
+			let mut batches: Vec<(Arc<dyn ImageViewAbstract>, Vec<Vertex>)> = Vec::new();
 
 			for (ui_transform, ui_game_view, ui_image, ui_text, ui_hexfont_text) in entities
 				.into_iter()
