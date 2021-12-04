@@ -353,10 +353,10 @@ pub fn load_game(name: &str, world: &mut World, resources: &mut Resources) {
 			resources.insert(saved_resources.client);
 			resources.insert(saved_resources.game_time);
 
+			process_assets(resources);
+
 			let quadtree = create_quadtree(world, resources);
 			resources.insert(quadtree);
-
-			process_assets(resources);
 
 			log::info!("Game loaded.");
 		}
