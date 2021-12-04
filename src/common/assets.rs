@@ -124,11 +124,13 @@ impl AssetStorage {
 	pub fn name_for<A: Asset>(&self, handle: &AssetHandle<A>) -> Option<&str> {
 		let storage = storage::<A>(&self.storages);
 		storage.names.iter().find_map(|(k, v)| {
-			if v.upgrade().expect("name refers to deleted asset").id() == handle.id() {
-				Some(k.as_str())
-			} else {
-				None
-			}
+			v.upgrade().and_then(|v| {
+				if v.id() == handle.id() {
+					Some(k.as_str())
+				} else {
+					None
+				}
+			})
 		})
 	}
 
