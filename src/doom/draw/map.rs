@@ -16,14 +16,16 @@ use std::sync::Arc;
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool, ImmutableBuffer, TypedBufferAccess},
 	command_buffer::{AutoCommandBufferBuilder, PrimaryAutoCommandBuffer},
-	descriptor_set::SingleLayoutDescSetPool,
+	descriptor_set::{SingleLayoutDescSetPool, WriteDescriptorSet},
 	impl_vertex,
 	pipeline::{
-		depth_stencil::DepthStencilState,
-		input_assembly::{InputAssemblyState, PrimitiveTopology},
-		rasterization::{CullMode, RasterizationState},
-		vertex::BuffersDefinition,
-		viewport::ViewportState,
+		graphics::{
+			depth_stencil::DepthStencilState,
+			input_assembly::{InputAssemblyState, PrimitiveTopology},
+			rasterization::{CullMode, RasterizationState},
+			vertex_input::BuffersDefinition,
+			viewport::ViewportState,
+		},
 		GraphicsPipeline, Pipeline, PipelineBindPoint,
 	},
 	render_pass::Subpass,
@@ -64,7 +66,7 @@ pub fn draw_map(
 				.context("Couldn't find entry point \"main\"")?,
 			(),
 		)
-		.vertex_input(
+		.vertex_input_state(
 			BuffersDefinition::new()
 				.vertex::<Vertex>()
 				.instance::<Instance>(),
@@ -103,7 +105,7 @@ pub fn draw_map(
 				.context("Couldn't find entry point \"main\"")?,
 			(),
 		)
-		.vertex_input_single_buffer::<SkyVertex>()
+		.vertex_input_state(BuffersDefinition::new().vertex::<SkyVertex>())
 		.input_assembly_state(
 			InputAssemblyState::new()
 				.topology(PrimitiveTopology::TriangleFan)
@@ -181,13 +183,9 @@ pub fn draw_map(
 					let image_view = &asset_storage.get(&handle).unwrap().image_view;
 
 					// Draw
-					let descriptor_set = {
-						let mut builder = normal_texture_set_pool.next();
-						builder
-							.add_image(image_view.clone())
-							.context("Couldn't add image to descriptor set")?;
-						builder.build().context("Couldn't create descriptor set")?
-					};
+					let descriptor_set = normal_texture_set_pool
+						.next([WriteDescriptorSet::image_view(0, image_view.clone())])
+						.context("Couldn't create descriptor set")?;
 					command_buffer.bind_descriptor_sets(
 						PipelineBindPoint::Graphics,
 						normal_pipeline.layout().clone(),
@@ -222,13 +220,9 @@ pub fn draw_map(
 					};
 					let image = asset_storage.get(handle).unwrap();
 
-					let descriptor_set = {
-						let mut builder = normal_texture_set_pool.next();
-						builder
-							.add_image(image.image_view.clone())
-							.context("Couldn't add image to descriptor set")?;
-						builder.build().context("Couldn't create descriptor set")?
-					};
+					let descriptor_set = normal_texture_set_pool
+						.next([WriteDescriptorSet::image_view(0, image.image_view.clone())])
+						.context("Couldn't create descriptor set")?;
 					command_buffer.bind_descriptor_sets(
 						PipelineBindPoint::Graphics,
 						normal_pipeline.layout().clone(),
@@ -263,15 +257,12 @@ pub fn draw_map(
 						yaw: camera_transform.rotation[2].to_degrees() as f32,
 					})
 					.context("Couldn't create buffer")?;
-				let descriptor_set = {
-					let mut builder = sky_texture_set_pool.next();
-					builder
-						.add_image(image.image_view.clone())
-						.context("Couldn't add image to descriptor set")?
-						.add_buffer(sky_buffer)
-						.context("Couldn't add buffer to descriptor set")?;
-					builder.build().context("Couldn't create descriptor set")?
-				};
+				let descriptor_set = sky_texture_set_pool
+					.next([
+						WriteDescriptorSet::image_view(0, image.image_view.clone()),
+						WriteDescriptorSet::buffer(1, sky_buffer),
+					])
+					.context("Couldn't create descriptor set")?;
 				command_buffer.bind_descriptor_sets(
 					PipelineBindPoint::Graphics,
 					sky_pipeline.layout().clone(),

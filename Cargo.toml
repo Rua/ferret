@@ -12,7 +12,7 @@ arrayvec = { version = "0.7", features = ["serde"] }
 bitflags = "1.3"
 byteorder = "1.3"
 chrono = "0.4"
-clap = "2.33"
+clap = "2.34"
 colored = "2.0"
 crossbeam-channel = "0.5"
 derivative = "2.1"
@@ -25,21 +25,21 @@ log = { version = "0.4", features = ["std"] }
 memoffset = "0.6"
 nalgebra = { version = "0.29", features = ["serde-serialize"] }
 num-traits = "0.2"
-once_cell = "1.8"
+once_cell = "1.9"
 png = "0.17"
 rand = "0.8"
 regex = "1.5"
-relative-path = "1.5"
+relative-path = "1.6"
 rmp-serde = { version = "0.15", features = ["serde128"] }
 rodio = { version = "0.14", default-features = false }
 scoped-tls-hkt = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-smallvec = { version = "1.6", features = ["const_generics"] }
-vulkano = { git = "https://github.com/vulkano-rs/vulkano", rev = "3845925655b8b86cde8c4b270bb01f366300c4e7" }
-vulkano-shaders = { git = "https://github.com/vulkano-rs/vulkano", rev = "3845925655b8b86cde8c4b270bb01f366300c4e7" }
-vulkano-win = { git = "https://github.com/vulkano-rs/vulkano", rev = "3845925655b8b86cde8c4b270bb01f366300c4e7" }
-winit = { version = "0.25", features = ["serde"] }
+smallvec = { version = "1.7", features = ["const_generics"] }
+vulkano = { git = "https://github.com/vulkano-rs/vulkano", rev = "286f1faf55caf9f643ee05f567b175156963af4f" }
+vulkano-shaders = { git = "https://github.com/vulkano-rs/vulkano", rev = "286f1faf55caf9f643ee05f567b175156963af4f" }
+vulkano-win = { git = "https://github.com/vulkano-rs/vulkano", rev = "286f1faf55caf9f643ee05f567b175156963af4f" }
+winit = { version = "0.26", features = ["serde"] }
 
 [profile.dev]
 opt-level = 2

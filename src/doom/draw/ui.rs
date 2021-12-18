@@ -18,13 +18,17 @@ use std::{cmp::Ordering, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool, TypedBufferAccess},
 	command_buffer::{AutoCommandBufferBuilder, PrimaryAutoCommandBuffer},
-	descriptor_set::SingleLayoutDescSetPool,
+	descriptor_set::{SingleLayoutDescSetPool, WriteDescriptorSet},
 	image::view::ImageViewAbstract,
 	impl_vertex,
 	pipeline::{
-		input_assembly::{InputAssemblyState, PrimitiveTopology},
-		vertex::{BuffersDefinition, Vertex as VertexTrait, VertexMemberInfo, VertexMemberTy},
-		viewport::{Viewport, ViewportState},
+		graphics::{
+			input_assembly::{InputAssemblyState, PrimitiveTopology},
+			vertex_input::{
+				BuffersDefinition, Vertex as VertexTrait, VertexMemberInfo, VertexMemberTy,
+			},
+			viewport::{Viewport, ViewportState},
+		},
 		GraphicsPipeline, Pipeline, PipelineBindPoint,
 	},
 	render_pass::Subpass,
@@ -63,7 +67,7 @@ pub fn draw_ui(
 				.context("Couldn't find entry point \"main\"")?,
 			(),
 		)
-		.vertex_input(BuffersDefinition::new().vertex::<Vertex>())
+		.vertex_input_state(BuffersDefinition::new().vertex::<Vertex>())
 		.input_assembly_state(InputAssemblyState::new().topology(PrimitiveTopology::TriangleList))
 		.viewport_state(ViewportState::viewport_dynamic_scissor_irrelevant())
 		.with_auto_layout(device.clone(), |set_descs| {
@@ -127,13 +131,9 @@ pub fn draw_ui(
 			let uniform_buffer = matrix_uniform_pool
 				.next(Matrices { proj: proj.into() })
 				.context("Couldn't create buffer")?;
-			let descriptor_set = {
-				let mut builder = matrix_set_pool.next();
-				builder
-					.add_buffer(uniform_buffer)
-					.context("Couldn't add buffer to descriptor set")?;
-				builder.build().context("Couldn't create descriptor set")?
-			};
+			let descriptor_set = matrix_set_pool
+				.next([WriteDescriptorSet::buffer(0, uniform_buffer)])
+				.context("Couldn't create descriptor set")?;
 			command_buffer.bind_descriptor_sets(
 				PipelineBindPoint::Graphics,
 				pipeline.layout().clone(),
@@ -273,13 +273,9 @@ pub fn draw_ui(
 
 			// Draw the batches
 			for (image_view, vertices) in batches {
-				let descriptor_set = {
-					let mut builder = texture_set_pool.next();
-					builder
-						.add_image(image_view)
-						.context("Couldn't add image to descriptor set")?;
-					builder.build().context("Couldn't create descriptor set")?
-				};
+				let descriptor_set = texture_set_pool
+					.next([WriteDescriptorSet::image_view(0, image_view)])
+					.context("Couldn't create descriptor set")?;
 				command_buffer.bind_descriptor_sets(
 					PipelineBindPoint::Graphics,
 					pipeline.layout().clone(),

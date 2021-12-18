@@ -20,13 +20,17 @@ use std::{collections::hash_map::Entry, sync::Arc};
 use vulkano::{
 	buffer::{BufferUsage, CpuBufferPool, TypedBufferAccess},
 	command_buffer::{AutoCommandBufferBuilder, PrimaryAutoCommandBuffer},
-	descriptor_set::SingleLayoutDescSetPool,
+	descriptor_set::{SingleLayoutDescSetPool, WriteDescriptorSet},
 	image::view::ImageViewAbstract,
 	pipeline::{
-		depth_stencil::DepthStencilState,
-		input_assembly::{InputAssemblyState, PrimitiveTopology},
-		vertex::{BuffersDefinition, Vertex as VertexTrait, VertexMemberInfo, VertexMemberTy},
-		viewport::ViewportState,
+		graphics::{
+			depth_stencil::DepthStencilState,
+			input_assembly::{InputAssemblyState, PrimitiveTopology},
+			vertex_input::{
+				BuffersDefinition, Vertex as VertexTrait, VertexMemberInfo, VertexMemberTy,
+			},
+			viewport::ViewportState,
+		},
 		GraphicsPipeline, Pipeline, PipelineBindPoint,
 	},
 	render_pass::Subpass,
@@ -72,7 +76,7 @@ pub fn draw_sprites(
 				.context("Couldn't find entry point \"main\"")?,
 			(),
 		)
-		.vertex_input(BuffersDefinition::new().vertex::<Vertex>())
+		.vertex_input_state(BuffersDefinition::new().vertex::<Vertex>())
 		.input_assembly_state(InputAssemblyState::new().topology(PrimitiveTopology::TriangleList))
 		.viewport_state(ViewportState::viewport_dynamic_scissor_irrelevant())
 		.depth_stencil_state(DepthStencilState::simple_depth_test())
@@ -217,13 +221,9 @@ pub fn draw_sprites(
 			command_buffer.bind_pipeline_graphics(pipeline.clone());
 
 			for (image_view, vertices) in batches {
-				let descriptor_set = {
-					let mut builder = texture_set_pool.next();
-					builder
-						.add_image(image_view)
-						.context("Couldn't add image to descriptor set")?;
-					builder.build().context("Couldn't create descriptor set")?
-				};
+				let descriptor_set = texture_set_pool
+					.next([WriteDescriptorSet::image_view(0, image_view)])
+					.context("Couldn't create descriptor set")?;
 				command_buffer.bind_descriptor_sets(
 					PipelineBindPoint::Graphics,
 					pipeline.layout().clone(),

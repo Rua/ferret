@@ -16,7 +16,7 @@ use vulkano::{
 	command_buffer::{AutoCommandBufferBuilder, PrimaryAutoCommandBuffer},
 	descriptor_set::{
 		layout::{DescriptorDesc, DescriptorSetLayout, DescriptorType},
-		SingleLayoutDescSetPool,
+		SingleLayoutDescSetPool, WriteDescriptorSet,
 	},
 	pipeline::{layout::PipelineLayout, PipelineBindPoint},
 	shader::ShaderStages,
@@ -114,13 +114,9 @@ pub fn draw_world(
 					view: view.into(),
 				})
 				.context("Couldn't create buffer")?;
-			let descriptor_set = {
-				let mut builder = matrix_set_pool.next();
-				builder
-					.add_buffer(uniform_buffer)
-					.context("Couldn't add buffer to descriptor set")?;
-				builder.build().context("Couldn't create descriptor set")?
-			};
+			let descriptor_set = matrix_set_pool
+				.next([WriteDescriptorSet::buffer(0, uniform_buffer)])
+				.context("Couldn't create descriptor set")?;
 			command_buffer.bind_descriptor_sets(
 				PipelineBindPoint::Graphics,
 				pipeline_layout.clone(),
